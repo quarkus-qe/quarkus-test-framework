@@ -42,6 +42,15 @@ public class PingPongResourceTest {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
+Following the extension model architecture, the framework also supports running integration tests on Native:
+
+
+```java
+@NativeTest
+public class NativePingPongResourceIT extends PingPongResourceTest {
+}
+```
+
 ### Containers
 
 Also, we can deploy services via docker:
