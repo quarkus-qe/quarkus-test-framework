@@ -4,7 +4,7 @@ This framework leverages the bootstrap of Quarkus application and other resource
 
 In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file;
 
-```
+```xml
 <dependency>
 	<groupId>io.quarkus.qe</groupId>
 	<artifactId>quarkus-test-core</artifactId>
@@ -46,7 +46,7 @@ As seen in the above example, everything is bounded to a Service object that wil
 
 Also, we can deploy services via docker:
 
-```
+```java
 @QuarkusScenario
 public class GreetingResourceTest {
 
@@ -68,7 +68,7 @@ public class GreetingResourceTest {
 
 Rest Assured is already integrated in our services:
 
-```
+```java
 @QuarkusApplication
 static final Service app = new Service("app");
 
@@ -83,7 +83,7 @@ public void shouldPing() {
 
 We can configure our resources using configuration of other resources:
 
-```
+```java
 @Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
 static final Service consul = new Service("consul");
 
@@ -111,3 +111,4 @@ private static final void onLoadConfigureConsul(Service service) {
 - Improve documentation and architecture diagrams
 - Integration with OpenShift using a new annotation
 - Integration with Awailability
+- Deploy to Maven central
