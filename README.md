@@ -79,7 +79,7 @@ public void shouldPing() {
 }
 ```
 
-- `withRuntimeProperty`: Intuitive usage of runtime properties.
+- `withProperty`: Intuitive usage of properties.
 
 We can configure our resources using configuration of other resources:
 
@@ -88,7 +88,7 @@ We can configure our resources using configuration of other resources:
 static final Service consul = new Service("consul");
 
 @QuarkusApplication
-static final Service app = new Service("app").withRuntimeProperty("quarkus.consul-config.agent.host-port",
+static final Service app = new Service("app").withProperty("quarkus.consul-config.agent.host-port",
 		() -> consul.getHost() + ":" + consul.getPort());
 ```
 
@@ -106,6 +106,14 @@ private static final void onLoadConfigureConsul(Service service) {
 	// ...
 }
 ```
+
+- Services are startable and stoppable by default
+
+Any Quarkus application and containers can be stopped to cover more complex scenarios. The test framework will restart the services by you before starting a new test case.
+
+- Discovery of build time properties to build Quarkus applications
+
+The test framework will leverage whether an application runner can be reused or it needs to trigger a new build. Note that for this feature, tests should be written as Integration Tests. 
 
 ## TODO
 - Improve documentation and architecture diagrams

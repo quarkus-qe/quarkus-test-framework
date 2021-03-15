@@ -41,7 +41,7 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 			loggingHandler = new FileLoggingHandler(model.getContext().getServiceFolder().resolve("out.log"));
 
 			process = new ProcessBuilder(prepareCommand()).redirectErrorStream(true)
-					.directory(model.getBuiltResultArtifact().getParent().toFile()).start();
+                    .directory(model.getArtifact().getParent().toFile()).start();
 
 			loggingHandler.startWatching(process.getInputStream());
 
@@ -80,7 +80,7 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 	}
 
 	private int preparePort() {
-		String port = model.getContext().getOwner().getRuntimeProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
+        String port = model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
 		if (StringUtils.isEmpty(port)) {
 			return SocketUtils.findAvailablePort();
 		}
@@ -89,19 +89,19 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 	}
 
 	private List<String> prepareCommand() {
-		Map<String, String> runtimeProperties = new HashMap<>(model.getContext().getOwner().getRuntimeProperties());
+        Map<String, String> runtimeProperties = new HashMap<>(model.getContext().getOwner().getProperties());
 		runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + runningPort);
 
 		List<String> systemProperties = runtimeProperties.entrySet().stream()
 				.map(e -> "-D" + e.getKey() + "=" + e.getValue()).collect(Collectors.toList());
 		List<String> command = new ArrayList<>(systemProperties.size() + 3);
-		if (model.getBuiltResultArtifact().getFileName().toString().endsWith(".jar")) {
+        if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
 			command.add(JavaBinFinder.findBin());
 			command.addAll(systemProperties);
 			command.add("-jar");
-			command.add(model.getBuiltResultArtifact().toAbsolutePath().toString());
+            command.add(model.getArtifact().toAbsolutePath().toString());
 		} else {
-			command.add(model.getBuiltResultArtifact().toAbsolutePath().toString());
+            command.add(model.getArtifact().toAbsolutePath().toString());
 			command.addAll(systemProperties);
 		}
 

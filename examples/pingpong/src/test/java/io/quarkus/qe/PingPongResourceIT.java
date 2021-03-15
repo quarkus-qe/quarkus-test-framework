@@ -10,7 +10,7 @@ import io.quarkus.test.Service;
 import io.quarkus.test.annotation.QuarkusApplication;
 
 @QuarkusScenario
-public class PingPongResourceTest {
+public class PingPongResourceIT {
 
 	@QuarkusApplication(classes = PingResource.class)
 	static final Service pingApp = new Service("ping");

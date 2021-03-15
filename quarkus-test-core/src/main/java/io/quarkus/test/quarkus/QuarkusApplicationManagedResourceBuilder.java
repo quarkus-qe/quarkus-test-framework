@@ -2,11 +2,15 @@ package io.quarkus.test.quarkus;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
+import java.util.Set;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
@@ -23,8 +27,15 @@ import io.quarkus.test.ServiceContext;
 import io.quarkus.test.annotation.QuarkusApplication;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.utils.ClassPathUtils;
+import io.quarkus.test.utils.FileUtils;
 
 public class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
+
+    private static final String BUILD_TIME_PROPERTIES = "build-time-list.properties";
+    private static final String NATIVE_RUNNER = "-runner";
+    private static final String JVM_RUNNER = "-runner.jar";
+    private static final String QUARKUS_APP = "quarkus-app/";
+    private static final String QUARKUS_RUN = "quarkus-run.jar";
 
 	private static final String QUARKUS_PACKAGE_TYPE_PROPERTY = "quarkus.package.type";
 	private static final String NATIVE = "native";
@@ -35,10 +46,11 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 			.load(QuarkusApplicationManagedResourceBinding.class);
 
 	private ServiceContext context;
-	private Path builtResultArtifact;
+    private Path artifact;
+    private boolean selectedAppClasses = true;
 
-	protected Path getBuiltResultArtifact() {
-		return builtResultArtifact;
+    protected Path getArtifact() {
+        return artifact;
 	}
 
 	protected ServiceContext getContext() {
@@ -51,13 +63,14 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 		appClasses = metadata.classes();
 		if (appClasses.length == 0) {
 			appClasses = ClassPathUtils.findAllClassesFromSource();
+            selectedAppClasses = false;
 		}
 	}
 
 	@Override
 	public ManagedResource build(ServiceContext context) {
 		this.context = context;
-		buildArtifact();
+		tryToReuseArtifact();
 
 		for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindings) {
 			if (binding.appliesFor(context)) {
@@ -68,7 +81,35 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 		return new LocalhostQuarkusApplicationManagedResource(this);
 	}
 
-	private void buildArtifact() {
+    private boolean containsBuildProperties() {
+        Set<String> properties = context.getOwner().getProperties().keySet();
+        if (properties.isEmpty()) {
+            return false;
+        }
+
+        Set<String> buildTimeProperties = listOfBuildTimeProperties();
+        return properties.stream().anyMatch(prop -> buildTimeProperties.contains(prop));
+    }
+
+    private void tryToReuseArtifact() {
+        Optional<String> artifactLocation = Optional.empty();
+        if (!containsBuildProperties() && !selectedAppClasses) {
+            if (isNativeTest()) {
+                artifactLocation = FileUtils.findTargetFile(NATIVE_RUNNER);
+            } else {
+                artifactLocation = FileUtils.findTargetFile(JVM_RUNNER)
+                        .or(() -> FileUtils.findTargetFile(QUARKUS_APP, QUARKUS_RUN));
+            }
+        }
+
+        if (artifactLocation.isEmpty()) {
+            this.artifact = buildArtifact();
+        } else {
+            this.artifact = Path.of(artifactLocation.get());
+        }
+    }
+
+    private Path buildArtifact() {
 		try {
 			Path appFolder = context.getServiceFolder();
 			JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(appClasses);
@@ -93,15 +134,36 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 				result = action.createProductionApplication();
 			}
 
-			builtResultArtifact = Optional.ofNullable(result.getNativeResult())
+            return Optional.ofNullable(result.getNativeResult())
 					.orElseGet(() -> result.getJar().getPath());
 		} catch (Exception ex) {
 			fail("Failed to build Quarkus artifacts. Caused by " + ex);
 		}
+
+        return null;
 	}
 
 	private boolean isNativeTest() {
 		return context.getTestContext().getRequiredTestClass().isAnnotationPresent(NativeTest.class);
 	}
+
+    private static final Set<String> listOfBuildTimeProperties() {
+        Set<String> buildTimeProperties = new HashSet<>();
+
+        try (InputStream input = QuarkusApplicationManagedResourceBuilder.class.getClassLoader()
+                .getResourceAsStream(BUILD_TIME_PROPERTIES)) {
+
+            Properties prop = new Properties();
+            prop.load(input);
+            for (Entry<Object, Object> entry : prop.entrySet()) {
+                buildTimeProperties.add((String) entry.getKey());
+            }
+
+        } catch (Exception ex) {
+            fail("We could not load build time properties. Caused by " + ex);
+        }
+
+        return buildTimeProperties;
+    }
 
 }

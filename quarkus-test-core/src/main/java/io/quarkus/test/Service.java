@@ -24,15 +24,15 @@ public class Service {
 	private final String serviceName;
 	private final List<Action> onPreStartActions = new LinkedList<>();
 	private final List<Action> onPostStartActions = new LinkedList<>();
-	private final Map<String, String> runtimeProperties = new HashMap<>();
-	private final List<Runnable> futureRuntimeProperties = new LinkedList<>();
+    private final Map<String, String> properties = new HashMap<>();
+    private final List<Runnable> futureProperties = new LinkedList<>();
 
 	private ManagedResource managedResource;
 
 	public Service(String name) {
 		this.serviceName = name;
 
-		onPreStart(s -> futureRuntimeProperties.forEach(Runnable::run));
+        onPreStart(s -> futureProperties.forEach(Runnable::run));
 	}
 
 	public String getName() {
@@ -54,8 +54,8 @@ public class Service {
 	 * configured to be run
 	 */
 	public Service withProperties(String propertiesFile) {
-		runtimeProperties.clear();
-		runtimeProperties.putAll(PropertiesUtils.toMap(propertiesFile));
+        properties.clear();
+        properties.putAll(PropertiesUtils.toMap(propertiesFile));
 		return this;
 	}
 
@@ -63,8 +63,8 @@ public class Service {
 	 * The runtime configuration property to be used if the built artifact is
 	 * configured to be run
 	 */
-	public Service withRuntimeProperty(String key, String value) {
-		this.runtimeProperties.put(key, value);
+    public Service withProperty(String key, String value) {
+        this.properties.put(key, value);
 		return this;
 	}
 
@@ -72,8 +72,8 @@ public class Service {
 	 * The runtime configuration property to be used if the built artifact is
 	 * configured to be run
 	 */
-	public Service withRuntimeProperty(String key, Supplier<String> value) {
-		futureRuntimeProperties.add(() -> runtimeProperties.put(key, value.get()));
+    public Service withProperty(String key, Supplier<String> value) {
+        futureProperties.add(() -> properties.put(key, value.get()));
 		return this;
 	}
 
@@ -85,8 +85,8 @@ public class Service {
 		return managedResource.getPort();
 	}
 
-	public Map<String, String> getRuntimeProperties() {
-		return Collections.unmodifiableMap(runtimeProperties);
+    public Map<String, String> getProperties() {
+        return Collections.unmodifiableMap(properties);
 	}
 
 	/**
@@ -117,7 +117,7 @@ public class Service {
 
 	protected void init(ManagedResourceBuilder managedResourceBuilder, ExtensionContext context) {
 		Path serviceFolder = new File("target", serviceName).toPath();
-		FileUtils.deleteDirectory(serviceFolder);
+        FileUtils.recreateDirectory(serviceFolder);
 
 		managedResource = managedResourceBuilder.build(new ServiceContext(this, serviceFolder, context));
 	}

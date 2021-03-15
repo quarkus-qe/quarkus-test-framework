@@ -22,15 +22,15 @@ import io.quarkus.test.annotation.Container;
 import io.quarkus.test.annotation.QuarkusApplication;
 
 @QuarkusScenario
-public class GreetingResourceTest {
+public class GreetingResourceIT {
 
 	private static final String CUSTOM_PROPERTY = "my.property";
 
 	@Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
-	static final Service consul = new Service("consul").onPostStart(GreetingResourceTest::onLoadConfigureConsul);
+	static final Service consul = new Service("consul").onPostStart(GreetingResourceIT::onLoadConfigureConsul);
 
 	@QuarkusApplication
-	static final Service app = new Service("app").withRuntimeProperty("quarkus.consul-config.agent.host-port",
+    static final Service app = new Service("app").withProperty("quarkus.consul-config.agent.host-port",
 			() -> consul.getHost() + ":" + consul.getPort());
 
 	@Test
@@ -62,7 +62,7 @@ public class GreetingResourceTest {
 		KeyValueClient kvClient = consulClient().keyValueClient();
 		try {
 			String properties = IOUtils.toString(
-					GreetingResourceTest.class.getClassLoader().getResourceAsStream("application.properties"),
+					GreetingResourceIT.class.getClassLoader().getResourceAsStream("application.properties"),
 					StandardCharsets.UTF_8);
 			kvClient.putValue("config/app", properties);
 		} catch (IOException e) {

@@ -32,7 +32,7 @@ public class DockerContainerManagedResource implements ManagedResource {
 			innerContainer.withCommand(model.getCommand());
 		}
 
-		innerContainer.withEnv(model.getContext().getOwner().getRuntimeProperties());
+        innerContainer.withEnv(model.getContext().getOwner().getProperties());
 
 		innerContainer.withExposedPorts(model.getPort());
 		innerContainer.start();
