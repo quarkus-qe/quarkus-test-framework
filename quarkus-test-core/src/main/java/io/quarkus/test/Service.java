@@ -13,116 +13,133 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
+import org.jboss.logging.Logger;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 import io.restassured.specification.RequestSpecification;
 
 public class Service {
 
-	private final String serviceName;
-	private final List<Action> onPreStartActions = new LinkedList<>();
-	private final List<Action> onPostStartActions = new LinkedList<>();
+    private static final Logger LOG = Logger.getLogger(Service.class);
+
+    private final String serviceName;
+    private final List<Action> onPreStartActions = new LinkedList<>();
+    private final List<Action> onPostStartActions = new LinkedList<>();
     private final Map<String, String> properties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
 
-	private ManagedResource managedResource;
+    private ManagedResource managedResource;
+    private Configuration configuration;
 
-	public Service(String name) {
-		this.serviceName = name;
-
+    public Service(String name) {
+        this.serviceName = name;
+        this.configuration = Configuration.load(serviceName);
         onPreStart(s -> futureProperties.forEach(Runnable::run));
-	}
+    }
 
-	public String getName() {
-		return serviceName;
-	}
+    public String getName() {
+        return serviceName;
+    }
 
-	public Service onPreStart(Action action) {
-		onPreStartActions.add(action);
-		return this;
-	}
+    public Configuration getConfiguration() {
+        return configuration;
+    }
 
-	public Service onPostStart(Action action) {
-		onPostStartActions.add(action);
-		return this;
-	}
+    public Service onPreStart(Action action) {
+        onPreStartActions.add(action);
+        return this;
+    }
 
-	/**
-	 * The runtime configuration property to be used if the built artifact is
-	 * configured to be run
-	 */
-	public Service withProperties(String propertiesFile) {
+    public Service onPostStart(Action action) {
+        onPostStartActions.add(action);
+        return this;
+    }
+
+    /**
+     * The runtime configuration property to be used if the built artifact is
+     * configured to be run
+     */
+    public Service withProperties(String propertiesFile) {
         properties.clear();
         properties.putAll(PropertiesUtils.toMap(propertiesFile));
-		return this;
-	}
+        return this;
+    }
 
-	/**
-	 * The runtime configuration property to be used if the built artifact is
-	 * configured to be run
-	 */
+    /**
+     * The runtime configuration property to be used if the built artifact is
+     * configured to be run
+     */
     public Service withProperty(String key, String value) {
         this.properties.put(key, value);
-		return this;
-	}
+        return this;
+    }
 
-	/**
-	 * The runtime configuration property to be used if the built artifact is
-	 * configured to be run
-	 */
+    /**
+     * The runtime configuration property to be used if the built artifact is
+     * configured to be run
+     */
     public Service withProperty(String key, Supplier<String> value) {
         futureProperties.add(() -> properties.put(key, value.get()));
-		return this;
-	}
+        return this;
+    }
 
-	public String getHost() {
-		return managedResource.getHost();
-	}
+    public String getHost() {
+        return managedResource.getHost();
+    }
 
-	public Integer getPort() {
-		return managedResource.getPort();
-	}
+    public Integer getPort() {
+        return managedResource.getPort();
+    }
 
     public Map<String, String> getProperties() {
         return Collections.unmodifiableMap(properties);
-	}
+    }
 
-	/**
-	 * Start the managed resource. If the managed resource is running, it does
-	 * nothing.
-	 *
-	 * @throws RuntimeException when application errors at startup.
-	 */
-	public void start() {
-		onPreStartActions.forEach(a -> a.handle(this));
-		managedResource.start();
-		waitUntilServiceIsStarted();
-		onPostStartActions.forEach(a -> a.handle(this));
-	}
+    /**
+     * Start the managed resource. If the managed resource is running, it does
+     * nothing.
+     *
+     * @throws RuntimeException when application errors at startup.
+     */
+    public void start() {
+        LOG.infof("[%s] Starting service", getName());
 
-	/**
-	 * Stop the Quarkus application.
-	 */
-	public void stop() {
-		if (managedResource != null) {
-			managedResource.stop();
-		}
-	}
+        onPreStartActions.forEach(a -> a.handle(this));
+        managedResource.start();
+        waitUntilServiceIsStarted();
+        onPostStartActions.forEach(a -> a.handle(this));
+        LOG.infof("[%s] Service started", getName());
+    }
 
-	public RequestSpecification restAssured() {
-		return given().baseUri(managedResource.getHost()).basePath("/").port(managedResource.getPort());
-	}
+    /**
+     * Stop the Quarkus application.
+     */
+    public void stop() {
+        LOG.infof("[%s] Stopping service", getName());
+        if (managedResource != null) {
+            managedResource.stop();
+        }
 
-	protected void init(ManagedResourceBuilder managedResourceBuilder, ExtensionContext context) {
-		Path serviceFolder = new File("target", serviceName).toPath();
+        LOG.infof("[%s] Service stopped", getName());
+    }
+
+    public RequestSpecification restAssured() {
+        return given().baseUri(managedResource.getHost()).basePath("/").port(managedResource.getPort());
+    }
+
+    protected void init(ManagedResourceBuilder managedResourceBuilder, ExtensionContext context) {
+        LOG.infof("[%s] Initialize service", getName());
+
+        Path serviceFolder = new File("target", serviceName).toPath();
         FileUtils.recreateDirectory(serviceFolder);
 
-		managedResource = managedResourceBuilder.build(new ServiceContext(this, serviceFolder, context));
-	}
+        managedResource = managedResourceBuilder.build(new ServiceContext(this, serviceFolder, context));
+    }
 
-	private void waitUntilServiceIsStarted() {
-		await().atMost(5, TimeUnit.MINUTES).until(managedResource::isRunning);
-	}
+    private void waitUntilServiceIsStarted() {
+        await().atMost(5, TimeUnit.MINUTES).until(managedResource::isRunning);
+    }
 }

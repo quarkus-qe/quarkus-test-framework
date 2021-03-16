@@ -1,5 +1,7 @@
 package io.quarkus.test;
 
+import java.util.List;
+
 public interface ManagedResource {
 
 	/**
@@ -28,4 +30,9 @@ public interface ManagedResource {
 	 * @return if the resource is running.
 	 */
 	boolean isRunning();
+
+    /**
+     * @return the list of logs.
+     */
+    List<String> logs();
 }
