@@ -14,6 +14,7 @@
     <modules>
         <module>quarkus-test-core</module>
         <module>quarkus-test-containers</module>
+        <module>quarkus-test-openshift</module>
         <module>examples/pingpong</module>
         <module>examples/consul</module>
     </modules>
@@ -60,6 +61,11 @@
                 <artifactId>quarkus-test-containers</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-openshift</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -97,6 +103,7 @@
                             </includes>
                             <excludes>
                                 <exclude>**/Native*IT.java</exclude>
+                                <exclude>**/OpenShift*IT.java</exclude>
                             </excludes>
                             <systemProperties>
                                 <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -123,6 +130,9 @@
                         <executions>
                             <execution>
                                 <configuration>
+                                    <includes>
+                                        <include>**/Native*IT.java</include>
+                                    </includes>
                                     <excludes combine.self="override"/>
                                     <systemProperties>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
@@ -137,6 +147,32 @@
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
             </properties>
+        </profile>
+        <profile>
+            <id>openshift</id>
+            <activation>
+                <property>
+                    <name>openshift</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <version>${surefire-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <configuration>
+                                    <includes>
+                                        <include>**/OpenShift*IT.java</include>
+                                    </includes>
+                                    <excludes combine.self="override"/>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

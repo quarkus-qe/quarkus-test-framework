@@ -1,7 +1,5 @@
 package io.quarkus.test.utils;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -50,7 +48,7 @@ public final class FileUtils {
                         (path, basicFileAttributes) -> path.toFile().getName().endsWith(endsWith))) {
             return binariesFound.map(path -> path.normalize().toString()).findFirst();
         } catch (IOException ex) {
-            fail("We could not load target files. Caused by " + ex);
+            // ignored
         }
 
         return Optional.empty();

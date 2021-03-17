@@ -51,7 +51,9 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 
     @Override
     public void stop() {
-        loggingHandler.stopWatching();
+        if (loggingHandler != null) {
+            loggingHandler.stopWatching();
+        }
 
         try {
             if (process != null) {

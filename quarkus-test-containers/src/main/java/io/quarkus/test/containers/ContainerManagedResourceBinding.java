@@ -14,8 +14,7 @@ public interface ContainerManagedResourceBinding {
 	 * Init and return the managed resource for the current context.
 	 *
 	 * @param builder
-	 * @param context
 	 * @return
 	 */
-	ManagedResource init(ContainerManagedResourceBuilder builder, ServiceContext context);
+    ManagedResource init(ContainerManagedResourceBuilder builder);
 }

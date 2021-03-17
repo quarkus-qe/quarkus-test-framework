@@ -10,7 +10,7 @@ import io.quarkus.test.annotation.Container;
 
 public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
 
-	private final ServiceLoader<ContainerManagedResourceBinding> managedResourceBindings = ServiceLoader
+    private final ServiceLoader<ContainerManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
 			.load(ContainerManagedResourceBinding.class);
 
 	private ServiceContext context;
@@ -51,9 +51,9 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
 	@Override
 	public ManagedResource build(ServiceContext context) {
 		this.context = context;
-		for (ContainerManagedResourceBinding binding : managedResourceBindings) {
+        for (ContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
 			if (binding.appliesFor(context)) {
-				return binding.init(this, context);
+                return binding.init(this);
 			}
 		}
 

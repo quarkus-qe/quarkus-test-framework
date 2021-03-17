@@ -3,8 +3,6 @@ package io.quarkus.test;
 import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 
-import java.io.File;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -14,7 +12,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 import org.jboss.logging.Logger;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.utils.FileUtils;
@@ -130,16 +127,25 @@ public class Service {
         return given().baseUri(managedResource.getHost()).basePath("/").port(managedResource.getPort());
     }
 
-    protected void init(ManagedResourceBuilder managedResourceBuilder, ExtensionContext context) {
+    protected void init(ManagedResourceBuilder managedResourceBuilder, ServiceContext context) {
         LOG.infof("[%s] Initialize service", getName());
-
-        Path serviceFolder = new File("target", serviceName).toPath();
-        FileUtils.recreateDirectory(serviceFolder);
-
-        managedResource = managedResourceBuilder.build(new ServiceContext(this, serviceFolder, context));
+        FileUtils.recreateDirectory(context.getServiceFolder());
+        managedResource = managedResourceBuilder.build(context);
     }
 
     private void waitUntilServiceIsStarted() {
-        await().atMost(5, TimeUnit.MINUTES).until(managedResource::isRunning);
+        await().pollInterval(4, TimeUnit.SECONDS).atMost(5, TimeUnit.MINUTES).until(this::isManagedResourceRunning);
+    }
+
+    private boolean isManagedResourceRunning() {
+        LOG.debugf("[%s] Checking if resource is running", getName());
+        boolean isRunning = managedResource.isRunning();
+        if (isRunning) {
+            LOG.debugf("[%s] Resource is running!", getName());
+        } else {
+            LOG.debugf("[%s] Resource is not running yet", getName());
+        }
+
+        return isRunning;
     }
 }

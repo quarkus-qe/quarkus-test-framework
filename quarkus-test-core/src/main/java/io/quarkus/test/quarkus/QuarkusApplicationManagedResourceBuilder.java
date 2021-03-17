@@ -42,7 +42,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 
     private Class<?>[] appClasses;
 
-    private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindings = ServiceLoader
+    private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(QuarkusApplicationManagedResourceBinding.class);
 
     private ServiceContext context;
@@ -73,7 +73,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         configureLogging();
         tryToReuseArtifact();
 
-        for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindings) {
+        for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(context)) {
                 return binding.init(this, context);
             }
