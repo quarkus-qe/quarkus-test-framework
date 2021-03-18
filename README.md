@@ -71,6 +71,34 @@ public class GreetingResourceTest {
 }
 ```
 
+### OpenShift
+
+We can write also scenarios to be run in OpenShift by adding the `@OpenShiftTest`:
+
+```
+@OpenShiftTest
+public class OpenShiftPingPongResourceIT {
+    @QuarkusApplication(classes = PingResource.class)
+    static final Service pingApp = new Service("ping");
+
+    @Test
+    public void shouldPingWorks() {
+        pingApp.restAssured().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingApp.restAssured().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
+    }
+}
+```
+
+ The nature of the test framework is that you don't need to do anything special in your tests to make them work in OpenShift, the only requirement is that you need to have installed the OC command line and have logged in an existing OpenShift instance.
+ 
+ Also, you can extend your existing tests like in Native tests:
+ 
+ ```java
+@OpenShiftTest
+public class OpenShiftPingPongResourceIT extends PingPongResourceTest {
+}
+```
+
 ## Features
 
 - `restAssured`: Rest Assured integration.
@@ -135,10 +163,11 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 ```
 
 ## TODO
+- Add configuration file support and append the configuration to the service context.
 - Improve documentation and architecture diagrams
 - Integration with OpenShift using a new annotation
-- Integration with Awailability
 - Ease to colourify a set of a log only (more about colors here: https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)
+- Verify Quarkus applications works fine regardless the `quarkus.package.type` value is being in use.
 - Support of Quarkus Applications from Docker images
 - Support of Quarkus Applications of Maven modules (select a Maven module instead of using a set of classes)
 - Deploy to Maven central

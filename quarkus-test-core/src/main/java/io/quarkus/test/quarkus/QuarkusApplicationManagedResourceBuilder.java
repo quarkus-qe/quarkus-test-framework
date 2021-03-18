@@ -75,7 +75,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 
         for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(context)) {
-                return binding.init(this, context);
+                return binding.init(this);
             }
         }
 
@@ -93,7 +93,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         }
 
         Set<String> buildTimeProperties = listOfBuildTimeProperties();
-        return properties.stream().anyMatch(prop -> buildTimeProperties.contains(prop));
+        return properties.stream().anyMatch(buildTimeProperties::contains);
     }
 
     private void tryToReuseArtifact() {

@@ -14,9 +14,9 @@ public final class FileUtils {
 
     private static final int NO_RECURSIVE = 1;
 
-	private FileUtils() {
+    private FileUtils() {
 
-	}
+    }
 
     public static void recreateDirectory(Path folder) {
         deleteDirectory(folder);
@@ -27,16 +27,16 @@ public final class FileUtils {
         }
     }
 
-	public static void deleteDirectory(Path folder) {
-		File file = folder.toFile();
-		if (file.exists()) {
-			try {
-				org.apache.commons.io.FileUtils.forceDelete(file);
-			} catch (IOException e) {
-				throw new RuntimeException(e);
-			}
-		}
-	}
+    public static void deleteDirectory(Path folder) {
+        File file = folder.toFile();
+        if (file.exists()) {
+            try {
+                org.apache.commons.io.FileUtils.forceDelete(file);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
     public static final Optional<String> findTargetFile(String endsWith) {
         return findTargetFile(StringUtils.EMPTY, endsWith);

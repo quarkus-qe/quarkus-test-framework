@@ -2,10 +2,15 @@ package io.quarkus.test.openshift;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.ByteArrayInputStream;
+import java.nio.file.Path;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
@@ -29,6 +34,22 @@ public final class OpenShiftFacade {
         client = masterClient.inNamespace(namespace);
     }
 
+    public String getNamespace() {
+        return client.getNamespace();
+    }
+
+    public List<HasMetadata> loadYaml(String template) {
+        return client.load(new ByteArrayInputStream(template.getBytes())).get();
+    }
+
+    public void apply(Path file) {
+        try {
+            new Command(OC, "apply", "-f", file.toAbsolutePath().toString()).runAndWait();
+        } catch (Exception e) {
+            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
+        }
+    }
+
     public void createApplication(String name, String image) {
         try {
             new Command(OC, "new-app", image, "--name", name).runAndWait();
@@ -38,6 +59,12 @@ public final class OpenShiftFacade {
     }
 
     public void exposeService(String serviceName, int port) {
+        Route route = client.routes().withName(serviceName).get();
+        if (route != null) {
+            // already exposed.
+            return;
+        }
+
         try {
             new Command(OC, "expose", "svc/" + serviceName, "--port=" + port).runAndWait();
         } catch (Exception e) {
@@ -53,9 +80,9 @@ public final class OpenShiftFacade {
         }
     }
 
-    public Map<String, String> getLogs(String name) {
+    public Map<String, String> getLogs(String serviceName) {
         Map<String, String> logs = new HashMap<>();
-        for (Pod pod : client.pods().withLabel("deploymentconfig", name).list().getItems()) {
+        for (Pod pod : client.pods().withLabel("deploymentconfig", serviceName).list().getItems()) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
                 logs.put(podName, client.pods().withName(podName).getLog());
@@ -65,10 +92,14 @@ public final class OpenShiftFacade {
         return logs;
     }
 
-    public String getUrlFromRoute(String routeName) {
-        Route route = client.routes().withName(routeName).get();
+    public boolean hasImageStreamTags(ImageStream is) {
+        return !masterClient.imageStreams().withName(is.getMetadata().getName()).get().getSpec().getTags().isEmpty();
+    }
+
+    public String getUrlFromRoute(String serviceName) {
+        Route route = client.routes().withName(serviceName).get();
         if (route == null || route.getSpec() == null) {
-            fail("Route " + routeName + " not found");
+            fail("Route " + serviceName + " not found");
         }
 
         final String protocol = route.getSpec().getTls() == null ? "http" : "https";

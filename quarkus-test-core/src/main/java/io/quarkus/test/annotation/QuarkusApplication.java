@@ -11,8 +11,8 @@ import io.quarkus.test.quarkus.QuarkusApplicationManagedResourceBuilder;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface QuarkusApplication {
-	// By default, it will load all the classes in the classpath.
-	Class<?>[] classes() default {};
+    // By default, it will load all the classes in the classpath.
+    Class<?>[] classes() default {};
 
-	Class<? extends ManagedResourceBuilder> builder() default QuarkusApplicationManagedResourceBuilder.class;
+    Class<? extends ManagedResourceBuilder> builder() default QuarkusApplicationManagedResourceBuilder.class;
 }

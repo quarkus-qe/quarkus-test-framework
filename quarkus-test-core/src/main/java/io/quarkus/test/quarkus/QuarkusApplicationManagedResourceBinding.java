@@ -14,8 +14,7 @@ public interface QuarkusApplicationManagedResourceBinding {
 	 * Init and return the managed resource for the current context.
 	 *
 	 * @param builder
-	 * @param context
 	 * @return
 	 */
-	ManagedResource init(QuarkusApplicationManagedResourceBuilder builder, ServiceContext context);
+    ManagedResource init(QuarkusApplicationManagedResourceBuilder builder);
 }

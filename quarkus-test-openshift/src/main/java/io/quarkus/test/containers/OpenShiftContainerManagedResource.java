@@ -11,57 +11,60 @@ import io.quarkus.test.openshift.OpenShiftFacade;
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private final ContainerManagedResourceBuilder model;
-	private final OpenShiftFacade facade;
-    private LoggingHandler loggingHandler;
+    private final OpenShiftFacade facade;
 
-	private boolean init;
-	private boolean running;
+    private LoggingHandler loggingHandler;
+    private boolean init;
+    private boolean running;
 
     protected OpenShiftContainerManagedResource(ContainerManagedResourceBuilder model) {
-		this.model = model;
-
+        this.model = model;
         this.facade = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
-	}
+    }
 
-	@Override
-	public void start() {
-		if (running) {
-			return;
-		}
+    @Override
+    public void start() {
+        if (running) {
+            return;
+        }
 
-		if (!init) {
+        if (!init) {
             facade.createApplication(model.getContext().getOwner().getName(), model.getImage());
             facade.exposeService(model.getContext().getOwner().getName(), model.getPort());
-			init = true;
-		}
+            init = true;
+        }
 
         facade.setReplicaTo(model.getContext().getOwner().getName(), 1);
-		running = true;
+        running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
         loggingHandler.startWatching();
-	}
+    }
 
-	@Override
-	public void stop() {
+    @Override
+    public void stop() {
+        if (loggingHandler != null) {
+            loggingHandler.stopWatching();
+        }
+
         facade.setReplicaTo(model.getContext().getOwner().getName(), 0);
-		running = false;
-	}
+        running = false;
+    }
 
-	@Override
-	public String getHost() {
+    @Override
+    public String getHost() {
         return facade.getUrlFromRoute(model.getContext().getOwner().getName());
-	}
+    }
 
-	@Override
-	public int getPort() {
-		return 80;
-	}
+    @Override
+    public int getPort() {
+        return 80;
+    }
 
-	@Override
-	public boolean isRunning() {
+    @Override
+    public boolean isRunning() {
         return loggingHandler != null && loggingHandler.logsContains(model.getExpectedLog());
-	}
+    }
 
     @Override
     public List<String> logs() {
