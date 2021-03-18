@@ -33,6 +33,9 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
         <quarkus-plugin.version>999-SNAPSHOT</quarkus-plugin.version>
+
+        <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
+        <exclude.native.tests>**/Native*IT.java</exclude.native.tests>
     </properties>
 
     <dependencyManagement>
@@ -88,6 +91,7 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
             </plugin>
+
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <version>${surefire-plugin.version}</version>
@@ -102,12 +106,9 @@
                                 <include>**/*IT.java</include>
                             </includes>
                             <excludes>
-                                <exclude>**/Native*IT.java</exclude>
-                                <exclude>**/OpenShift*IT.java</exclude>
+                                <exclude>${exclude.native.tests}</exclude>
+                                <exclude>${exclude.openshift.tests}</exclude>
                             </excludes>
-                            <systemProperties>
-                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
-                            </systemProperties>
                         </configuration>
                     </execution>
                 </executions>
@@ -130,10 +131,6 @@
                         <executions>
                             <execution>
                                 <configuration>
-                                    <includes>
-                                        <include>**/Native*IT.java</include>
-                                    </includes>
-                                    <excludes combine.self="override"/>
                                     <systemProperties>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                                         <quarkus.native.container-build>true</quarkus.native.container-build>
@@ -146,33 +143,21 @@
             </build>
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
+                <exclude.native.tests>no</exclude.native.tests>
             </properties>
         </profile>
         <profile>
+            <!-- You need to be connected to an OpenShift instance to activate 
+                this profile! -->
             <id>openshift</id>
             <activation>
                 <property>
                     <name>openshift</name>
                 </property>
             </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <configuration>
-                                    <includes>
-                                        <include>**/OpenShift*IT.java</include>
-                                    </includes>
-                                    <excludes combine.self="override"/>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
+            <properties>
+                <exclude.openshift.tests>no</exclude.openshift.tests>
+            </properties>
         </profile>
     </profiles>
 </project>

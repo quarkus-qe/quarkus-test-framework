@@ -31,7 +31,7 @@ public class GreetingResourceIT {
 
     @QuarkusApplication
     static final Service app = new Service("app").withProperty("quarkus.consul-config.agent.host-port",
-            () -> consul.getHost() + ":" + consul.getPort());
+            GreetingResourceIT::normalizeConsulEndpoint);
 
     @Test
     public void shouldUpdateCustomProperty() {
@@ -73,7 +73,11 @@ public class GreetingResourceIT {
     private static final Consul consulClient() {
         return Consul.builder()
                 .withHostAndPort(
-                        HostAndPort.fromString(consul.getHost().replace("http://", "") + ":" + consul.getPort()))
+                        HostAndPort.fromString(normalizeConsulEndpoint()))
                 .build();
+    }
+
+    private static final String normalizeConsulEndpoint() {
+        return consul.getHost().replace("http://", "") + ":" + consul.getPort();
     }
 }

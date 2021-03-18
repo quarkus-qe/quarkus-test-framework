@@ -11,16 +11,13 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-import org.jboss.logging.Logger;
-
 import io.quarkus.test.configuration.Configuration;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 import io.restassured.specification.RequestSpecification;
 
 public class Service {
-
-    private static final Logger LOG = Logger.getLogger(Service.class);
 
     private final String serviceName;
     private final List<Action> onPreStartActions = new LinkedList<>();
@@ -102,25 +99,31 @@ public class Service {
      * @throws RuntimeException when application errors at startup.
      */
     public void start() {
-        LOG.infof("[%s] Starting service", getName());
+        if (isManagedResourceRunning()) {
+            return;
+        }
+
+        Log.debug(this, "Starting service");
 
         onPreStartActions.forEach(a -> a.handle(this));
         managedResource.start();
         waitUntilServiceIsStarted();
         onPostStartActions.forEach(a -> a.handle(this));
-        LOG.infof("[%s] Service started", getName());
+        Log.info(this, "Service started");
     }
 
     /**
      * Stop the Quarkus application.
      */
     public void stop() {
-        LOG.infof("[%s] Stopping service", getName());
-        if (managedResource != null) {
-            managedResource.stop();
+        if (!isManagedResourceRunning()) {
+            return;
         }
 
-        LOG.infof("[%s] Service stopped", getName());
+        Log.debug(this, "Stopping service");
+        managedResource.stop();
+
+        Log.info(this, "Service stopped");
     }
 
     public RequestSpecification restAssured() {
@@ -128,7 +131,7 @@ public class Service {
     }
 
     protected void init(ManagedResourceBuilder managedResourceBuilder, ServiceContext context) {
-        LOG.infof("[%s] Initialize service", getName());
+        Log.info(this, "Initialize service");
         FileUtils.recreateDirectory(context.getServiceFolder());
         managedResource = managedResourceBuilder.build(context);
     }
@@ -138,12 +141,12 @@ public class Service {
     }
 
     private boolean isManagedResourceRunning() {
-        LOG.debugf("[%s] Checking if resource is running", getName());
+        Log.debug(this, "Checking if resource is running");
         boolean isRunning = managedResource.isRunning();
         if (isRunning) {
-            LOG.debugf("[%s] Resource is running!", getName());
+            Log.debug(this, "Resource is running");
         } else {
-            LOG.debugf("[%s] Resource is not running yet", getName());
+            Log.debug(this, "Resource is not running");
         }
 
         return isRunning;

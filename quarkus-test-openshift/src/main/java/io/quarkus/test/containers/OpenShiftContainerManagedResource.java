@@ -60,7 +60,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
 
 	@Override
 	public boolean isRunning() {
-        return loggingHandler.logsContains(model.getExpectedLog());
+        return loggingHandler != null && loggingHandler.logsContains(model.getExpectedLog());
 	}
 
     @Override

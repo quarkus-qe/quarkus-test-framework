@@ -124,8 +124,21 @@ Any Quarkus application and containers can be stopped to cover more complex scen
 
 The test framework will leverage whether an application runner can be reused or it needs to trigger a new build. Note that for this feature, tests should be written as Integration Tests. 
 
+- Colourify logging
+
+The test framework will output a different colour by service. This will extremely ease the troubleshooting of the logic.
+
+You can enable the logging by adding a `test.properties` in your module with the next property:
+
+```
+ts.<YOUR SERVICE NAME>.log.enable=true
+```
+
 ## TODO
 - Improve documentation and architecture diagrams
 - Integration with OpenShift using a new annotation
 - Integration with Awailability
+- Ease to colourify a set of a log only (more about colors here: https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)
+- Support of Quarkus Applications from Docker images
+- Support of Quarkus Applications of Maven modules (select a Maven module instead of using a set of classes)
 - Deploy to Maven central

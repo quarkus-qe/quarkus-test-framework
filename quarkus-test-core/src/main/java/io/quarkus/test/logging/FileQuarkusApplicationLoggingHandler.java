@@ -26,7 +26,7 @@ public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
             int bytesRead;
             while ((bytesRead = from.read(buffer)) != -1) {
                 String line = new String(buffer, 0, bytesRead);
-                onLine(line);
+                onLines(line);
                 outStream.write(line.getBytes());
             }
         } catch (IOException ignored) {

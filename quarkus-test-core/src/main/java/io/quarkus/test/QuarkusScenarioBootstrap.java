@@ -2,11 +2,15 @@ package io.quarkus.test;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
+import java.util.logging.LogManager;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -23,6 +27,10 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
     private List<Service> services = new ArrayList<>();
 
     private List<ExtensionBootstrap> extensions;
+
+    public QuarkusScenarioBootstrap() {
+        configureLogging();
+    }
 
     @Override
     public void beforeAll(ExtensionContext context) {
@@ -90,4 +98,12 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
         return list;
     }
 
+    private void configureLogging() {
+        Locale.setDefault(new Locale("en", "EN"));
+        try (InputStream in = QuarkusScenarioBootstrap.class.getResourceAsStream("/logging.properties")) {
+            LogManager.getLogManager().readConfiguration(in);
+        } catch (IOException e) {
+            // ignore
+        }
+    }
 }

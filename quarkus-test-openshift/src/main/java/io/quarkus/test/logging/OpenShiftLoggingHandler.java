@@ -38,7 +38,7 @@ public class OpenShiftLoggingHandler extends LoggingHandler {
 
             onStringDifference(newPodLogs, oldPodLogs);
         } else {
-            onLine(newPodLogs);
+            onLines(newPodLogs);
         }
     }
 

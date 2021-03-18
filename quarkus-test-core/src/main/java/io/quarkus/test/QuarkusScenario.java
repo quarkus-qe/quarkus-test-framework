@@ -8,8 +8,8 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 @Target(ElementType.TYPE)
-@ExtendWith(QuarkusScenarioBootstrap.class)
 @Retention(RetentionPolicy.RUNTIME)
+@ExtendWith(QuarkusScenarioBootstrap.class)
 public @interface QuarkusScenario {
 
 }

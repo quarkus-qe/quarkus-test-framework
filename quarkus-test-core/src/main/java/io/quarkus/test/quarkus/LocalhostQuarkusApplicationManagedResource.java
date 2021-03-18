@@ -77,7 +77,7 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 
     @Override
     public boolean isRunning() {
-        return loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
+        return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
     }
 
     @Override

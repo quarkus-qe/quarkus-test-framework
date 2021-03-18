@@ -11,11 +11,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-import org.jboss.logging.Logger;
+import io.quarkus.test.logging.Log;
 
 public class Command {
-
-    private static final Logger LOGGER = Logger.getLogger(Command.class);
 
     private final String description;
     private final List<String> command;
@@ -54,7 +52,7 @@ public class Command {
     }
 
     public void runAndWait() throws IOException, InterruptedException {
-        LOGGER.infof("Running command: %s", String.join(" ", command));
+        Log.info("Running command: %s", String.join(" ", command));
         Process process = new ProcessBuilder().redirectErrorStream(true).command(command)
                 .directory(new File(".").getAbsoluteFile()).start();
 
@@ -85,7 +83,7 @@ public class Command {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    LOGGER.infof("%s: %s", description, line);
+                    Log.info("%s: %s", description, line);
                 }
             } catch (IOException ignored) {
             }

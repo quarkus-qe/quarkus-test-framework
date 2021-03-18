@@ -6,13 +6,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import org.apache.maven.shared.utils.StringUtils;
-import org.jboss.logging.Logger;
 
 import io.quarkus.test.ServiceContext;
 
 public abstract class LoggingHandler {
 
-    private static final Logger LOG = Logger.getLogger(LoggingHandler.class);
     private static final long TIMEOUT_IN_MILLIS = 4000;
 
     private final ServiceContext context;
@@ -67,7 +65,7 @@ public abstract class LoggingHandler {
     protected void onLine(String line) {
         logs.add(line);
         if (isLogEnabled()) {
-            LOG.infof("[%s] %s", context.getOwner().getName(), line);
+            Log.info(context.getOwner(), line);
         }
     }
 
