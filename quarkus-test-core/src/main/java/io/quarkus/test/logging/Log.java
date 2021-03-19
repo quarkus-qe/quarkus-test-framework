@@ -13,7 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.Service;
 
-public class Log {
+public final class Log {
     private static final Service NO_SERVICE = null;
     private static final String COLOR_RESET = "\u001b[0m";
 
@@ -32,6 +32,10 @@ public class Log {
     private static final Logger LOG = Logger.getLogger(Log.class.getName());
 
     private static final Map<String, String> SERVICE_COLOR_MAPPING = new HashMap<>();
+
+    private Log() {
+
+    }
 
     public static void info(Service service, String msg, Object... args) {
         log(service, Level.INFO, msg, args);
@@ -53,7 +57,7 @@ public class Log {
         log(NO_SERVICE, Level.WARNING, msg, args);
     }
 
-    private static final void log(Service service, Level level, String msg, Object... args) {
+    private static void log(Service service, Level level, String msg, Object... args) {
         String prefix = findColorForService(service);
         if (level == Level.SEVERE) {
             prefix = COLOR_SEVERE;
@@ -83,7 +87,7 @@ public class Log {
         return color;
     }
 
-    private static final String inBrackets(Service service) {
+    private static String inBrackets(Service service) {
         if (service == null) {
             return StringUtils.EMPTY;
         }

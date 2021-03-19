@@ -19,6 +19,9 @@ import io.restassured.specification.RequestSpecification;
 
 public class Service {
 
+    private static final int SERVICE_WAITER_POLL_EVERY_SECONDS = 2;
+    private static final int SERVICE_WAITER_TIMEOUT_MINUTES = 5;
+
     private final String serviceName;
     private final List<Action> onPreStartActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
@@ -54,7 +57,7 @@ public class Service {
 
     /**
      * The runtime configuration property to be used if the built artifact is
-     * configured to be run
+     * configured to be run.
      */
     public Service withProperties(String propertiesFile) {
         properties.clear();
@@ -64,7 +67,7 @@ public class Service {
 
     /**
      * The runtime configuration property to be used if the built artifact is
-     * configured to be run
+     * configured to be run.
      */
     public Service withProperty(String key, String value) {
         this.properties.put(key, value);
@@ -73,7 +76,7 @@ public class Service {
 
     /**
      * The runtime configuration property to be used if the built artifact is
-     * configured to be run
+     * configured to be run.
      */
     public Service withProperty(String key, Supplier<String> value) {
         futureProperties.add(() -> properties.put(key, value.get()));
@@ -137,7 +140,9 @@ public class Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        await().pollInterval(4, TimeUnit.SECONDS).atMost(5, TimeUnit.MINUTES).until(this::isManagedResourceRunning);
+        await().pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
+                .atMost(SERVICE_WAITER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+                .until(this::isManagedResourceRunning);
     }
 
     private boolean isManagedResourceRunning() {

@@ -1,7 +1,7 @@
 package io.quarkus.test.quarkus;
 
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -100,7 +100,7 @@ public class LocalhostQuarkusApplicationManagedResource implements ManagedResour
 
         List<String> systemProperties = runtimeProperties.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue()).collect(Collectors.toList());
-        List<String> command = new ArrayList<>(systemProperties.size() + 3);
+        List<String> command = new LinkedList<>();
         if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
             command.add(JavaBinFinder.findBin());
             command.addAll(systemProperties);

@@ -2,6 +2,8 @@
 
 This framework leverages the bootstrap of Quarkus application and other resources like containers.
 
+![Components](docs/components.png)
+
 In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file;
 
 ```xml
@@ -13,9 +15,7 @@ In order to write Quarkus application in your tests, you first need to add the c
 
 ## Architecture
 
-TBD
-
-This framework is designed to follow extension model patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but in the future, we can deploy it in OpenShift/K8s just by adding an integration test annotation with a new annotation `OpenShiftTest` and adding the new dependency.
+This framework is designed to follow **extension model** patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but if we add the OpenShift module. we can automatically deploy it in OpenShift/K8s just by adding the `@OpenShiftTest`.
 
 ## Quarkus Scenarios
 
@@ -25,17 +25,17 @@ The framework aims to think on scenarios to verify. One scenario could include a
 @QuarkusScenario
 public class PingPongResourceTest {
 
-	@QuarkusApplication(classes = PingResource.class)
-	static final Service pingApp = new Service("ping");
+    @QuarkusApplication(classes = PingResource.class)
+    static final Service pingApp = new Service("ping");
 
-	@QuarkusApplication(classes = PongResource.class)
-	static final Service pongApp = new Service("pong");
+    @QuarkusApplication(classes = PongResource.class)
+    static final Service pongApp = new Service("pong");
 
     // will include ping and pong resources
-	@QuarkusApplication
-	static final Service pingPongApp = new Service("pingpong");
+    @QuarkusApplication
+    static final Service pingPongApp = new Service("pingpong");
 
-	// ...
+    // ...
 
 }
 ```
@@ -59,15 +59,15 @@ Also, we can deploy services via docker:
 @QuarkusScenario
 public class GreetingResourceTest {
 
-	private static final String CUSTOM_PROPERTY = "my.property";
+    private static final String CUSTOM_PROPERTY = "my.property";
 
-	@Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
-	static final Service consul = new Service("consul");
+    @Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
+    static final Service consul = new Service("consul");
 
-	@QuarkusApplication
-	static final Service app = new Service("app");
-	
-	// ...
+    @QuarkusApplication
+    static final Service app = new Service("app");
+
+    // ...
 }
 ```
 
@@ -75,7 +75,7 @@ public class GreetingResourceTest {
 
 We can write also scenarios to be run in OpenShift by adding the `@OpenShiftTest`:
 
-```
+```java
 @OpenShiftTest
 public class OpenShiftPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
@@ -126,7 +126,7 @@ static final Service consul = new Service("consul");
 
 @QuarkusApplication
 static final Service app = new Service("app").withProperty("quarkus.consul-config.agent.host-port",
-		() -> consul.getHost() + ":" + consul.getPort());
+        () -> consul.getHost() + ":" + consul.getPort());
 ```
 
 The resources will be initiated in order of presence of the test class. 
@@ -140,7 +140,7 @@ The framework allows to add actions via hooks in every stage of the service life
 static final Service consul = new Service("consul").onPostStart(GreetingResourceTest::onLoadConfigureConsul);
 
 private static final void onLoadConfigureConsul(Service service) {
-	// ...
+    // ...
 }
 ```
 
@@ -163,11 +163,8 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 ```
 
 ## TODO
-- Add configuration file support and append the configuration to the service context.
-- Improve documentation and architecture diagrams
-- Integration with OpenShift using a new annotation
-- Ease to colourify a set of a log only (more about colors here: https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)
-- Verify Quarkus applications works fine regardless the `quarkus.package.type` value is being in use.
+- Live redeployment of a service when a property is changed
 - Support of Quarkus Applications from Docker images
 - Support of Quarkus Applications of Maven modules (select a Maven module instead of using a set of classes)
 - Deploy to Maven central
+- Ease to colourify a set of a log only (more about colors here: https://www.lihaoyi.com/post/BuildyourownCommandLinewithANSIescapecodes.html)

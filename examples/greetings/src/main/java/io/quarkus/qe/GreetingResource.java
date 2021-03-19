@@ -7,15 +7,17 @@ import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Path("/api")
+@Path("/greeting")
 public class GreetingResource {
 
-    @ConfigProperty(name = "my.property", defaultValue = "Default")
-    String property;
+    public static final String PROPERTY = "custom.property.name";
+
+    @ConfigProperty(name = PROPERTY)
+    String name;
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello " + property;
+    public String sayHello() {
+        return "Hello, I'm " + name;
     }
 }

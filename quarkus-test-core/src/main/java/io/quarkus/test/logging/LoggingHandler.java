@@ -18,11 +18,11 @@ public abstract class LoggingHandler {
     private List<String> logs = new ArrayList<>();
     private boolean running = false;
 
-    protected abstract void handle();
-
     public LoggingHandler(ServiceContext context) {
         this.context = context;
     }
+
+    protected abstract void handle();
 
     public void startWatching() {
         logs.clear();

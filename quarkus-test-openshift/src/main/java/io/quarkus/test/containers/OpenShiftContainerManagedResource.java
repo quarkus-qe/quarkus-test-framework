@@ -10,6 +10,8 @@ import io.quarkus.test.openshift.OpenShiftFacade;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
+    private static final int HTTP_PORT = 80;
+
     private final ContainerManagedResourceBuilder model;
     private final OpenShiftFacade facade;
 
@@ -58,7 +60,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
 
     @Override
     public int getPort() {
-        return 80;
+        return HTTP_PORT;
     }
 
     @Override

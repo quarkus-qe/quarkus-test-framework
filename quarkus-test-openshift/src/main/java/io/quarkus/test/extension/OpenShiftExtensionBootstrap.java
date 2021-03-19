@@ -13,6 +13,8 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "openshift-client";
 
+    private static final int PROJECT_NAME_SIZE = 10;
+
     private OpenShiftFacade facade;
 
     @Override
@@ -36,12 +38,9 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
     }
 
     private String generateRandomProject() {
-        return ThreadLocalRandom.current().ints(10, 'a', 'z' + 1)
+        return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
-
-
-
 
 }

@@ -32,6 +32,8 @@ import io.quarkus.test.utils.Command;
 
 public class OpenShiftQuarkusApplicationManagedResource implements ManagedResource {
 
+    private static final int AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES = 5;
+
     private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-template.yml";
     private static final String QUARKUS_OPENSHIFT_FILE = "openshift.yml";
 
@@ -44,6 +46,7 @@ public class OpenShiftQuarkusApplicationManagedResource implements ManagedResour
     private final OpenShiftFacade facade;
 
     private LoggingHandler loggingHandler;
+    private boolean init;
     private boolean running;
 
     public OpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
@@ -57,15 +60,20 @@ public class OpenShiftQuarkusApplicationManagedResource implements ManagedResour
             return;
         }
 
-        String template = updateTemplate();
-        loadOpenShiftFile(template);
-        awaitForImageStreams(template);
-        startBuild();
-        facade.exposeService(model.getContext().getOwner().getName(), getInternalPort());
+        if (!init) {
+            String template = updateTemplate();
+            loadOpenShiftFile(template);
+            awaitForImageStreams(template);
+            startBuild();
+            facade.exposeService(model.getContext().getOwner().getName(), getInternalPort());
+            init = true;
+        }
+
+        facade.setReplicaTo(model.getContext().getOwner().getName(), 1);
+        running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
         loggingHandler.startWatching();
-        running = true;
     }
 
     @Override
@@ -176,7 +184,8 @@ public class OpenShiftQuarkusApplicationManagedResource implements ManagedResour
             if (obj instanceof ImageStream
                     && !StringUtils.equals(obj.getMetadata().getName(), model.getContext().getOwner().getName())) {
                 ImageStream is = (ImageStream) obj;
-                Awaitility.await().atMost(5, TimeUnit.MINUTES).until(() -> facade.hasImageStreamTags(is));
+                Awaitility.await().atMost(AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+                        .until(() -> facade.hasImageStreamTags(is));
             }
         }
     }

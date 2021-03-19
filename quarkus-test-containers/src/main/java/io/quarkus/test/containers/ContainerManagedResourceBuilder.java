@@ -11,52 +11,52 @@ import io.quarkus.test.annotation.Container;
 public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
 
     private final ServiceLoader<ContainerManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
-			.load(ContainerManagedResourceBinding.class);
+            .load(ContainerManagedResourceBinding.class);
 
-	private ServiceContext context;
-	private String image;
-	private String expectedLog;
-	private String command;
-	private Integer port;
+    private ServiceContext context;
+    private String image;
+    private String expectedLog;
+    private String command;
+    private Integer port;
 
-	public String getImage() {
-		return image;
-	}
+    public String getImage() {
+        return image;
+    }
 
-	public String getExpectedLog() {
-		return expectedLog;
-	}
+    public String getExpectedLog() {
+        return expectedLog;
+    }
 
-	public String getCommand() {
-		return command;
-	}
+    public String getCommand() {
+        return command;
+    }
 
-	public Integer getPort() {
-		return port;
-	}
+    public Integer getPort() {
+        return port;
+    }
 
-	public ServiceContext getContext() {
-		return context;
-	}
+    public ServiceContext getContext() {
+        return context;
+    }
 
-	@Override
-	public void init(Annotation annotation) {
-		Container metadata = (Container) annotation;
-		this.image = metadata.image();
-		this.command = metadata.command();
-		this.expectedLog = metadata.expectedLog();
-		this.port = metadata.port();
-	}
+    @Override
+    public void init(Annotation annotation) {
+        Container metadata = (Container) annotation;
+        this.image = metadata.image();
+        this.command = metadata.command();
+        this.expectedLog = metadata.expectedLog();
+        this.port = metadata.port();
+    }
 
-	@Override
-	public ManagedResource build(ServiceContext context) {
-		this.context = context;
+    @Override
+    public ManagedResource build(ServiceContext context) {
+        this.context = context;
         for (ContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
-			if (binding.appliesFor(context)) {
+            if (binding.appliesFor(context)) {
                 return binding.init(this);
-			}
-		}
+            }
+        }
 
-		return new DockerContainerManagedResource(this);
-	}
+        return new DockerContainerManagedResource(this);
+    }
 }

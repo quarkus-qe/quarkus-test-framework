@@ -129,7 +129,7 @@ public final class OpenShiftFacade {
         }
     }
 
-    public static final OpenShiftFacade create(String namespace) {
+    public static OpenShiftFacade create(String namespace) {
         return new OpenShiftFacade(namespace);
     }
 

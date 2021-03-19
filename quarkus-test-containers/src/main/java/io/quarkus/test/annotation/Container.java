@@ -11,13 +11,13 @@ import io.quarkus.test.containers.ContainerManagedResourceBuilder;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Container {
-	public String image();
+    String image();
 
-	public int port();
+    int port();
 
-	public String expectedLog();
+    String expectedLog();
 
-	public String command() default "";
+    String command() default "";
 
-	Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
+    Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
 }

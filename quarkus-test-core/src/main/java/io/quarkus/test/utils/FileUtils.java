@@ -38,11 +38,11 @@ public final class FileUtils {
         }
     }
 
-    public static final Optional<String> findTargetFile(String endsWith) {
+    public static Optional<String> findTargetFile(String endsWith) {
         return findTargetFile(StringUtils.EMPTY, endsWith);
     }
 
-    public static final Optional<String> findTargetFile(String subfolder, String endsWith) {
+    public static Optional<String> findTargetFile(String subfolder, String endsWith) {
         try (Stream<Path> binariesFound = Files
                 .find(Paths.get("target/" + subfolder), NO_RECURSIVE,
                         (path, basicFileAttributes) -> path.toFile().getName().endsWith(endsWith))) {

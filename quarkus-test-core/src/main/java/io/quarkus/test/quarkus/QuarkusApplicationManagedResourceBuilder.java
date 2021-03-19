@@ -152,7 +152,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return context.getTestContext().getRequiredTestClass().isAnnotationPresent(NativeTest.class);
     }
 
-    private static final Set<String> listOfBuildTimeProperties() {
+    private static Set<String> listOfBuildTimeProperties() {
         Set<String> buildTimeProperties = new HashSet<>();
 
         try (InputStream input = QuarkusApplicationManagedResourceBuilder.class.getClassLoader()

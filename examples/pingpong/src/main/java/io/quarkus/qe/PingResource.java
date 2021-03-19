@@ -8,9 +8,9 @@ import javax.ws.rs.core.MediaType;
 @Path("/ping")
 public class PingResource {
 
-	@GET
-	@Produces(MediaType.TEXT_PLAIN)
-	public String pong() {
-		return "ping";
-	}
+    @GET
+    @Produces(MediaType.TEXT_PLAIN)
+    public String pong() {
+        return "ping";
+    }
 }

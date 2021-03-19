@@ -12,7 +12,7 @@ import io.quarkus.test.annotation.QuarkusApplication;
 
 @OpenShiftTest
 @NativeTest
-public class OpenShiftNativePingPongResourceIT {
+public class NativeOpenShiftPingPongResourceIT {
 
     @QuarkusApplication
     static final Service pingPongApp = new Service("pingpong");

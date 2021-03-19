@@ -10,6 +10,8 @@ import io.quarkus.test.ServiceContext;
 
 public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
 
+    private static final int FILE_BUFFER_SIZE = 8 * 1024;
+
     private final Path file;
     private final InputStream from;
 
@@ -22,7 +24,7 @@ public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
     @Override
     protected void handle() {
         try (OutputStream outStream = new FileOutputStream(file.toFile())) {
-            byte[] buffer = new byte[8 * 1024];
+            byte[] buffer = new byte[FILE_BUFFER_SIZE];
             int bytesRead;
             while ((bytesRead = from.read(buffer)) != -1) {
                 String line = new String(buffer, 0, bytesRead);

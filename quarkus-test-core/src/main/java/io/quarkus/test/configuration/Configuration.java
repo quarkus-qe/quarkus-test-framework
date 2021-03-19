@@ -35,7 +35,7 @@ public final class Configuration {
         return matches;
     }
 
-    public static final Configuration load(String serviceName) {
+    public static Configuration load(String serviceName) {
         Map<String, String> properties = new HashMap<>();
 
         try (InputStream input = Configuration.class.getClassLoader().getResourceAsStream(TEST_PROPERTIES)) {

@@ -18,7 +18,7 @@ public final class ClassPathUtils {
 
     }
 
-    public static final Class<?>[] findAllClassesFromSource() {
+    public static Class<?>[] findAllClassesFromSource() {
         List<Class<?>> classes = new LinkedList<>();
         try {
             Path classesPathInSources = Path.of(SOURCE_CLASSES_LOCATION);
@@ -39,7 +39,7 @@ public final class ClassPathUtils {
         return classes.toArray(new Class<?>[classes.size()]);
     }
 
-    private static final String normalizeClassName(String path) {
+    private static String normalizeClassName(String path) {
         return path.replace(CLASS_SUFFIX, "").replace(SOURCE_CLASSES_LOCATION, "").replace("/", ".");
     }
 }
