@@ -16,10 +16,10 @@ import com.google.common.net.HostAndPort;
 import com.orbitz.consul.Consul;
 import com.orbitz.consul.KeyValueClient;
 
-import io.quarkus.test.QuarkusScenario;
-import io.quarkus.test.Service;
-import io.quarkus.test.annotation.Container;
-import io.quarkus.test.annotation.QuarkusApplication;
+import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.services.Container;
+import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
 public class GreetingResourceIT {

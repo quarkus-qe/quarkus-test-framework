@@ -2,7 +2,7 @@ package io.quarkus.test.logging;
 
 import org.testcontainers.containers.GenericContainer;
 
-import io.quarkus.test.ServiceContext;
+import io.quarkus.test.bootstrap.ServiceContext;
 
 public class TestContainersLoggingHandler extends LoggingHandler {
 

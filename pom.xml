@@ -14,6 +14,7 @@
     <modules>
         <module>quarkus-test-core</module>
         <module>quarkus-test-containers</module>
+        <module>quarkus-test-kubernetes</module>
         <module>quarkus-test-openshift</module>
         <module>examples/pingpong</module>
         <module>examples/greetings</module>
@@ -38,6 +39,7 @@
         <quarkus-plugin.version>999-SNAPSHOT</quarkus-plugin.version>
 
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
+        <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
         <exclude.native.tests>**/Native*IT.java</exclude.native.tests>
     </properties>
 
@@ -70,6 +72,11 @@
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-openshift</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-kubernetes</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
@@ -154,6 +161,7 @@
                             <excludes>
                                 <exclude>${exclude.native.tests}</exclude>
                                 <exclude>${exclude.openshift.tests}</exclude>
+                                <exclude>${exclude.kubernetes.tests}</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -203,6 +211,19 @@
             </activation>
             <properties>
                 <exclude.openshift.tests>no</exclude.openshift.tests>
+            </properties>
+        </profile>
+        <profile>
+            <!-- You need to be connected to a Kubernetes instance to activate 
+                this profile! -->
+            <id>kubernetes</id>
+            <activation>
+                <property>
+                    <name>kubernetes</name>
+                </property>
+            </activation>
+            <properties>
+                <exclude.kubernetes.tests>no</exclude.kubernetes.tests>
             </properties>
         </profile>
     </profiles>

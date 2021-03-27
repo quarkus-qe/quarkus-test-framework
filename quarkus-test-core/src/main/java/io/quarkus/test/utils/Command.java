@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -17,6 +18,7 @@ public class Command {
     private final List<String> command;
 
     private BiConsumer<String, InputStream> outputConsumer = consoleOutput();
+    private String directory = ".";
 
     public Command(String... command) {
         this(Arrays.asList(command));
@@ -37,6 +39,11 @@ public class Command {
         return this;
     }
 
+    public Command onDirectory(Path path) {
+        directory = path.toString();
+        return this;
+    }
+
     private static String descriptionOfProgram(String program) {
         if (program.contains(File.separator)) {
             return program.substring(program.lastIndexOf(File.separator) + 1);
@@ -47,7 +54,7 @@ public class Command {
     public void runAndWait() throws IOException, InterruptedException {
         Log.info("Running command: %s", String.join(" ", command));
         Process process = new ProcessBuilder().redirectErrorStream(true).command(command)
-                .directory(new File(".").getAbsoluteFile()).start();
+                .directory(new File(directory).getAbsoluteFile()).start();
 
         new Thread(() -> outputConsumer.accept(description, process.getInputStream()),
                 "stdout consumer for command " + description).start();

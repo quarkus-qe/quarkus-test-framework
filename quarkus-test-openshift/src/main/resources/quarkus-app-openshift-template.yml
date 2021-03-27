@@ -1,0 +1,101 @@
+---
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: "v1"
+  kind: "Service"
+  metadata:
+    name: "${SERVICE_NAME}"
+    namespace: "${NAMESPACE}"
+  spec:
+    ports:
+    - name: "http"
+      port: 8080
+      targetPort: ${INTERNAL_PORT}
+    selector:
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    type: "ClusterIP"
+- apiVersion: "image.openshift.io/v1"
+  kind: "ImageStream"
+  metadata:
+    labels:
+      app.openshift.io/runtime: "quarkus"
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    name: "${SERVICE_NAME}"
+    namespace: "${NAMESPACE}"
+  spec: {}
+- apiVersion: "image.openshift.io/v1"
+  kind: "ImageStream"
+  metadata:
+    name: "image-builder"
+    namespace: "${NAMESPACE}"
+  spec:
+    dockerImageRepository: "${QUARKUS_S2I_IMAGE_BUILDER}"
+- apiVersion: "build.openshift.io/v1"
+  kind: "BuildConfig"
+  metadata:
+    labels:
+      app.openshift.io/runtime: "quarkus"
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    name: "${SERVICE_NAME}"
+    namespace: "${NAMESPACE}"
+  spec:
+    output:
+      to:
+        kind: "ImageStreamTag"
+        name: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+    source:
+      binary: {}
+    strategy:
+      sourceStrategy:
+        from:
+          kind: "ImageStreamTag"
+          name: "image-builder:${QUARKUS_S2I_IMAGE_BUILDER_VERSION}"
+- apiVersion: "apps.openshift.io/v1"
+  kind: "DeploymentConfig"
+  metadata:
+    labels:
+      app.openshift.io/runtime: "quarkus"
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    name: "${SERVICE_NAME}"
+    namespace: "${NAMESPACE}"
+  spec:
+    replicas: 1
+    selector:
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    template:
+      metadata:
+        labels:
+          app.openshift.io/runtime: "quarkus"
+          app.kubernetes.io/name: "${SERVICE_NAME}"
+        namespace: "${NAMESPACE}"
+      spec:
+        containers:
+        - env:
+          - name: "KUBERNETES_NAMESPACE"
+            valueFrom:
+              fieldRef:
+                fieldPath: "metadata.namespace"
+          - name: "QUARKUS_HOME"
+            value: "/home/quarkus/"
+          - name: "QUARKUS_OPTS"
+            value: ""
+          - name: "JAVA_APP_JAR"
+            value: "/deployments/${ARTIFACT}"
+          image: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+          imagePullPolicy: "IfNotPresent"
+          name: "${SERVICE_NAME}"
+          ports:
+          - containerPort: ${INTERNAL_PORT}
+            name: "http"
+            protocol: "TCP"
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - "${SERVICE_NAME}"
+        from:
+          kind: "ImageStreamTag"
+          name: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+      type: "ImageChange"
+      
