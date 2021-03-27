@@ -3,9 +3,9 @@ package io.quarkus.test.logging;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import io.quarkus.test.ServiceContext;
-import io.quarkus.test.extension.OpenShiftExtensionBootstrap;
-import io.quarkus.test.openshift.OpenShiftFacade;
+import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
+import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.bootstrap.inject.OpenShiftFacade;
 
 public class OpenShiftLoggingHandler extends LoggingHandler {
 
@@ -16,7 +16,7 @@ public class OpenShiftLoggingHandler extends LoggingHandler {
     public OpenShiftLoggingHandler(ServiceContext context) {
         super(context);
 
-        serviceName = context.getOwner().getName();
+        serviceName = context.getName();
         facade = context.get(OpenShiftExtensionBootstrap.CLIENT);
     }
 

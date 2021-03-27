@@ -31,6 +31,12 @@
             <artifactId>quarkus-test-openshift</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-kubernetes</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     
     <build>

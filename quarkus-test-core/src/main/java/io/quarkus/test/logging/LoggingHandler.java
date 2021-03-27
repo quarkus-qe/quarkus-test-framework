@@ -7,7 +7,7 @@ import java.util.stream.Stream;
 
 import org.apache.maven.shared.utils.StringUtils;
 
-import io.quarkus.test.ServiceContext;
+import io.quarkus.test.bootstrap.ServiceContext;
 
 public abstract class LoggingHandler {
 
@@ -82,7 +82,7 @@ public abstract class LoggingHandler {
     }
 
     protected String contextName() {
-        return context.getOwner().getName();
+        return context.getName();
     }
 
     private boolean isLogEnabled() {

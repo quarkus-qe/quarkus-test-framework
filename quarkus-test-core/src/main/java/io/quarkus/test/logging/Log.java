@@ -11,7 +11,7 @@ import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.test.Service;
+import io.quarkus.test.bootstrap.Service;
 
 public final class Log {
     private static final Service NO_SERVICE = null;

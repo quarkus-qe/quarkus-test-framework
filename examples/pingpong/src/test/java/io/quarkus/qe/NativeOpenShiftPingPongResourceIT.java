@@ -5,13 +5,13 @@ import static org.hamcrest.Matchers.is;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.NativeTest;
-import io.quarkus.test.Service;
-import io.quarkus.test.annotation.OpenShiftTest;
-import io.quarkus.test.annotation.QuarkusApplication;
+import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.scenarios.NativeScenario;
+import io.quarkus.test.scenarios.OpenShiftScenario;
+import io.quarkus.test.services.QuarkusApplication;
 
-@OpenShiftTest
-@NativeTest
+@OpenShiftScenario
+@NativeScenario
 public class NativeOpenShiftPingPongResourceIT {
 
     @QuarkusApplication

@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 
-import io.quarkus.test.ServiceContext;
+import io.quarkus.test.bootstrap.ServiceContext;
 
 public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
 

@@ -1,8 +1,8 @@
 package io.quarkus.qe;
 
-import io.quarkus.test.annotation.OpenShiftTest;
+import io.quarkus.test.scenarios.OpenShiftScenario;
 
-@OpenShiftTest
+@OpenShiftScenario
 public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
 
 }

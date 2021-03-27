@@ -1,8 +1,8 @@
 package io.quarkus.qe;
 
-import io.quarkus.test.NativeTest;
+import io.quarkus.test.scenarios.NativeScenario;
 
-@NativeTest
+@NativeScenario
 public class NativePingPongResourceIT extends PingPongResourceIT {
 
 }
