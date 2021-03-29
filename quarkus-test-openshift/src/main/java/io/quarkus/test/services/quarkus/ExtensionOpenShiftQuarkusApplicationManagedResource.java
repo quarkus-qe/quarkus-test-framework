@@ -56,7 +56,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     }
 
     @Override
-    protected void doInit() {
+    protected void doStart() {
         cloneProjectToServiceAppFolder();
         deployProjectUsingMavenCommand();
     }

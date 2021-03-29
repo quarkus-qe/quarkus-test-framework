@@ -34,7 +34,6 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     private final KubectlFacade facade;
 
     private LoggingHandler loggingHandler;
-    private boolean init;
     private boolean running;
 
     public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
@@ -48,13 +47,9 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
             return;
         }
 
-        if (!init) {
-            String image = createImageAndPush();
-            String template = updateTemplate(image);
-            loadKubernetesFile(template);
-
-            init = true;
-        }
+        String image = createImageAndPush();
+        String template = updateTemplate(image);
+        loadKubernetesFile(template);
 
         facade.setReplicaTo(model.getContext().getName(), 1);
         running = true;

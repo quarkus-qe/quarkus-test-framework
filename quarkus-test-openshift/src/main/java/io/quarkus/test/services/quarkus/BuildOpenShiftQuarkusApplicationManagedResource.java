@@ -48,7 +48,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
     }
 
     @Override
-    protected void doInit() {
+    protected void doStart() {
         String template = updateTemplate();
         loadOpenShiftFile(template);
         awaitForImageStreams(template);

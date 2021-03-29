@@ -30,7 +30,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     }
 
     @Override
-    protected void doInit() {
+    protected void doStart() {
         String image = createImageAndPush();
         String template = updateTemplate(image);
         loadOpenShiftFile(template);
