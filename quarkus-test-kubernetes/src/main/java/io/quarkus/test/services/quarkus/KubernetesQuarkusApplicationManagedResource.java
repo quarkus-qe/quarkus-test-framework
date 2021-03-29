@@ -1,19 +1,11 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.regex.Pattern.quote;
-import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
-import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.inject.KubectlFacade;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
@@ -34,7 +26,9 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     private final KubectlFacade facade;
 
     private LoggingHandler loggingHandler;
+    private boolean init;
     private boolean running;
+    private String image;
 
     public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
@@ -47,8 +41,12 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
             return;
         }
 
-        String image = createImageAndPush();
-        String template = updateTemplate(image);
+        if (!init) {
+            image = createImageAndPush();
+            init = true;
+        }
+
+        String template = updateTemplate();
         loadKubernetesFile(template);
 
         facade.setReplicaTo(model.getContext().getName(), 1);
@@ -96,7 +94,7 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
         facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_KUBERNETES_FILE));
     }
 
-    private String updateTemplate(String image) {
+    private String updateTemplate() {
         String template = FileUtils.loadFile(QUARKUS_KUBERNETES_TEMPLATE)
                 .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
                 .replaceAll(quote("${IMAGE}"), image)
@@ -104,35 +102,8 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());
 
-        template = addProperties(template);
+        template = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), template);
 
-        return template;
-    }
-
-    private String addProperties(String template) {
-        if (!model.getContext().getOwner().getProperties().isEmpty()) {
-            List<HasMetadata> objs = facade.loadYaml(template);
-            for (HasMetadata obj : objs) {
-                if (obj instanceof Deployment) {
-                    Deployment d = (Deployment) obj;
-                    d.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        model.getContext().getOwner().getProperties().entrySet()
-                                .forEach(
-                                        envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
-                    });
-                }
-            }
-
-            KubernetesList list = new KubernetesList();
-            list.setItems(objs);
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                Serialization.yamlMapper().writeValue(os, list);
-                template = new String(os.toByteArray());
-            } catch (IOException e) {
-                fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
-            }
-        }
         return template;
     }
 

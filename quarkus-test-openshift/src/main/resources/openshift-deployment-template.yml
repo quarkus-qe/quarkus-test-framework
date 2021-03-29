@@ -8,34 +8,31 @@ items:
     name: "${SERVICE_NAME}"
     namespace: "${NAMESPACE}"
   spec:
-    type: LoadBalancer
     ports:
-    - port: ${INTERNAL_PORT}
+    - name: "http"
+      port: ${INTERNAL_PORT}
+      targetPort: ${INTERNAL_PORT}
     selector:
-      app.kubernetes.io/name: "${SERVICE_NAME}"
-- apiVersion: "apps/v1"
-  kind: "Deployment"
+      deploymentconfig: "${SERVICE_NAME}"
+    type: "ClusterIP"
+- apiVersion: "apps.openshift.io/v1"
+  kind: "DeploymentConfig"
   metadata:
-    labels:
-      app.kubernetes.io/runtime: "quarkus"
-      app.kubernetes.io/name: "${SERVICE_NAME}"
     name: "${SERVICE_NAME}"
     namespace: "${NAMESPACE}"
   spec:
     replicas: 1
     selector:
-      matchLabels:
-        app.kubernetes.io/name: "${SERVICE_NAME}"
+      deploymentconfig: "${SERVICE_NAME}"
     template:
       metadata:
         labels:
-          app.kubernetes.io/runtime: "quarkus"
-          app.kubernetes.io/name: "${SERVICE_NAME}"
-          deployment: "${SERVICE_NAME}"
+          deploymentconfig: "${SERVICE_NAME}"
         namespace: "${NAMESPACE}"
       spec:
         containers:
         - image: "${IMAGE}"
+          imagePullPolicy: "IfNotPresent"
           name: "${SERVICE_NAME}"
           ports:
           - containerPort: ${INTERNAL_PORT}

@@ -1,5 +1,7 @@
 package io.quarkus.test.services.containers;
 
+import static java.util.regex.Pattern.quote;
+
 import java.util.List;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
@@ -7,14 +9,16 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.inject.KubectlFacade;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.utils.FileUtils;
 
 public class KubernetesContainerManagedResource implements ManagedResource {
+
+    private static final String DEPLOYMENT_TEMPLATE = "/kubernetes-deployment-template.yml";
 
     private final ContainerManagedResourceBuilder model;
     private final KubectlFacade facade;
 
     private LoggingHandler loggingHandler;
-    private boolean init;
     private boolean running;
 
     protected KubernetesContainerManagedResource(ContainerManagedResourceBuilder model) {
@@ -28,11 +32,9 @@ public class KubernetesContainerManagedResource implements ManagedResource {
             return;
         }
 
-        if (!init) {
-            facade.createApplication(model.getContext().getName(), model.getImage());
-            facade.exposeService(model.getContext().getName(), model.getPort());
-            init = true;
-        }
+        applyDeployment();
+
+        facade.exposeService(model.getContext().getName(), model.getPort());
 
         facade.setReplicaTo(model.getContext().getName(), 1);
         running = true;
@@ -69,6 +71,19 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     @Override
     public List<String> logs() {
         return loggingHandler.logs();
+    }
+
+    private void applyDeployment() {
+        String deploymentContent = FileUtils.loadFile(DEPLOYMENT_TEMPLATE)
+                .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
+                .replaceAll(quote("${IMAGE}"), model.getImage())
+                .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
+                .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
+
+        deploymentContent = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), deploymentContent);
+
+        facade.apply(FileUtils.copyContentTo(model.getContext(), deploymentContent,
+                model.getContext().getName() + "-deployment.yml"));
     }
 
 }

@@ -25,17 +25,24 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final int INTERNAL_PORT_DEFAULT = 8080;
 
+    private String image;
+
     public ContainerRegistryOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 
     @Override
-    protected void doStart() {
-        String image = createImageAndPush();
-        String template = updateTemplate(image);
+    protected void doInit() {
+        image = createImageAndPush();
+        String template = updateTemplate();
         loadOpenShiftFile(template);
         facade.startRollout(model.getContext().getName());
         facade.exposeService(model.getContext().getName(), getInternalPort());
+    }
+
+    @Override
+    protected void onRestart() {
+        updateTemplate();
     }
 
     private String createImageAndPush() {
@@ -46,7 +53,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
         facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_OPENSHIFT_FILE));
     }
 
-    private String updateTemplate(String image) {
+    private String updateTemplate() {
         String template = FileUtils.loadFile(QUARKUS_OPENSHIFT_TEMPLATE)
                 .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
                 .replaceAll(quote("${IMAGE}"), image)

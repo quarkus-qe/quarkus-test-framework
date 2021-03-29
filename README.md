@@ -342,7 +342,6 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 ```
 
 ## TODO
-- Support properties for containers services in OpenShift/Kubernetes deployments
 - Make bootable inject classes at test methods
 - Add example with several Microprofile services
 - Add example with Keycloak

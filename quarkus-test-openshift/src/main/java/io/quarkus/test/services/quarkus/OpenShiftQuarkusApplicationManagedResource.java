@@ -18,6 +18,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     protected final OpenShiftFacade facade;
 
     private LoggingHandler loggingHandler;
+    private boolean init;
     private boolean running;
 
     public OpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
@@ -25,7 +26,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
         this.facade = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
     }
 
-    protected abstract void doStart();
+    protected abstract void doInit();
+    protected abstract void onRestart();
 
     @Override
     public void start() {
@@ -33,7 +35,12 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
             return;
         }
 
-        doStart();
+        if (!init) {
+            doInit();
+            init = true;
+        } else {
+            onRestart();
+        }
 
         facade.setReplicaTo(model.getContext().getName(), 1);
         running = true;

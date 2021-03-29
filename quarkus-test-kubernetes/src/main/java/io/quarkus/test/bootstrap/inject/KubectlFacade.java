@@ -3,6 +3,8 @@ package io.quarkus.test.bootstrap.inject;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
@@ -12,11 +14,15 @@ import java.util.Optional;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.Service;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
+import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
@@ -60,20 +66,12 @@ public final class KubectlFacade {
         }
     }
 
-    public void createApplication(String name, String image) {
-        try {
-            new Command(KUBECTL, "create", "deployment", name, "--image=" + image, "-n", currentNamespace).runAndWait();
-        } catch (Exception e) {
-            fail("Application failed to be created. Caused by " + e.getMessage());
-        }
-    }
-
     public void exposeService(String name, Integer port) {
         try {
             new Command(KUBECTL, "expose", "deployment", name, "--port=" + port, "--name=" + name, "--type=LoadBalancer",
                     "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
-            fail("Service failed to be created. Caused by " + e.getMessage());
+            fail("Service failed to be exposed. Caused by " + e.getMessage());
         }
     }
 
@@ -81,13 +79,13 @@ public final class KubectlFacade {
         try {
             new Command(KUBECTL, "scale", "deployment/" + name, "--replicas=" + replicas, "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
-            fail("Service failed to be exposed. Caused by " + e.getMessage());
+            fail("Service failed to be scaled. Caused by " + e.getMessage());
         }
     }
 
     public Map<String, String> getLogs(String serviceName) {
         Map<String, String> logs = new HashMap<>();
-        for (Pod pod : client.pods().withLabel("app", serviceName).list().getItems()) {
+        for (Pod pod : client.pods().withLabel("deployment", serviceName).list().getItems()) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
                 logs.put(podName, client.pods().withName(podName).getLog());
@@ -133,6 +131,33 @@ public final class KubectlFacade {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(HTTP_PORT_DEFAULT);
+    }
+
+    public String addPropertiesToDeployment(Map<String, String> properties, String template) {
+        if (!properties.isEmpty()) {
+            List<HasMetadata> objs = loadYaml(template);
+            for (HasMetadata obj : objs) {
+                if (obj instanceof Deployment) {
+                    Deployment d = (Deployment) obj;
+                    d.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
+                        properties.entrySet().forEach(
+                                envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+                    });
+                }
+            }
+
+            KubernetesList list = new KubernetesList();
+            list.setItems(objs);
+            try {
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                Serialization.yamlMapper().writeValue(os, list);
+                template = new String(os.toByteArray());
+            } catch (IOException e) {
+                fail("Failed adding properties into template. Caused by " + e.getMessage());
+            }
+        }
+
+        return template;
     }
 
     private boolean isPodRunning(Pod pod) {

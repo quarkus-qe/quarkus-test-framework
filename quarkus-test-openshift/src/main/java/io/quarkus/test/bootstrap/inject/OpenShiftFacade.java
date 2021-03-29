@@ -3,13 +3,19 @@ package io.quarkus.test.bootstrap.inject;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.client.utils.Serialization;
+import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
@@ -47,14 +53,6 @@ public final class OpenShiftFacade {
             new Command(OC, "apply", "-f", file.toAbsolutePath().toString()).runAndWait();
         } catch (Exception e) {
             fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
-        }
-    }
-
-    public void createApplication(String name, String image) {
-        try {
-            new Command(OC, "new-app", image, "--name", name).runAndWait();
-        } catch (Exception e) {
-            fail("Application failed to be created. Caused by " + e.getMessage());
         }
     }
 
@@ -113,6 +111,32 @@ public final class OpenShiftFacade {
         final String protocol = route.getSpec().getTls() == null ? "http" : "https";
         final String path = route.getSpec().getPath() == null ? "" : route.getSpec().getPath();
         return String.format("%s://%s%s", protocol, route.getSpec().getHost(), path);
+    }
+
+    public String addPropertiesToDeployment(Map<String, String> properties, String template) {
+        if (!properties.isEmpty()) {
+            List<HasMetadata> objs = loadYaml(template);
+            for (HasMetadata obj : objs) {
+                if (obj instanceof DeploymentConfig) {
+                    DeploymentConfig dc = (DeploymentConfig) obj;
+                    dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
+                        properties.entrySet().forEach(
+                                envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+                    });
+                }
+            }
+
+            KubernetesList list = new KubernetesList();
+            list.setItems(objs);
+            try {
+                ByteArrayOutputStream os = new ByteArrayOutputStream();
+                Serialization.yamlMapper().writeValue(os, list);
+                template = new String(os.toByteArray());
+            } catch (IOException e) {
+                fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
+            }
+        }
+        return template;
     }
 
     private boolean isPodRunning(Pod pod) {

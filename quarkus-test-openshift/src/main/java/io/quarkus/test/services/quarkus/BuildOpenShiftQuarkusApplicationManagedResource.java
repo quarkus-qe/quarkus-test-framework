@@ -3,7 +3,6 @@ package io.quarkus.test.services.quarkus;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,11 +14,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 
-import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
@@ -48,12 +43,22 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
     }
 
     @Override
-    protected void doStart() {
-        String template = updateTemplate();
-        loadOpenShiftFile(template);
+    protected void doInit() {
+        String template = applyTemplate();
         awaitForImageStreams(template);
         startBuild();
         facade.exposeService(model.getContext().getName(), getInternalPort());
+    }
+
+    @Override
+    protected void onRestart() {
+        applyTemplate();
+    }
+
+    private String applyTemplate() {
+        String template = updateTemplate();
+        loadOpenShiftFile(template);
+        return template;
     }
 
     private void startBuild() {
@@ -94,7 +99,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());
 
-        template = addProperties(template);
+        template = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), template);
 
         return template;
     }
@@ -115,33 +120,6 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
         }
 
         return s2iImageProperty.get(model.getContext());
-    }
-
-    private String addProperties(String template) {
-        if (!model.getContext().getOwner().getProperties().isEmpty()) {
-            List<HasMetadata> objs = facade.loadYaml(template);
-            for (HasMetadata obj : objs) {
-                if (obj instanceof DeploymentConfig) {
-                    DeploymentConfig dc = (DeploymentConfig) obj;
-                    dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        model.getContext().getOwner().getProperties().entrySet()
-                                .forEach(
-                                        envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
-                    });
-                }
-            }
-
-            KubernetesList list = new KubernetesList();
-            list.setItems(objs);
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                Serialization.yamlMapper().writeValue(os, list);
-                template = new String(os.toByteArray());
-            } catch (IOException e) {
-                fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
-            }
-        }
-        return template;
     }
 
     private void awaitForImageStreams(String template) {
