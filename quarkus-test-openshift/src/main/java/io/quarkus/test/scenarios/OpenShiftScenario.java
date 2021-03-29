@@ -13,4 +13,5 @@ import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(QuarkusScenarioBootstrap.class)
 public @interface OpenShiftScenario {
+    OpenShiftDeploymentStrategy deployment() default OpenShiftDeploymentStrategy.Build;
 }

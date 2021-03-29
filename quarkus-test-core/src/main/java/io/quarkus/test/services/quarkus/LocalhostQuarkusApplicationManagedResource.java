@@ -8,13 +8,12 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.SocketUtils;
 import io.quarkus.utilities.JavaBinFinder;
 
-public class LocalhostQuarkusApplicationManagedResource implements ManagedResource {
+public class LocalhostQuarkusApplicationManagedResource implements QuarkusManagedResource {
 
     private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";

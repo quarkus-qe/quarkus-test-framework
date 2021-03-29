@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.scenarios.KubernetesScenario;
 
@@ -12,7 +11,7 @@ public class KubernetesQuarkusApplicationManagedResourceBinding implements Quark
     }
 
     @Override
-    public ManagedResource init(QuarkusApplicationManagedResourceBuilder builder) {
+    public QuarkusManagedResource init(QuarkusApplicationManagedResourceBuilder builder) {
         return new KubernetesQuarkusApplicationManagedResource(builder);
     }
 

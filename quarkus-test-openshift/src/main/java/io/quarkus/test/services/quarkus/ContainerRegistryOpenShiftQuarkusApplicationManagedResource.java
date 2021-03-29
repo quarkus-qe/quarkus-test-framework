@@ -14,95 +14,40 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
-import io.quarkus.test.bootstrap.inject.KubectlFacade;
-import io.quarkus.test.logging.KubernetesLoggingHandler;
-import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.DockerUtils;
 import io.quarkus.test.utils.FileUtils;
 
-public class KubernetesQuarkusApplicationManagedResource implements QuarkusManagedResource {
+public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
 
-    private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
-    private static final String QUARKUS_KUBERNETES_FILE = "kubernetes.yml";
+    private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-registry-openshift-template.yml";
+    private static final String QUARKUS_OPENSHIFT_FILE = "openshift.yml";
 
-    private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final int INTERNAL_PORT_DEFAULT = 8080;
 
-    private final QuarkusApplicationManagedResourceBuilder model;
-    private final KubectlFacade facade;
-
-    private LoggingHandler loggingHandler;
-    private boolean init;
-    private boolean running;
-
-    public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
-        this.model = model;
-        this.facade = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
+    public ContainerRegistryOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+        super(model);
     }
 
     @Override
-    public void start() {
-        if (running) {
-            return;
-        }
-
-        if (!init) {
-            String image = createImageAndPush();
-            String template = updateTemplate(image);
-            loadKubernetesFile(template);
-
-            init = true;
-        }
-
-        facade.setReplicaTo(model.getContext().getName(), 1);
-        running = true;
-
-        loggingHandler = new KubernetesLoggingHandler(model.getContext());
-        loggingHandler.startWatching();
-    }
-
-    @Override
-    public void stop() {
-        if (loggingHandler != null) {
-            loggingHandler.stopWatching();
-        }
-
-        facade.setReplicaTo(model.getContext().getName(), 0);
-        running = false;
-    }
-
-    @Override
-    public String getHost() {
-        return facade.getUrlByService(model.getContext().getName());
-    }
-
-    @Override
-    public int getPort() {
-        return facade.getPortByService(model.getContext().getName());
-    }
-
-    @Override
-    public boolean isRunning() {
-        return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
-    }
-
-    @Override
-    public List<String> logs() {
-        return loggingHandler.logs();
+    protected void doInit() {
+        String image = createImageAndPush();
+        String template = updateTemplate(image);
+        loadOpenShiftFile(template);
+        facade.startRollout(model.getContext().getName());
+        facade.exposeService(model.getContext().getName(), getInternalPort());
     }
 
     private String createImageAndPush() {
         return DockerUtils.createImageAndPush(model.getContext(), model.getLaunchMode(), model.getArtifact());
     }
 
-    private void loadKubernetesFile(String template) {
-        facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_KUBERNETES_FILE));
+    private void loadOpenShiftFile(String template) {
+        facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_OPENSHIFT_FILE));
     }
 
     private String updateTemplate(String image) {
-        String template = FileUtils.loadFile(QUARKUS_KUBERNETES_TEMPLATE)
+        String template = FileUtils.loadFile(QUARKUS_OPENSHIFT_TEMPLATE)
                 .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())

@@ -122,10 +122,18 @@ Use this Maven dependency:
 </dependency>
 ```
 
-And now, we can write also scenarios to be run in OpenShift by adding the `@OpenShiftScenario`:
+And now, we can write also scenarios to be run in OpenShift by adding the `@OpenShiftScenario`.
+
+#### Deployment Strategies
+
+- **(Default) Using Build**
+
+This strategy will build the Quarkus app artifacts locally and push it into OpenShift to generate the image that will be deployed. 
+
+Example:
 
 ```java
-@OpenShiftScenario
+@OpenShiftScenario // or @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.Build)
 public class OpenShiftPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
     static final Service pingApp = new Service("ping");
@@ -138,9 +146,83 @@ public class OpenShiftPingPongResourceIT {
 }
 ```
 
-The nature of the test framework is that you don't need to do anything special in your tests to make them work in OpenShift, the only requirement is that you need to have installed the OC command line and have logged in an existing OpenShift instance.
- 
- Also, you can extend your existing tests like in Native tests:
+- **OpenShift Extension**
+
+This strategy will delegate the deployment into the Quarkus OpenShift extension, so it will trigger a Maven command to run it. 
+
+Example:
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
+public class OpenShiftPingPongResourceIT {
+    // ...
+}
+```
+
+In order to use this strategy, you need to add this Maven profile into the pom.xml:
+
+```xml
+<profile>
+    <id>deploy-to-openshift-using-extension</id>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-openshift</artifactId>
+        </dependency>
+    </dependencies>
+</profile>
+```
+
+| Important note: This strategy does not support custom sources to be selected, this means that the whole Maven module will be deployed. Therefore, if we have:
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
+public class OpenShiftUsingExtensionPingPongResourceIT {
+    @QuarkusApplication(classes = PingResource.class)
+    static final Service pingPongApp = new Service("pingpong");
+    
+    // ...
+}
+```
+
+The test case will fail saying that this is not supported using the Using OpenShift strategy.
+
+- **OpenShift Extension and Using Docker Build**
+
+This is an extension of the `OpenShift Extension` previous deployment strategy. The only difference is that a Docker build strategy will be used:
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtensionAndDockerBuildStrategy)
+public class OpenShiftUsingExtensionPingPongResourceIT {
+    @QuarkusApplication(classes = PingResource.class)
+    static final Service pingPongApp = new Service("pingpong");
+    
+    // ...
+}
+```
+
+The same limitations as in `OpenShift Extension` strategy apply here too.
+
+- **Container Registry**
+
+This strategy will build the image locally and push it to an intermediary container registry (provided by a system property). Then, the image will be pulled from the container registry in OpenShift.
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingContainerRegistry)
+public class OpenShiftUsingExtensionPingPongResourceIT {
+    // ...
+}
+```
+
+When running these tests, the container registry must be supplied as a system property:
+
+```
+mvn clean verify -Dts.container.registry-url=quay.io/<your username>
+```
+
+#### Native Support
+
+Regardless the deployment strategy you chose, you can extend your existing tests like in Native tests:
  
  ```java
 @OpenShiftScenario
@@ -164,11 +246,11 @@ Use this Maven dependency:
 ```xml
 <dependency>
 	<groupId>io.quarkus.qe</groupId>
-	<artifactId>quarkus-test-openshift</artifactId>
+	<artifactId>quarkus-test-kubernetes</artifactId>
 </dependency>
 ```
 
-And now, we can write also scenarios to be run in OpenShift by adding the `@OpenShiftScenario`:
+And now, we can write also scenarios to be run in Kubernetes by adding the `@KubernetesScenario`:
 
 ```java
 @KubernetesScenario
@@ -183,6 +265,10 @@ public class KubernetesPingPongResourceIT {
     }
 }
 ```
+
+#### Deployment Strategies
+
+- **(Default) Container Registry** 
 
 Kubernetes needs a container registry where to push and pull images, so we need to provide a property like:
 
@@ -258,8 +344,8 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 ## TODO
 - Support properties for containers services in OpenShift/Kubernetes deployments
 - Make bootable inject classes at test methods
-- Support Quarkus OpenShift/Kubernete extensions strategy
-- Support of Quarkus Applications from external GitHub repository
+- Support Quarkus Kubernetes extensions strategy
 - Add example with several Microprofile services
 - Add example with Keycloak
+- Allow to update property at runtime
 - Deploy to Maven central

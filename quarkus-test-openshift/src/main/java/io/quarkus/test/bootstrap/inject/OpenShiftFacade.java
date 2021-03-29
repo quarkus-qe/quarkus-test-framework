@@ -58,6 +58,14 @@ public final class OpenShiftFacade {
         }
     }
 
+    public void startRollout(String serviceName) {
+        try {
+            new Command(OC, "rollout", "latest", "dc/" + serviceName).runAndWait();
+        } catch (Exception e) {
+            fail("Deployment failed to be started. Caused by " + e.getMessage());
+        }
+    }
+
     public void exposeService(String serviceName, int port) {
         Route route = client.routes().withName(serviceName).get();
         if (route != null) {

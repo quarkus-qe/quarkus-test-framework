@@ -140,7 +140,8 @@ public class Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        await().pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
+        await().ignoreExceptions()
+                .pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
                 .atMost(SERVICE_WAITER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
                 .until(this::isManagedResourceRunning);
     }

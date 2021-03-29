@@ -14,6 +14,7 @@
     <modules>
         <module>quarkus-test-core</module>
         <module>quarkus-test-containers</module>
+        <module>quarkus-test-images</module>
         <module>quarkus-test-kubernetes</module>
         <module>quarkus-test-openshift</module>
         <module>examples/pingpong</module>
@@ -35,8 +36,8 @@
 
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
-        <quarkus-plugin.version>999-SNAPSHOT</quarkus-plugin.version>
+        <quarkus.platform.version>1.13.0.Final</quarkus.platform.version>
+        <quarkus-plugin.version>1.13.0.Final</quarkus-plugin.version>
 
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
@@ -67,6 +68,11 @@
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-containers</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-images</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

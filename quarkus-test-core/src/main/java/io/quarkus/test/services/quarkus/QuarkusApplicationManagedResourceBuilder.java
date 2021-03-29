@@ -47,11 +47,11 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             .load(QuarkusApplicationManagedResourceBinding.class);
 
     private ServiceContext context;
-    private LaunchMode launchMode = LaunchMode.Jvm;
+    private LaunchMode launchMode = LaunchMode.JVM;
     private Path artifact;
     private boolean selectedAppClasses = true;
 
-    public LaunchMode getLaunchMode() {
+    protected LaunchMode getLaunchMode() {
         return launchMode;
     }
 
@@ -61,6 +61,14 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 
     protected ServiceContext getContext() {
         return context;
+    }
+
+    protected Class<?>[] getAppClasses() {
+        return appClasses;
+    }
+
+    protected boolean isSelectedAppClasses() {
+        return selectedAppClasses;
     }
 
     @Override
@@ -77,9 +85,17 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     public ManagedResource build(ServiceContext context) {
         this.context = context;
         configureLogging();
-        tryToReuseArtifact();
-        detectLaunchMode();
+        QuarkusManagedResource managedResource = findManagedResource();
+        if (managedResource.needsBuildArtifact()) {
+            tryToReuseOrBuildArtifact();
+        }
 
+        managedResource.validate();
+
+        return managedResource;
+    }
+
+    private QuarkusManagedResource findManagedResource() {
         for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(context)) {
                 return binding.init(this);
@@ -87,16 +103,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         }
 
         return new LocalhostQuarkusApplicationManagedResource(this);
-    }
-
-    private void detectLaunchMode() {
-        if (isNativeTest()) {
-            launchMode = LaunchMode.Native;
-        } else if (artifact.endsWith(JVM_RUNNER)) {
-            launchMode = LaunchMode.FastJar;
-        } else {
-            launchMode = LaunchMode.Jvm;
-        }
     }
 
     private void configureLogging() {
@@ -113,7 +119,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return properties.stream().anyMatch(buildTimeProperties::contains);
     }
 
-    private void tryToReuseArtifact() {
+    private void tryToReuseOrBuildArtifact() {
         Optional<String> artifactLocation = Optional.empty();
         if (!containsBuildProperties() && !selectedAppClasses) {
             if (isNativeTest()) {
@@ -129,6 +135,8 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         } else {
             this.artifact = Path.of(artifactLocation.get());
         }
+
+        detectLaunchMode();
     }
 
     private Path buildArtifact() {
@@ -163,6 +171,16 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         }
 
         return null;
+    }
+
+    private void detectLaunchMode() {
+        if (isNativeTest()) {
+            launchMode = LaunchMode.NATIVE;
+        } else if (artifact.endsWith(JVM_RUNNER)) {
+            launchMode = LaunchMode.FAST_JAR;
+        } else {
+            launchMode = LaunchMode.JVM;
+        }
     }
 
     private boolean isNativeTest() {

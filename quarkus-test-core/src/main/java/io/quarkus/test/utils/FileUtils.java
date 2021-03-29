@@ -1,14 +1,20 @@
 package io.quarkus.test.utils;
 
+import static org.junit.jupiter.api.Assertions.fail;
+
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+
+import io.quarkus.test.bootstrap.ServiceContext;
 
 public final class FileUtils {
 
@@ -18,12 +24,49 @@ public final class FileUtils {
 
     }
 
+    public static Path copyContentTo(ServiceContext service, String content, String target) {
+        Path file = service.getServiceFolder().resolve(target);
+
+        try {
+            Files.writeString(file, content);
+        } catch (IOException e) {
+            fail("Failed when writing file " + target + ". Caused by " + e.getMessage());
+        }
+
+        return file;
+    }
+
+    public static String loadFile(String file) {
+        try {
+            return IOUtils.toString(
+                    FileUtils.class.getResourceAsStream(file),
+                    StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            fail("Could not load file " + file + " . Caused by " + e.getMessage());
+        }
+
+        return null;
+    }
+
     public static void recreateDirectory(Path folder) {
         deleteDirectory(folder);
+        createDirectory(folder);
+    }
+
+    public static void createDirectory(Path folder) {
         try {
             org.apache.commons.io.FileUtils.forceMkdir(folder.toFile());
         } catch (IOException e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static void copyCurrentDirectoryTo(Path target) {
+        try {
+            org.apache.commons.io.FileUtils.copyDirectory(Paths.get(".").toFile(), target.toFile(),
+                    path -> !StringUtils.contains(path.toString(), "target"));
+        } catch (IOException e) {
+            fail("Could not copy project. Caused by " + e.getMessage());
         }
     }
 

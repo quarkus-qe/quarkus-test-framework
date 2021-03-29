@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 
 public interface QuarkusApplicationManagedResourceBinding {
@@ -16,5 +15,5 @@ public interface QuarkusApplicationManagedResourceBinding {
      * @param builder
      * @return
      */
-    ManagedResource init(QuarkusApplicationManagedResourceBuilder builder);
+    QuarkusManagedResource init(QuarkusApplicationManagedResourceBuilder builder);
 }
