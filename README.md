@@ -220,6 +220,16 @@ When running these tests, the container registry must be supplied as a system pr
 mvn clean verify -Dts.container.registry-url=quay.io/<your username>
 ```
 
+These tests can be disabled if the above system property is not set using the `@DisabledIfNotContainerRegistry` annotation:
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingContainerRegistry)
+@DisabledIfNotContainerRegistry
+public class OpenShiftUsingExtensionPingPongResourceIT {
+    // ...
+}
+```
+
 #### Native Support
 
 Regardless the deployment strategy you chose, you can extend your existing tests like in Native tests:
@@ -295,6 +305,8 @@ mvn clean verify -Dts.container.registry-url=quay.io/<your username>
 ```
 
 The container registry must automatically exposed the containers publicly.
+
+These tests can be disabled if the above system property is not set using the `@DisabledIfNotContainerRegistry` annotation.
 
 #### Interact with the Kubernetes Client directly
 

@@ -13,7 +13,9 @@ import io.quarkus.test.services.quarkus.model.LaunchMode;
 
 public final class DockerUtils {
 
-    private static final PropertyLookup CONTAINER_REGISTY_URL = new PropertyLookup("ts.container.registry-url");
+    public static final String CONTAINER_REGISTY_URL_PROPERTY = "ts.container.registry-url";
+
+    private static final PropertyLookup CONTAINER_REGISTY_URL = new PropertyLookup(CONTAINER_REGISTY_URL_PROPERTY);
 
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
