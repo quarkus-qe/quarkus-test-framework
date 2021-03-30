@@ -82,6 +82,17 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
         return loggingHandler.logs();
     }
 
+    @Override
+    public void restart() {
+        stop();
+        if (model.containsBuildProperties()) {
+            init = false;
+            model.build();
+        }
+
+        start();
+    }
+
     private boolean appIsStarted() {
         return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
     }

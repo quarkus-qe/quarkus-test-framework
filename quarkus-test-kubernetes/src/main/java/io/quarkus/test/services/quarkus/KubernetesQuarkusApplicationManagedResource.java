@@ -84,6 +84,17 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
         return loggingHandler.logs();
     }
 
+    @Override
+    public void restart() {
+        stop();
+        if (model.containsBuildProperties()) {
+            init = false;
+            model.build();
+        }
+
+        start();
+    }
+
     private String createImageAndPush() {
         return DockerUtils.createImageAndPush(model.getContext(), model.getLaunchMode(), model.getArtifact());
     }

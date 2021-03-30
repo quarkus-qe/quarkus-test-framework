@@ -1,9 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +18,6 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
 
     private final QuarkusApplicationManagedResourceBuilder model;
 
-    private int runningPort;
     private Process process;
     private LoggingHandler loggingHandler;
 
@@ -36,7 +33,7 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
         }
 
         try {
-            runningPort = preparePort();
+            assignPortIfNotSet();
             process = new ProcessBuilder(prepareCommand()).redirectErrorStream(true)
                     .directory(model.getArtifact().getParent().toFile()).start();
 
@@ -71,7 +68,7 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
 
     @Override
     public int getPort() {
-        return runningPort;
+        return Integer.valueOf(model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY));
     }
 
     @Override
@@ -84,20 +81,29 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
         return loggingHandler.logs();
     }
 
-    private int preparePort() {
+    @Override
+    public void restart() {
+        stop();
+        if (model.containsBuildProperties()) {
+            model.build();
+        }
+
+        start();
+    }
+
+    private int assignPortIfNotSet() {
         String port = model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
         if (StringUtils.isEmpty(port)) {
-            return SocketUtils.findAvailablePort();
+            int randomPort = SocketUtils.findAvailablePort();
+            model.getContext().getOwner().withProperty(QUARKUS_HTTP_PORT_PROPERTY, "" + randomPort);
+            return randomPort;
         }
 
         return Integer.parseInt(port);
     }
 
     private List<String> prepareCommand() {
-        Map<String, String> runtimeProperties = new HashMap<>(model.getContext().getOwner().getProperties());
-        runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + runningPort);
-
-        List<String> systemProperties = runtimeProperties.entrySet().stream()
+        List<String> systemProperties = model.getContext().getOwner().getProperties().entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue()).collect(Collectors.toList());
         List<String> command = new LinkedList<>();
         if (model.getArtifact().getFileName().toString().endsWith(".jar")) {

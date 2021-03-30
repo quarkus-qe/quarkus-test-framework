@@ -35,4 +35,12 @@ public interface ManagedResource {
      * @return the list of logs.
      */
     List<String> logs();
+
+    /**
+     * Restart of the managed resource.
+     */
+    default void restart() {
+        stop();
+        start();
+    }
 }

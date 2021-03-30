@@ -88,6 +88,7 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
                 try {
                     initService(context, field);
                 } catch (Exception e) {
+                    e.printStackTrace();
                     fail("Failed to start service: " + field + ". Caused by: " + e);
                 }
             }

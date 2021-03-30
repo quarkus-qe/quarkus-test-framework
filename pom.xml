@@ -22,6 +22,7 @@
         <module>examples/pingpong</module>
         <module>examples/greetings</module>
         <module>examples/consul</module>
+        <module>examples/microprofile</module>
         <module>examples/keycloak</module>
     </modules>
 

@@ -2,15 +2,13 @@ package io.quarkus.test.services.quarkus;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
@@ -32,7 +30,7 @@ import io.quarkus.test.utils.FileUtils;
 
 public class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
-    private static final String BUILD_TIME_PROPERTIES = "build-time-list.properties";
+    private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
     private static final String NATIVE_RUNNER = "-runner";
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app/";
@@ -50,6 +48,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private LaunchMode launchMode = LaunchMode.JVM;
     private Path artifact;
     private boolean selectedAppClasses = true;
+    private QuarkusManagedResource managedResource;
 
     protected LaunchMode getLaunchMode() {
         return launchMode;
@@ -85,14 +84,28 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     public ManagedResource build(ServiceContext context) {
         this.context = context;
         configureLogging();
-        QuarkusManagedResource managedResource = findManagedResource();
-        if (managedResource.needsBuildArtifact()) {
-            tryToReuseOrBuildArtifact();
-        }
+        managedResource = findManagedResource();
+        build();
 
         managedResource.validate();
 
         return managedResource;
+    }
+
+    public void build() {
+        if (managedResource.needsBuildArtifact()) {
+            tryToReuseOrBuildArtifact();
+        }
+    }
+
+    public boolean containsBuildProperties() {
+        Set<String> properties = context.getOwner().getProperties().keySet();
+        if (properties.isEmpty()) {
+            return false;
+        }
+
+        Set<String> buildTimeProperties = listOfBuildTimeProperties();
+        return properties.stream().anyMatch(prop -> buildTimeProperties.stream().anyMatch(prop::matches));
     }
 
     private QuarkusManagedResource findManagedResource() {
@@ -127,16 +140,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         }
 
         detectLaunchMode();
-    }
-
-    private boolean containsBuildProperties() {
-        Set<String> properties = context.getOwner().getProperties().keySet();
-        if (properties.isEmpty()) {
-            return false;
-        }
-
-        Set<String> buildTimeProperties = listOfBuildTimeProperties();
-        return properties.stream().anyMatch(buildTimeProperties::contains);
     }
 
     private Path buildArtifact() {
@@ -189,22 +192,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     }
 
     private static Set<String> listOfBuildTimeProperties() {
-        Set<String> buildTimeProperties = new HashSet<>();
-
-        try (InputStream input = QuarkusApplicationManagedResourceBuilder.class.getClassLoader()
-                .getResourceAsStream(BUILD_TIME_PROPERTIES)) {
-
-            Properties prop = new Properties();
-            prop.load(input);
-            for (Entry<Object, Object> entry : prop.entrySet()) {
-                buildTimeProperties.add((String) entry.getKey());
-            }
-
-        } catch (Exception ex) {
-            fail("We could not load build time properties. Caused by " + ex);
-        }
-
-        return buildTimeProperties;
+        return FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(Collectors.toSet());
     }
 
 }

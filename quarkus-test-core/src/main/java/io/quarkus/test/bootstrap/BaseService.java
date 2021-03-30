@@ -142,6 +142,10 @@ public class BaseService<T extends Service> implements Service {
         managedResource = managedResourceBuilder.build(context);
     }
 
+    public void restart() {
+        managedResource.restart();
+    }
+
     private void waitUntilServiceIsStarted() {
         await().ignoreExceptions()
                 .pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)

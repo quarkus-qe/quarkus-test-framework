@@ -74,6 +74,12 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return loggingHandler.logs();
     }
 
+    @Override
+    public void restart() {
+        stop();
+        start();
+    }
+
     private void applyDeployment() {
         client.applyServiceProperties(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE, this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));

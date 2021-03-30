@@ -1,0 +1,5 @@
+# List of properties that will trigger a full build of a Quarkus application
+# regular expression
+quarkus.[a-bA-Z]+.enabled
+quarkus.http.non-application-root-path
+quarkus.http.redirect-to-non-application-root-path
