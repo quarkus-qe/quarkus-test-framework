@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.restassured.RestAssured.given;
+
 import java.util.List;
 
 import org.apache.http.HttpStatus;
@@ -85,6 +87,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     }
 
     private boolean routeIsReachable() {
-        return model.getContext().getOwner().restAssured().get().getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return given().baseUri(getHost()).basePath("/").port(getPort()).get()
+                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

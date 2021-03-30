@@ -29,14 +29,14 @@ The framework aims to think on scenarios to verify. One scenario could include a
 public class PingPongResourceIT {
 
     @QuarkusApplication(classes = PingResource.class)
-    static final Service pingApp = new Service("ping");
+    static final RestService pingApp = new RestService();
 
     @QuarkusApplication(classes = PongResource.class)
-    static final Service pongApp = new Service("pong");
+    static final RestService pongApp = new RestService();
 
     // will include ping and pong resources
     @QuarkusApplication
-    static final Service pingPongApp = new Service("pingpong");
+    static final RestService pingPongApp = new RestService();
 
     // ...
 
@@ -74,10 +74,10 @@ public class GreetingResourceIT {
     private static final String CUSTOM_PROPERTY = "my.property";
 
     @Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
-    static final Service consul = new Service("consul");
+    static final DefaultService consul = new DefaultService();
 
     @QuarkusApplication
-    static final Service app = new Service("app");
+    static final RestService app = new RestService();
 
     // ...
 }
@@ -136,12 +136,12 @@ Example:
 @OpenShiftScenario // or @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.Build)
 public class OpenShiftPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
-    static final Service pingApp = new Service("ping");
+    static final RestService pingApp = new RestService();
 
     @Test
     public void shouldPingWorks() {
-        pingApp.restAssured().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingApp.restAssured().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
+        pingApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingApp.given().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }
 ```
@@ -179,7 +179,7 @@ In order to use this strategy, you need to add this Maven profile into the pom.x
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
 public class OpenShiftUsingExtensionPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
-    static final Service pingPongApp = new Service("pingpong");
+    static final RestService pingPongApp = new RestService();
     
     // ...
 }
@@ -195,7 +195,7 @@ This is an extension of the `OpenShift Extension` previous deployment strategy. 
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtensionAndDockerBuildStrategy)
 public class OpenShiftUsingExtensionPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
-    static final Service pingPongApp = new Service("pingpong");
+    static final RestService pingPongApp = new RestService();
     
     // ...
 }
@@ -274,12 +274,12 @@ And now, we can write also scenarios to be run in Kubernetes by adding the `@Kub
 @KubernetesScenario
 public class KubernetesPingPongResourceIT {
     @QuarkusApplication(classes = PingResource.class)
-    static final Service pingApp = new Service("ping");
+    static final RestService pingApp = new RestService();
 
     @Test
     public void shouldPingWorks() {
-        pingApp.restAssured().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingApp.restAssured().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
+        pingApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingApp.given().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }
 ```
@@ -315,33 +315,26 @@ public class KubernetesGreetingResourceIT extends GreetingResourceIT {
 }
 ```
 
-## More Features
+## Services entities
 
-- `restAssured`: Rest Assured integration.
-
-Rest Assured is already integrated in our services:
+The objective of a service is to manage internal resources:
 
 ```java
 @QuarkusApplication
-static final Service app = new Service("app");
-
-
-@Test
-public void shouldPing() {
-    app.restAssured().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping pong"));
-}
+static final DefaultService pingApp = new DefaultService();
 ```
 
+This service will host the quarkus application internally, but it will also expose the functionality to interact with it: 
 - `withProperty`: Intuitive usage of properties.
 
 We can configure our resources using configuration of other resources:
 
 ```java
 @Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
-static final Service consul = new Service("consul");
+static final DefaultService consul = new DefaultService();
 
 @QuarkusApplication
-static final Service app = new Service("app").withProperty("quarkus.consul-config.agent.host-port",
+static final DefaultService app = new DefaultService().withProperty("quarkus.consul-config.agent.host-port",
         () -> consul.getHost() + ":" + consul.getPort());
 ```
 
@@ -353,7 +346,7 @@ The framework allows to add actions via hooks in every stage of the service life
 
 ```java
 @Container(image = "quay.io/bitnami/consul:1.9.3", expectedLog = "Synced node info", port = 8500)
-static final Service consul = new Service("consul").onPostStart(GreetingResourceTest::onLoadConfigureConsul);
+static final DefaultService consul = new DefaultService().onPostStart(GreetingResourceTest::onLoadConfigureConsul);
 
 private static final void onLoadConfigureConsul(Service service) {
     // ...
@@ -363,6 +356,50 @@ private static final void onLoadConfigureConsul(Service service) {
 - Services are startable and stoppable by default
 
 Any Quarkus application and containers can be stopped to cover more complex scenarios. The test framework will restart the services by you before starting a new test case.
+
+### Rest Services
+
+There is a custom service implementation where we can use REST assured:
+
+```java
+@QuarkusScenario
+public class PingPongResourceIT {
+    @QuarkusApplication
+    static final RestService pingApp = new RestService();
+
+    @Test
+    public void shouldPingWorks() {
+        pingApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+    }
+}
+```
+
+### Custom Services
+
+In the same way, we can add default services to ease and share common functionality. As part of the test framework, we added the consul service as an example.
+
+```java
+public class YourCustomService extends BaseService<ConsulService> {
+
+    // your new methods
+}
+```
+
+And use it:
+
+```java
+@QuarkusScenario
+public class GreetingResourceIT {
+
+    @Container // ... or @QuarkusApplication
+    static final YourCustomService app = new YourCustomService();
+    
+    // your methods will be available
+}
+```
+
+
+## More Features
 
 - Discovery of build time properties to build Quarkus applications
 

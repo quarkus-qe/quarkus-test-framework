@@ -14,10 +14,6 @@
     <artifactId>examples-consul</artifactId>
     <name>Quarkus - Test Framework - Examples - Consul</name>
 
-    <properties>
-        <consul-client.version>1.4.0</consul-client.version>
-    </properties>
-
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -46,11 +42,10 @@
             <artifactId>quarkus-test-kubernetes</artifactId>
             <scope>test</scope>
         </dependency>
-
+        
         <dependency>
-            <groupId>com.orbitz.consul</groupId>
-            <artifactId>consul-client</artifactId>
-            <version>${consul-client.version}</version>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-service-consul</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

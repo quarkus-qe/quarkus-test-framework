@@ -5,7 +5,7 @@ import static org.hamcrest.Matchers.is;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.services.QuarkusApplication;
@@ -14,11 +14,11 @@ import io.quarkus.test.services.QuarkusApplication;
 public class OpenShiftUsingExtensionAndDockerBuildPingPongResourceIT {
 
     @QuarkusApplication
-    static final Service pingPongApp = new Service("pingpong");
+    static final RestService pingPongApp = new RestService();
 
     @Test
     public void shouldPingPongWorks() {
-        pingPongApp.restAssured().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingPongApp.restAssured().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+        pingPongApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingPongApp.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
     }
 }

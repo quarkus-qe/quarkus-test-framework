@@ -84,7 +84,7 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
 
     private void initServicesFromClass(ExtensionContext context, Class<?> clazz) {
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.getType().isAssignableFrom(Service.class)) {
+            if (Service.class.isAssignableFrom(field.getType())) {
                 try {
                     initService(context, field);
                 } catch (Exception e) {
@@ -102,6 +102,7 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
 
         field.setAccessible(true);
         Service service = (Service) field.get(null);
+        service.register(field.getName());
         ServiceContext serviceContext = new ServiceContext(service, context);
         extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
 
