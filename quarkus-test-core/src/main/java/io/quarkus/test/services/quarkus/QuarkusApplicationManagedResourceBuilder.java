@@ -109,16 +109,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         context.getOwner().withProperty("quarkus.log.console.format", "%d{HH:mm:ss,SSS} %s%e%n");
     }
 
-    private boolean containsBuildProperties() {
-        Set<String> properties = context.getOwner().getProperties().keySet();
-        if (properties.isEmpty()) {
-            return false;
-        }
-
-        Set<String> buildTimeProperties = listOfBuildTimeProperties();
-        return properties.stream().anyMatch(buildTimeProperties::contains);
-    }
-
     private void tryToReuseOrBuildArtifact() {
         Optional<String> artifactLocation = Optional.empty();
         if (!containsBuildProperties() && !selectedAppClasses) {
@@ -139,6 +129,16 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         detectLaunchMode();
     }
 
+    private boolean containsBuildProperties() {
+        Set<String> properties = context.getOwner().getProperties().keySet();
+        if (properties.isEmpty()) {
+            return false;
+        }
+
+        Set<String> buildTimeProperties = listOfBuildTimeProperties();
+        return properties.stream().anyMatch(buildTimeProperties::contains);
+    }
+
     private Path buildArtifact() {
         try {
             Path appFolder = context.getServiceFolder();
@@ -147,6 +147,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());
 
             Properties buildProperties = new Properties();
+            buildProperties.putAll(context.getOwner().getProperties());
             if (isNativeTest()) {
                 buildProperties.put(QUARKUS_PACKAGE_TYPE_PROPERTY, NATIVE);
             }

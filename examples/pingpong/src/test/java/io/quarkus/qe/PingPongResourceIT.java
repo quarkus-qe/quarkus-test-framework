@@ -13,30 +13,30 @@ import io.quarkus.test.services.QuarkusApplication;
 public class PingPongResourceIT {
 
     @QuarkusApplication(classes = PingResource.class)
-    static final RestService pingApp = new RestService();
+    static final RestService ping = new RestService();
 
     @QuarkusApplication(classes = PongResource.class)
-    static final RestService pongApp = new RestService();
+    static final RestService pong = new RestService();
 
     @QuarkusApplication
-    static final RestService pingPongApp = new RestService();
+    static final RestService pingpong = new RestService();
 
     @Test
     public void shouldPingWorks() {
-        pingApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingApp.given().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
+        ping.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        ping.given().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void shouldPongWorks() {
-        pongApp.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
-        pongApp.given().get("/ping").then().statusCode(HttpStatus.SC_NOT_FOUND);
+        pong.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+        pong.given().get("/ping").then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 
     @Test
     public void shouldPingPongWorks() {
-        pingPongApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingPongApp.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+        pingpong.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingpong.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
     }
 
 }

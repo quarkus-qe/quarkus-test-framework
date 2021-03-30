@@ -1,8 +1,12 @@
 package io.quarkus.test.services.containers;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang3.StringUtils;
+import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
@@ -11,6 +15,8 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
 public class DockerContainerManagedResource implements ManagedResource {
+
+    private static final String RESOURCE_PREFIX = "resource::";
 
     private final ContainerManagedResourceBuilder model;
 
@@ -37,7 +43,8 @@ public class DockerContainerManagedResource implements ManagedResource {
             innerContainer.withCommand(model.getCommand());
         }
 
-        innerContainer.withEnv(model.getContext().getOwner().getProperties());
+        Map<String, String> properties = resolveProperties();
+        innerContainer.withEnv(properties);
 
         innerContainer.withExposedPorts(model.getPort());
         innerContainer.start();
@@ -61,7 +68,7 @@ public class DockerContainerManagedResource implements ManagedResource {
 
     @Override
     public String getHost() {
-        return innerContainer.getHost();
+        return "http://" + innerContainer.getHost();
     }
 
     @Override
@@ -72,6 +79,24 @@ public class DockerContainerManagedResource implements ManagedResource {
     @Override
     public List<String> logs() {
         return loggingHandler.logs();
+    }
+
+    private Map<String, String> resolveProperties() {
+        Map<String, String> properties = new HashMap<>();
+        for (Entry<String, String> entry : model.getContext().getOwner().getProperties().entrySet()) {
+            String value = entry.getValue();
+            if (isResource(entry.getValue())) {
+                value = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
+                innerContainer.withClasspathResourceMapping(value.substring(1), value, BindMode.READ_ONLY);
+            }
+
+            properties.put(entry.getKey(), value);
+        }
+        return properties;
+    }
+
+    private boolean isResource(String key) {
+        return key.startsWith(RESOURCE_PREFIX);
     }
 
 }

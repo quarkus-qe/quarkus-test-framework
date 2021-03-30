@@ -12,11 +12,11 @@ import io.quarkus.test.services.QuarkusApplication;
 @KubernetesScenario
 public class KubernetesPingPongResourceIT {
     @QuarkusApplication
-    static final RestService pingPongApp = new RestService();
+    static final RestService pingpong = new RestService();
 
     @Test
     public void shouldPingPongWorks() {
-        pingPongApp.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        pingPongApp.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+        pingpong.given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        pingpong.given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
     }
 }

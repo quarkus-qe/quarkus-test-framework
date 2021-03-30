@@ -405,6 +405,10 @@ public class GreetingResourceIT {
 
 The test framework will leverage whether an application runner can be reused or it needs to trigger a new build. Note that for this feature, tests should be written as Integration Tests. 
 
+- External Resources
+
+We can use properties that require external resources using the `resource::` tag. For example: `.withProperty("to.property", "resource::/file.yaml");`. This works either using containers in bare metal or OpenShift/Kubernetes.
+
 - Colourify logging
 
 The test framework will output a different colour by service. This will extremely ease the troubleshooting of the logic.
@@ -417,6 +421,6 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 
 ## TODO
 - Add example with several Microprofile services
-- Add example with Keycloak
+- Implement fail fast features
 - Allow to update property at runtime
 - Deploy to Maven central

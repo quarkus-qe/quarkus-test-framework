@@ -10,16 +10,22 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -35,6 +41,8 @@ import io.quarkus.test.utils.FileUtils;
 public final class OpenShiftClient {
 
     private static final int AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES = 5;
+    private static final String RESOURCE_PREFIX = "resource::";
+    private static final String RESOURCE_MNT_FOLDER = "/resource";
 
     private static final String OC = "oc";
 
@@ -208,8 +216,11 @@ public final class OpenShiftClient {
             for (HasMetadata obj : objs) {
                 if (obj instanceof DeploymentConfig) {
                     DeploymentConfig dc = (DeploymentConfig) obj;
+
+                    Map<String, String> enrichProperties = enrichProperties(properties, dc);
+
                     dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        properties.entrySet().forEach(
+                        enrichProperties.entrySet().forEach(
                                 envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
                     });
                 }
@@ -228,6 +239,46 @@ public final class OpenShiftClient {
         return template;
     }
 
+    private Map<String, String> enrichProperties(Map<String, String> properties, DeploymentConfig dc) {
+        Map<String, String> output = new HashMap<>();
+        for (Entry<String, String> entry : properties.entrySet()) {
+            String value = entry.getValue();
+            if (isResource(entry.getValue())) {
+                String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
+                String fileName = path.substring(1); // remove first /
+                String configMapName = normalizeConfigMapName(fileName);
+                // Create Config Map with the content of the file
+                client.configMaps().createOrReplace(new ConfigMapBuilder()
+                        .withNewMetadata().withName(configMapName).endMetadata()
+                        .addToData(fileName, FileUtils.loadFile(path)).build());
+
+                // Add the volume to the above config map
+                dc.getSpec().getTemplate().getSpec().getVolumes().add(new VolumeBuilder().withName(configMapName)
+                        .withConfigMap(new ConfigMapVolumeSourceBuilder().withName(configMapName).build()).build());
+
+                // Configure all the containers to map the volume
+                dc.getSpec().getTemplate().getSpec().getContainers()
+                        .forEach(container -> container.getVolumeMounts()
+                                .add(new VolumeMountBuilder().withName(configMapName).withReadOnly(true)
+                                        .withMountPath(RESOURCE_MNT_FOLDER).build()));
+
+                value = RESOURCE_MNT_FOLDER + path;
+            }
+
+            output.put(entry.getKey(), value);
+        }
+
+        return output;
+    }
+
+    private String normalizeConfigMapName(String name) {
+        return name.replaceAll(Pattern.quote("."), "-");
+    }
+
+    private boolean isResource(String key) {
+        return key.startsWith(RESOURCE_PREFIX);
+    }
+
     private boolean hasImageStreamTags(ImageStream is) {
         return !masterClient.imageStreams().withName(is.getMetadata().getName()).get().getSpec().getTags().isEmpty();
     }
@@ -244,7 +295,7 @@ public final class OpenShiftClient {
         }
     }
 
-    public List<HasMetadata> loadYaml(String template) {
+    private List<HasMetadata> loadYaml(String template) {
         return client.load(new ByteArrayInputStream(template.getBytes())).get();
     }
 

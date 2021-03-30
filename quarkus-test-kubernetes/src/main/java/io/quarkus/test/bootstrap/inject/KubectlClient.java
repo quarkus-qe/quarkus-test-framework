@@ -9,18 +9,24 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.UnaryOperator;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
@@ -32,6 +38,9 @@ import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
 public final class KubectlClient {
+
+    private static final String RESOURCE_PREFIX = "resource::";
+    private static final String RESOURCE_MNT_FOLDER = "/resource";
 
     private static final String KUBECTL = "kubectl";
     private static final int HTTP_PORT_DEFAULT = 80;
@@ -215,8 +224,11 @@ public final class KubectlClient {
             for (HasMetadata obj : objs) {
                 if (obj instanceof Deployment) {
                     Deployment d = (Deployment) obj;
+
+                    Map<String, String> enrichProperties = enrichProperties(properties, d);
+
                     d.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        properties.entrySet().forEach(
+                        enrichProperties.entrySet().forEach(
                                 envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
                     });
                 }
@@ -234,6 +246,46 @@ public final class KubectlClient {
         }
 
         return template;
+    }
+
+    private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment) {
+        Map<String, String> output = new HashMap<>();
+        for (Entry<String, String> entry : properties.entrySet()) {
+            String value = entry.getValue();
+            if (isResource(entry.getValue())) {
+                String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
+                String fileName = path.substring(1); // remove first /
+                String configMapName = normalizeConfigMapName(fileName);
+                // Create Config Map with the content of the file
+                client.configMaps().createOrReplace(new ConfigMapBuilder()
+                        .withNewMetadata().withName(configMapName).endMetadata()
+                        .addToData(fileName, FileUtils.loadFile(path)).build());
+
+                // Add the volume to the above config map
+                deployment.getSpec().getTemplate().getSpec().getVolumes().add(new VolumeBuilder().withName(configMapName)
+                        .withConfigMap(new ConfigMapVolumeSourceBuilder().withName(configMapName).build()).build());
+
+                // Configure all the containers to map the volume
+                deployment.getSpec().getTemplate().getSpec().getContainers()
+                        .forEach(container -> container.getVolumeMounts()
+                                .add(new VolumeMountBuilder().withName(configMapName).withReadOnly(true)
+                                        .withMountPath(RESOURCE_MNT_FOLDER).build()));
+
+                value = RESOURCE_MNT_FOLDER + path;
+            }
+
+            output.put(entry.getKey(), value);
+        }
+
+        return output;
+    }
+
+    private String normalizeConfigMapName(String name) {
+        return name.replaceAll(Pattern.quote("."), "-");
+    }
+
+    private boolean isResource(String key) {
+        return key.startsWith(RESOURCE_PREFIX);
     }
 
     public static KubectlClient create(String namespace) {

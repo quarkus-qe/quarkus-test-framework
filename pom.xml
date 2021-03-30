@@ -18,9 +18,11 @@
         <module>quarkus-test-kubernetes</module>
         <module>quarkus-test-openshift</module>
         <module>quarkus-test-service-consul</module>
+        <module>quarkus-test-service-keycloak</module>
         <module>examples/pingpong</module>
         <module>examples/greetings</module>
         <module>examples/consul</module>
+        <module>examples/keycloak</module>
     </modules>
 
     <properties>
@@ -89,6 +91,11 @@
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-service-consul</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-service-keycloak</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>
