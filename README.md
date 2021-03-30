@@ -231,6 +231,24 @@ public class NativeOpenShiftPingPongResourceIT extends PingPongResourceTest {
 }
 ```
 
+#### Interact with the OpenShift Client directly
+
+We can inject the OpenShift client to interact with OpenShift. This can be useful to cope with more complex scenarios like scale up/down services.
+
+```java
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.scenarios.OpenShiftScenario;
+
+@OpenShiftScenario
+public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
+    @Test
+    public void shouldInjectOpenShiftClient(OpenShiftClient client) {
+        // ...
+        client.scaleTo(app, 2);
+    }
+}
+```
+
 ### Kubernetes
 
 Requirements:
@@ -277,6 +295,25 @@ mvn clean verify -Dts.container.registry-url=quay.io/<your username>
 ```
 
 The container registry must automatically exposed the containers publicly.
+
+#### Interact with the Kubernetes Client directly
+
+We can inject the Kubectl client to interact with Kubernetes. This can be useful to cope with more complex scenarios like scale up/down services.
+
+```java
+import io.quarkus.test.bootstrap.inject.KubectlClient;
+import io.quarkus.test.scenarios.KubernetesScenario;
+
+@KubernetesScenario
+public class KubernetesGreetingResourceIT extends GreetingResourceIT {
+
+    @Test
+    public void shouldInjectKubectlClient(KubectlClient client) {
+        // ...
+        client.scaleTo(app, 2);
+    }
+}
+```
 
 ## More Features
 
@@ -342,7 +379,6 @@ ts.<YOUR SERVICE NAME>.log.enable=true
 ```
 
 ## TODO
-- Make bootable inject classes at test methods
 - Add example with several Microprofile services
 - Add example with Keycloak
 - Allow to update property at runtime

@@ -79,7 +79,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     }
 
     private void deployProjectUsingMavenCommand() {
-        String namespace = facade.getNamespace();
+        String namespace = client.project();
 
         List<String> args = new ArrayList<>(
                 Arrays.asList(MVN_COMMAND, USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
@@ -119,7 +119,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         if (!Files.exists(dockerfileTarget.resolve(dockerfileTarget))) {
             String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(model.getLaunchMode()))
                     .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
-            FileUtils.copyContentTo(model.getContext(), dockerFileContent, DOCKERFILE_SOURCE_FOLDER + dockerfileName);
+            FileUtils.copyContentTo(dockerFileContent,
+                    model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName));
         }
     }
 

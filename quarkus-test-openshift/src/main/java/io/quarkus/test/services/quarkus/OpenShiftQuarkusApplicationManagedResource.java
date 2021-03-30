@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.http.HttpStatus;
 
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
-import io.quarkus.test.bootstrap.inject.OpenShiftFacade;
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 
@@ -15,7 +15,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     private static final int EXTERNAL_PORT = 80;
 
     protected final QuarkusApplicationManagedResourceBuilder model;
-    protected final OpenShiftFacade facade;
+    protected final OpenShiftClient client;
 
     private LoggingHandler loggingHandler;
     private boolean init;
@@ -23,10 +23,11 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
 
     public OpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
-        this.facade = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
+        this.client = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
     }
 
     protected abstract void doInit();
+
     protected abstract void onRestart();
 
     @Override
@@ -42,7 +43,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
             onRestart();
         }
 
-        facade.setReplicaTo(model.getContext().getName(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
@@ -55,13 +56,13 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
             loggingHandler.stopWatching();
         }
 
-        facade.setReplicaTo(model.getContext().getName(), 0);
+        client.scaleTo(model.getContext().getOwner(), 0);
         running = false;
     }
 
     @Override
     public String getHost() {
-        return facade.getUrlFromRoute(model.getContext().getName());
+        return client.url(model.getContext().getOwner());
     }
 
     @Override

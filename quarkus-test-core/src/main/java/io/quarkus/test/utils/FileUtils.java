@@ -14,8 +14,6 @@ import java.util.stream.Stream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.test.bootstrap.ServiceContext;
-
 public final class FileUtils {
 
     private static final int NO_RECURSIVE = 1;
@@ -24,16 +22,14 @@ public final class FileUtils {
 
     }
 
-    public static Path copyContentTo(ServiceContext service, String content, String target) {
-        Path file = service.getServiceFolder().resolve(target);
-
+    public static Path copyContentTo(String content, Path target) {
         try {
-            Files.writeString(file, content);
+            Files.writeString(target, content);
         } catch (IOException e) {
             fail("Failed when writing file " + target + ". Caused by " + e.getMessage());
         }
 
-        return file;
+        return target;
     }
 
     public static String loadFile(String file) {

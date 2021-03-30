@@ -8,6 +8,8 @@ import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.logging.LogManager;
@@ -16,8 +18,10 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
-public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback {
+public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, ParameterResolver {
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
@@ -56,6 +60,26 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
     @Override
     public void beforeEach(ExtensionContext context) throws Exception {
         services.forEach(Service::start);
+    }
+
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return extensions.stream().anyMatch(ext -> ext.supportsParameter(parameterContext, extensionContext));
+    }
+
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        Optional<Object> parameter = extensions.stream()
+                .filter(ext -> ext.supportsParameter(parameterContext, extensionContext))
+                .map(ext -> ext.resolveParameter(parameterContext, extensionContext))
+                .filter(Objects::nonNull)
+                .findFirst();
+
+        if (!parameter.isPresent()) {
+            fail("Failed to inject parameter: " + parameterContext.getParameter().getName());
+        }
+
+        return parameter.get();
     }
 
     private void initServicesFromClass(ExtensionContext context, Class<?> clazz) {

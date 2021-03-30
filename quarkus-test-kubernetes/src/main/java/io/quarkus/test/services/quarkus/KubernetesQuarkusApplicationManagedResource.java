@@ -7,23 +7,22 @@ import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
-import io.quarkus.test.bootstrap.inject.KubectlFacade;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.DockerUtils;
-import io.quarkus.test.utils.FileUtils;
 
 public class KubernetesQuarkusApplicationManagedResource implements QuarkusManagedResource {
 
     private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
-    private static final String QUARKUS_KUBERNETES_FILE = "kubernetes.yml";
+    private static final String DEPLOYMENT = "kubernetes.yml";
 
     private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final int INTERNAL_PORT_DEFAULT = 8080;
 
     private final QuarkusApplicationManagedResourceBuilder model;
-    private final KubectlFacade facade;
+    private final KubectlClient client;
 
     private LoggingHandler loggingHandler;
     private boolean init;
@@ -32,7 +31,7 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
 
     public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
-        this.facade = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
+        this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
     }
 
     @Override
@@ -46,10 +45,9 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
             init = true;
         }
 
-        String template = updateTemplate();
-        loadKubernetesFile(template);
+        loadDeployment();
 
-        facade.setReplicaTo(model.getContext().getName(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new KubernetesLoggingHandler(model.getContext());
@@ -62,18 +60,18 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
             loggingHandler.stopWatching();
         }
 
-        facade.setReplicaTo(model.getContext().getName(), 0);
+        client.scaleTo(model.getContext().getOwner(), 0);
         running = false;
     }
 
     @Override
     public String getHost() {
-        return facade.getUrlByService(model.getContext().getName());
+        return client.url(model.getContext().getOwner());
     }
 
     @Override
     public int getPort() {
-        return facade.getPortByService(model.getContext().getName());
+        return client.port(model.getContext().getOwner());
     }
 
     @Override
@@ -90,21 +88,18 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
         return DockerUtils.createImageAndPush(model.getContext(), model.getLaunchMode(), model.getArtifact());
     }
 
-    private void loadKubernetesFile(String template) {
-        facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_KUBERNETES_FILE));
+    private void loadDeployment() {
+        client.applyServiceProperties(model.getContext().getOwner(), QUARKUS_KUBERNETES_TEMPLATE,
+                this::replaceDeploymentContent, model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
-    private String updateTemplate() {
-        String template = FileUtils.loadFile(QUARKUS_KUBERNETES_TEMPLATE)
-                .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
+    private String replaceDeploymentContent(String content) {
+        return content
+                .replaceAll(quote("${NAMESPACE}"), client.namespace())
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());
-
-        template = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), template);
-
-        return template;
     }
 
     private int getInternalPort() {

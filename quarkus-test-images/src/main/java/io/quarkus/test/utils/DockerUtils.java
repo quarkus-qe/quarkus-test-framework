@@ -34,7 +34,7 @@ public final class DockerUtils {
         String dockerfileContent = FileUtils.loadFile(getDockerfile(mode))
                 .replaceAll(quote("${ARTIFACT_PARENT}"), artifact.getParent().toString());
 
-        Path dockerfilePath = FileUtils.copyContentTo(service, dockerfileContent, DOCKERFILE);
+        Path dockerfilePath = FileUtils.copyContentTo(dockerfileContent, service.getServiceFolder().resolve(DOCKERFILE));
         buildService(service, dockerfilePath);
         return pushToContainerRegistryUrl(service);
     }

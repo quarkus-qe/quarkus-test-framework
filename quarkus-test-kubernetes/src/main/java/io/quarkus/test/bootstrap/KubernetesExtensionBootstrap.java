@@ -3,8 +3,9 @@ package io.quarkus.test.bootstrap;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
 
-import io.quarkus.test.bootstrap.inject.KubectlFacade;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.scenarios.KubernetesScenario;
 
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
@@ -13,7 +14,7 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     private static final int PROJECT_NAME_SIZE = 10;
 
-    private KubectlFacade facade;
+    private KubectlClient client;
 
     @Override
     public boolean appliesFor(ExtensionContext context) {
@@ -22,17 +23,27 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        facade = KubectlFacade.create(generateRandomProject());
+        client = KubectlClient.create(generateRandomProject());
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
-        facade.deleteProject();
+        client.deleteNamespace();
     }
 
     @Override
     public void updateServiceContext(ServiceContext context) {
-        context.put(CLIENT, facade);
+        context.put(CLIENT, client);
+    }
+
+    @Override
+    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return parameterContext.getParameter().getType() == KubectlClient.class;
+    }
+
+    @Override
+    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
+        return client;
     }
 
     private String generateRandomProject() {

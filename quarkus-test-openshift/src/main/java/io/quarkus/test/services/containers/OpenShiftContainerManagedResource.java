@@ -6,26 +6,26 @@ import java.util.List;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
-import io.quarkus.test.bootstrap.inject.OpenShiftFacade;
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
-import io.quarkus.test.utils.FileUtils;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE = "/openshift-deployment-template.yml";
+    private static final String DEPLOYMENT = "openshift.yml";
 
     private static final int HTTP_PORT = 80;
 
     private final ContainerManagedResourceBuilder model;
-    private final OpenShiftFacade facade;
+    private final OpenShiftClient client;
 
     private LoggingHandler loggingHandler;
     private boolean running;
 
     protected OpenShiftContainerManagedResource(ContainerManagedResourceBuilder model) {
         this.model = model;
-        this.facade = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
+        this.client = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
     }
 
     @Override
@@ -35,9 +35,9 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         }
 
         applyDeployment();
-        facade.exposeService(model.getContext().getName(), model.getPort());
+        client.expose(model.getContext().getOwner(), model.getPort());
 
-        facade.setReplicaTo(model.getContext().getName(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
@@ -50,13 +50,13 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
             loggingHandler.stopWatching();
         }
 
-        facade.setReplicaTo(model.getContext().getName(), 0);
+        client.scaleTo(model.getContext().getOwner(), 0);
         running = false;
     }
 
     @Override
     public String getHost() {
-        return facade.getUrlFromRoute(model.getContext().getName());
+        return client.url(model.getContext().getOwner());
     }
 
     @Override
@@ -75,16 +75,15 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        String deploymentContent = FileUtils.loadFile(DEPLOYMENT_TEMPLATE)
-                .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
+        client.applyServiceProperties(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE, this::replaceDeploymentContent,
+                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+    }
+
+    private String replaceDeploymentContent(String content) {
+        return content.replaceAll(quote("${NAMESPACE}"), client.project())
                 .replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
-
-        deploymentContent = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), deploymentContent);
-
-        facade.apply(FileUtils.copyContentTo(model.getContext(), deploymentContent,
-                model.getContext().getName() + "-deployment.yml"));
     }
 
 }

@@ -36,8 +36,8 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
         image = createImageAndPush();
         String template = updateTemplate();
         loadOpenShiftFile(template);
-        facade.startRollout(model.getContext().getName());
-        facade.exposeService(model.getContext().getName(), getInternalPort());
+        client.rollout(model.getContext().getOwner());
+        client.expose(model.getContext().getOwner(), getInternalPort());
     }
 
     @Override
@@ -50,12 +50,13 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     }
 
     private void loadOpenShiftFile(String template) {
-        facade.apply(FileUtils.copyContentTo(model.getContext(), template, QUARKUS_OPENSHIFT_FILE));
+        client.apply(model.getContext().getOwner(),
+                FileUtils.copyContentTo(template, model.getContext().getServiceFolder().resolve(QUARKUS_OPENSHIFT_FILE)));
     }
 
     private String updateTemplate() {
         String template = FileUtils.loadFile(QUARKUS_OPENSHIFT_TEMPLATE)
-                .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
+                .replaceAll(quote("${NAMESPACE}"), client.project())
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
@@ -68,7 +69,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
 
     private String addProperties(String template) {
         if (!model.getContext().getOwner().getProperties().isEmpty()) {
-            List<HasMetadata> objs = facade.loadYaml(template);
+            List<HasMetadata> objs = client.loadYaml(template);
             for (HasMetadata obj : objs) {
                 if (obj instanceof Deployment) {
                     Deployment d = (Deployment) obj;

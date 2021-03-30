@@ -4,25 +4,27 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.ServiceContext;
-import io.quarkus.test.bootstrap.inject.KubectlFacade;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 
 public class KubernetesLoggingHandler extends LoggingHandler {
 
-    private final KubectlFacade facade;
-    private final String serviceName;
+    private final KubectlClient client;
+    private final Service service;
+
     private Map<String, String> oldLogs;
 
     public KubernetesLoggingHandler(ServiceContext context) {
         super(context);
 
-        serviceName = context.getName();
-        facade = context.get(KubernetesExtensionBootstrap.CLIENT);
+        service = context.getOwner();
+        client = context.get(KubernetesExtensionBootstrap.CLIENT);
     }
 
     @Override
     protected synchronized void handle() {
-        Map<String, String> newLogs = facade.getLogs(serviceName);
+        Map<String, String> newLogs = client.logs(service);
         for (Entry<String, String> entry : newLogs.entrySet()) {
             onMapDifference(entry);
         }

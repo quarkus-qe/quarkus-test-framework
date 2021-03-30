@@ -6,24 +6,24 @@ import java.util.List;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.ManagedResource;
-import io.quarkus.test.bootstrap.inject.KubectlFacade;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
-import io.quarkus.test.utils.FileUtils;
 
 public class KubernetesContainerManagedResource implements ManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE = "/kubernetes-deployment-template.yml";
+    private static final String DEPLOYMENT = "kubernetes.yml";
 
     private final ContainerManagedResourceBuilder model;
-    private final KubectlFacade facade;
+    private final KubectlClient client;
 
     private LoggingHandler loggingHandler;
     private boolean running;
 
     protected KubernetesContainerManagedResource(ContainerManagedResourceBuilder model) {
         this.model = model;
-        this.facade = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
+        this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
     }
 
     @Override
@@ -34,9 +34,9 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
         applyDeployment();
 
-        facade.exposeService(model.getContext().getName(), model.getPort());
+        client.expose(model.getContext().getOwner(), model.getPort());
 
-        facade.setReplicaTo(model.getContext().getName(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new KubernetesLoggingHandler(model.getContext());
@@ -49,18 +49,18 @@ public class KubernetesContainerManagedResource implements ManagedResource {
             loggingHandler.stopWatching();
         }
 
-        facade.setReplicaTo(model.getContext().getName(), 0);
+        client.scaleTo(model.getContext().getOwner(), 0);
         running = false;
     }
 
     @Override
     public String getHost() {
-        return facade.getUrlByService(model.getContext().getName());
+        return client.url(model.getContext().getOwner());
     }
 
     @Override
     public int getPort() {
-        return facade.getPortByService(model.getContext().getName());
+        return client.port(model.getContext().getOwner());
     }
 
     @Override
@@ -74,16 +74,15 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        String deploymentContent = FileUtils.loadFile(DEPLOYMENT_TEMPLATE)
-                .replaceAll(quote("${NAMESPACE}"), facade.getNamespace())
+        client.applyServiceProperties(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE, this::replaceDeploymentContent,
+                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+    }
+
+    private String replaceDeploymentContent(String content) {
+        return content.replaceAll(quote("${NAMESPACE}"), client.namespace())
                 .replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
-
-        deploymentContent = facade.addPropertiesToDeployment(model.getContext().getOwner().getProperties(), deploymentContent);
-
-        facade.apply(FileUtils.copyContentTo(model.getContext(), deploymentContent,
-                model.getContext().getName() + "-deployment.yml"));
     }
 
 }
