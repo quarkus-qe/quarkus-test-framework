@@ -55,7 +55,7 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public String getHost() {
+    public String getHost(Protocol protocol) {
         return client.url(model.getContext().getOwner());
     }
 

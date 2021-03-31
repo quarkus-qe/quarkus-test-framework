@@ -72,7 +72,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     }
 
     @Override
-    public String getHost() {
+    public String getHost(Protocol protocol) {
         return client.url(model.getContext().getOwner());
     }
 
@@ -83,7 +83,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
 
     @Override
     public boolean isRunning() {
-        return appIsStarted() && routeIsReachable();
+        return appIsStarted() && routeIsReachable(Protocol.HTTP);
     }
 
     @Override
@@ -106,8 +106,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
         return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
     }
 
-    private boolean routeIsReachable() {
-        return given().baseUri(getHost()).basePath("/").port(getPort(Protocol.HTTP)).get()
+    private boolean routeIsReachable(Protocol protocol) {
+        return given().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol)).get()
                 .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

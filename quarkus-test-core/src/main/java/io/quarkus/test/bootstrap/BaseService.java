@@ -80,7 +80,11 @@ public class BaseService<T extends Service> implements Service {
     }
 
     public String getHost() {
-        return managedResource.getHost();
+        return getHost(Protocol.HTTP);
+    }
+
+    public String getHost(Protocol protocol) {
+        return managedResource.getHost(protocol);
     }
 
     public Integer getPort() {

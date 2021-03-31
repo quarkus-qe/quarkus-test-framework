@@ -19,7 +19,7 @@ public interface ManagedResource {
     /**
      * Get the Host of the running resource.
      */
-    String getHost();
+    String getHost(Protocol protocol);
 
     /**
      * Get the Port of the running resource.

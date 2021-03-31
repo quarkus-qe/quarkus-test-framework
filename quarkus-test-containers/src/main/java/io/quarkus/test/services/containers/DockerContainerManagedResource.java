@@ -64,13 +64,12 @@ public class DockerContainerManagedResource implements ManagedResource {
 
     @Override
     public int getPort(Protocol protocol) {
-        // always http
         return innerContainer.getMappedPort(model.getPort());
     }
 
     @Override
-    public String getHost() {
-        return "http://" + innerContainer.getHost();
+    public String getHost(Protocol protocol) {
+        return protocol.getValue() + "://" + innerContainer.getHost();
     }
 
     @Override

@@ -1,5 +1,6 @@
 package io.quarkus.qe;
 
+import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
 import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
@@ -16,7 +17,8 @@ public class GreetingResourceIT {
 
     @Test
     public void shouldSayHelloWorld() {
-        app.https().given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello World!"));
+        untilAsserted(() -> app.https().given().relaxedHTTPSValidation().get("/greeting")
+                .then().statusCode(HttpStatus.SC_OK).body(is("Hello World!")));
     }
 
 }

@@ -70,17 +70,15 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
     }
 
     @Override
-    public String getHost() {
-        return "http://localhost";
+    public String getHost(Protocol protocol) {
+        validateProtocol(protocol);
+        return protocol.getValue() + "://localhost";
     }
 
     @Override
     public int getPort(Protocol protocol) {
+        validateProtocol(protocol);
         if (protocol == Protocol.HTTPS) {
-            if (!model.isSslEnabled()) {
-                fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
-            }
-
             return assignedHttpsPort;
         }
 
@@ -144,6 +142,12 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
         }
 
         return command;
+    }
+
+    private void validateProtocol(Protocol protocol) {
+        if (protocol == Protocol.HTTPS && !model.isSslEnabled()) {
+            fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
+        }
     }
 
 }

@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionFactory;
+import org.awaitility.core.ThrowingRunnable;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
@@ -53,6 +54,15 @@ public final class AwaitilityUtils {
      */
     public static <T> void untilAsserted(Supplier<T> supplier, Consumer<T> asserts) {
         awaits().untilAsserted(() -> asserts.accept(get(supplier).call()));
+    }
+
+    /**
+     * Wait until the assertions are satified.
+     *
+     * @param assertion custom assertions that the instance must satisfy.
+     */
+    public static void untilAsserted(final ThrowingRunnable assertion) {
+        awaits().untilAsserted(assertion);
     }
 
     private static <T> T until(Supplier<T> supplier, Matcher<T> matcher) {

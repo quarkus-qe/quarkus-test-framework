@@ -74,7 +74,7 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     }
 
     @Override
-    public String getHost() {
+    public String getHost(Protocol protocol) {
         return client.url(model.getContext().getOwner());
     }
 
