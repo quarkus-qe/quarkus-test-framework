@@ -1,18 +1,20 @@
 package io.quarkus.test.bootstrap;
 
-import java.util.concurrent.ThreadLocalRandom;
+import java.nio.file.Paths;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 
 import io.quarkus.test.bootstrap.inject.KubectlClient;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.scenarios.KubernetesScenario;
+import io.quarkus.test.utils.FileUtils;
 
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "kubectl-client";
-
-    private static final int PROJECT_NAME_SIZE = 10;
 
     private KubectlClient client;
 
@@ -23,7 +25,7 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        client = KubectlClient.create(generateRandomProject());
+        client = KubectlClient.create();
     }
 
     @Override
@@ -46,10 +48,11 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
         return client;
     }
 
-    private String generateRandomProject() {
-        return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
-                .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
-                .toString();
+    @Override
+    public void onError(ExtensionContext context, Throwable throwable) {
+        Map<String, String> logs = client.logs();
+        for (Entry<String, String> podLog : logs.entrySet()) {
+            FileUtils.copyContentTo(podLog.getValue(), Paths.get(Log.LOG_OUTPUT_DIRECTORY, podLog.getKey() + Log.LOG_SUFFIX));
+        }
     }
-
 }

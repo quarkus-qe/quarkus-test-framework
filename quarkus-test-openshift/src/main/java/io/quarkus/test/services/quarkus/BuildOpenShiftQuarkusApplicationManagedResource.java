@@ -39,12 +39,12 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
     }
 
     @Override
-    protected void onRestart() {
+    protected void doUpdate() {
         applyTemplate();
     }
 
     private void applyTemplate() {
-        client.applyServiceProperties(model.getContext().getOwner(), QUARKUS_OPENSHIFT_TEMPLATE,
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), QUARKUS_OPENSHIFT_TEMPLATE,
                 this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }

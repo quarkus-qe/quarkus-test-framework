@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
@@ -20,6 +21,7 @@ import org.awaitility.Awaitility;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -35,6 +37,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
@@ -43,26 +46,29 @@ public final class OpenShiftClient {
     private static final int AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES = 5;
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
+    private static final int PROJECT_NAME_SIZE = 10;
+    private static final int PROJECT_CREATION_RETRIES = 5;
 
     private static final String OC = "oc";
 
+    private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
 
-    private OpenShiftClient(String namespace) {
-        createProject(namespace);
+    private OpenShiftClient() {
+        currentNamespace = createProject();
 
-        OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(namespace).build();
+        OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
 
         masterClient = new DefaultOpenShiftClient(config);
-        client = masterClient.inNamespace(namespace);
+        client = masterClient.inNamespace(currentNamespace);
     }
 
     /**
      * @return the current project
      */
     public String project() {
-        return client.getNamespace();
+        return currentNamespace;
     }
 
     /**
@@ -72,7 +78,7 @@ public final class OpenShiftClient {
      */
     public void apply(Service service, Path file) {
         try {
-            new Command(OC, "apply", "-f", file.toAbsolutePath().toString()).runAndWait();
+            new Command(OC, "apply", "-f", file.toAbsolutePath().toString(), "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Failed to apply resource " + file.toAbsolutePath().toString() + " for " + service.getName() + " . Caused by "
                     + e.getMessage());
@@ -85,10 +91,27 @@ public final class OpenShiftClient {
      *
      * @param file
      */
-    public void applyServiceProperties(Service service, String file, UnaryOperator<String> update, Path target) {
+    public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update, Path target) {
         String content = FileUtils.loadFile(file);
         content = addPropertiesToDeploymentConfig(service.getProperties(), update.apply(content));
         apply(service, FileUtils.copyContentTo(content, target));
+    }
+
+    /**
+     * Update the deployment config using the service properties.
+     *
+     * @param service
+     */
+    public void applyServicePropertiesUsingDeploymentConfig(Service service) {
+        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).get();
+        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
+
+        dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
+            enrichProperties.entrySet().forEach(
+                    envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+        });
+
+        client.deploymentConfigs().createOrReplace(dc);
     }
 
     /**
@@ -98,7 +121,7 @@ public final class OpenShiftClient {
      */
     public void rollout(Service service) {
         try {
-            new Command(OC, "rollout", "latest", "dc/" + service.getName()).runAndWait();
+            new Command(OC, "rollout", "latest", "dc/" + service.getName(), "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Deployment failed to be started. Caused by " + e.getMessage());
         }
@@ -118,7 +141,7 @@ public final class OpenShiftClient {
         }
 
         try {
-            new Command(OC, "expose", "svc/" + service.getName(), "--port=" + port).runAndWait();
+            new Command(OC, "expose", "svc/" + service.getName(), "--port=" + port, "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
         }
@@ -132,10 +155,26 @@ public final class OpenShiftClient {
      */
     public void scaleTo(Service service, int replicas) {
         try {
-            new Command(OC, "scale", "dc/" + service.getName(), "--replicas=" + replicas).runAndWait();
+            new Command(OC, "scale", "dc/" + service.getName(), "--replicas=" + replicas, "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be scaled. Caused by " + e.getMessage());
         }
+    }
+
+    /**
+     * Get all the logs for all the pods.
+     *
+     * @param service
+     * @return
+     */
+    public Map<String, String> logs() {
+        Map<String, String> logs = new HashMap<>();
+        for (Pod pod : client.pods().list().getItems()) {
+            String podName = pod.getMetadata().getName();
+            logs.put(podName, client.pods().withName(podName).getLog());
+        }
+
+        return logs;
     }
 
     /**
@@ -219,10 +258,17 @@ public final class OpenShiftClient {
 
                     Map<String, String> enrichProperties = enrichProperties(properties, dc);
 
-                    dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        enrichProperties.entrySet().forEach(
-                                envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
-                    });
+                    dc.getSpec().getTemplate().getSpec().getContainers()
+                            .forEach(container -> enrichProperties.entrySet().forEach(
+                                    property -> {
+                                        String key = property.getKey();
+                                        EnvVar envVar = getEnvVarByKey(key, container);
+                                        if (envVar == null) {
+                                            container.getEnv().add(new EnvVar(key, property.getValue(), null));
+                                        } else {
+                                            envVar.setValue(property.getValue());
+                                        }
+                                    }));
                 }
             }
 
@@ -237,6 +283,10 @@ public final class OpenShiftClient {
             }
         }
         return template;
+    }
+
+    private EnvVar getEnvVarByKey(String key, Container container) {
+        return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
     private Map<String, String> enrichProperties(Map<String, String> properties, DeploymentConfig dc) {
@@ -287,20 +337,51 @@ public final class OpenShiftClient {
         return pod.getStatus().getPhase().equals("Running");
     }
 
-    private void createProject(String projectName) {
+    private String createProject() {
+        boolean projectCreated = false;
+
+        String namespace = generateRandomProjectName();
+        int index = 0;
+        while (index < PROJECT_CREATION_RETRIES) {
+            if (doCreateProject(namespace)) {
+                projectCreated = true;
+                break;
+            }
+
+            namespace = generateRandomProjectName();
+            index++;
+        }
+
+        if (!projectCreated) {
+            fail("Project cannot be created. Review your OpenShift installation.");
+        }
+
+        return namespace;
+    }
+
+    private boolean doCreateProject(String projectName) {
+        boolean created = false;
         try {
             new Command(OC, "new-project", projectName).runAndWait();
+            created = true;
         } catch (Exception e) {
-            fail("Project failed to be created. Caused by " + e.getMessage());
+            Log.warn("Project " + projectName + " failed to be created. Caused by: " + e.getMessage() + ". Trying again.");
         }
+
+        return created;
     }
 
     private List<HasMetadata> loadYaml(String template) {
         return client.load(new ByteArrayInputStream(template.getBytes())).get();
     }
 
-    public static OpenShiftClient create(String namespace) {
-        return new OpenShiftClient(namespace);
+    private String generateRandomProjectName() {
+        return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
+                .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
     }
 
+    public static OpenShiftClient create() {
+        return new OpenShiftClient();
+    }
 }

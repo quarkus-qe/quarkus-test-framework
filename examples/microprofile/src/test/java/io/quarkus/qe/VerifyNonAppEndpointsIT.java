@@ -1,14 +1,12 @@
 package io.quarkus.qe;
 
+import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionFactory;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
@@ -88,10 +86,9 @@ public class VerifyNonAppEndpointsIT {
 
     private void thenNonAppEndpointsShouldBeRedirected(String basePath) {
         for (String endpoint : NON_APP_ENDPOINTS) {
-            await().untilAsserted(() -> {
-                int actual = app.given().redirects().follow(false).get(basePath + endpoint).getStatusCode();
-                assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, actual, "Endpoint '" + endpoint + "' is not redirected");
-            });
+            untilAsserted(() -> app.given().redirects().follow(false).get(basePath + endpoint).getStatusCode(),
+                    actual -> assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, actual,
+                            "Endpoint '" + endpoint + "' is not redirected"));
         }
     }
 
@@ -105,17 +102,9 @@ public class VerifyNonAppEndpointsIT {
 
     private void thenNonAppEndpointsShouldBe(String basePath, int status) {
         for (String endpoint : NON_APP_ENDPOINTS) {
-            await().untilAsserted(() -> {
-                int actual = app.given().get(basePath + endpoint).getStatusCode();
-                assertEquals(status, actual, "Endpoint '" + endpoint + "' with not expected status " + actual);
-            });
+            untilAsserted(() -> app.given().get(basePath + endpoint).getStatusCode(),
+                    actual -> assertEquals(status, actual, "Endpoint '" + endpoint + "' with not expected status " + actual));
         }
-    }
-
-    private ConditionFactory await() {
-        return Awaitility.await().ignoreExceptions()
-                .pollInterval(1, TimeUnit.SECONDS)
-                .atMost(5, TimeUnit.SECONDS);
     }
 
 }

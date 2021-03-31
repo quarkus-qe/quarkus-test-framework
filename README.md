@@ -11,6 +11,12 @@ Main features:
 - Quarkus features focused (allow to define custom source classes, build/runtime properties, etc)
 - Test isolation: for example, in OpenShift or Kubernetes, tests will be executed in an ephemeral namespace 
 
+This framework follows the Quarkus version convention, so we can selectively specify the Quarkus version via the arguments:
+- `-Dquarkus.platform.version=1.13.0.Final`
+- `-Dquarkus-plugin.version=1.13.0.Final`
+- `-Dquarkus.platform.group-id=io.quarkus`
+- `-Dquarkus.platform.artifact-id=quarkus-universe-bom`
+
 ## Getting Started
 
 In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file;
@@ -236,8 +242,16 @@ Regardless the deployment strategy you chose, you can extend your existing tests
  
  ```java
 @OpenShiftScenario
+public class OpenShiftNativePingPongResourceIT extends NativePingPongResourceTest {
+}
+```
+
+Or:
+
+ ```java
+@OpenShiftScenario
 @NativeScenario
-public class NativeOpenShiftPingPongResourceIT extends PingPongResourceTest {
+public class OpenShiftNativePingPongResourceIT extends PingPongResourceTest {
 }
 ```
 
@@ -421,6 +435,12 @@ The test framework will leverage whether an application runner can be reused or 
 
 We can use properties that require external resources using the `resource::` tag. For example: `.withProperty("to.property", "resource::/file.yaml");`. This works either using containers in bare metal or OpenShift/Kubernetes.
 
+- File logging
+
+When running a test, the output will be copied into Console and a file placed in `target/logs/tests.out`. 
+
+For OpenShift and Kubernetes, when some test fail, the logs of all the pods within the test namespace will be copied in `target/logs` folder as well.
+
 - Colourify logging
 
 The test framework will output a different colour by service. This will extremely ease the troubleshooting of the logic.
@@ -431,8 +451,16 @@ You can enable the logging by adding a `test.properties` in your module with the
 ts.<YOUR SERVICE NAME>.log.enable=true
 ```
 
+- Parallel test execution
+
+We can verify several test modules in parallel doing:
+
+```
+mvn -T 1C clean verify
+```
+
+This Maven command would use 1 thread by CPU.
+
 ## TODO
-- Add example with several Microprofile services
 - Implement fail fast features
-- Allow to update property at runtime
 - Deploy to Maven central

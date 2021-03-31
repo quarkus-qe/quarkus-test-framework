@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
+import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,8 +63,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     }
 
     @Override
-    protected void onRestart() {
-        // TODO load deployment and update env vars
+    protected void doUpdate() {
+        client.applyServicePropertiesUsingDeploymentConfig(model.getContext().getOwner());
     }
 
     @Override
@@ -175,7 +176,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private void withEnvVars(List<String> args, Map<String, String> envVars) {
         for (Entry<String, String> envVar : envVars.entrySet()) {
-            args.add(withProperty(QUARKUS_OPENSHIFT_ENV_VARS + envVar.getKey(), envVar.getValue()));
+            String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
+            args.add(withProperty(QUARKUS_OPENSHIFT_ENV_VARS + envVarKey, envVar.getValue()));
         }
     }
 

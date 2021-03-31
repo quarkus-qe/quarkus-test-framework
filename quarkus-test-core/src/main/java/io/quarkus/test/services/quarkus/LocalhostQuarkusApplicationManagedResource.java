@@ -20,6 +20,7 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
 
     private Process process;
     private LoggingHandler loggingHandler;
+    private int assignedPort;
 
     public LocalhostQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
@@ -68,7 +69,7 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
 
     @Override
     public int getPort() {
-        return Integer.valueOf(model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY));
+        return assignedPort;
     }
 
     @Override
@@ -91,15 +92,13 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
         start();
     }
 
-    private int assignPortIfNotSet() {
+    private void assignPortIfNotSet() {
         String port = model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
         if (StringUtils.isEmpty(port)) {
-            int randomPort = SocketUtils.findAvailablePort();
-            model.getContext().getOwner().withProperty(QUARKUS_HTTP_PORT_PROPERTY, "" + randomPort);
-            return randomPort;
+            assignedPort = SocketUtils.findAvailablePort();
+        } else {
+            assignedPort = Integer.parseInt(port);
         }
-
-        return Integer.parseInt(port);
     }
 
     private List<String> prepareCommand() {

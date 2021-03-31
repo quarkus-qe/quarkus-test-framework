@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.codec.binary.StringUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -27,6 +30,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.MapUtils;
 
 public class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -49,6 +53,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private Path artifact;
     private boolean selectedAppClasses = true;
     private QuarkusManagedResource managedResource;
+    private Map<String, String> propertiesSnapshot;
 
     protected LaunchMode getLaunchMode() {
         return launchMode;
@@ -99,7 +104,8 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     }
 
     public boolean containsBuildProperties() {
-        Set<String> properties = context.getOwner().getProperties().keySet();
+        Map<String, String> differenceProperties = MapUtils.difference(context.getOwner().getProperties(), propertiesSnapshot);
+        Set<String> properties = differenceProperties.keySet();
         if (properties.isEmpty()) {
             return false;
         }
@@ -146,14 +152,9 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         try {
             Path appFolder = context.getServiceFolder();
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(appClasses);
-
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());
 
-            Properties buildProperties = new Properties();
-            buildProperties.putAll(context.getOwner().getProperties());
-            if (isNativeTest()) {
-                buildProperties.put(QUARKUS_PACKAGE_TYPE_PROPERTY, NATIVE);
-            }
+            Properties buildProperties = prepareBuildProperties();
 
             Path testLocation = PathTestHelper.getTestClassesLocation(context.getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
@@ -175,6 +176,21 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         }
 
         return null;
+    }
+
+    private Properties prepareBuildProperties() {
+        propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
+
+        Properties buildProperties = new Properties();
+        buildProperties.putAll(propertiesSnapshot);
+        if (isNativeTest()) {
+            buildProperties.put(QUARKUS_PACKAGE_TYPE_PROPERTY, NATIVE);
+        } else if (StringUtils.equals(NATIVE, buildProperties.getProperty(QUARKUS_PACKAGE_TYPE_PROPERTY))) {
+            // When using native profile, but running a JVM scenario.
+            buildProperties.remove(QUARKUS_PACKAGE_TYPE_PROPERTY);
+        }
+
+        return buildProperties;
     }
 
     private void detectLaunchMode() {

@@ -11,21 +11,6 @@
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
 
-    <modules>
-        <module>quarkus-test-core</module>
-        <module>quarkus-test-containers</module>
-        <module>quarkus-test-images</module>
-        <module>quarkus-test-kubernetes</module>
-        <module>quarkus-test-openshift</module>
-        <module>quarkus-test-service-consul</module>
-        <module>quarkus-test-service-keycloak</module>
-        <module>examples/pingpong</module>
-        <module>examples/greetings</module>
-        <module>examples/consul</module>
-        <module>examples/microprofile</module>
-        <module>examples/keycloak</module>
-    </modules>
-
     <properties>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
@@ -191,6 +176,34 @@
     </build>
     <profiles>
         <profile>
+            <id>framework</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>quarkus-test-core</module>
+                <module>quarkus-test-containers</module>
+                <module>quarkus-test-images</module>
+                <module>quarkus-test-kubernetes</module>
+                <module>quarkus-test-openshift</module>
+                <module>quarkus-test-service-consul</module>
+                <module>quarkus-test-service-keycloak</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>examples</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>examples/pingpong</module>
+                <module>examples/greetings</module>
+                <module>examples/consul</module>
+                <module>examples/microprofile</module>
+                <module>examples/keycloak</module>
+            </modules>
+        </profile>
+        <profile>
             <id>native</id>
             <activation>
                 <property>
@@ -217,6 +230,7 @@
             </build>
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
+                <quarkus.native.container-build>true</quarkus.native.container-build>
                 <exclude.native.tests>no</exclude.native.tests>
             </properties>
         </profile>

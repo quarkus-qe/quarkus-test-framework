@@ -1,11 +1,9 @@
 package io.quarkus.qe;
 
+import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Duration;
-
 import org.apache.http.HttpStatus;
-import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.ConsulService;
@@ -43,11 +41,8 @@ public class GreetingResourceIT {
     }
 
     private void thenGreetingsApiReturns(String expected) {
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            String actual = app.given().get("/api").then().statusCode(HttpStatus.SC_OK).extract().asString();
-
-            assertEquals(expected, actual, "Unexpected response from service");
-        });
+        untilAsserted(() -> app.given().get("/api").then().statusCode(HttpStatus.SC_OK).extract().asString(),
+                actual -> assertEquals(expected, actual, "Unexpected response from service"));
     }
 
     private static final void onLoadConfigureConsul(Service service) {

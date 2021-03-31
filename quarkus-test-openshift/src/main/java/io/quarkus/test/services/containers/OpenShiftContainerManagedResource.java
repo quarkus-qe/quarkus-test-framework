@@ -81,7 +81,8 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        client.applyServiceProperties(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE, this::replaceDeploymentContent,
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE,
+                this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 

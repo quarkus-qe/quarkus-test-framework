@@ -15,6 +15,10 @@ public interface ExtensionBootstrap {
 
     }
 
+    default void onError(ExtensionContext context, Throwable throwable) {
+
+    }
+
     default void updateServiceContext(ServiceContext context) {
 
     }

@@ -30,7 +30,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
 
     protected abstract void doInit();
 
-    protected abstract void onRestart();
+    protected abstract void doUpdate();
 
     @Override
     public void start() {
@@ -42,7 +42,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
             doInit();
             init = true;
         } else {
-            onRestart();
+            doUpdate();
         }
 
         client.scaleTo(model.getContext().getOwner(), 1);

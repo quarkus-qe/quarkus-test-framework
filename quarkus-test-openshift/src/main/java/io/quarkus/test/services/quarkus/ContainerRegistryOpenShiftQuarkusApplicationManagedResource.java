@@ -29,7 +29,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     }
 
     @Override
-    protected void onRestart() {
+    protected void doUpdate() {
         applyTemplate();
     }
 
@@ -38,7 +38,8 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     }
 
     private void applyTemplate() {
-        client.applyServiceProperties(model.getContext().getOwner(), QUARKUS_OPENSHIFT_TEMPLATE, this::replaceDeploymentContent,
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), QUARKUS_OPENSHIFT_TEMPLATE,
+                this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 

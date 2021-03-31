@@ -14,6 +14,9 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.Service;
 
 public final class Log {
+    public static final String LOG_OUTPUT_DIRECTORY = "target/logs";
+    public static final String LOG_SUFFIX = ".log";
+
     private static final Service NO_SERVICE = null;
     private static final String COLOR_RESET = "\u001b[0m";
 
@@ -47,6 +50,10 @@ public final class Log {
 
     public static void debug(Service service, String msg, Object... args) {
         log(service, Level.FINE, msg, args);
+    }
+
+    public static void debug(String msg, Object... args) {
+        log(NO_SERVICE, Level.FINE, msg, args);
     }
 
     public static void warn(Service service, String msg, Object... args) {

@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -18,10 +19,17 @@ import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 
-public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, ParameterResolver {
+import io.quarkus.test.logging.Log;
+import io.quarkus.test.utils.FileUtils;
+
+public class QuarkusScenarioBootstrap
+        implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, ParameterResolver,
+        LifecycleMethodExecutionExceptionHandler, TestExecutionExceptionHandler {
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
@@ -45,7 +53,13 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
             currentClass = currentClass.getSuperclass();
         }
 
-        services.forEach(Service::start);
+        try {
+            services.forEach(Service::start);
+        } catch (Error throwable) {
+            notifyExtensionsOnError(context, throwable);
+            throw throwable;
+        }
+
     }
 
     @Override
@@ -80,6 +94,35 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
         }
 
         return parameter.get();
+    }
+
+    @Override
+    public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        notifyExtensionsOnError(context, throwable);
+    }
+
+    @Override
+    public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        notifyExtensionsOnError(context, throwable);
+    }
+
+    @Override
+    public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        notifyExtensionsOnError(context, throwable);
+    }
+
+    @Override
+    public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        notifyExtensionsOnError(context, throwable);
+    }
+
+    @Override
+    public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+        notifyExtensionsOnError(context, throwable);
+    }
+
+    private void notifyExtensionsOnError(ExtensionContext context, Throwable throwable) {
+        extensions.forEach(ext -> ext.onError(context, throwable));
     }
 
     private void initServicesFromClass(ExtensionContext context, Class<?> clazz) {
@@ -124,6 +167,7 @@ public class QuarkusScenarioBootstrap implements BeforeAllCallback, AfterAllCall
 
     private void configureLogging() {
         Locale.setDefault(new Locale("en", "EN"));
+        FileUtils.recreateDirectory(Paths.get(Log.LOG_OUTPUT_DIRECTORY));
         try (InputStream in = QuarkusScenarioBootstrap.class.getResourceAsStream("/logging.properties")) {
             LogManager.getLogManager().readConfiguration(in);
         } catch (IOException e) {

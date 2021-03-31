@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
@@ -34,6 +36,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
@@ -41,6 +44,8 @@ public final class KubectlClient {
 
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
+    private static final int NAMESPACE_NAME_SIZE = 10;
+    private static final int NAMESPACE_CREATION_RETRIES = 5;
 
     private static final String KUBECTL = "kubectl";
     private static final int HTTP_PORT_DEFAULT = 80;
@@ -49,14 +54,13 @@ public final class KubectlClient {
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
 
-    private KubectlClient(String namespace) {
-        currentNamespace = namespace;
-        createProject(namespace);
+    private KubectlClient() {
+        currentNamespace = createNamespace();
 
-        OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(namespace).build();
+        OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
 
         masterClient = new DefaultOpenShiftClient(config);
-        client = masterClient.inNamespace(namespace);
+        client = masterClient.inNamespace(currentNamespace);
     }
 
     /**
@@ -121,6 +125,22 @@ public final class KubectlClient {
         } catch (Exception e) {
             fail("Service failed to be scaled. Caused by " + e.getMessage());
         }
+    }
+
+    /**
+     * Get all the logs for all the pods within the current namespace.
+     *
+     * @param service
+     * @return
+     */
+    public Map<String, String> logs() {
+        Map<String, String> logs = new HashMap<>();
+        for (Pod pod : client.pods().list().getItems()) {
+            String podName = pod.getMetadata().getName();
+            logs.put(podName, client.pods().withName(podName).getLog());
+        }
+
+        return logs;
     }
 
     /**
@@ -206,14 +226,6 @@ public final class KubectlClient {
         return pod.getStatus().getPhase().equals("Running");
     }
 
-    private void createProject(String projectName) {
-        try {
-            new Command(KUBECTL, "create", "namespace", projectName).runAndWait();
-        } catch (Exception e) {
-            fail("Project failed to be created. Caused by " + e.getMessage());
-        }
-    }
-
     private List<HasMetadata> loadYaml(String template) {
         return client.load(new ByteArrayInputStream(template.getBytes())).get();
     }
@@ -227,10 +239,16 @@ public final class KubectlClient {
 
                     Map<String, String> enrichProperties = enrichProperties(properties, d);
 
-                    d.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-                        enrichProperties.entrySet().forEach(
-                                envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
-                    });
+                    d.getSpec().getTemplate().getSpec().getContainers()
+                            .forEach(container -> enrichProperties.entrySet().forEach(property -> {
+                                String key = property.getKey();
+                                EnvVar envVar = getEnvVarByKey(key, container);
+                                if (envVar == null) {
+                                    container.getEnv().add(new EnvVar(key, property.getValue(), null));
+                                } else {
+                                    envVar.setValue(property.getValue());
+                                }
+                            }));
                 }
             }
 
@@ -246,6 +264,10 @@ public final class KubectlClient {
         }
 
         return template;
+    }
+
+    private EnvVar getEnvVarByKey(String key, Container container) {
+        return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
     private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment) {
@@ -288,8 +310,48 @@ public final class KubectlClient {
         return key.startsWith(RESOURCE_PREFIX);
     }
 
-    public static KubectlClient create(String namespace) {
-        return new KubectlClient(namespace);
+    private String createNamespace() {
+        boolean namespaceCreated = false;
+
+        String namespace = generateRandomNamespaceName();
+        int index = 0;
+        while (index < NAMESPACE_CREATION_RETRIES) {
+            if (doCreateNamespace(namespace)) {
+                namespaceCreated = true;
+                break;
+            }
+
+            namespace = generateRandomNamespaceName();
+            index++;
+        }
+
+        if (!namespaceCreated) {
+            fail("Namespace cannot be created. Review your Kubernetes installation.");
+        }
+
+        return namespace;
+    }
+
+    private boolean doCreateNamespace(String namespaceName) {
+        boolean created = false;
+        try {
+            new Command(KUBECTL, "create", "namespace", namespaceName).runAndWait();
+            created = true;
+        } catch (Exception e) {
+            Log.warn("Namespace " + namespaceName + " failed to be created. Caused by: " + e.getMessage() + ". Trying again.");
+        }
+
+        return created;
+    }
+
+    private String generateRandomNamespaceName() {
+        return ThreadLocalRandom.current().ints(NAMESPACE_NAME_SIZE, 'a', 'z' + 1)
+                .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
+
+    public static KubectlClient create() {
+        return new KubectlClient();
     }
 
 }
