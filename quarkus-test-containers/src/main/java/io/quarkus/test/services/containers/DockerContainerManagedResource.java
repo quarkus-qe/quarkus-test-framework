@@ -11,6 +11,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
 import io.quarkus.test.bootstrap.ManagedResource;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
@@ -62,7 +63,8 @@ public class DockerContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public int getPort() {
+    public int getPort(Protocol protocol) {
+        // always http
         return innerContainer.getMappedPort(model.getPort());
     }
 

@@ -51,6 +51,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private ServiceContext context;
     private LaunchMode launchMode = LaunchMode.JVM;
     private Path artifact;
+    private boolean sslEnabled = false;
     private boolean selectedAppClasses = true;
     private QuarkusManagedResource managedResource;
     private Map<String, String> propertiesSnapshot;
@@ -75,9 +76,14 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return selectedAppClasses;
     }
 
+    protected boolean isSslEnabled() {
+        return sslEnabled;
+    }
+
     @Override
     public void init(Annotation annotation) {
         QuarkusApplication metadata = (QuarkusApplication) annotation;
+        sslEnabled = metadata.ssl();
         appClasses = metadata.classes();
         if (appClasses.length == 0) {
             appClasses = ClassPathUtils.findAllClassesFromSource();

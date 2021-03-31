@@ -461,6 +461,21 @@ mvn -T 1C clean verify
 
 This Maven command would use 1 thread by CPU.
 
+- Partial SSL support
+
+This is only supported when running tests on bare metal:
+
+```java
+@QuarkusApplication(ssl = true)
+static final RestService app = new RestService();
+
+@Test
+public void shouldSayHelloWorld() {
+    app.https().given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello World!"));
+}
+```
+
 ## TODO
+- Add example of microprofile rest client (to autopopulate host and port)
 - Implement fail fast features
 - Deploy to Maven central

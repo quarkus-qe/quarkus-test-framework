@@ -84,7 +84,11 @@ public class BaseService<T extends Service> implements Service {
     }
 
     public Integer getPort() {
-        return managedResource.getPort();
+        return getPort(Protocol.HTTP);
+    }
+
+    public Integer getPort(Protocol protocol) {
+        return managedResource.getPort(protocol);
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.ManagedResource;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
@@ -59,7 +60,7 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public int getPort() {
+    public int getPort(Protocol protocol) {
         return client.port(model.getContext().getOwner());
     }
 

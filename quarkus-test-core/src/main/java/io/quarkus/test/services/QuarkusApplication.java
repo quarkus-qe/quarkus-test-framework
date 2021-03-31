@@ -15,4 +15,10 @@ public @interface QuarkusApplication {
     Class<?>[] classes() default {};
 
     Class<? extends ManagedResourceBuilder> builder() default QuarkusApplicationManagedResourceBuilder.class;
+
+    /**
+     * Enable SSL configuration. This property needs `quarkus.http.ssl.certificate.key-store-file` and
+     * `quarkus.http.ssl.certificate.key-store-password` to be set.
+     */
+    boolean ssl() default false;
 }

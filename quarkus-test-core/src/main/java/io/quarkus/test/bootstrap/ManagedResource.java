@@ -24,7 +24,7 @@ public interface ManagedResource {
     /**
      * Get the Port of the running resource.
      */
-    int getPort();
+    int getPort(Protocol protocol);
 
     /**
      * @return if the resource is running.

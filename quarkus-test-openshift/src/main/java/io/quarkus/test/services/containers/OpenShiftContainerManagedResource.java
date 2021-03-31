@@ -6,6 +6,7 @@ import java.util.List;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
@@ -60,7 +61,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public int getPort() {
+    public int getPort(Protocol protocol) {
         return HTTP_PORT;
     }
 

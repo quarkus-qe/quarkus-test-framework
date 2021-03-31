@@ -1,12 +1,14 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.regex.Pattern.quote;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
@@ -32,6 +34,13 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
         this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
+    }
+
+    @Override
+    public void validate() {
+        if (model.isSslEnabled()) {
+            fail("SSL is not supported for Kubernetes tests yet");
+        }
     }
 
     @Override
@@ -70,7 +79,7 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     }
 
     @Override
-    public int getPort() {
+    public int getPort(Protocol protocol) {
         return client.port(model.getContext().getOwner());
     }
 

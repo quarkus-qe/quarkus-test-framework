@@ -1,12 +1,14 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.restassured.RestAssured.given;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.List;
 
 import org.apache.http.HttpStatus;
 
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
@@ -31,6 +33,13 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     protected abstract void doInit();
 
     protected abstract void doUpdate();
+
+    @Override
+    public void validate() {
+        if (model.isSslEnabled()) {
+            fail("SSL is not supported for OpenShift tests yet");
+        }
+    }
 
     @Override
     public void start() {
@@ -68,7 +77,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     }
 
     @Override
-    public int getPort() {
+    public int getPort(Protocol protocol) {
         return EXTERNAL_PORT;
     }
 
@@ -98,7 +107,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     }
 
     private boolean routeIsReachable() {
-        return given().baseUri(getHost()).basePath("/").port(getPort()).get()
+        return given().baseUri(getHost()).basePath("/").port(getPort(Protocol.HTTP)).get()
                 .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }
