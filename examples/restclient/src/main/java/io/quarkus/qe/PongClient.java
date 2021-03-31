@@ -5,12 +5,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Path("/ping")
-public class PingResource {
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
+@RegisterRestClient
+@Path("/pong")
+public interface PongClient {
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String ping() {
-        return "ping";
-    }
+    String getPong();
 }

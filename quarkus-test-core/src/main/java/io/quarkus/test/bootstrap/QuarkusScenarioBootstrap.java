@@ -22,14 +22,13 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
-import org.junit.jupiter.api.extension.TestExecutionExceptionHandler;
 
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
 
 public class QuarkusScenarioBootstrap
         implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, ParameterResolver,
-        LifecycleMethodExecutionExceptionHandler, TestExecutionExceptionHandler {
+        LifecycleMethodExecutionExceptionHandler {
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
@@ -113,11 +112,6 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
-        notifyExtensionsOnError(context, throwable);
-    }
-
-    @Override
-    public void handleTestExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
         notifyExtensionsOnError(context, throwable);
     }
 

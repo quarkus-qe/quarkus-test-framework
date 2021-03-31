@@ -5,12 +5,12 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
-@Path("/ping")
-public class PingResource {
+@Path("/pong")
+public class PongResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String ping() {
-        return "ping";
+    public String pong() {
+        return "pong";
     }
 }

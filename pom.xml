@@ -197,6 +197,7 @@
             </activation>
             <modules>
                 <module>examples/pingpong</module>
+                <module>examples/restclient</module>
                 <module>examples/greetings</module>
                 <module>examples/https</module>
                 <module>examples/consul</module>
