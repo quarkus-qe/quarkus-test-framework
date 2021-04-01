@@ -3,9 +3,9 @@ package io.quarkus.test.bootstrap;
 import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
 
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.Log;
@@ -39,13 +39,12 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return parameterContext.getParameter().getType() == KubectlClient.class;
-    }
+    public Optional<Object> getParameter(Class<?> clazz) {
+        if (clazz == KubectlClient.class) {
+            return Optional.of(client);
+        }
 
-    @Override
-    public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return client;
+        return Optional.empty();
     }
 
     @Override

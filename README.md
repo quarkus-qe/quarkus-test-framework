@@ -288,6 +288,28 @@ public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
 }
 ```
 
+Another option is by injecting the client directly to the test class using the `@Inject` annotation:
+
+```java
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.scenarios.OpenShiftScenario;
+
+@OpenShiftScenario
+public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
+
+    @Inject
+    static OpenShiftClient client;
+    
+    @Test
+    public void shouldInjectOpenShiftClient() {
+        // ...
+        client.scaleTo(app, 2);
+    }
+}
+```
+
+| Note that the injection is only supported to static fields.
+
 #### Enable/Disable OpenShift tests via system properties
 
 We can selectively disable/enable OpenShift tests via system properties and using the `@EnabledIfOpenShiftScenarioPropertyIsTrue` annotation:
@@ -369,6 +391,24 @@ public class KubernetesGreetingResourceIT extends GreetingResourceIT {
     }
 }
 ```
+
+Another option is by injecting the client directly to the test class using the `@Inject` annotation:
+
+```java
+import io.quarkus.test.bootstrap.inject.KubectlClient;
+import io.quarkus.test.scenarios.KubernetesScenario;
+
+@KubernetesScenario
+public class KubernetesGreetingResourceIT extends GreetingResourceIT {
+
+    @Inject
+    static KubectlClient client;
+    
+    // ...
+}
+```
+
+| Note that the injection is only supported to static fields.
 
 #### Enable/Disable Kubernetes tests via system properties
 

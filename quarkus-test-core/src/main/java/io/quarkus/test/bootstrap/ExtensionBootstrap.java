@@ -1,7 +1,8 @@
 package io.quarkus.test.bootstrap;
 
+import java.util.Optional;
+
 import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
 
 public interface ExtensionBootstrap {
 
@@ -23,12 +24,7 @@ public interface ExtensionBootstrap {
 
     }
 
-    default boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return false;
+    default Optional<Object> getParameter(Class<?> clazz) {
+        return Optional.empty();
     }
-
-    default Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return null;
-    }
-
 }

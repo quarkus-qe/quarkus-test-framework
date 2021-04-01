@@ -5,15 +5,17 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 import java.util.logging.LogManager;
+
+import javax.inject.Inject;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -42,13 +44,13 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ExtensionContext context) throws Exception {
         extensions = initExtensions(context);
         extensions.forEach(ext -> ext.beforeAll(context));
 
         Class<?> currentClass = context.getRequiredTestClass();
         while (currentClass != Object.class) {
-            initServicesFromClass(context, currentClass);
+            initResourcesFromClass(context, currentClass);
             currentClass = currentClass.getSuperclass();
         }
 
@@ -77,22 +79,12 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        return extensions.stream().anyMatch(ext -> ext.supportsParameter(parameterContext, extensionContext));
+        return extensions.stream().anyMatch(ext -> ext.getParameter(parameterContext.getParameter().getType()).isPresent());
     }
 
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
-        Optional<Object> parameter = extensions.stream()
-                .filter(ext -> ext.supportsParameter(parameterContext, extensionContext))
-                .map(ext -> ext.resolveParameter(parameterContext, extensionContext))
-                .filter(Objects::nonNull)
-                .findFirst();
-
-        if (!parameter.isPresent()) {
-            fail("Failed to inject parameter: " + parameterContext.getParameter().getName());
-        }
-
-        return parameter.get();
+        return getParameter(parameterContext.getParameter().getName(), parameterContext.getParameter().getType());
     }
 
     @Override
@@ -119,16 +111,23 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onError(context, throwable));
     }
 
-    private void initServicesFromClass(ExtensionContext context, Class<?> clazz) {
+    private void initResourcesFromClass(ExtensionContext context, Class<?> clazz) throws Exception {
         for (Field field : clazz.getDeclaredFields()) {
             if (Service.class.isAssignableFrom(field.getType())) {
-                try {
-                    initService(context, field);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    fail("Failed to start service: " + field + ". Caused by: " + e);
-                }
+                initService(context, field);
+            } else if (field.isAnnotationPresent(Inject.class)) {
+                injectDependency(context, field);
             }
+        }
+    }
+
+    private void injectDependency(ExtensionContext context, Field field) throws Exception {
+        Object parameter = getParameter(field.getName(), field.getType());
+        field.setAccessible(true);
+        if (Modifier.isStatic(field.getModifiers())) {
+            field.set(null, parameter);
+        } else {
+            fail("Fields can only be injected into static instances. Problematic field: " + field.getName());
         }
     }
 
@@ -146,6 +145,20 @@ public class QuarkusScenarioBootstrap
 
         service.init(resource, serviceContext);
         services.add(service);
+    }
+
+    private Object getParameter(String name, Class<?> clazz) {
+        Optional<Object> parameter = extensions.stream()
+                .map(ext -> ext.getParameter(clazz))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst();
+
+        if (!parameter.isPresent()) {
+            fail("Failed to inject: " + name);
+        }
+
+        return parameter.get();
     }
 
     private List<ExtensionBootstrap> initExtensions(ExtensionContext context) {
