@@ -35,13 +35,6 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
     protected abstract void doUpdate();
 
     @Override
-    public void validate() {
-        if (model.isSslEnabled()) {
-            fail("SSL is not supported for OpenShift tests yet");
-        }
-    }
-
-    @Override
     public void start() {
         if (running) {
             return;
@@ -73,11 +66,13 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
 
     @Override
     public String getHost(Protocol protocol) {
+        validateProtocol(protocol);
         return client.url(model.getContext().getOwner());
     }
 
     @Override
     public int getPort(Protocol protocol) {
+        validateProtocol(protocol);
         return EXTERNAL_PORT;
     }
 
@@ -100,6 +95,12 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
         }
 
         start();
+    }
+
+    private void validateProtocol(Protocol protocol) {
+        if (protocol == Protocol.HTTPS) {
+            fail("SSL is not supported for OpenShift tests yet");
+        }
     }
 
     private boolean appIsStarted() {

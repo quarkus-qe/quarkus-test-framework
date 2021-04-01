@@ -37,13 +37,6 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     }
 
     @Override
-    public void validate() {
-        if (model.isSslEnabled()) {
-            fail("SSL is not supported for Kubernetes tests yet");
-        }
-    }
-
-    @Override
     public void start() {
         if (running) {
             return;
@@ -75,11 +68,13 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
 
     @Override
     public String getHost(Protocol protocol) {
+        validateProtocol(protocol);
         return client.url(model.getContext().getOwner());
     }
 
     @Override
     public int getPort(Protocol protocol) {
+        validateProtocol(protocol);
         return client.port(model.getContext().getOwner());
     }
 
@@ -102,6 +97,12 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
         }
 
         start();
+    }
+
+    private void validateProtocol(Protocol protocol) {
+        if (protocol == Protocol.HTTPS) {
+            fail("SSL is not supported for Kubernetes tests yet");
+        }
     }
 
     private String createImageAndPush() {
