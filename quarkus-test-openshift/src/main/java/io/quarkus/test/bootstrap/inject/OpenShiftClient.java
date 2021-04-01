@@ -43,6 +43,8 @@ import io.quarkus.test.utils.FileUtils;
 
 public final class OpenShiftClient {
 
+    public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
+
     private static final int AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES = 5;
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
@@ -93,7 +95,7 @@ public final class OpenShiftClient {
      */
     public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update, Path target) {
         String content = FileUtils.loadFile(file);
-        content = addPropertiesToDeploymentConfig(service.getProperties(), update.apply(content));
+        content = enrichTemplate(service, update.apply(content));
         apply(service, FileUtils.copyContentTo(content, target));
     }
 
@@ -185,7 +187,7 @@ public final class OpenShiftClient {
      */
     public Map<String, String> logs(Service service) {
         Map<String, String> logs = new HashMap<>();
-        for (Pod pod : client.pods().withLabel("deploymentconfig", service.getName()).list().getItems()) {
+        for (Pod pod : client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, service.getName()).list().getItems()) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
                 logs.put(podName, client.pods().withName(podName).getLog());
@@ -249,39 +251,50 @@ public final class OpenShiftClient {
         }
     }
 
-    private String addPropertiesToDeploymentConfig(Map<String, String> properties, String template) {
-        if (!properties.isEmpty()) {
-            List<HasMetadata> objs = loadYaml(template);
-            for (HasMetadata obj : objs) {
-                if (obj instanceof DeploymentConfig) {
-                    DeploymentConfig dc = (DeploymentConfig) obj;
+    private String enrichTemplate(Service service, String template) {
+        List<HasMetadata> objs = loadYaml(template);
+        for (HasMetadata obj : objs) {
+            // set namespace
+            obj.getMetadata().setNamespace(project());
 
-                    Map<String, String> enrichProperties = enrichProperties(properties, dc);
+            if (obj instanceof DeploymentConfig) {
+                DeploymentConfig dc = (DeploymentConfig) obj;
 
-                    dc.getSpec().getTemplate().getSpec().getContainers()
-                            .forEach(container -> enrichProperties.entrySet().forEach(
-                                    property -> {
-                                        String key = property.getKey();
-                                        EnvVar envVar = getEnvVarByKey(key, container);
-                                        if (envVar == null) {
-                                            container.getEnv().add(new EnvVar(key, property.getValue(), null));
-                                        } else {
-                                            envVar.setValue(property.getValue());
-                                        }
-                                    }));
-                }
-            }
+                // set deployment name
+                dc.getMetadata().setName(service.getName());
 
-            KubernetesList list = new KubernetesList();
-            list.setItems(objs);
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                Serialization.yamlMapper().writeValue(os, list);
-                template = new String(os.toByteArray());
-            } catch (IOException e) {
-                fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
+                // set metadata to template
+                dc.getSpec().getTemplate().getMetadata().setNamespace(project());
+
+                // add label for logs
+                dc.getSpec().getTemplate().getMetadata().getLabels().put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+
+                // add env var properties
+                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
+                dc.getSpec().getTemplate().getSpec().getContainers()
+                        .forEach(container -> enrichProperties.entrySet().forEach(
+                                property -> {
+                                    String key = property.getKey();
+                                    EnvVar envVar = getEnvVarByKey(key, container);
+                                    if (envVar == null) {
+                                        container.getEnv().add(new EnvVar(key, property.getValue(), null));
+                                    } else {
+                                        envVar.setValue(property.getValue());
+                                    }
+                                }));
             }
         }
+
+        KubernetesList list = new KubernetesList();
+        list.setItems(objs);
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Serialization.yamlMapper().writeValue(os, list);
+            template = new String(os.toByteArray());
+        } catch (IOException e) {
+            fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
+        }
+
         return template;
     }
 

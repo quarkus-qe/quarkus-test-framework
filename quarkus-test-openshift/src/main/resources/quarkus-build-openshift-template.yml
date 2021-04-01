@@ -6,7 +6,6 @@ items:
   kind: "Service"
   metadata:
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     ports:
     - name: "http"
@@ -22,13 +21,11 @@ items:
       app.openshift.io/runtime: "quarkus"
       app.kubernetes.io/name: "${SERVICE_NAME}"
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec: {}
 - apiVersion: "image.openshift.io/v1"
   kind: "ImageStream"
   metadata:
     name: "image-builder"
-    namespace: "${NAMESPACE}"
   spec:
     dockerImageRepository: "${QUARKUS_S2I_IMAGE_BUILDER}"
 - apiVersion: "build.openshift.io/v1"
@@ -38,7 +35,6 @@ items:
       app.openshift.io/runtime: "quarkus"
       app.kubernetes.io/name: "${SERVICE_NAME}"
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     output:
       to:
@@ -58,7 +54,6 @@ items:
       app.openshift.io/runtime: "quarkus"
       app.kubernetes.io/name: "${SERVICE_NAME}"
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     replicas: 1
     selector:
@@ -68,7 +63,6 @@ items:
         labels:
           app.openshift.io/runtime: "quarkus"
           app.kubernetes.io/name: "${SERVICE_NAME}"
-        namespace: "${NAMESPACE}"
       spec:
         containers:
         - env:

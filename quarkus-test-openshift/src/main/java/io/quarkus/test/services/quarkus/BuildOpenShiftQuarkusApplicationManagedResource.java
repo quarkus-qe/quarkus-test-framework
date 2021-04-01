@@ -66,8 +66,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
         String s2iImage = getS2iImage();
         String s2iVersion = getS2iImageVersion(s2iImage);
 
-        return content.replaceAll(quote("${NAMESPACE}"), client.project())
-                .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getOwner().getName())
+        return content.replaceAll(quote("${SERVICE_NAME}"), model.getContext().getOwner().getName())
                 .replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER}"),
                         StringUtils.substringBeforeLast(s2iImage, IMAGE_TAG_SEPARATOR))
                 .replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER_VERSION}"), s2iVersion)

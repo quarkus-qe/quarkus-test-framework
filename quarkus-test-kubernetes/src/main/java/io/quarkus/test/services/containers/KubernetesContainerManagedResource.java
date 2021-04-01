@@ -4,6 +4,8 @@ import static java.util.regex.Pattern.quote;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
@@ -13,7 +15,10 @@ import io.quarkus.test.logging.LoggingHandler;
 
 public class KubernetesContainerManagedResource implements ManagedResource {
 
-    private static final String DEPLOYMENT_TEMPLATE = "/kubernetes-deployment-template.yml";
+    private static final String DEPLOYMENT_SERVICE_PROPERTY = "kubernetes.service";
+    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
+    private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/kubernetes-deployment-template.yml";
+
     private static final String DEPLOYMENT = "kubernetes.yml";
 
     private final ContainerManagedResourceBuilder model;
@@ -75,14 +80,20 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        client.applyServiceProperties(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE, this::replaceDeploymentContent,
+        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
+                DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+        client.applyServiceProperties(model.getContext().getOwner(), deploymentFile, this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
     private String replaceDeploymentContent(String content) {
-        return content.replaceAll(quote("${NAMESPACE}"), client.namespace())
-                .replaceAll(quote("${IMAGE}"), model.getImage())
-                .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
+        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        if (StringUtils.isNotEmpty(customServiceName)) {
+            // replace it by the service owner name
+            content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
+        }
+
+        return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
     }
 

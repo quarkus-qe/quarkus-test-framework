@@ -46,6 +46,7 @@ public final class KubectlClient {
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int NAMESPACE_NAME_SIZE = 10;
     private static final int NAMESPACE_CREATION_RETRIES = 5;
+    private static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
 
     private static final String KUBECTL = "kubectl";
     private static final int HTTP_PORT_DEFAULT = 80;
@@ -93,7 +94,7 @@ public final class KubectlClient {
      */
     public void applyServiceProperties(Service service, String file, UnaryOperator<String> update, Path target) {
         String content = FileUtils.loadFile(file);
-        content = addPropertiesToDeployment(service.getProperties(), update.apply(content));
+        content = enrichTemplate(service, update.apply(content));
         apply(service, FileUtils.copyContentTo(content, target));
     }
 
@@ -151,7 +152,7 @@ public final class KubectlClient {
      */
     public Map<String, String> logs(Service service) {
         Map<String, String> logs = new HashMap<>();
-        for (Pod pod : client.pods().withLabel("deployment", service.getName()).list().getItems()) {
+        for (Pod pod : client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, service.getName()).list().getItems()) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
                 logs.put(podName, client.pods().withName(podName).getLog());
@@ -230,37 +231,47 @@ public final class KubectlClient {
         return client.load(new ByteArrayInputStream(template.getBytes())).get();
     }
 
-    private String addPropertiesToDeployment(Map<String, String> properties, String template) {
-        if (!properties.isEmpty()) {
-            List<HasMetadata> objs = loadYaml(template);
-            for (HasMetadata obj : objs) {
-                if (obj instanceof Deployment) {
-                    Deployment d = (Deployment) obj;
+    private String enrichTemplate(Service service, String template) {
+        List<HasMetadata> objs = loadYaml(template);
+        for (HasMetadata obj : objs) {
+            // set namespace
+            obj.getMetadata().setNamespace(namespace());
 
-                    Map<String, String> enrichProperties = enrichProperties(properties, d);
+            if (obj instanceof Deployment) {
+                Deployment d = (Deployment) obj;
 
-                    d.getSpec().getTemplate().getSpec().getContainers()
-                            .forEach(container -> enrichProperties.entrySet().forEach(property -> {
-                                String key = property.getKey();
-                                EnvVar envVar = getEnvVarByKey(key, container);
-                                if (envVar == null) {
-                                    container.getEnv().add(new EnvVar(key, property.getValue(), null));
-                                } else {
-                                    envVar.setValue(property.getValue());
-                                }
-                            }));
-                }
+                // set deployment name
+                d.getMetadata().setName(service.getName());
+
+                // set metadata to template
+                d.getSpec().getTemplate().getMetadata().setNamespace(namespace());
+
+                // add label for logs
+                d.getSpec().getTemplate().getMetadata().getLabels().put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+
+                // add env var properties
+                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), d);
+                d.getSpec().getTemplate().getSpec().getContainers()
+                        .forEach(container -> enrichProperties.entrySet().forEach(property -> {
+                            String key = property.getKey();
+                            EnvVar envVar = getEnvVarByKey(key, container);
+                            if (envVar == null) {
+                                container.getEnv().add(new EnvVar(key, property.getValue(), null));
+                            } else {
+                                envVar.setValue(property.getValue());
+                            }
+                        }));
             }
+        }
 
-            KubernetesList list = new KubernetesList();
-            list.setItems(objs);
-            try {
-                ByteArrayOutputStream os = new ByteArrayOutputStream();
-                Serialization.yamlMapper().writeValue(os, list);
-                template = new String(os.toByteArray());
-            } catch (IOException e) {
-                fail("Failed adding properties into template. Caused by " + e.getMessage());
-            }
+        KubernetesList list = new KubernetesList();
+        list.setItems(objs);
+        try {
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            Serialization.yamlMapper().writeValue(os, list);
+            template = new String(os.toByteArray());
+        } catch (IOException e) {
+            fail("Failed adding properties into template. Caused by " + e.getMessage());
         }
 
         return template;

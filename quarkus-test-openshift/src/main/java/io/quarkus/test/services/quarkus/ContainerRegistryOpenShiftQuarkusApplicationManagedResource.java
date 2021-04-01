@@ -44,8 +44,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
     }
 
     private String replaceDeploymentContent(String content) {
-        return content.replaceAll(quote("${NAMESPACE}"), client.project())
-                .replaceAll(quote("${IMAGE}"), image)
+        return content.replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());

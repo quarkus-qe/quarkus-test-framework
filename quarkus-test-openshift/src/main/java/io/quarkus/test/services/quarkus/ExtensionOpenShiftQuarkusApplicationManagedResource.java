@@ -15,6 +15,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.scenarios.NativeScenario;
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
@@ -43,6 +44,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String QUARKUS_NATIVE_MEMORY_LIMIT = "quarkus.native.native-image-xmx";
     private static final String QUARKUS_PACKAGE_TYPE = "quarkus.package.type";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
+    private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
     private static final String QUARKUS_OPENSHIFT_BUILD_STRATEGY = "quarkus.openshift.build-strategy";
     private static final List<String> QUARKUS_PROPERTIES_PROPAGATE_EXCLUSION = Arrays.asList("quarkus.profile",
             QUARKUS_NATIVE_CONTAINER_RUNTIME, QUARKUS_NATIVE_MEMORY_LIMIT);
@@ -93,6 +95,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
+        args.add(withLabelsForWatching());
         withBuildStrategy(args);
         withQuarkusProperties(args);
         withMavenRepositoryLocalIfSet(args);
@@ -104,6 +107,11 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         } catch (Exception e) {
             fail("Failed to run maven command. Caused by " + e.getMessage());
         }
+    }
+
+    private String withLabelsForWatching() {
+        return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_TO_WATCH_FOR_LOGS,
+                model.getContext().getOwner().getName());
     }
 
     private void withBuildStrategy(List<String> args) {

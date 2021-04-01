@@ -1,0 +1,148 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    name: keycloak
+  spec:
+    lookupPolicy:
+      local: false
+    tags:
+      - name: latest
+        from:
+          kind: DockerImage
+          name: quay.io/keycloak/keycloak:11.0.3
+- apiVersion: apps.openshift.io/v1
+  kind: DeploymentConfig
+  metadata:
+    name: keycloak
+  spec:
+    replicas: 1
+    selector:
+      name: keycloak
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          name: keycloak
+        name: keycloak
+      spec:
+        containers:
+        - name: keycloak
+          env:
+          - name: X509_CA_BUNDLE
+            value: /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+          - name: JGROUPS_ENCRYPT_PROTOCOL
+            value: ASYM_ENCRYPT
+          - name: JGROUPS_CLUSTER_PASSWORD
+            value: test-jgroups-password
+          - name: JGROUPS_PING_PROTOCOL
+            value: openshift.DNS_PING
+          - name: OPENSHIFT_DNS_PING_SERVICE_NAME
+            value: keycloak-ping
+          - name: OPENSHIFT_DNS_PING_SERVICE_PORT
+            value: "8888"
+          image: ''
+          imagePullPolicy: Always
+          ports:
+          - containerPort: 8778
+            name: jolokia
+            protocol: TCP
+          - containerPort: 8080
+            name: http
+            protocol: TCP
+          - containerPort: 8443
+            name: https
+            protocol: TCP
+          - containerPort: 8888
+            name: ping
+            protocol: TCP
+          resources:
+            limits:
+              memory: 1Gi
+          volumeMounts:
+          - mountPath: /etc/x509/https
+            name: keycloak-cert-https-volume
+            readOnly: true
+          - mountPath: /etc/x509/jgroups
+            name: keycloak-cert-jgroups-volume
+            readOnly: true
+        terminationGracePeriodSeconds: 75
+        volumes:
+        - name: keycloak-cert-https-volume
+          secret:
+            secretName: keycloak-cert-https-secret
+        - name: keycloak-cert-jgroups-volume
+          secret:
+            secretName: keycloak-cert-jgroups-secret
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - keycloak
+        from:
+          kind: ImageStreamTag
+          name: keycloak:latest
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: keycloak
+    annotations:
+      service.alpha.openshift.io/serving-cert-secret-name: keycloak-cert-https-secret
+  spec:
+    ports:
+    - port: 8443
+      targetPort: 8443
+    selector:
+      name: keycloak
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: keycloak-ping
+    annotations:
+      service.alpha.kubernetes.io/tolerate-unready-endpoints: "true"
+      service.alpha.openshift.io/serving-cert-secret-name: keycloak-cert-jgroups-secret
+  spec:
+    clusterIP: None
+    ports:
+    - name: ping
+      port: 8888
+    selector:
+      name: keycloak
+
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: keycloak
+  spec:
+    to:
+      name: keycloak
+    tls:
+      termination: reencrypt
+
+# for test purposes, it's easier to use plain HTTP instead of HTTPS
+
+- apiVersion: v1
+  kind: Service
+  metadata:
+    name: keycloak-plain
+  spec:
+    ports:
+      - port: 8080
+        targetPort: 8080
+    selector:
+      name: keycloak
+
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    name: keycloak-plain
+  spec:
+    to:
+      name: keycloak-plain

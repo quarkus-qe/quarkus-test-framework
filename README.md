@@ -89,6 +89,27 @@ public class GreetingResourceIT {
 }
 ```
 
+#### Use custom templates for Containers
+
+Sometimes deploying a third party into OpenShift or Kubernetes involves some complex configuration that is not required when deploying it on bare metal. For these scenarios, we allow to provide a custom template via `test.properties`:
+
+```
+ts.consul.openshift.template=/yourtemplate.yaml
+```
+
+Similarly, when deploying into kubernetes, we have the property `ts.consul.kubernetes.template`.
+
+| Note that this is only supported for OpenShift and Kubernetes. 
+| And the custom template must contain ONLY ONE deployment config (for OpenShift) or ONE deployment (for kubernetes).
+
+Moreover, if the service that is exposing the port we want to target is named differently to our service, we can provide the service name via:
+
+```
+ts.consul.openshift.service=consul-http-service
+```
+
+Same with Kubernetes `ts.consul.kubernetes.service`.
+
 ### Enable/Disable Native tests via system properties
 
 We can selectively disable/enable native tests via system properties and using the `@EnabledIfNativeScenarioPropertyIsTrue` annotation:
@@ -322,7 +343,7 @@ public class OpenShiftUsingExtensionPingPongResourceIT {
 }
 ```
 
-This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`.
+This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`. 
 
 ### Kubernetes
 

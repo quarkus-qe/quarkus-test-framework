@@ -4,6 +4,8 @@ import static java.util.regex.Pattern.quote;
 
 import java.util.List;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
@@ -13,7 +15,9 @@ import io.quarkus.test.logging.OpenShiftLoggingHandler;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
-    private static final String DEPLOYMENT_TEMPLATE = "/openshift-deployment-template.yml";
+    private static final String DEPLOYMENT_SERVICE_PROPERTY = "openshift.service";
+    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "openshift.template";
+    private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/openshift-deployment-template.yml";
     private static final String DEPLOYMENT = "openshift.yml";
 
     private static final int HTTP_PORT = 80;
@@ -82,14 +86,21 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), DEPLOYMENT_TEMPLATE,
+        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
+                DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
     private String replaceDeploymentContent(String content) {
-        return content.replaceAll(quote("${NAMESPACE}"), client.project())
-                .replaceAll(quote("${IMAGE}"), model.getImage())
+        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        if (StringUtils.isNotEmpty(customServiceName)) {
+            // replace it by the service owner name
+            content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
+        }
+
+        return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
     }

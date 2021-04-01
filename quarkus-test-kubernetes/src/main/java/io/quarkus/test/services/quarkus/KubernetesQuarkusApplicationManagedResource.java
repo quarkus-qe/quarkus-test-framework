@@ -116,7 +116,6 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
 
     private String replaceDeploymentContent(String content) {
         return content
-                .replaceAll(quote("${NAMESPACE}"), client.namespace())
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())

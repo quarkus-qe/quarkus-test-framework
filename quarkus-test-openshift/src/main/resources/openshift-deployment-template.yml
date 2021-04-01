@@ -6,7 +6,6 @@ items:
   kind: "Service"
   metadata:
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     ports:
     - name: "http"
@@ -19,7 +18,6 @@ items:
   kind: "DeploymentConfig"
   metadata:
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     replicas: 1
     selector:
@@ -28,7 +26,6 @@ items:
       metadata:
         labels:
           deploymentconfig: "${SERVICE_NAME}"
-        namespace: "${NAMESPACE}"
       spec:
         containers:
         - image: "${IMAGE}"

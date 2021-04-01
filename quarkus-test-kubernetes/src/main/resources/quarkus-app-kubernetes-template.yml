@@ -6,7 +6,6 @@ items:
   kind: "Service"
   metadata:
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     type: LoadBalancer
     ports:
@@ -20,7 +19,6 @@ items:
       app.kubernetes.io/runtime: "quarkus"
       app.kubernetes.io/name: "${SERVICE_NAME}"
     name: "${SERVICE_NAME}"
-    namespace: "${NAMESPACE}"
   spec:
     replicas: 1
     selector:
@@ -32,7 +30,6 @@ items:
           app.kubernetes.io/runtime: "quarkus"
           app.kubernetes.io/name: "${SERVICE_NAME}"
           deployment: "${SERVICE_NAME}"
-        namespace: "${NAMESPACE}"
       spec:
         containers:
         - image: "${IMAGE}"

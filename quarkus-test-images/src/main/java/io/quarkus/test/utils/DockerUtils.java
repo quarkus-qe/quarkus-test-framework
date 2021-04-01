@@ -8,14 +8,11 @@ import java.nio.file.Path;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.ServiceContext;
-import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 
 public final class DockerUtils {
 
     public static final String CONTAINER_REGISTY_URL_PROPERTY = "ts.container.registry-url";
-
-    private static final PropertyLookup CONTAINER_REGISTY_URL = new PropertyLookup(CONTAINER_REGISTY_URL_PROPERTY);
 
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
@@ -31,7 +28,7 @@ public final class DockerUtils {
     }
 
     public static String createImageAndPush(ServiceContext service, LaunchMode mode, Path artifact) {
-        validateContainerRegistry(service);
+        validateContainerRegistry();
 
         String dockerfileContent = FileUtils.loadFile(getDockerfile(mode))
                 .replaceAll(quote("${ARTIFACT_PARENT}"), artifact.getParent().toString());
@@ -41,8 +38,8 @@ public final class DockerUtils {
         return pushToContainerRegistryUrl(service);
     }
 
-    private static void validateContainerRegistry(ServiceContext service) {
-        if (StringUtils.isEmpty(CONTAINER_REGISTY_URL.get(service))) {
+    private static void validateContainerRegistry() {
+        if (StringUtils.isEmpty(System.getProperty(CONTAINER_REGISTY_URL_PROPERTY))) {
             fail("Container Registry URL is not provided, use -Dts.container.registry-url=XXX");
         }
     }
@@ -57,7 +54,7 @@ public final class DockerUtils {
     }
 
     private static String pushToContainerRegistryUrl(ServiceContext service) {
-        String containerRegistryUrl = CONTAINER_REGISTY_URL.get(service);
+        String containerRegistryUrl = System.getProperty(CONTAINER_REGISTY_URL_PROPERTY);
         try {
             String targetImage = containerRegistryUrl + "/" + getUniqueName(service);
             new Command(DOCKER, "tag", getUniqueName(service), targetImage).runAndWait();
