@@ -44,6 +44,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String QUARKUS_PACKAGE_TYPE = "quarkus.package.type";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_BUILD_STRATEGY = "quarkus.openshift.build-strategy";
+    private static final List<String> QUARKUS_PROPERTIES_PROPAGATE_EXCLUSION = Arrays.asList("quarkus.profile",
+            QUARKUS_NATIVE_CONTAINER_RUNTIME, QUARKUS_NATIVE_MEMORY_LIMIT);
 
     private static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
 
@@ -156,7 +158,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private void withQuarkusProperties(List<String> args) {
         System.getProperties().entrySet().stream()
-                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()))
+                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()).and(propertyIsNotExcluded()))
+                .filter(propertyIsNotPackageTypeNative())
                 .forEach(property -> {
                     String key = (String) property.getKey();
                     String value = (String) property.getValue();
@@ -189,6 +192,14 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private Predicate<Entry<Object, Object>> propertyValueIsNotEmpty() {
         return property -> StringUtils.isNotEmpty((String) property.getValue());
+    }
+
+    private Predicate<Entry<Object, Object>> propertyIsNotExcluded() {
+        return property -> !QUARKUS_PROPERTIES_PROPAGATE_EXCLUSION.contains(property.getKey());
+    }
+
+    private Predicate<Entry<Object, Object>> propertyIsNotPackageTypeNative() {
+        return property -> !(QUARKUS_PACKAGE_TYPE.equals(property.getKey()) && NATIVE.equals(property.getValue()));
     }
 
     private Predicate<Entry<Object, Object>> isQuarkusProperty() {
