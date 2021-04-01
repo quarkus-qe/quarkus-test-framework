@@ -89,6 +89,20 @@ public class GreetingResourceIT {
 }
 ```
 
+### Enable/Disable Native tests via system properties
+
+We can selectively disable/enable native tests via system properties and using the `@EnabledIfNativeScenarioPropertyIsTrue` annotation:
+
+```java
+@NativeScenario
+@EnabledIfNativeScenarioPropertyIsTrue
+public class NativePingPongResourceIT extends PingPongResourceIT {
+
+}
+```
+
+This test will be executed only if the system property `ts.native.scenario.enabled` is `true`.
+
 ## Architecture
 
 This framework is designed to follow **extension model** patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but if we add the OpenShift module. we can automatically deploy it in OpenShift/K8s just by adding the `@OpenShiftScenario`.
@@ -102,6 +116,7 @@ The modules within the test framework must follow the next package convention:
 - `io.quarkus.test.configuration` - configuration facilities
 - `io.quarkus.test.logging` - logging facilities and handlers
 - `io.quarkus.test.scenarios` - scenarios that the module implement, eg: `@NativeScenario`, `@OpenShiftScenario`
+- `io.quarkus.test.scenarios.annotations` - useful JUnit annotations to disable/enable scenarios
 - `io.quarkus.test.services` - services that the module implement, eg: `@QuarkusApplication`, `@Container`
 - `io.quarkus.test.services.<service-name>` - bindings to configure the `service-name` to be extended or supported
 - `io.quarkus.test.utils` - more utilities
@@ -273,6 +288,20 @@ public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
 }
 ```
 
+#### Enable/Disable OpenShift tests via system properties
+
+We can selectively disable/enable OpenShift tests via system properties and using the `@EnabledIfOpenShiftScenarioPropertyIsTrue` annotation:
+
+```java
+@OpenShiftScenario
+@EnabledIfOpenShiftScenarioPropertyIsTrue
+public class OpenShiftUsingExtensionPingPongResourceIT {
+    // ...
+}
+```
+
+This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`.
+
 ### Kubernetes
 
 Requirements:
@@ -340,6 +369,20 @@ public class KubernetesGreetingResourceIT extends GreetingResourceIT {
     }
 }
 ```
+
+#### Enable/Disable Kubernetes tests via system properties
+
+We can selectively disable/enable OpenShift tests via system properties and using the `@EnabledIfKubernetesScenarioPropertyIsTrue` annotation:
+
+```java
+@KubernetesScenario
+@EnabledIfKubernetesScenarioPropertyIsTrue
+public class KubernetesGreetingResourceIT {
+    // ...
+}
+```
+
+This test will be executed only if the system property `ts.kubernetes.scenario.enabled` is `true`.
 
 ## Services entities
 

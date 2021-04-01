@@ -1,10 +1,10 @@
 package io.quarkus.qe;
 
-import io.quarkus.test.annotations.DisabledIfNotContainerRegistry;
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
+import io.quarkus.test.scenarios.annotations.EnabledIfOpenShiftScenarioPropertyIsTrue;
 
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingContainerRegistry)
-@DisabledIfNotContainerRegistry
+@EnabledIfOpenShiftScenarioPropertyIsTrue
 public class OpenShiftUsingContainerRegistrySecurityResourceIT extends SecurityResourceIT {
 }
