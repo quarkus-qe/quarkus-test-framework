@@ -24,7 +24,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build in JVM mode
         run: |
-          mvn -T 1C .github/mvn-settings.xml clean install
+          mvn -T 1C -s .github/mvn-settings.xml clean install
       - name: Zip Artifacts
         run: |
           zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
