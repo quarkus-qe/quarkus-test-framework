@@ -89,6 +89,62 @@ public class GreetingResourceIT {
 }
 ```
 
+#### Kafka Containers
+
+Due to the complexity of Kafka deployments, there is a special implementation of containers for Kafka that we can use by adding the dependency:
+
+```xml
+<dependency>
+    <groupId>io.quarkus.qe</groupId>
+    <artifactId>quarkus-test-service-kafka</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+And now, we can use the Kafka container in our test:
+
+```java
+@QuarkusScenario
+public class StrimziKafkaWithoutRegistryMessagingIT {
+
+    @KafkaContainer
+    static final KafkaService kafka = new KafkaService();
+
+    @QuarkusApplication
+    static final RestService app = new RestService()
+            .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl);
+
+    // ...
+}
+```
+
+By default, the KafkaContainer will use the Strimzi implementation and Registry (with Apicurio):
+
+```java
+@QuarkusScenario
+public class StrimziKafkaWithRegistryMessagingIT {
+
+    @KafkaContainer(withRegistry = true)
+    static final KafkaService kafka = new KafkaService();
+
+    @QuarkusApplication
+    static final RestService app = new RestService()
+            .withProperties("strimzi-application.properties")
+            .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl)
+            .withProperty("strimzi.registry.url", kafka::getRegistryUrl);
+
+    // ...
+}
+```
+
+We can also use a Confluent kafka container by doing:
+
+```java
+@KafkaContainer(vendor = KafkaVendor.CONFLUENT)
+```
+
+Note that this implemenation supports also registry, but not Kubernetes and OpenShift scenarios.
+
 #### Use custom templates for Containers
 
 Sometimes deploying a third party into OpenShift or Kubernetes involves some complex configuration that is not required when deploying it on bare metal. For these scenarios, we allow to provide a custom template via `test.properties`:

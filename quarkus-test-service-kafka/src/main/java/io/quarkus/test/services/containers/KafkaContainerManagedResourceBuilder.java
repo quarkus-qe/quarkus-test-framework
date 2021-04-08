@@ -47,7 +47,7 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
     public ManagedResource build(ServiceContext context) {
         this.context = context;
         for (KafkaContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
-            if (binding.appliesFor(context)) {
+            if (binding.appliesFor(this)) {
                 return binding.init(this);
             }
         }

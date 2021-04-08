@@ -40,12 +40,5 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
-        
-        <dependency>
-            <groupId>io.quarkus.qe</groupId>
-            <artifactId>quarkus-test-kubernetes</artifactId>
-            <optional>true</optional>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 </project>

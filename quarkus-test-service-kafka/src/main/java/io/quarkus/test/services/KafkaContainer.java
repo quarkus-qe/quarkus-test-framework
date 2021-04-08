@@ -13,7 +13,7 @@ import io.quarkus.test.services.containers.model.KafkaVendor;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KafkaContainer {
 
-    KafkaVendor vendor() default KafkaVendor.CONFLUENT;
+    KafkaVendor vendor() default KafkaVendor.STRIMZI;
 
     String version() default "";
 
