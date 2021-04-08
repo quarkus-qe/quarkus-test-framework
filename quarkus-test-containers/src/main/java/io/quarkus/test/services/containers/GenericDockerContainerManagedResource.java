@@ -26,7 +26,7 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
             container.waitingFor(new LogMessageWaitStrategy().withRegEx(".*" + model.getExpectedLog() + ".*\\s"));
         }
 
-        if (StringUtils.isNotBlank(model.getCommand())) {
+        if (model.getCommand().length > 0) {
             container.withCommand(model.getCommand());
         }
 

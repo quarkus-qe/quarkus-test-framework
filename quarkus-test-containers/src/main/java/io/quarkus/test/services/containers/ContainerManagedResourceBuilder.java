@@ -16,7 +16,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private ServiceContext context;
     private String image;
     private String expectedLog;
-    private String command;
+    private String[] command;
     private Integer port;
 
     protected String getImage() {
@@ -27,7 +27,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return expectedLog;
     }
 
-    protected String getCommand() {
+    protected String[] getCommand() {
         return command;
     }
 

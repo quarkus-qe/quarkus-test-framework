@@ -17,7 +17,7 @@ public @interface Container {
 
     String expectedLog();
 
-    String command() default "";
+    String[] command() default {};
 
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
 }
