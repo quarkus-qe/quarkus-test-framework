@@ -1,6 +1,7 @@
 package io.quarkus.test.bootstrap;
 
 import static org.awaitility.Awaitility.await;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -29,6 +30,7 @@ public class BaseService<T extends Service> implements Service {
     private ManagedResource managedResource;
     private String serviceName;
     private Configuration configuration;
+    private ServiceContext context;
 
     @Override
     public String getName() {
@@ -145,6 +147,7 @@ public class BaseService<T extends Service> implements Service {
 
     @Override
     public void init(ManagedResourceBuilder managedResourceBuilder, ServiceContext context) {
+        this.context = context;
         Log.info(this, "Initialize service");
         FileUtils.recreateDirectory(context.getServiceFolder());
         managedResource = managedResourceBuilder.build(context);
@@ -152,6 +155,14 @@ public class BaseService<T extends Service> implements Service {
 
     public void restart() {
         managedResource.restart();
+    }
+
+    protected <U> U getPropertyFromContext(String key) {
+        if (context == null) {
+            fail("Service has not been initialized yet. Make sure you invoke this method in the right order.");
+        }
+
+        return context.get(key);
     }
 
     private void waitUntilServiceIsStarted() {

@@ -19,23 +19,23 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String command;
     private Integer port;
 
-    public String getImage() {
+    protected String getImage() {
         return image;
     }
 
-    public String getExpectedLog() {
+    protected String getExpectedLog() {
         return expectedLog;
     }
 
-    public String getCommand() {
+    protected String getCommand() {
         return command;
     }
 
-    public Integer getPort() {
+    protected Integer getPort() {
         return port;
     }
 
-    public ServiceContext getContext() {
+    protected ServiceContext getContext() {
         return context;
     }
 
@@ -57,6 +57,6 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
             }
         }
 
-        return new DockerContainerManagedResource(this);
+        return new GenericDockerContainerManagedResource(this);
     }
 }

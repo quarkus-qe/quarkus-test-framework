@@ -1,0 +1,35 @@
+name: "Pull Request Build"
+on:
+  - pull_request
+jobs:
+  build:
+    name: PR build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 11 ]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Build in JVM mode
+        run: |
+          mvn -T 1C .github/mvn-settings.xml clean install
+      - name: Zip Artifacts
+        run: |
+          zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ci-artifacts
+          path: artifacts-jvm${{ matrix.java }}.zip

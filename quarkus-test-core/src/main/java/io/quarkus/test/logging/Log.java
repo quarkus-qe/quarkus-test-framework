@@ -24,11 +24,11 @@ public final class Log {
     private static final String COLOR_WARNING = "\u001b[93m";
     private static final String COLOR_DEFAULT = "\u001b[32m";
 
-    private static final List<String> ALL_SERVICE_COLORS = Arrays.asList("\u001b[44m", // Background Blue
-            "\u001b[45m", // Background Magenta
-            "\u001b[46m", // Background Cyan
-            "\u001b[43;1m", // Background Bright Yellow
-            "\u001b[44;1m"); // Background Bright Blue
+    private static final List<String> ALL_SERVICE_COLORS = Arrays.asList("\u001b[0;34m", // Blue
+            "\u001b[0;95m", // Magenta
+            "\u001b[0;96m", // Cyan
+            "\u001b[0;93m", // Bright Yellow
+            "\u001b[0;94m"); // Bright Blue
     private static final List<String> UNUSED_SERVICE_COLORS = new ArrayList<>(ALL_SERVICE_COLORS);
 
     private static final Random RND = new Random();
@@ -65,14 +65,19 @@ public final class Log {
     }
 
     private static void log(Service service, Level level, String msg, Object... args) {
-        String prefix = findColorForService(service);
+        String textColor = findColorForText(level, service);
+        LOG.log(level, textColor + inBrackets(service) + String.format(msg, args) + COLOR_RESET);
+    }
+
+    private static synchronized String findColorForText(Level level, Service service) {
+        String textColor = findColorForService(service);
         if (level == Level.SEVERE) {
-            prefix = COLOR_SEVERE;
+            textColor = COLOR_SEVERE;
         } else if (level == Level.WARNING) {
-            prefix = COLOR_WARNING;
+            textColor = COLOR_WARNING;
         }
 
-        LOG.log(level, prefix + inBrackets(service) + String.format(msg, args) + COLOR_RESET);
+        return textColor;
     }
 
     private static synchronized String findColorForService(Service service) {

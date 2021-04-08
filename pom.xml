@@ -13,6 +13,7 @@
 
     <properties>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
+        <source-plugin.version>3.2.0</source-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -84,6 +85,11 @@
                 <artifactId>quarkus-test-service-keycloak</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-service-kafka</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -105,6 +111,20 @@
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>${compiler-plugin.version}</version>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>${source-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
@@ -188,6 +208,7 @@
                 <module>quarkus-test-openshift</module>
                 <module>quarkus-test-service-consul</module>
                 <module>quarkus-test-service-keycloak</module>
+                <module>quarkus-test-service-kafka</module>
             </modules>
         </profile>
         <profile>
@@ -203,6 +224,8 @@
                 <module>examples/consul</module>
                 <module>examples/microprofile</module>
                 <module>examples/keycloak</module>
+                <module>examples/kafka</module>
+                <module>examples/kafka-registry</module>
             </modules>
         </profile>
         <profile>

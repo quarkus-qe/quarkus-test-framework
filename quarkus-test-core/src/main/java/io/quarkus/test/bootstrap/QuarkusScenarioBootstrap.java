@@ -8,6 +8,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -66,7 +67,9 @@ public class QuarkusScenarioBootstrap
     @Override
     public void afterAll(ExtensionContext context) throws Exception {
         try {
-            services.forEach(Service::stop);
+            List<Service> servicesToStop = new ArrayList<>(services);
+            Collections.reverse(servicesToStop);
+            servicesToStop.forEach(Service::stop);
         } finally {
             extensions.forEach(ext -> ext.afterAll(context));
         }

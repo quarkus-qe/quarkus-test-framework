@@ -8,25 +8,27 @@ import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
-public class DockerContainerManagedResource implements ManagedResource {
+public abstract class DockerContainerManagedResource implements ManagedResource {
 
     private static final String RESOURCE_PREFIX = "resource::";
 
-    private final ContainerManagedResourceBuilder model;
+    private final ServiceContext context;
 
     private GenericContainer<?> innerContainer;
     private LoggingHandler loggingHandler;
 
-    protected DockerContainerManagedResource(ContainerManagedResourceBuilder model) {
-        this.model = model;
+    protected DockerContainerManagedResource(ServiceContext context) {
+        this.context = context;
     }
+
+    protected abstract int getTargetPort();
 
     @Override
     public void start() {
@@ -34,25 +36,18 @@ public class DockerContainerManagedResource implements ManagedResource {
             return;
         }
 
-        innerContainer = new GenericContainer<>(model.getImage());
-
-        if (StringUtils.isNotBlank(model.getExpectedLog())) {
-            innerContainer.waitingFor(new LogMessageWaitStrategy().withRegEx(".*" + model.getExpectedLog() + ".*\\s"));
-        }
-
-        if (StringUtils.isNotBlank(model.getCommand())) {
-            innerContainer.withCommand(model.getCommand());
-        }
+        innerContainer = initContainer();
 
         Map<String, String> properties = resolveProperties();
         innerContainer.withEnv(properties);
 
-        innerContainer.withExposedPorts(model.getPort());
         innerContainer.start();
 
-        loggingHandler = new TestContainersLoggingHandler(model.getContext(), innerContainer);
+        loggingHandler = new TestContainersLoggingHandler(context, innerContainer);
         loggingHandler.startWatching();
     }
+
+    protected abstract GenericContainer<?> initContainer();
 
     @Override
     public void stop() {
@@ -64,7 +59,7 @@ public class DockerContainerManagedResource implements ManagedResource {
 
     @Override
     public int getPort(Protocol protocol) {
-        return innerContainer.getMappedPort(model.getPort());
+        return innerContainer.getMappedPort(getTargetPort());
     }
 
     @Override
@@ -84,7 +79,7 @@ public class DockerContainerManagedResource implements ManagedResource {
 
     private Map<String, String> resolveProperties() {
         Map<String, String> properties = new HashMap<>();
-        for (Entry<String, String> entry : model.getContext().getOwner().getProperties().entrySet()) {
+        for (Entry<String, String> entry : context.getOwner().getProperties().entrySet()) {
             String value = entry.getValue();
             if (isResource(entry.getValue())) {
                 value = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
