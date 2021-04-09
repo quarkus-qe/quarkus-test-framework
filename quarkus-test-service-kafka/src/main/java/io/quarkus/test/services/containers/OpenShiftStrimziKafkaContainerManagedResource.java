@@ -27,11 +27,10 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     private static final int REGISTRY_PORT = 8080;
 
     private static final String EXPECTED_LOG = "started (kafka.server.KafkaServer)";
-    private static final String IMAGE = "strimzi/kafka";
-    private static final String VERSION_DEFAULT = "0.18.0-kafka-2.5.0";
+    private static final String IMAGE = "quay.io/strimzi/kafka";
+    private static final String VERSION_DEFAULT = "0.22.1-kafka-2.5.0";
 
-    private static final int HTTP_PORT = 80;
-    private static final int HTTP_TARGET_PORT = 9092;
+    private static final int HTTP_PORT = 9092;
 
     private final KafkaContainerManagedResourceBuilder model;
     private final OpenShiftClient client;
@@ -52,8 +51,6 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
         }
 
         applyDeployment();
-        client.expose(model.getContext().getOwner(), HTTP_TARGET_PORT);
-
         client.scaleTo(model.getContext().getOwner(), 1);
 
         if (model.isWithRegistry()) {
@@ -79,7 +76,10 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     @Override
     public String getHost(Protocol protocol) {
-        return client.url(model.getContext().getOwner());
+        // Strimzi Kafka only allows to expose Routes using SSL, therefore we'll use internal service routing.
+        // TODO: Make it public using the Strimzi Operator:
+        // https://developers.redhat.com/blog/2019/06/10/accessing-apache-kafka-in-strimzi-part-3-red-hat-openshift-routes/
+        return model.getContext().getOwner().getName();
     }
 
     @Override
