@@ -11,7 +11,6 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     private static final int REGISTRY_PORT = 8080;
     private static final String REGISTRY_PATH = "/api";
     private static final int KAFKA_PORT = 9092;
-    private static final String VERSION_DEFAULT = "0.22.1-kafka-2.5.0";
 
     protected StrimziKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -25,11 +24,6 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     @Override
     protected int getRegistryTargetPort() {
         return REGISTRY_PORT;
-    }
-
-    @Override
-    protected String getDefaultKafkaVersion() {
-        return VERSION_DEFAULT;
     }
 
     @Override

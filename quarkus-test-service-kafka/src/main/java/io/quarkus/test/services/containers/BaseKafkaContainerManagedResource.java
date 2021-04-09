@@ -9,7 +9,7 @@ import io.quarkus.test.logging.TestContainersLoggingHandler;
 
 public abstract class BaseKafkaContainerManagedResource extends DockerContainerManagedResource {
 
-    private final KafkaContainerManagedResourceBuilder model;
+    protected final KafkaContainerManagedResourceBuilder model;
 
     private GenericContainer<?> schemaRegistry;
     private TestContainersLoggingHandler schemaRegistryLoggingHandler;
@@ -20,8 +20,6 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
 
         this.model = model;
     }
-
-    protected abstract String getDefaultKafkaVersion();
 
     protected abstract int getRegistryTargetPort();
 
@@ -66,7 +64,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     }
 
     protected String getKafkaVersion() {
-        return StringUtils.defaultIfBlank(model.getVersion(), getDefaultKafkaVersion());
+        return StringUtils.defaultIfBlank(model.getVersion(), model.getVendor().getDefaultVersion());
     }
 
     protected String getRegistryPath() {

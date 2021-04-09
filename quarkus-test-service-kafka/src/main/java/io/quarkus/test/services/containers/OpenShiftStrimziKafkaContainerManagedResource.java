@@ -27,8 +27,6 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     private static final int REGISTRY_PORT = 8080;
 
     private static final String EXPECTED_LOG = "started (kafka.server.KafkaServer)";
-    private static final String IMAGE = "quay.io/strimzi/kafka";
-    private static final String VERSION_DEFAULT = "0.22.1-kafka-2.5.0";
 
     private static final int HTTP_PORT = 9092;
 
@@ -142,13 +140,13 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
         }
 
-        return content.replaceAll(quote("${IMAGE}"), IMAGE)
+        return content.replaceAll(quote("${IMAGE}"), model.getVendor().getImage())
                 .replaceAll(quote("${VERSION}"), getKafkaVersion())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName());
     }
 
     protected String getKafkaVersion() {
-        return StringUtils.defaultIfBlank(model.getVersion(), VERSION_DEFAULT);
+        return StringUtils.defaultIfBlank(model.getVersion(), model.getVendor().getDefaultVersion());
     }
 
 }

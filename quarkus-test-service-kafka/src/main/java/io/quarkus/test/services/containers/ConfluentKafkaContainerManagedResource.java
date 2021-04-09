@@ -6,10 +6,8 @@ import org.testcontainers.utility.DockerImageName;
 
 public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
-    private static final String KAFKA_IMAGE = "confluentinc/cp-kafka:";
     private static final String REGISTRY_IMAGE = "confluentinc/cp-schema-registry:";
     private static final int REGISTRY_PORT = 8081;
-    private static final String VERSION_DEFAULT = "6.1.1";
 
     protected ConfluentKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -26,13 +24,8 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
     }
 
     @Override
-    protected String getDefaultKafkaVersion() {
-        return VERSION_DEFAULT;
-    }
-
-    @Override
     protected GenericContainer<?> initKafkaContainer() {
-        return new KafkaContainer(DockerImageName.parse(KAFKA_IMAGE + getKafkaVersion()));
+        return new KafkaContainer(DockerImageName.parse(model.getVendor().getImage() + ":" + getKafkaVersion()));
     }
 
     @Override
