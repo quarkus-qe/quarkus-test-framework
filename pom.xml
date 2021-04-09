@@ -226,6 +226,7 @@
                 <module>examples/keycloak</module>
                 <module>examples/kafka</module>
                 <module>examples/kafka-registry</module>
+                <module>examples/kafka-streams</module>
             </modules>
         </profile>
         <profile>
