@@ -24,7 +24,11 @@ public class PropertyLookup {
             return value;
         }
 
-        value = System.getProperty(propertyKey);
+        return get();
+    }
+
+    public String get() {
+        String value = System.getProperty(propertyKey);
         if (StringUtils.isNotBlank(value)) {
             return value;
         }

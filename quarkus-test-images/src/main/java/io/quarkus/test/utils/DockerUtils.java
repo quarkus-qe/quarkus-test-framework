@@ -30,8 +30,10 @@ public final class DockerUtils {
     public static String createImageAndPush(ServiceContext service, LaunchMode mode, Path artifact) {
         validateContainerRegistry();
 
+        Path target = getTargetFolder(mode, artifact);
+
         String dockerfileContent = FileUtils.loadFile(getDockerfile(mode))
-                .replaceAll(quote("${ARTIFACT_PARENT}"), artifact.getParent().toString());
+                .replaceAll(quote("${ARTIFACT_PARENT}"), target.toString());
 
         Path dockerfilePath = FileUtils.copyContentTo(dockerfileContent, service.getServiceFolder().resolve(DOCKERFILE));
         buildService(service, dockerfilePath);
@@ -71,5 +73,15 @@ public final class DockerUtils {
     private static String getUniqueName(ServiceContext service) {
         String uniqueName = service.getTestContext().getRequiredTestClass().getName() + "." + service.getName();
         return uniqueName.toLowerCase();
+    }
+
+    private static Path getTargetFolder(LaunchMode mode, Path artifact) {
+        Path target = artifact.getParent();
+        if (mode == LaunchMode.JVM) {
+            // remove quarkus-app path
+            target = target.getParent();
+        }
+
+        return target;
     }
 }
