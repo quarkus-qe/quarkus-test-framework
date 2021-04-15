@@ -90,10 +90,11 @@ public class KubernetesContainerManagedResource implements ManagedResource {
         String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
-            content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
+            content = content.replaceAll(quote(customServiceName), model.getContext().getName());
         }
 
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
+                .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
     }
 
