@@ -51,12 +51,58 @@ public class PingPongResourceIT {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
-Morever, the Native version of the above example:
+### Native
+
+The `@QuarkusScenario` annotation is also compatible with Native. This means that if we run our tests using Native build:
+
+```
+mvn clean verify -Dnative
+```
+
+The tests will be executed on Native either in bare metal, OpenShift or Kubernetes.
+
+Note that the framework will use the generated artifacts from the Maven build goal, however if you're updating a build property or using custom sources for your Quarkus application, the framework will build the Native artifact by you. This is done at the Maven failsafe execution, so failsafe needs to have the Native properties to work propertly. For doing so, we basically need to propagate the properties this way:
+
+```xml
+<profile>
+    <id>native</id>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <systemProperties>
+                                <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                <quarkus.package.type>${quarkus.package.type}</quarkus.package.type>
+                                <quarkus.native.container-build>${quarkus.native.container-build}</quarkus.native.container-build>
+                                <quarkus.native.native-image-xmx>${quarkus.native.native-image-xmx}</quarkus.native.native-image-xmx>
+                            </systemProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <properties>
+        <quarkus.package.type>native</quarkus.package.type>
+        <quarkus.native.container-build>true</quarkus.native.container-build>
+        <quarkus.native.native-image-xmx>3g</quarkus.native.native-image-xmx>
+    </properties>
+</profile>
+```
+
+Finally, if one of your tests are incompatible on Native, you can skip them using the `@DisabledOnNative` annotation:
 
 ```java
-@NativeScenario
-public class NativePingPongResourceIT extends PingPongResourceIT {
+@QuarkusScenario
+@DisabledOnNative
+public class OnlyOnJvmIT {
+    @QuarkusApplication(ssl = true)
+    static final RestService app = new RestService();
 
+    // ...
 }
 ```
 
@@ -166,20 +212,6 @@ ts.consul.openshift.service=consul-http-service
 
 Same with Kubernetes `ts.consul.kubernetes.service`.
 
-### Enable/Disable Native tests via system properties
-
-We can selectively disable/enable native tests via system properties and using the `@EnabledIfNativeScenarioPropertyIsTrue` annotation:
-
-```java
-@NativeScenario
-@EnabledIfNativeScenarioPropertyIsTrue
-public class NativePingPongResourceIT extends PingPongResourceIT {
-
-}
-```
-
-This test will be executed only if the system property `ts.native.scenario.enabled` is `true`.
-
 ## Architecture
 
 This framework is designed to follow **extension model** patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but if we add the OpenShift module. we can automatically deploy it in OpenShift/K8s just by adding the `@OpenShiftScenario`.
@@ -192,7 +224,7 @@ The modules within the test framework must follow the next package convention:
 - `io.quarkus.test.bootstrap.inject` - services that are injectable at test method level
 - `io.quarkus.test.configuration` - configuration facilities
 - `io.quarkus.test.logging` - logging facilities and handlers
-- `io.quarkus.test.scenarios` - scenarios that the module implement, eg: `@NativeScenario`, `@OpenShiftScenario`
+- `io.quarkus.test.scenarios` - scenarios that the module implement, eg: `@OpenShiftScenario`
 - `io.quarkus.test.scenarios.annotations` - useful JUnit annotations to disable/enable scenarios
 - `io.quarkus.test.services` - services that the module implement, eg: `@QuarkusApplication`, `@Container`
 - `io.quarkus.test.services.<service-name>` - bindings to configure the `service-name` to be extended or supported
@@ -325,25 +357,6 @@ These tests can be disabled if the above system property is not set using the `@
 @DisabledIfNotContainerRegistry
 public class OpenShiftUsingExtensionPingPongResourceIT {
     // ...
-}
-```
-
-#### Native Support
-
-Regardless the deployment strategy you chose, you can extend your existing tests like in Native tests:
- 
- ```java
-@OpenShiftScenario
-public class OpenShiftNativePingPongResourceIT extends NativePingPongResourceTest {
-}
-```
-
-Or:
-
- ```java
-@OpenShiftScenario
-@NativeScenario
-public class OpenShiftNativePingPongResourceIT extends PingPongResourceTest {
 }
 ```
 

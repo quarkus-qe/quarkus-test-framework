@@ -1,7 +1,7 @@
 package io.quarkus.test.services.quarkus.model;
 
 public enum LaunchMode {
-    FAST_JAR("fast-jar"),
+    LEGACY_JAR("legacy-jar"),
     NATIVE("native"),
     JVM("jvm");
 

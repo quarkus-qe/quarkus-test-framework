@@ -31,7 +31,6 @@
 
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
-        <exclude.native.tests>**/Native*IT.java</exclude.native.tests>
     </properties>
 
     <dependencyManagement>
@@ -184,7 +183,6 @@
                                 <include>**/*IT.java</include>
                             </includes>
                             <excludes>
-                                <exclude>${exclude.native.tests}</exclude>
                                 <exclude>${exclude.openshift.tests}</exclude>
                                 <exclude>${exclude.kubernetes.tests}</exclude>
                             </excludes>
@@ -246,7 +244,9 @@
                                 <configuration>
                                     <systemProperties>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                                        <quarkus.native.container-build>true</quarkus.native.container-build>
+                                        <quarkus.package.type>${quarkus.package.type}</quarkus.package.type>
+                                        <quarkus.native.container-build>${quarkus.native.container-build}</quarkus.native.container-build>
+                                        <quarkus.native.native-image-xmx>${quarkus.native.native-image-xmx}</quarkus.native.native-image-xmx>
                                     </systemProperties>
                                 </configuration>
                             </execution>
@@ -257,7 +257,7 @@
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
-                <exclude.native.tests>no</exclude.native.tests>
+                <quarkus.native.native-image-xmx>3g</quarkus.native.native-image-xmx>
             </properties>
         </profile>
         <profile>

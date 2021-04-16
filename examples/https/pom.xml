@@ -26,8 +26,18 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    
+
     <build>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>false</filtering>
+                <includes>
+                    <include>**/*.keystore</include>
+                    <include>**/*.truststore</include>
+                </includes>
+            </resource>
+        </resources>
         <plugins>
             <plugin>
                 <groupId>io.quarkus</groupId>
@@ -43,4 +53,34 @@
             </plugin>
         </plugins>
     </build>
+    
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <configuration>
+                                    <systemProperties>
+                                        <quarkus.ssl.native>${quarkus.ssl.native}</quarkus.ssl.native>
+                                    </systemProperties>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+            <properties>
+                <quarkus.ssl.native>true</quarkus.ssl.native>
+            </properties>
+        </profile>
+    </profiles>
 </project>

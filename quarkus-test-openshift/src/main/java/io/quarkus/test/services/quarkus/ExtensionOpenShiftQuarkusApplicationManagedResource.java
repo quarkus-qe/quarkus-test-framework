@@ -16,7 +16,6 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
-import io.quarkus.test.scenarios.NativeScenario;
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.utils.Command;
@@ -40,21 +39,14 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String QUARKUS_KUBERNETES_CLIENT_NAMESPACE = "quarkus.kubernetes-client.namespace";
     private static final String QUARKUS_KUBERNETES_CLIENT_TRUST_CERTS = "quarkus.kubernetes-client.trust-certs";
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
-    private static final String QUARKUS_NATIVE_CONTAINER_RUNTIME = "quarkus.native.container-runtime";
-    private static final String QUARKUS_NATIVE_MEMORY_LIMIT = "quarkus.native.native-image-xmx";
-    private static final String QUARKUS_PACKAGE_TYPE = "quarkus.package.type";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
     private static final String QUARKUS_OPENSHIFT_BUILD_STRATEGY = "quarkus.openshift.build-strategy";
-    private static final List<String> QUARKUS_PROPERTIES_PROPAGATE_EXCLUSION = Arrays.asList("quarkus.profile",
-            QUARKUS_NATIVE_CONTAINER_RUNTIME, QUARKUS_NATIVE_MEMORY_LIMIT);
 
     private static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
 
     private static final String DOCKERFILE_SOURCE_FOLDER = "src/main/docker";
-    private static final String NATIVE = "native";
     private static final String DOCKER = "docker";
-    private static final String DEFAULT_NATIVE_MEMORY_LIMIT = "3g";
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         super(model);
@@ -99,7 +91,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         withBuildStrategy(args);
         withQuarkusProperties(args);
         withMavenRepositoryLocalIfSet(args);
-        withNativeBuildArgumentsIfNative(args);
         withEnvVars(args, model.getContext().getOwner().getProperties());
 
         try {
@@ -147,16 +138,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
     }
 
-    private void withNativeBuildArgumentsIfNative(List<String> args) {
-        if (isNativeTest()) {
-            args.add(withProperty(QUARKUS_PACKAGE_TYPE, NATIVE));
-            args.add(withProperty(QUARKUS_NATIVE_CONTAINER_RUNTIME,
-                    System.getProperty(QUARKUS_NATIVE_CONTAINER_RUNTIME, DOCKER)));
-            args.add(withProperty(QUARKUS_NATIVE_MEMORY_LIMIT,
-                    System.getProperty(QUARKUS_NATIVE_MEMORY_LIMIT, DEFAULT_NATIVE_MEMORY_LIMIT)));
-        }
-    }
-
     private void withMavenRepositoryLocalIfSet(List<String> args) {
         String mvnRepositoryPath = System.getProperty(MVN_REPOSITORY_LOCAL);
         if (mvnRepositoryPath != null) {
@@ -166,8 +147,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private void withQuarkusProperties(List<String> args) {
         System.getProperties().entrySet().stream()
-                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()).and(propertyIsNotExcluded()))
-                .filter(propertyIsNotPackageTypeNative())
+                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()))
                 .forEach(property -> {
                     String key = (String) property.getKey();
                     String value = (String) property.getValue();
@@ -202,24 +182,12 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         return property -> StringUtils.isNotEmpty((String) property.getValue());
     }
 
-    private Predicate<Entry<Object, Object>> propertyIsNotExcluded() {
-        return property -> !QUARKUS_PROPERTIES_PROPAGATE_EXCLUSION.contains(property.getKey());
-    }
-
-    private Predicate<Entry<Object, Object>> propertyIsNotPackageTypeNative() {
-        return property -> !(QUARKUS_PACKAGE_TYPE.equals(property.getKey()) && NATIVE.equals(property.getValue()));
-    }
-
     private Predicate<Entry<Object, Object>> isQuarkusProperty() {
         return property -> StringUtils.startsWith((String) property.getKey(), QUARKUS_PROPERTY_PREFIX);
     }
 
     private void cloneProjectToServiceAppFolder() {
         FileUtils.copyCurrentDirectoryTo(model.getContext().getServiceFolder());
-    }
-
-    private boolean isNativeTest() {
-        return model.getContext().getTestContext().getRequiredTestClass().isAnnotationPresent(NativeScenario.class);
     }
 
 }

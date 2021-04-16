@@ -12,7 +12,6 @@ import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.codec.binary.StringUtils;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -25,9 +24,9 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
-import io.quarkus.test.scenarios.NativeScenario;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
@@ -39,9 +38,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app/";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
-
-    private static final String QUARKUS_PACKAGE_TYPE_PROPERTY = "quarkus.package.type";
-    private static final String NATIVE = "native";
 
     private Class<?>[] appClasses;
 
@@ -104,6 +100,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     }
 
     public void build() {
+        detectLaunchMode();
         if (managedResource.needsBuildArtifact()) {
             tryToReuseOrBuildArtifact();
         }
@@ -137,7 +134,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private void tryToReuseOrBuildArtifact() {
         Optional<String> artifactLocation = Optional.empty();
         if (!containsBuildProperties() && !selectedAppClasses) {
-            if (isNativeTest()) {
+            if (QuarkusProperties.isNativePackageType(context)) {
                 artifactLocation = FileUtils.findTargetFile(NATIVE_RUNNER);
             } else {
                 artifactLocation = FileUtils.findTargetFile(JVM_RUNNER)
@@ -150,8 +147,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         } else {
             this.artifact = Path.of(artifactLocation.get());
         }
-
-        detectLaunchMode();
     }
 
     private Path buildArtifact() {
@@ -189,28 +184,18 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
 
         Properties buildProperties = new Properties();
         buildProperties.putAll(propertiesSnapshot);
-        if (isNativeTest()) {
-            buildProperties.put(QUARKUS_PACKAGE_TYPE_PROPERTY, NATIVE);
-        } else if (StringUtils.equals(NATIVE, buildProperties.getProperty(QUARKUS_PACKAGE_TYPE_PROPERTY))) {
-            // When using native profile, but running a JVM scenario.
-            buildProperties.remove(QUARKUS_PACKAGE_TYPE_PROPERTY);
-        }
 
         return buildProperties;
     }
 
     private void detectLaunchMode() {
-        if (isNativeTest()) {
+        if (QuarkusProperties.isNativePackageType(context)) {
             launchMode = LaunchMode.NATIVE;
-        } else if (artifact.endsWith(JVM_RUNNER)) {
-            launchMode = LaunchMode.FAST_JAR;
+        } else if (QuarkusProperties.isLegacyJarPackageType(context)) {
+            launchMode = LaunchMode.LEGACY_JAR;
         } else {
             launchMode = LaunchMode.JVM;
         }
-    }
-
-    private boolean isNativeTest() {
-        return context.getTestContext().getRequiredTestClass().isAnnotationPresent(NativeScenario.class);
     }
 
     private static Set<String> listOfBuildTimeProperties() {

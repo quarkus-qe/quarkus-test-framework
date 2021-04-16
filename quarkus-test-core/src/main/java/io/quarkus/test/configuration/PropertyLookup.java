@@ -18,12 +18,30 @@ public class PropertyLookup {
         this.defaultValue = defaultValue;
     }
 
+    public String getPropertyKey() {
+        return propertyKey;
+    }
+
     public String get(ServiceContext service) {
+        // From Store
         String value = service.get(propertyKey);
         if (StringUtils.isNotBlank(value)) {
             return value;
         }
 
+        // Or from test.properties
+        value = service.getOwner().getConfiguration().get(propertyKey);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        // Or from service properties
+        value = service.getOwner().getProperties().get(value);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        // Or from system properties
         return get();
     }
 

@@ -12,8 +12,8 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class GreetingResourceUsingPropertiesFileIT {
 
-    private static final String JOSE_NAME = "jose";
-    private static final String MANUEL_NAME = "manuel";
+    static final String JOSE_NAME = "jose";
+    static final String MANUEL_NAME = "manuel";
 
     @QuarkusApplication
     static final RestService joseApp = new RestService().withProperty(GreetingResource.PROPERTY, JOSE_NAME);
