@@ -21,6 +21,7 @@ import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.DockerUtils;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
 
@@ -46,6 +47,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
 
     private static final String DOCKERFILE_SOURCE_FOLDER = "src/main/docker";
+    private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
     private static final String DOCKER = "docker";
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
@@ -55,6 +57,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     @Override
     protected void doInit() {
         cloneProjectToServiceAppFolder();
+        copyBuildPropertiesIntoAppFolder();
         deployProjectUsingMavenCommand();
     }
 
@@ -75,6 +78,21 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         if (model.isSelectedAppClasses()) {
             fail("Custom source classes as @QuarkusApplication(classes = ...) is not supported by `UsingOpenShiftExtension`");
         }
+    }
+
+    private void copyBuildPropertiesIntoAppFolder() {
+        Map<String, String> buildProperties = model.getBuildProperties();
+        if (buildProperties.isEmpty()) {
+            return;
+        }
+
+        Path applicationPropertiesPath = model.getContext().getServiceFolder().resolve(APPLICATION_PROPERTIES_PATH);
+        if (Files.exists(applicationPropertiesPath)) {
+            buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
+        }
+
+        PropertiesUtils.fromMap(buildProperties, applicationPropertiesPath);
+        model.createSnapshotOfBuildProperties();
     }
 
     private void deployProjectUsingMavenCommand() {

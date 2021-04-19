@@ -1,5 +1,6 @@
 # List of properties that will trigger a full build of a Quarkus application
-# regular expression
+# regular expression or start with
 quarkus.[a-bA-Z]+.enabled
 quarkus.http.non-application-root-path
 quarkus.http.redirect-to-non-application-root-path
+quarkus.openshift.app-config-map

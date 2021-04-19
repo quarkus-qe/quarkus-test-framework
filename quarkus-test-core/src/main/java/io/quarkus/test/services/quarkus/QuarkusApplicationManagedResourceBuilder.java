@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
@@ -38,12 +39,11 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app/";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
-
-    private Class<?>[] appClasses;
-
+    private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
     private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(QuarkusApplicationManagedResourceBinding.class);
 
+    private Class<?>[] appClasses;
     private ServiceContext context;
     private LaunchMode launchMode = LaunchMode.JVM;
     private Path artifact;
@@ -113,8 +113,26 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             return false;
         }
 
-        Set<String> buildTimeProperties = listOfBuildTimeProperties();
-        return properties.stream().anyMatch(prop -> buildTimeProperties.stream().anyMatch(prop::matches));
+        return properties.stream().anyMatch(this::isBuildProperty);
+    }
+
+    public Properties createSnapshotOfBuildProperties() {
+        propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
+
+        Properties buildProperties = new Properties();
+        buildProperties.putAll(propertiesSnapshot);
+
+        return buildProperties;
+    }
+
+    public Map<String, String> getBuildProperties() {
+        return getContext().getOwner().getProperties().entrySet().stream()
+                .filter(e -> isBuildProperty(e.getKey()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private boolean isBuildProperty(String name) {
+        return BUILD_PROPERTIES.stream().anyMatch(build -> name.matches(build) || name.startsWith(build));
     }
 
     private QuarkusManagedResource findManagedResource() {
@@ -155,7 +173,7 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(appClasses);
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());
 
-            Properties buildProperties = prepareBuildProperties();
+            Properties buildProperties = createSnapshotOfBuildProperties();
 
             Path testLocation = PathTestHelper.getTestClassesLocation(context.getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
@@ -179,15 +197,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return null;
     }
 
-    private Properties prepareBuildProperties() {
-        propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
-
-        Properties buildProperties = new Properties();
-        buildProperties.putAll(propertiesSnapshot);
-
-        return buildProperties;
-    }
-
     private void detectLaunchMode() {
         if (QuarkusProperties.isNativePackageType(context)) {
             launchMode = LaunchMode.NATIVE;
@@ -196,10 +205,6 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         } else {
             launchMode = LaunchMode.JVM;
         }
-    }
-
-    private static Set<String> listOfBuildTimeProperties() {
-        return FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(Collectors.toSet());
     }
 
 }
