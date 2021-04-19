@@ -212,6 +212,14 @@ ts.consul.openshift.service=consul-http-service
 
 Same with Kubernetes `ts.consul.kubernetes.service`.
 
+What about if we want to use the internal service as route (not the exposed route), we can set this behaviour by enabling the property `ts.<MY_SERVICE>.openshift.use-internal-service-as-url`:
+
+```
+ts.consul.openshift.use-internal-service-as-url=true
+```
+
+Same with Kubernetes `ts.consul.openshift.use-internal-service-as-url`. 
+
 ## Architecture
 
 This framework is designed to follow **extension model** patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but if we add the OpenShift module. we can automatically deploy it in OpenShift/K8s just by adding the `@OpenShiftScenario`.

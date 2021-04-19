@@ -17,6 +17,7 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
     private static final String DEPLOYMENT_SERVICE_PROPERTY = "kubernetes.service";
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
+    private static final String USE_INTERNAL_SERVICE_AS_URL_PROPERTY = "kubernetes.use-internal-service-as-url";
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/kubernetes-deployment-template.yml";
 
     private static final String DEPLOYMENT = "kubernetes.yml";
@@ -61,11 +62,19 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
     @Override
     public String getHost(Protocol protocol) {
+        if (useInternalServiceAsUrl()) {
+            return protocol.getValue() + "://" + model.getContext().getName();
+        }
+
         return client.url(model.getContext().getOwner());
     }
 
     @Override
     public int getPort(Protocol protocol) {
+        if (useInternalServiceAsUrl()) {
+            return model.getPort();
+        }
+
         return client.port(model.getContext().getOwner());
     }
 
@@ -96,6 +105,11 @@ public class KubernetesContainerManagedResource implements ManagedResource {
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
+    }
+
+    private boolean useInternalServiceAsUrl() {
+        return Boolean.TRUE.toString()
+                .equals(model.getContext().getOwner().getConfiguration().get(USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
     }
 
 }
