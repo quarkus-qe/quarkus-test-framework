@@ -12,14 +12,14 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class GreetingResourceUsingRuntimePropertiesIT {
 
-    private static final String JOSE_NAME = "jose";
-    private static final String MANUEL_NAME = "manuel";
+    static final String JOSE_NAME = "jose";
+    static final String MANUEL_NAME = "manuel";
 
     @QuarkusApplication
-    static final RestService joseApp = new RestService().withProperties("jose.properties");
+    static final RestService joseApp = new RestService().withProperty(GreetingResource.PROPERTY, JOSE_NAME);
 
     @QuarkusApplication
-    static final RestService manuelApp = new RestService().withProperties("manuel.properties");
+    static final RestService manuelApp = new RestService().withProperty(GreetingResource.PROPERTY, MANUEL_NAME);
 
     @Test
     public void shouldSayJose() {
