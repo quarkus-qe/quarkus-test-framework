@@ -5,3 +5,5 @@ quarkus.http.non-application-root-path
 quarkus.http.redirect-to-non-application-root-path
 quarkus.openshift.
 quarkus.kubernetes-config.
+quarkus.ssl.
+quarkus.http.ssl.certificate.
