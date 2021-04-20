@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
@@ -164,9 +165,19 @@ public final class OpenShiftClient {
     }
 
     /**
-     * Get all the logs for all the pods.
+     * readyReplicas retrieve the number of ready replicas to the given service.
      *
      * @param service
+     * @return ready replicas amount
+     */
+    public int readyReplicas(Service service) {
+        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).get();
+        return Optional.ofNullable(dc.getStatus().getReadyReplicas()).orElse(0);
+    }
+
+    /**
+     * Get all the logs for all the pods.
+     *
      * @return
      */
     public Map<String, String> logs() {
