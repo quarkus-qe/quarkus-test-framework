@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.services.containers.AmqContainerManagedResourceBuilder;
+import io.quarkus.test.services.containers.model.AmqProtocol;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -16,7 +17,7 @@ public @interface AmqContainer {
 
     String expectedLog() default "Artemis Console available";
 
-    int port() default 61616;
+    AmqProtocol protocol() default AmqProtocol.TCP;
 
     Class<? extends ManagedResourceBuilder> builder() default AmqContainerManagedResourceBuilder.class;
 }

@@ -64,7 +64,7 @@ items:
                 - containerPort: 61613
                   name: stomp
                   protocol: TCP
-                - containerPort: ${INTERNAL_PORT}
+                - containerPort: 61616
                   name: artemis
                   protocol: TCP
               terminationGracePeriodSeconds: 60
@@ -132,15 +132,15 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: ${SERVICE_NAME}
+      name: ${SERVICE_NAME}-tcp
       annotations:
         service.alpha.openshift.io/dependencies: '[{"name": "${SERVICE_NAME}-amqp",
         "kind": "Service"},{"name": "${SERVICE_NAME}-mqtt", "kind": "Service"},{"name":
         "${SERVICE_NAME}-stomp", "kind": "Service"}]'
     spec:
       ports:
-        - port: ${INTERNAL_PORT}
-          targetPort: ${INTERNAL_PORT}
+        - port: 61616
+          targetPort: 61616
       selector:
         name: ${SERVICE_NAME}
 

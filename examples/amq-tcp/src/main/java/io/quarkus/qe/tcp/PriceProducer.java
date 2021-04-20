@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.tcp;
 
 import java.util.Random;
 import java.util.concurrent.Executors;

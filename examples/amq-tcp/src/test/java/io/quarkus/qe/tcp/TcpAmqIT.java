@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.tcp;
 
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -14,18 +14,19 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.AmqContainer;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.test.services.containers.model.AmqProtocol;
 
 @QuarkusScenario
-public class AmqIT {
+public class TcpAmqIT {
 
-    @AmqContainer
+    @AmqContainer(protocol = AmqProtocol.TCP)
     static final AmqService amq = new AmqService();
 
     @QuarkusApplication
     static final RestService app = new RestService()
             .withProperty("quarkus.artemis.username", amq.getAmqUser())
             .withProperty("quarkus.artemis.password", amq.getAmqPassword())
-            .withProperty("quarkus.artemis.url", amq::getUrl);
+            .withProperty("quarkus.artemis.url", amq::getTcpUrl);
 
     /**
      * There is a PriceProducer that pushes a new integer "price" to a JMS queue

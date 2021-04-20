@@ -11,8 +11,8 @@
         <relativePath>../../</relativePath>
     </parent>
 
-    <artifactId>examples-amq</artifactId>
-    <name>Quarkus - Test Framework - Examples - AMQ</name>
+    <artifactId>examples-amq-tcp</artifactId>
+    <name>Quarkus - Test Framework - Examples - AMQ TCP</name>
 
     <dependencies>
         <dependency>

@@ -41,7 +41,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         }
 
         applyDeployment();
-        client.expose(model.getContext().getOwner(), model.getPort());
+        exposeService();
 
         client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
@@ -63,7 +63,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     @Override
     public String getHost(Protocol protocol) {
         if (useInternalServiceAsUrl()) {
-            return protocol.getValue() + "://" + model.getContext().getName();
+            return protocol.getValue() + "://" + getInternalServiceName();
         }
 
         return client.url(model.getContext().getOwner());
@@ -94,12 +94,22 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         start();
     }
 
+    protected void exposeService() {
+        if (!useInternalServiceAsUrl()) {
+            client.expose(model.getContext().getOwner(), model.getPort());
+        }
+    }
+
     protected String getTemplateByDefault() {
         return DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
     }
 
     protected boolean useInternalServiceByDefault() {
         return false;
+    }
+
+    protected String getInternalServiceName() {
+        return model.getContext().getName();
     }
 
     private void applyDeployment() {

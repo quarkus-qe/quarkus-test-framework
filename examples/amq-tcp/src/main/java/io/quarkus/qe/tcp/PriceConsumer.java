@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.tcp;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;

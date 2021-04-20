@@ -6,6 +6,7 @@ import java.util.ServiceLoader;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.AmqContainer;
+import io.quarkus.test.services.containers.model.AmqProtocol;
 
 public class AmqContainerManagedResourceBuilder extends ContainerManagedResourceBuilder {
 
@@ -15,7 +16,7 @@ public class AmqContainerManagedResourceBuilder extends ContainerManagedResource
     private ServiceContext context;
     private String image;
     private String expectedLog;
-    private Integer port;
+    private AmqProtocol protocol;
 
     @Override
     protected String getImage() {
@@ -29,12 +30,16 @@ public class AmqContainerManagedResourceBuilder extends ContainerManagedResource
 
     @Override
     protected Integer getPort() {
-        return port;
+        return protocol.getPort();
     }
 
     @Override
-    public ServiceContext getContext() {
+    protected ServiceContext getContext() {
         return context;
+    }
+
+    protected AmqProtocol getProtocol() {
+        return protocol;
     }
 
     @Override
@@ -42,7 +47,7 @@ public class AmqContainerManagedResourceBuilder extends ContainerManagedResource
         AmqContainer metadata = (AmqContainer) annotation;
         this.image = metadata.image();
         this.expectedLog = metadata.expectedLog();
-        this.port = metadata.port();
+        this.protocol = metadata.protocol();
     }
 
     @Override

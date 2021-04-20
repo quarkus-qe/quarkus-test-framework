@@ -4,12 +4,17 @@ public class AmqOpenShiftContainerManagedResource extends OpenShiftContainerMana
 
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/amq-openshift-deployment-template.yml";
 
-    private final ContainerManagedResourceBuilder model;
+    private final AmqContainerManagedResourceBuilder model;
 
-    protected AmqOpenShiftContainerManagedResource(ContainerManagedResourceBuilder model) {
+    protected AmqOpenShiftContainerManagedResource(AmqContainerManagedResourceBuilder model) {
         super(model);
 
         this.model = model;
+    }
+
+    @Override
+    protected String getInternalServiceName() {
+        return super.getInternalServiceName() + "-" + model.getProtocol().name().toLowerCase();
     }
 
     @Override
