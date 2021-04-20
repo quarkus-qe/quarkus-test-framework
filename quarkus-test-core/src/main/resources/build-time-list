@@ -3,4 +3,5 @@
 quarkus.[a-bA-Z]+.enabled
 quarkus.http.non-application-root-path
 quarkus.http.redirect-to-non-application-root-path
-quarkus.openshift.app-config-map
+quarkus.openshift.
+quarkus.kubernetes-config.
