@@ -15,6 +15,8 @@ public @interface KafkaContainer {
 
     KafkaVendor vendor() default KafkaVendor.STRIMZI;
 
+    String image() default "";
+
     String version() default "";
 
     boolean withRegistry() default false;

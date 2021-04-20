@@ -140,9 +140,13 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
         }
 
-        return content.replaceAll(quote("${IMAGE}"), model.getVendor().getImage())
+        return content.replaceAll(quote("${IMAGE}"), getKafkaImage())
                 .replaceAll(quote("${VERSION}"), getKafkaVersion())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName());
+    }
+
+    protected String getKafkaImage() {
+        return StringUtils.defaultIfBlank(model.getImage(), model.getVendor().getImage());
     }
 
     protected String getKafkaVersion() {

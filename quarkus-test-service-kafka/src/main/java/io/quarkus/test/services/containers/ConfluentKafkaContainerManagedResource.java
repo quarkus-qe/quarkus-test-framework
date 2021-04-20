@@ -1,5 +1,6 @@
 package io.quarkus.test.services.containers;
 
+import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
@@ -25,7 +26,7 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
 
     @Override
     protected GenericContainer<?> initKafkaContainer() {
-        return new KafkaContainer(DockerImageName.parse(model.getVendor().getImage() + ":" + getKafkaVersion()));
+        return new KafkaContainer(DockerImageName.parse(getKafkaImage() + ":" + getKafkaVersion()));
     }
 
     @Override
@@ -37,6 +38,10 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
         schemaRegistry.withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS",
                 "PLAINTEXT://" + kafka.getNetworkAliases().get(0) + ":9092");
         return schemaRegistry;
+    }
+
+    protected String getKafkaImage() {
+        return StringUtils.defaultIfBlank(model.getImage(), model.getVendor().getImage());
     }
 
 }

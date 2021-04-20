@@ -16,11 +16,16 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
 
     private ServiceContext context;
     private KafkaVendor vendor;
+    private String image;
     private String version;
     private boolean withRegistry;
 
     protected KafkaVendor getVendor() {
         return vendor;
+    }
+
+    protected String getImage() {
+        return image;
     }
 
     protected String getVersion() {
@@ -39,6 +44,7 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
     public void init(Annotation annotation) {
         KafkaContainer metadata = (KafkaContainer) annotation;
         this.vendor = metadata.vendor();
+        this.image = metadata.image();
         this.version = metadata.version();
         this.withRegistry = metadata.withRegistry();
     }
