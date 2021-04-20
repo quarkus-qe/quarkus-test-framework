@@ -191,6 +191,27 @@ We can also use a Confluent kafka container by doing:
 
 Note that this implemenation supports also registry, but not Kubernetes and OpenShift scenarios.
 
+#### AMQ Containers
+
+Similar to Kafka, we have a default implementation of an AMQ container (Artemis vendor):
+
+```java
+@QuarkusScenario
+public class AmqIT {
+
+    @AmqContainer
+    static final AmqService amq = new AmqService();
+
+    @QuarkusApplication
+    static final RestService app = new RestService()
+            .withProperty("quarkus.artemis.username", amq.getAmqUser())
+            .withProperty("quarkus.artemis.password", amq.getAmqPassword())
+            .withProperty("quarkus.artemis.url", amq::getUrl);
+```
+
+We can specify a different image by setting `@AmqContainer(image = XXX)`.
+This container is compatible with OpenShift, but not with Kubernetes deployments.
+
 #### Use custom templates for Containers
 
 Sometimes deploying a third party into OpenShift or Kubernetes involves some complex configuration that is not required when deploying it on bare metal. For these scenarios, we allow to provide a custom template via `test.properties`:

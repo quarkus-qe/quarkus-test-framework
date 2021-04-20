@@ -94,9 +94,17 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         start();
     }
 
+    protected String getTemplateByDefault() {
+        return DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
+    }
+
+    protected boolean useInternalServiceByDefault() {
+        return false;
+    }
+
     private void applyDeployment() {
         String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+                getTemplateByDefault());
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
@@ -116,7 +124,8 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
-                .equals(model.getContext().getOwner().getConfiguration().get(USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
+                .equals(model.getContext().getOwner().getConfiguration()
+                        .getOrDefault(USE_INTERNAL_SERVICE_AS_URL_PROPERTY, "" + useInternalServiceByDefault()));
     }
 
 }

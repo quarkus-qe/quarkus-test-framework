@@ -89,6 +89,11 @@
                 <artifactId>quarkus-test-service-kafka</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-service-amq</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -207,6 +212,7 @@
                 <module>quarkus-test-service-consul</module>
                 <module>quarkus-test-service-keycloak</module>
                 <module>quarkus-test-service-kafka</module>
+                <module>quarkus-test-service-amq</module>
             </modules>
         </profile>
         <profile>
@@ -225,6 +231,7 @@
                 <module>examples/kafka</module>
                 <module>examples/kafka-registry</module>
                 <module>examples/kafka-streams</module>
+                <module>examples/amq</module>
             </modules>
         </profile>
         <profile>

@@ -1,0 +1,153 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: v1
+    kind: Secret
+    metadata:
+      name: ${SERVICE_NAME}
+    type: Opaque
+    stringData:
+      queues: prices
+
+  - apiVersion: image.openshift.io/v1
+    kind: ImageStream
+    metadata:
+      name: ${SERVICE_NAME}
+    spec:
+      lookupPolicy:
+        local: false
+      tags:
+        - name: latest
+          from:
+            kind: DockerImage
+            name: ${IMAGE}
+
+  - apiVersion: apps.openshift.io/v1
+    kind: DeploymentConfig
+    metadata:
+      name: ${SERVICE_NAME}
+    spec:
+      replicas: 1
+      selector:
+        name: ${SERVICE_NAME}
+      strategy:
+        type: Rolling
+        rollingParams:
+          maxSurge: 0
+      template:
+        metadata:
+          labels:
+            name: ${SERVICE_NAME}
+        spec:
+          containers:
+            - name: ${SERVICE_NAME}
+              image: ''
+              imagePullPolicy: Always
+              env:
+                - name: AMQ_QUEUES
+                  valueFrom:
+                    secretKeyRef:
+                      name: ${SERVICE_NAME}
+                      key: queues
+                - name: AMQ_DATA_DIR
+                  value: /opt/amq/data
+              ports:
+                - containerPort: 8161
+                  name: console-jolokia
+                  protocol: TCP
+                - containerPort: 5672
+                  name: amqp
+                  protocol: TCP
+                - containerPort: 1883
+                  name: mqtt
+                  protocol: TCP
+                - containerPort: 61613
+                  name: stomp
+                  protocol: TCP
+                - containerPort: ${INTERNAL_PORT}
+                  name: artemis
+                  protocol: TCP
+              terminationGracePeriodSeconds: 60
+              volumeMounts:
+                - name: ${SERVICE_NAME}-data
+                  mountPath: /opt/amq/data
+          volumes:
+            - name: ${SERVICE_NAME}-data
+              emptyDir: {}
+      triggers:
+        - type: ConfigChange
+        - type: ImageChange
+          imageChangeParams:
+            automatic: true
+            containerNames:
+              - ${SERVICE_NAME}
+            from:
+              kind: ImageStreamTag
+              name: ${SERVICE_NAME}:latest
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-jolokia
+    spec:
+      ports:
+        - port: 8161
+          targetPort: 8161
+      selector:
+        name: ${SERVICE_NAME}
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-amqp
+    spec:
+      ports:
+        - port: 5672
+          targetPort: 5672
+      selector:
+        name: ${SERVICE_NAME}
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-mqtt
+    spec:
+      ports:
+        - port: 1883
+          targetPort: 1883
+      selector:
+        name: ${SERVICE_NAME}
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-stomp
+    spec:
+      ports:
+        - port: 61613
+          targetPort: 61613
+      selector:
+        name: ${SERVICE_NAME}
+
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}
+      annotations:
+        service.alpha.openshift.io/dependencies: '[{"name": "${SERVICE_NAME}-amqp",
+        "kind": "Service"},{"name": "${SERVICE_NAME}-mqtt", "kind": "Service"},{"name":
+        "${SERVICE_NAME}-stomp", "kind": "Service"}]'
+    spec:
+      ports:
+        - port: ${INTERNAL_PORT}
+          targetPort: ${INTERNAL_PORT}
+      selector:
+        name: ${SERVICE_NAME}
+
+  - apiVersion: route.openshift.io/v1
+    kind: Route
+    metadata:
+      name: ${SERVICE_NAME}-console
+    spec:
+      to:
+        name: ${SERVICE_NAME}-jolokia
