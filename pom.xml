@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <project
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-    xmlns="http://maven.apache.org/POM/4.0.0"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    xmlns="http://maven.apache.org/POM/4.0.0">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.quarkus.qe</groupId>
@@ -26,8 +26,8 @@
 
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>1.13.1.Final</quarkus.platform.version>
-        <quarkus-plugin.version>1.13.1.Final</quarkus-plugin.version>
+        <quarkus.platform.version>1.13.2.Final</quarkus.platform.version>
+        <quarkus-plugin.version>1.13.2.Final</quarkus-plugin.version>
 
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
