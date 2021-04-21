@@ -56,8 +56,8 @@ public abstract class LoggingHandler {
             try {
                 handle();
                 Thread.sleep(TIMEOUT_IN_MILLIS);
-            } catch (Exception e) {
-                // ignored
+            } catch (Exception ignored) {
+
             }
         }
     }

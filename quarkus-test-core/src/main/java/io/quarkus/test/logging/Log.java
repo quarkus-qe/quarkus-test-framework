@@ -66,7 +66,12 @@ public final class Log {
 
     private static void log(Service service, Level level, String msg, Object... args) {
         String textColor = findColorForText(level, service);
-        LOG.log(level, textColor + inBrackets(service) + String.format(msg, args) + COLOR_RESET);
+        String logMessage = msg;
+        if (args != null && args.length > 0) {
+            logMessage = String.format(msg, args);
+        }
+
+        LOG.log(level, textColor + inBrackets(service) + logMessage + COLOR_RESET);
     }
 
     private static synchronized String findColorForText(Level level, Service service) {
