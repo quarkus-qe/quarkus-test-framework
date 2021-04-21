@@ -106,6 +106,18 @@ public class OnlyOnJvmIT {
 }
 ```
 
+### Disable Tests on a Concrete Quarkus version
+
+```java
+@QuarkusScenario
+@DisabledOnQuarkus(version = "1\\.13\\..*", reason = "https://github.com/quarkusio/quarkus/issues/XXX")
+public class AuthzSecurityHttpsIT {
+    
+}
+```
+
+This test will not run if the quarkus version is `1.13.X`.
+
 ### Containers 
 
 The framework also supports to deployment of third party components provided by docker. First, we need an additional module:
