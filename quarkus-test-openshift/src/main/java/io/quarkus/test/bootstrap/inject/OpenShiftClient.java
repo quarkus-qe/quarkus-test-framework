@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
@@ -29,6 +30,8 @@ import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.client.dsl.ExecListener;
+import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -41,12 +44,13 @@ import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import okhttp3.Response;
 
 public final class OpenShiftClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
 
-    private static final int AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES = 5;
+    private static final int TIMEOUT_MINUTES = 5;
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int PROJECT_NAME_SIZE = 10;
@@ -65,6 +69,10 @@ public final class OpenShiftClient {
 
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
+    }
+
+    public static OpenShiftClient create() {
+        return new OpenShiftClient();
     }
 
     /**
@@ -220,8 +228,8 @@ public final class OpenShiftClient {
             fail("Route for service " + service.getName() + " not found");
         }
 
-        final String protocol = route.getSpec().getTls() == null ? "http" : "https";
-        final String path = route.getSpec().getPath() == null ? "" : route.getSpec().getPath();
+        String protocol = route.getSpec().getTls() == null ? "http" : "https";
+        String path = route.getSpec().getPath() == null ? "" : route.getSpec().getPath();
         return String.format("%s://%s%s", protocol, route.getSpec().getHost(), path);
     }
 
@@ -239,14 +247,43 @@ public final class OpenShiftClient {
                 if (obj instanceof ImageStream
                         && !StringUtils.equals(obj.getMetadata().getName(), service.getName())) {
                     ImageStream is = (ImageStream) obj;
-                    Awaitility.await().atMost(AWAIT_FOR_IMAGE_STREAMS_TIMEOUT_MINUTES, TimeUnit.MINUTES)
+                    Awaitility.await().atMost(TIMEOUT_MINUTES, TimeUnit.MINUTES)
                             .until(() -> hasImageStreamTags(is));
                 }
             }
         } catch (IOException e) {
             fail("Fail to load the file " + file + ". Caused by " + e.getMessage());
         }
+    }
 
+    public String execOnPod(String namespace, String podName, String containerId, String... input)
+            throws InterruptedException {
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        CountDownLatch execLatch = new CountDownLatch(1);
+
+        try (ExecWatch execWatch = client.pods().inNamespace(namespace).withName(podName).inContainer(containerId)
+                .writingOutput(out)
+                .usingListener(new ExecListener() {
+                    @Override
+                    public void onOpen(Response response) {
+                        // do nothing
+                    }
+
+                    @Override
+                    public void onFailure(Throwable throwable, Response response) {
+                        execLatch.countDown();
+                    }
+
+                    @Override
+                    public void onClose(int i, String s) {
+                        execLatch.countDown();
+                    }
+                })
+                .exec(input)) {
+            execLatch.await(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            return out.toString();
+        }
     }
 
     /**
@@ -403,9 +440,5 @@ public final class OpenShiftClient {
         return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
-    }
-
-    public static OpenShiftClient create() {
-        return new OpenShiftClient();
     }
 }
