@@ -213,6 +213,7 @@
                 <module>quarkus-test-service-keycloak</module>
                 <module>quarkus-test-service-kafka</module>
                 <module>quarkus-test-service-amq</module>
+                <module>quarkus-test-service-jaeger</module>
             </modules>
         </profile>
         <profile>

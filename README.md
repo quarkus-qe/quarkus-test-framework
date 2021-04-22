@@ -224,6 +224,31 @@ public class AmqIT {
 We can specify a different image by setting `@AmqContainer(image = XXX)`.
 This container is compatible with OpenShift, but not with Kubernetes deployments.
 
+#### Jaeger Containers
+
+Required dependency
+
+```xml
+<dependency>
+    <groupId>io.quarkus.qe</groupId>
+    <artifactId>quarkus-test-service-jaeger</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+Usage example:
+
+```
+    static final String JAEGER_URL_PROPERTY = "quarkus.jaeger.endpoint";
+
+    @JaegerContainer(version = "1.21.0")
+    static final JaegerService JAEGER = new JaegerService();
+
+    @QuarkusApplication
+    static final RestService APP = new RestService().withProperty(JAEGER_URL_PROPERTY, JAEGER::getJaegerRestUrl)
+```
+This container is compatible with OpenShift, but not with Kubernetes deployments.
+
 #### Use custom templates for Containers
 
 Sometimes deploying a third party into OpenShift or Kubernetes involves some complex configuration that is not required when deploying it on bare metal. For these scenarios, we allow to provide a custom template via `test.properties`:

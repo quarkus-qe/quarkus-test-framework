@@ -1,0 +1,168 @@
+#
+# Copyright 2017-2019 The ${SERVICE_NAME} Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+# in compliance with the License. You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software distributed under the License
+# is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
+# or implied. See the License for the specific language governing permissions and limitations under
+# the License.
+#
+
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: "apps.openshift.io/v1"
+    kind: "DeploymentConfig"
+    metadata:
+      name: ${SERVICE_NAME}
+    spec:
+      selector:
+        app: ${SERVICE_NAME}
+      serviceName: ${SERVICE_NAME}
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: ${SERVICE_NAME}
+          annotations:
+            prometheus.io/scrape: "true"
+            prometheus.io/port: "16686"
+        spec:
+          containers:
+            -   env:
+                  - name: COLLECTOR_ZIPKIN_HTTP_PORT
+                    value: "9411"
+                image: ${IMAGE}:${VERSION}
+                name: ${SERVICE_NAME}
+                ports:
+                  - containerPort: 5775
+                    protocol: UDP
+                  - containerPort: 6831
+                    protocol: UDP
+                  - containerPort: 6832
+                    protocol: UDP
+                  - containerPort: 5778
+                    protocol: TCP
+                  - containerPort: 16686
+                    protocol: TCP
+                  - containerPort: 9411
+                    protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: "/"
+                    port: 14269
+                  initialDelaySeconds: 5
+      triggers:
+        - type: "ConfigChange"
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-query
+      labels:
+        app: ${SERVICE_NAME}
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: query
+    spec:
+      ports:
+        - name: query-http
+          port: 80
+          protocol: TCP
+          targetPort: 16686
+      selector:
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: all-in-one
+      type: LoadBalancer
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-collector
+      labels:
+        app: ${SERVICE_NAME}
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: collector
+    spec:
+      ports:
+        - name: ${SERVICE_NAME}-collector-tchannel
+          port: 14267
+          protocol: TCP
+          targetPort: 14267
+        - name: ${SERVICE_NAME}-collector-http
+          port: 14268
+          protocol: TCP
+          targetPort: 14268
+        - name: ${SERVICE_NAME}-collector-zipkin
+          port: 9411
+          protocol: TCP
+          targetPort: 9411
+      selector:
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: all-in-one
+      type: ClusterIP
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: ${SERVICE_NAME}-agent
+      labels:
+        app: ${SERVICE_NAME}
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: agent
+    spec:
+      ports:
+        - name: agent-zipkin-thrift
+          port: 5775
+          protocol: UDP
+          targetPort: 5775
+        - name: agent-compact
+          port: 6831
+          protocol: UDP
+          targetPort: 6831
+        - name: agent-binary
+          port: 6832
+          protocol: UDP
+          targetPort: 6832
+        - name: agent-configs
+          port: 5778
+          protocol: TCP
+          targetPort: 5778
+      clusterIP: None
+      selector:
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: all-in-one
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: zipkin
+      labels:
+        app: ${SERVICE_NAME}
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: zipkin
+    spec:
+      ports:
+        - name: ${SERVICE_NAME}-collector-zipkin
+          port: 9411
+          protocol: TCP
+          targetPort: 9411
+      clusterIP: None
+      selector:
+        app.kubernetes.io/name: ${SERVICE_NAME}
+        app.kubernetes.io/component: all-in-one
+      type: ClusterIP
+  - apiVersion: v1
+    kind: Route
+    metadata:
+      name: ${SERVICE_NAME}-query
+      labels:
+        jaeger-infra: query-route
+    spec:
+      to:
+        kind: Service
+        name: ${SERVICE_NAME}-query
+      port:
+        targetPort: query-http
+      tls:
+        termination: edge
+        insecureEdgeTerminationPolicy: Allow
