@@ -12,7 +12,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class DisabledOnQuarkusVersionCondition implements ExecutionCondition {
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = ConditionEvaluationResult.enabled(
-            "@DisabledOnQuarkus is not present");
+            "@DisabledOnQuarkusVersion is not present");
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {

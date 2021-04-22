@@ -110,7 +110,7 @@ public class OnlyOnJvmIT {
 
 ```java
 @QuarkusScenario
-@DisabledOnQuarkus(version = "1\\.13\\..*", reason = "https://github.com/quarkusio/quarkus/issues/XXX")
+@DisabledOnQuarkusVersion(version = "1\\.13\\..*", reason = "https://github.com/quarkusio/quarkus/issues/XXX")
 public class AuthzSecurityHttpsIT {
     
 }
