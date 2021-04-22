@@ -59,7 +59,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
 
     @Override
     public int getPort(Protocol protocol) {
-        return innerContainer.getMappedPort(getTargetPort());
+        return getMappedPort(getTargetPort());
     }
 
     @Override
@@ -75,6 +75,10 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     @Override
     public List<String> logs() {
         return loggingHandler.logs();
+    }
+
+    protected int getMappedPort(int port) {
+        return innerContainer.getMappedPort(port);
     }
 
     private Map<String, String> resolveProperties() {

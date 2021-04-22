@@ -94,6 +94,11 @@
                 <artifactId>quarkus-test-service-amq</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-service-jaeger</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -234,6 +239,7 @@
                 <module>examples/kafka-streams</module>
                 <module>examples/amq-tcp</module>
                 <module>examples/amq-amqp</module>
+                <module>examples/jaeger</module>
             </modules>
         </profile>
         <profile>
@@ -252,10 +258,16 @@
                             <execution>
                                 <configuration>
                                     <systemProperties>
-                                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                                        <native.image.path>
+                                            ${project.build.directory}/${project.build.finalName}-runner
+                                        </native.image.path>
                                         <quarkus.package.type>${quarkus.package.type}</quarkus.package.type>
-                                        <quarkus.native.container-build>${quarkus.native.container-build}</quarkus.native.container-build>
-                                        <quarkus.native.native-image-xmx>${quarkus.native.native-image-xmx}</quarkus.native.native-image-xmx>
+                                        <quarkus.native.container-build>
+                                            ${quarkus.native.container-build}
+                                        </quarkus.native.container-build>
+                                        <quarkus.native.native-image-xmx>
+                                            ${quarkus.native.native-image-xmx}
+                                        </quarkus.native.native-image-xmx>
                                     </systemProperties>
                                 </configuration>
                             </execution>

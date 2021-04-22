@@ -239,13 +239,11 @@ Required dependency
 Usage example:
 
 ```
-    static final String JAEGER_URL_PROPERTY = "quarkus.jaeger.endpoint";
+@JaegerContainer
+static final JaegerService jaeger = new JaegerService();
 
-    @JaegerContainer(version = "1.21.0")
-    static final JaegerService JAEGER = new JaegerService();
-
-    @QuarkusApplication
-    static final RestService APP = new RestService().withProperty(JAEGER_URL_PROPERTY, JAEGER::getJaegerRestUrl)
+@QuarkusApplication
+static final RestService app = new RestService().withProperty("quarkus.jaeger.endpoint", jaeger::getRestUrl);
 ```
 This container is compatible with OpenShift, but not with Kubernetes deployments.
 

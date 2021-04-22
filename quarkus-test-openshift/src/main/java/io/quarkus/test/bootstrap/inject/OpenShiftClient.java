@@ -145,14 +145,24 @@ public final class OpenShiftClient {
      * @param port
      */
     public void expose(Service service, int port) {
-        Route route = client.routes().withName(service.getName()).get();
+        expose(service.getName(), port);
+    }
+
+    /**
+     * Expose the service and port defined by service name.
+     *
+     * @param service
+     * @param port
+     */
+    public void expose(String serviceName, int port) {
+        Route route = client.routes().withName(serviceName).get();
         if (route != null) {
             // already exposed.
             return;
         }
 
         try {
-            new Command(OC, "expose", "svc/" + service.getName(), "--port=" + port, "-n", currentNamespace).runAndWait();
+            new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
         }
@@ -223,9 +233,19 @@ public final class OpenShiftClient {
      * @return
      */
     public String url(Service service) {
-        Route route = client.routes().withName(service.getName()).get();
+        return url(service.getName());
+    }
+
+    /**
+     * Resolve the url by the service name.
+     *
+     * @param service
+     * @return
+     */
+    public String url(String serviceName) {
+        Route route = client.routes().withName(serviceName).get();
         if (route == null || route.getSpec() == null) {
-            fail("Route for service " + service.getName() + " not found");
+            fail("Route for service " + serviceName + " not found");
         }
 
         String protocol = route.getSpec().getTls() == null ? "http" : "https";

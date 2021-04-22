@@ -112,15 +112,11 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return model.getContext().getName();
     }
 
-    private void applyDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                getTemplateByDefault());
-        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
-                this::replaceDeploymentContent,
-                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+    protected OpenShiftClient getClient() {
+        return client;
     }
 
-    private String replaceDeploymentContent(String content) {
+    protected String replaceDeploymentContent(String content) {
         String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
@@ -130,6 +126,14 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
+    }
+
+    private void applyDeployment() {
+        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
+                getTemplateByDefault());
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
+                this::replaceDeploymentContent,
+                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
     private boolean useInternalServiceAsUrl() {
