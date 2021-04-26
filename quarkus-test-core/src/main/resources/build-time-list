@@ -7,3 +7,5 @@ quarkus.openshift.
 quarkus.kubernetes-config.
 quarkus.ssl.
 quarkus.http.ssl.
+quarkus.hibernate-orm.
+quarkus.datasource.db-kind

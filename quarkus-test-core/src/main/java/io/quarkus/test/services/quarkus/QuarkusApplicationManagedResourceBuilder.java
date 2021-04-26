@@ -3,15 +3,20 @@ package io.quarkus.test.services.quarkus;
 import static java.util.stream.Collectors.toSet;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.ServiceLoader;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
@@ -31,6 +36,7 @@ import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -39,6 +45,10 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app/";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
+    private static final String RESOURCES_FOLDER = "src/main/resources";
+    private static final String TEST_RESOURCES_FOLDER = "src/test/resources";
+    private static final String APPLICATION_PROPERTIES = "application.properties";
+    private static final List<String> RESOURCES_TO_COPY = Arrays.asList(".sql", ".keystore", ".truststore");
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
     private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(QuarkusApplicationManagedResourceBinding.class);
@@ -116,13 +126,8 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return properties.stream().anyMatch(this::isBuildProperty);
     }
 
-    public Properties createSnapshotOfBuildProperties() {
-        propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
-
-        Properties buildProperties = new Properties();
-        buildProperties.putAll(propertiesSnapshot);
-
-        return buildProperties;
+    public Map<String, String> createSnapshotOfBuildProperties() {
+        return new HashMap<>(context.getOwner().getProperties());
     }
 
     public Map<String, String> getBuildProperties() {
@@ -173,13 +178,13 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(appClasses);
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());
 
-            Properties buildProperties = createSnapshotOfBuildProperties();
+            copyResourcesToAppFolder();
 
             Path testLocation = PathTestHelper.getTestClassesLocation(context.getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
                     .setMode(QuarkusBootstrap.Mode.PROD).setLocalProjectDiscovery(true).addExcludedPath(testLocation)
                     .setProjectRoot(testLocation).setBaseName(context.getName())
-                    .setBuildSystemProperties(buildProperties).setTargetDirectory(appFolder);
+                    .setTargetDirectory(appFolder);
 
             AugmentResult result;
             try (CuratedApplication curatedApplication = builder.build().bootstrap()) {
@@ -204,6 +209,24 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             launchMode = LaunchMode.LEGACY_JAR;
         } else {
             launchMode = LaunchMode.JVM;
+        }
+    }
+
+    private void copyResourcesToAppFolder() throws IOException {
+        copyResourcesInFolderToAppFolder(RESOURCES_FOLDER);
+        copyResourcesInFolderToAppFolder(TEST_RESOURCES_FOLDER);
+        PropertiesUtils.fromMap(createSnapshotOfBuildProperties(),
+                context.getServiceFolder().resolve(APPLICATION_PROPERTIES));
+    }
+
+    private void copyResourcesInFolderToAppFolder(String folder) {
+        try (Stream<Path> binariesFound = Files
+                .find(Paths.get(folder), Integer.MAX_VALUE,
+                        (path, basicFileAttributes) -> RESOURCES_TO_COPY.stream()
+                                .anyMatch(filter -> path.toFile().getName().endsWith(filter)))) {
+            binariesFound.forEach(path -> FileUtils.copyFileTo(path.toFile(), context.getServiceFolder()));
+        } catch (IOException ex) {
+            // ignored
         }
     }
 

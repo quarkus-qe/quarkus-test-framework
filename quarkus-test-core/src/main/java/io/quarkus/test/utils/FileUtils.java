@@ -57,6 +57,14 @@ public final class FileUtils {
         }
     }
 
+    public static void copyFileTo(File file, Path target) {
+        try {
+            org.apache.commons.io.FileUtils.copyFileToDirectory(file, target.toFile());
+        } catch (IOException e) {
+            fail("Could not copy project. Caused by " + e.getMessage());
+        }
+    }
+
     public static void copyCurrentDirectoryTo(Path target) {
         try {
             org.apache.commons.io.FileUtils.copyDirectory(Paths.get(".").toFile(), target.toFile(),
@@ -81,9 +89,9 @@ public final class FileUtils {
         return findTargetFile(StringUtils.EMPTY, endsWith);
     }
 
-    public static Optional<String> findTargetFile(String subfolder, String endsWith) {
+    public static Optional<String> findTargetFile(String subFolder, String endsWith) {
         try (Stream<Path> binariesFound = Files
-                .find(Paths.get("target/" + subfolder), NO_RECURSIVE,
+                .find(Paths.get("target/" + subFolder), NO_RECURSIVE,
                         (path, basicFileAttributes) -> path.toFile().getName().endsWith(endsWith))) {
             return binariesFound.map(path -> path.normalize().toString()).findFirst();
         } catch (IOException ex) {

@@ -10,13 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 
-@SuppressWarnings("unchecked")
 public class BaseService<T extends Service> implements Service {
 
     private static final int SERVICE_WAITER_POLL_EVERY_SECONDS = 2;
@@ -56,9 +56,9 @@ public class BaseService<T extends Service> implements Service {
      * The runtime configuration property to be used if the built artifact is
      * configured to be run.
      */
-    public T withProperties(String propertiesFile) {
+    public T withProperties(String... propertiesFiles) {
         properties.clear();
-        properties.putAll(PropertiesUtils.toMap(propertiesFile));
+        Stream.of(propertiesFiles).map(PropertiesUtils::toMap).forEach(properties::putAll);
         return (T) this;
     }
 
