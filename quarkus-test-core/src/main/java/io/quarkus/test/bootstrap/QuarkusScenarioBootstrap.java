@@ -65,7 +65,7 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void afterAll(ExtensionContext context) throws Exception {
+    public void afterAll(ExtensionContext context) {
         try {
             List<Service> servicesToStop = new ArrayList<>(services);
             Collections.reverse(servicesToStop);
@@ -76,7 +76,7 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void beforeEach(ExtensionContext context) throws Exception {
+    public void beforeEach(ExtensionContext context) {
         services.forEach(Service::start);
     }
 
@@ -91,26 +91,27 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+    public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
     }
 
     @Override
-    public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+    public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
     }
 
     @Override
-    public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+    public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
     }
 
     @Override
-    public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) throws Throwable {
+    public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
     }
 
     private void notifyExtensionsOnError(ExtensionContext context, Throwable throwable) {
+        throwable.printStackTrace();
         extensions.forEach(ext -> ext.onError(context, throwable));
     }
 
