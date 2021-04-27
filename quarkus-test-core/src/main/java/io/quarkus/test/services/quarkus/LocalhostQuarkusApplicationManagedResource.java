@@ -16,9 +16,8 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.SocketUtils;
 import io.quarkus.utilities.JavaBinFinder;
 
-public class LocalhostQuarkusApplicationManagedResource implements QuarkusManagedResource {
+public class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
-    private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
 
@@ -86,11 +85,6 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
     }
 
     @Override
-    public boolean isRunning() {
-        return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
-    }
-
-    @Override
     public List<String> logs() {
         return loggingHandler.logs();
     }
@@ -103,6 +97,11 @@ public class LocalhostQuarkusApplicationManagedResource implements QuarkusManage
         }
 
         start();
+    }
+
+    @Override
+    protected LoggingHandler getLoggingHandler() {
+        return loggingHandler;
     }
 
     private void assignPorts() {

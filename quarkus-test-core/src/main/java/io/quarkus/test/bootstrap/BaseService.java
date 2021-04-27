@@ -166,8 +166,7 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        await().ignoreExceptions()
-                .pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
+        await().pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
                 .atMost(SERVICE_WAITER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
                 .until(this::isManagedResourceRunning);
     }

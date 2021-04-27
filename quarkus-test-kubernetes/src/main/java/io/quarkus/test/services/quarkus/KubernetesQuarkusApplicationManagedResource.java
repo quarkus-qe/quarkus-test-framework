@@ -14,12 +14,11 @@ import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.DockerUtils;
 
-public class KubernetesQuarkusApplicationManagedResource implements QuarkusManagedResource {
+public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
     private static final String DEPLOYMENT = "kubernetes.yml";
 
-    private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final int INTERNAL_PORT_DEFAULT = 8080;
 
@@ -79,11 +78,6 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
     }
 
     @Override
-    public boolean isRunning() {
-        return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
-    }
-
-    @Override
     public List<String> logs() {
         return loggingHandler.logs();
     }
@@ -97,6 +91,11 @@ public class KubernetesQuarkusApplicationManagedResource implements QuarkusManag
         }
 
         start();
+    }
+
+    @Override
+    protected LoggingHandler getLoggingHandler() {
+        return loggingHandler;
     }
 
     private void validateProtocol(Protocol protocol) {

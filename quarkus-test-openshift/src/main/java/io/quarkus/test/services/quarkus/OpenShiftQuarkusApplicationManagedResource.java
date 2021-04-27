@@ -13,9 +13,8 @@ import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 
-public abstract class OpenShiftQuarkusApplicationManagedResource implements QuarkusManagedResource {
+public abstract class OpenShiftQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
-    private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final int EXTERNAL_PORT = 80;
 
     protected final QuarkusApplicationManagedResourceBuilder model;
@@ -78,7 +77,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
 
     @Override
     public boolean isRunning() {
-        return appIsStarted() && routeIsReachable(Protocol.HTTP);
+        return super.isRunning() && routeIsReachable(Protocol.HTTP);
     }
 
     @Override
@@ -97,14 +96,15 @@ public abstract class OpenShiftQuarkusApplicationManagedResource implements Quar
         start();
     }
 
+    @Override
+    protected LoggingHandler getLoggingHandler() {
+        return loggingHandler;
+    }
+
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS) {
             fail("SSL is not supported for OpenShift tests yet");
         }
-    }
-
-    private boolean appIsStarted() {
-        return loggingHandler != null && loggingHandler.logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
     }
 
     private boolean routeIsReachable(Protocol protocol) {

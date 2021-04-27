@@ -711,8 +711,3 @@ public void shouldSayHelloWorld() {
     app.https().given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello World!"));
 }
 ```
-
-## TODO
-- Add example of microprofile rest client (to autopopulate host and port)
-- Implement fail fast features
-- Deploy to Maven central
