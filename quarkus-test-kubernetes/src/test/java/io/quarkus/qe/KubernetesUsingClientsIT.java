@@ -6,14 +6,14 @@ import javax.inject.Inject;
 
 import org.junit.jupiter.api.Test;
 
-import io.fabric8.kubernetes.client.KubernetesClient;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.scenarios.KubernetesScenario;
 
 @KubernetesScenario
 public class KubernetesUsingClientsIT {
 
     @Inject
-    static KubernetesClient clientAsStaticInstance;
+    static KubectlClient clientAsStaticInstance;
 
     @Test
     public void shouldInjectKubernetesClientAsStaticInstance() {
@@ -21,7 +21,7 @@ public class KubernetesUsingClientsIT {
     }
 
     @Test
-    public void shouldInjectKubernetesClientAsField(KubernetesClient clientAsField) {
+    public void shouldInjectKubernetesClientAsField(KubectlClient clientAsField) {
         assertNotNull(clientAsField);
     }
 }

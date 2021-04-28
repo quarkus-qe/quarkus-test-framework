@@ -482,11 +482,11 @@ This test will be executed only if the system property `ts.openshift.scenario.en
 
 Requirements:
 - Kubectl CLI installed
-- Be connected to an running Kubernetes instance
+- Be connected to a running Kubernetes instance
 - Public container registry where to push/pull images
 
 Verified Environments:
-- Kind using LoadBalancer: https://kind.sigs.k8s.io/docs/user/loadbalancer/
+- Kind using LoadBalancer: https://kind.sigs.k8s.io/docs/user/loadbalancer/ (the framework will expose services using LoadBalancer. This is not configurable yet.)
 
 Use this Maven dependency:
 

@@ -24,7 +24,6 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
-import io.fabric8.kubernetes.api.model.LoadBalancerIngress;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -62,6 +61,10 @@ public final class KubectlClient {
 
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
+    }
+
+    public static KubectlClient create() {
+        return new KubectlClient();
     }
 
     /**
@@ -131,7 +134,6 @@ public final class KubectlClient {
     /**
      * Get all the logs for all the pods within the current namespace.
      *
-     * @param service
      * @return
      */
     public Map<String, String> logs() {
@@ -175,15 +177,20 @@ public final class KubectlClient {
                 || serviceModel.getStatus() == null
                 || serviceModel.getStatus().getLoadBalancer() == null
                 || serviceModel.getStatus().getLoadBalancer().getIngress() == null) {
+            printServiceInfo(service);
             fail("Service " + serviceName + " not found");
         }
 
+        // IP detection rules:
+        // 1.- Try Ingress IP
+        // 2.- Try Ingress Hostname
         Optional<String> ip = serviceModel.getStatus().getLoadBalancer().getIngress().stream()
-                .map(LoadBalancerIngress::getIp)
+                .map(ingress -> StringUtils.defaultIfBlank(ingress.getIp(), ingress.getHostname()))
                 .filter(StringUtils::isNotEmpty)
                 .findFirst();
 
-        if (!ip.isPresent()) {
+        if (ip.isEmpty()) {
+            printServiceInfo(service);
             fail("Service " + serviceName + " host not found");
         }
 
@@ -361,8 +368,13 @@ public final class KubectlClient {
                 .toString();
     }
 
-    public static KubectlClient create() {
-        return new KubectlClient();
+    private void printServiceInfo(Service service) {
+        try {
+            new Command(KUBECTL, "get", "svc", service.getName(), "-n", currentNamespace)
+                    .outputToConsole()
+                    .runAndWait();
+        } catch (Exception ignored) {
+        }
     }
 
 }
