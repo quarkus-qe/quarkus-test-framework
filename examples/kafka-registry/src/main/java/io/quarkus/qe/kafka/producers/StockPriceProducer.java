@@ -20,7 +20,6 @@ import io.smallrye.mutiny.Uni;
 @ApplicationScoped
 public class StockPriceProducer {
 
-    private static final int BUFFER_SIZE = 1000;
     private static final Logger LOG = Logger.getLogger(StockPriceProducer.class);
 
     @Inject
@@ -28,7 +27,7 @@ public class StockPriceProducer {
 
     @Inject
     @Channel("source-stock-price")
-    @OnOverflow(value = OnOverflow.Strategy.BUFFER, bufferSize = BUFFER_SIZE)
+    @OnOverflow(value = OnOverflow.Strategy.DROP)
     Emitter<StockPrice> emitter;
 
     private Random random = new Random();
@@ -44,7 +43,7 @@ public class StockPriceProducer {
         return Uni.createFrom().voidItem();
     }
 
-    private BiConsumer<Void, Throwable> handlerEmitterResponse(final String owner) {
+    private BiConsumer<Void, Throwable> handlerEmitterResponse(String owner) {
         return (success, failure) -> {
             if (failure != null) {
                 LOG.info(String.format("D'oh! %s", failure.getMessage()));

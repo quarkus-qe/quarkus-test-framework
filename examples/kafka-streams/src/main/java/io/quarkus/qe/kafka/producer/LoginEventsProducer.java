@@ -9,9 +9,9 @@ import javax.enterprise.context.ApplicationScoped;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
-import org.jboss.logging.Logger;
 
 import io.quarkus.qe.kafka.model.LoginAttempt;
+import io.quarkus.qe.kafka.streams.WindowedLoginDeniedStream;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.reactive.messaging.kafka.Record;
 import io.vertx.core.json.Json;
@@ -19,27 +19,24 @@ import io.vertx.core.json.Json;
 @ApplicationScoped
 public class LoginEventsProducer {
 
-    private static final Logger LOG = Logger.getLogger(LoginEventsProducer.class);
-    private static final int TICK_VALUE = 100;
+    private static final int SEND_EVENT_EVERY_MILLIS = 1000;
 
     @ConfigProperty(name = "producer.httpCodes")
     List<Integer> httpCodes;
-
     @ConfigProperty(name = "producer.loginUrls")
     List<String> loginUrls;
 
     private final Random random = new Random();
 
-    @Outgoing("login-http-response-values")
+    @Outgoing(WindowedLoginDeniedStream.LOGIN_ATTEMPTS_TOPIC)
     public Multi<Record<String, String>> generate() {
-        return Multi.createFrom().ticks().every(Duration.ofMillis(TICK_VALUE))
+        return Multi.createFrom().ticks().every(Duration.ofMillis(SEND_EVENT_EVERY_MILLIS))
                 .onOverflow().drop()
                 .map(tick -> {
                     String loginEndpoint = getRandomEndpointUrl();
                     String loginEndpointEnc = encodeId(loginEndpoint);
                     Integer httpCode = getRandomHttpCode();
 
-                    LOG.infov("Endpoint: {0} ID: {1}, HTTP-code: {2}", loginEndpoint, loginEndpointEnc, httpCode);
                     return Record.of(loginEndpointEnc,
                             Json.encode(new LoginAttempt(loginEndpointEnc, loginEndpoint, httpCode)));
                 });
@@ -53,7 +50,7 @@ public class LoginEventsProducer {
         return httpCodes.get(random.nextInt(httpCodes.size()));
     }
 
-    private String encodeId(final String id) {
+    private String encodeId(String id) {
         return Base64.getEncoder().encodeToString(id.getBytes());
     }
 

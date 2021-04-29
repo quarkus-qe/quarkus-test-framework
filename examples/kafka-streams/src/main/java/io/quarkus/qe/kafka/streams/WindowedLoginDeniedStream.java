@@ -28,15 +28,13 @@ import io.smallrye.reactive.messaging.annotations.Broadcast;
 @ApplicationScoped
 public class WindowedLoginDeniedStream {
 
-    static final String LOGIN_AGGREGATION_STORE = "login-aggregation-store";
-    static final String LOGIN_ATTEMPTS_TOPIC = "login-http-response-values";
-    static final String LOGIN_DENIED_AGGREGATED_TOPIC = "login-denied";
+    public static final String LOGIN_AGGREGATION_STORE = "login-aggregation-store";
+    public static final String LOGIN_ATTEMPTS_TOPIC = "login-http-response-values";
+    public static final String LOGIN_DENIED_AGGREGATED_TOPIC = "login-denied";
+    public static final String LOGIN_ALERTS_TOPIC = "login-alerts";
 
     @ConfigProperty(name = "login.denied.windows.sec")
     int windowsLoginSec;
-
-    @ConfigProperty(name = "login.denied.threshold")
-    int threshold;
 
     @Produces
     public Topology buildTopology() {
@@ -55,14 +53,13 @@ public class WindowedLoginDeniedStream {
                                 .withValueSerde(loginAggregationSerde))
                 .toStream()
                 .filter((k, v) -> (v.code == UNAUTHORIZED.getStatusCode() || v.code == FORBIDDEN.getStatusCode()))
-                .filter((k, v) -> v.count > threshold)
                 .to(LOGIN_DENIED_AGGREGATED_TOPIC);
 
         return builder.build();
     }
 
     @Incoming(LOGIN_DENIED_AGGREGATED_TOPIC)
-    @Outgoing("login-alerts")
+    @Outgoing(LOGIN_ALERTS_TOPIC)
     @Broadcast
     public String fanOut(String jsonLoginAggregation) {
         return jsonLoginAggregation;
