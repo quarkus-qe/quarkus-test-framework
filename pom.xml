@@ -29,6 +29,7 @@
         <quarkus.platform.version>1.13.3.Final</quarkus.platform.version>
         <quarkus-plugin.version>1.13.3.Final</quarkus-plugin.version>
 
+        <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
     </properties>
@@ -190,7 +191,7 @@
                         </goals>
                         <configuration>
                             <includes>
-                                <include>**/*IT.java</include>
+                                <include>${include.tests}</include>
                             </includes>
                             <excludes>
                                 <exclude>${exclude.openshift.tests}</exclude>
@@ -291,6 +292,7 @@
                 </property>
             </activation>
             <properties>
+                <include.tests>**/OpenShift*IT.java</include.tests>
                 <exclude.openshift.tests>no</exclude.openshift.tests>
             </properties>
         </profile>
@@ -304,6 +306,7 @@
                 </property>
             </activation>
             <properties>
+                <include.tests>**/Kubernetes*IT.java</include.tests>
                 <exclude.kubernetes.tests>no</exclude.kubernetes.tests>
             </properties>
         </profile>
