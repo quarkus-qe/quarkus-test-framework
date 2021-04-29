@@ -1,8 +1,8 @@
 package io.quarkus.test.logging;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 import org.apache.maven.shared.utils.StringUtils;
@@ -15,7 +15,7 @@ public abstract class LoggingHandler {
 
     private final ServiceContext context;
     private Thread innerThread;
-    private List<String> logs = new ArrayList<>();
+    private List<String> logs = new CopyOnWriteArrayList<>();
     private boolean running = false;
 
     public LoggingHandler(ServiceContext context) {
