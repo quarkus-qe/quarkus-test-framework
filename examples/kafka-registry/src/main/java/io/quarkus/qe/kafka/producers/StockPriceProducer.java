@@ -46,9 +46,9 @@ public class StockPriceProducer {
     private BiConsumer<Void, Throwable> handlerEmitterResponse(String owner) {
         return (success, failure) -> {
             if (failure != null) {
-                LOG.info(String.format("D'oh! %s", failure.getMessage()));
+                LOG.warn(String.format("D'oh! %s", failure.getMessage()));
             } else {
-                LOG.info(String.format("Message sent successfully. Owner %s", owner));
+                LOG.debug(String.format("Message sent successfully. Owner %s", owner));
             }
         };
     }

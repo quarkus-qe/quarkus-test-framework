@@ -1,6 +1,6 @@
 package io.quarkus.qe;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -36,13 +36,13 @@ public class ConfluentKafkaWithRegistryMessagingIT {
         Client client = ClientBuilder.newClient();
         WebTarget target = client.target(app.getHost() + ":" + app.getPort() + "/stock/stream");
 
-        final CountDownLatch latch = new CountDownLatch(1);
+        CountDownLatch latch = new CountDownLatch(1);
 
         SseEventSource source = SseEventSource.target(target).build();
         source.register(inboundSseEvent -> latch.countDown());
         source.open();
         boolean completed = latch.await(5, TimeUnit.MINUTES);
-        assertEquals(true, completed);
+        assertTrue(completed);
         source.close();
     }
 }
