@@ -1,8 +1,10 @@
 package io.quarkus.qe.tcp;
 
 import static org.awaitility.Awaitility.await;
-import static org.hamcrest.Matchers.containsString;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
@@ -17,6 +19,8 @@ import io.quarkus.test.services.containers.model.AmqProtocol;
 
 @QuarkusScenario
 public class AmqpAmqIT {
+
+    static final List<String> EXPECTED_PRICES = Arrays.asList("10", "20", "30", "40", "50", "60", "70", "80", "90", "100");
 
     @AmqContainer(protocol = AmqProtocol.AMQP)
     static final AmqService amq = new AmqService();
@@ -38,10 +42,11 @@ public class AmqpAmqIT {
     @Test
     public void testLastPrice() {
         await().pollInterval(1, TimeUnit.SECONDS)
-                .atMost(15, TimeUnit.SECONDS).untilAsserted(() -> app.given()
-                        .get("/price")
-                        .then()
-                        .statusCode(HttpStatus.SC_OK)
-                        .body(containsString("10, 20, 30, 40, 50, 60, 70, 80, 90, 100")));
+                .atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
+                    String response = app.given().get("/price")
+                            .then().statusCode(HttpStatus.SC_OK).extract().asString();
+                    assertTrue(EXPECTED_PRICES.stream().anyMatch(response::contains),
+                            "Expected prices not found in " + response);
+                });
     }
 }

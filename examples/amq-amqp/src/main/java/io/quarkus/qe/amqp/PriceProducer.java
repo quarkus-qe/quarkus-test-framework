@@ -20,6 +20,7 @@ public class PriceProducer {
     public Flowable<Integer> generate() {
         LOG.info("generate fired...");
         return Flowable.interval(1, TimeUnit.SECONDS)
+                .onBackpressureDrop()
                 .map(tick -> ((tick.intValue() * TEN) % HUNDRED) + TEN);
     }
 }
