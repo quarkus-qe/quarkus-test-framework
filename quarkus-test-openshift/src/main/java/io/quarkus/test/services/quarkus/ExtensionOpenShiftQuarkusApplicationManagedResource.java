@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
@@ -16,10 +15,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
-import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
-import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.utils.Command;
-import io.quarkus.test.utils.DockerUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 
@@ -42,13 +38,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
-    private static final String QUARKUS_OPENSHIFT_BUILD_STRATEGY = "quarkus.openshift.build-strategy";
 
     private static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
 
-    private static final String DOCKERFILE_SOURCE_FOLDER = "src/main/docker";
     private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
-    private static final String DOCKER = "docker";
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         super(model);
@@ -80,6 +73,14 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         }
     }
 
+    protected void withAdditionalArguments(List<String> args) {
+
+    }
+
+    protected String withProperty(String property, String value) {
+        return String.format("-D%s=%s", property, value);
+    }
+
     private void copyBuildPropertiesIntoAppFolder() {
         Map<String, String> buildProperties = model.getBuildProperties();
         if (buildProperties.isEmpty()) {
@@ -106,10 +107,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
-        withBuildStrategy(args);
         withQuarkusProperties(args);
         withMavenRepositoryLocalIfSet(args);
         withEnvVars(args, model.getContext().getOwner().getProperties());
+        withAdditionalArguments(args);
 
         try {
             new Command(args).onDirectory(model.getContext().getServiceFolder()).runAndWait();
@@ -121,35 +122,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private String withLabelsForWatching() {
         return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_TO_WATCH_FOR_LOGS,
                 model.getContext().getOwner().getName());
-    }
-
-    private void withBuildStrategy(List<String> args) {
-        if (isDockerBuildStrategySet()) {
-            copyDockerfileToSources();
-
-            args.add(withProperty(QUARKUS_OPENSHIFT_BUILD_STRATEGY, DOCKER));
-        }
-    }
-
-    private void copyDockerfileToSources() {
-        Path dockerfileTarget = model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER);
-        if (!Files.exists(dockerfileTarget)) {
-            FileUtils.createDirectory(dockerfileTarget);
-        }
-
-        String dockerfileName = DockerUtils.getDockerfile(model.getLaunchMode());
-        if (!Files.exists(dockerfileTarget.resolve(dockerfileTarget))) {
-            String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(model.getLaunchMode()))
-                    .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
-            FileUtils.copyContentTo(dockerFileContent,
-                    model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName));
-        }
-    }
-
-    private boolean isDockerBuildStrategySet() {
-        OpenShiftScenario annotation = model.getContext().getTestContext().getRequiredTestClass()
-                .getAnnotation(OpenShiftScenario.class);
-        return annotation.deployment() == OpenShiftDeploymentStrategy.UsingOpenShiftExtensionAndDockerBuildStrategy;
     }
 
     private String withContainerName() {
@@ -190,10 +162,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
             String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
             args.add(withProperty(QUARKUS_OPENSHIFT_ENV_VARS + envVarKey, envVar.getValue()));
         }
-    }
-
-    private String withProperty(String property, String value) {
-        return String.format("-D%s=%s", property, value);
     }
 
     private Predicate<Entry<Object, Object>> propertyValueIsNotEmpty() {

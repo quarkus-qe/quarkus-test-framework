@@ -476,7 +476,7 @@ public class OpenShiftUsingExtensionPingPongResourceIT {
 }
 ```
 
-This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`. 
+This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`.
 
 ### Kubernetes
 

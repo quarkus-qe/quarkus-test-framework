@@ -1,3 +1,1 @@
-io.quarkus.test.services.quarkus.BuildOpenShiftQuarkusApplicationManagedResourceBinding
-io.quarkus.test.services.quarkus.ExtensionOpenShiftQuarkusApplicationManagedResourceBinding
-io.quarkus.test.services.quarkus.ContainerRegistryOpenShiftQuarkusApplicationManagedResourceBinding
+io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBinding
