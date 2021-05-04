@@ -42,7 +42,7 @@ items:
       output:
         to:
           kind: "ImageStreamTag"
-          name: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+          name: "${SERVICE_NAME}:0.0.1-SNAPSHOT"
       source:
         binary: {}
       strategy:
@@ -79,7 +79,7 @@ items:
                   value: ""
                 - name: "JAVA_APP_JAR"
                   value: "/deployments/${ARTIFACT}"
-              image: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+              image: "${SERVICE_NAME}:0.0.1-SNAPSHOT"
               imagePullPolicy: "IfNotPresent"
               name: "${SERVICE_NAME}"
               ports:
@@ -93,6 +93,6 @@ items:
               - "${SERVICE_NAME}"
             from:
               kind: "ImageStreamTag"
-              name: "${SERVICE_NAME}:1.0.0-SNAPSHOT"
+              name: "${SERVICE_NAME}:0.0.1-SNAPSHOT"
           type: "ImageChange"
       
