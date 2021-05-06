@@ -2,6 +2,8 @@ package io.quarkus.test.bootstrap;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.quarkus.test.utils.FileUtils;
+
 public class AmqService extends BaseService<AmqService> {
     private static final String AMQ_USER = "quarkus";
     private static final String AMQ_PASSWORD = "quarkus";
@@ -9,6 +11,7 @@ public class AmqService extends BaseService<AmqService> {
     public AmqService() {
         withProperty("AMQ_USER", AMQ_USER);
         withProperty("AMQ_PASSWORD", AMQ_PASSWORD);
+        withProperty("BROKER_XML", FileUtils.loadFile("/broker.xml"));
     }
 
     public String getAmqUser() {
