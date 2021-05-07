@@ -1,9 +1,10 @@
 package io.quarkus.test.services.containers;
 
+import java.lang.reflect.Field;
+
 import io.quarkus.test.bootstrap.AnnotationBinding;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.services.JaegerContainer;
-import java.lang.reflect.Field;
 
 public class JaegerContainerAnnotationBinding implements AnnotationBinding {
     @Override

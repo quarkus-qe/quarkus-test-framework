@@ -13,8 +13,8 @@ import org.eclipse.microprofile.reactive.messaging.OnOverflow;
 import org.jboss.logging.Logger;
 
 import io.quarkus.qe.kafka.StockPrice;
-import io.quarkus.qe.kafka.status;
 import io.quarkus.qe.kafka.config.VertxKProducerConfig;
+import io.quarkus.qe.kafka.status;
 import io.smallrye.mutiny.Uni;
 
 @ApplicationScoped

@@ -1,19 +1,14 @@
-<?xml version="1.0"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-         xmlns="http://maven.apache.org/POM/4.0.0">
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
         <version>0.0.1-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
-
     <artifactId>examples-amq-tcp</artifactId>
     <name>Quarkus - Test Framework - Examples - AMQ TCP</name>
-
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -23,19 +18,16 @@
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-resteasy</artifactId>
         </dependency>
-
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-containers</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-openshift</artifactId>
             <scope>test</scope>
         </dependency>
-
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-service-amq</artifactId>
