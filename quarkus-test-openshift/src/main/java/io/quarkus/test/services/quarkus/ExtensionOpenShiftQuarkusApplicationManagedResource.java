@@ -32,6 +32,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String BATCH_MODE = "-B";
     private static final String DISPLAY_VERSION = "-V";
     private static final String SKIP_CHECKSTYLE = "-Dcheckstyle.skip";
+    private static final String QUARKUS_PROFILE = "quarkus.profile";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
     private static final String QUARKUS_KUBERNETES_CLIENT_NAMESPACE = "quarkus.kubernetes-client.namespace";
     private static final String QUARKUS_KUBERNETES_CLIENT_TRUST_CERTS = "quarkus.kubernetes-client.trust-certs";
@@ -107,6 +108,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
+        withQuarkusProfile(args);
         withQuarkusProperties(args);
         withMavenRepositoryLocalIfSet(args);
         withEnvVars(args, model.getContext().getOwner().getProperties());
@@ -126,6 +128,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private String withContainerName() {
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
+    }
+
+    private void withQuarkusProfile(List<String> args) {
+        args.add(withProperty(QUARKUS_PROFILE, model.getContext().getTestContext().getRequiredTestClass().getSimpleName()));
     }
 
     private void withMavenRepositoryLocalIfSet(List<String> args) {

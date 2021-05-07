@@ -16,7 +16,7 @@ import io.quarkus.test.utils.FileUtils;
 public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "openshift-client";
-    private static final PropertyLookup DELETE_ON_FAIL = new PropertyLookup("ts.openshift.delete.project.on.failure",
+    private static final PropertyLookup DELETE_PROJECT_AFTER = new PropertyLookup("ts.openshift.delete.project.after.all",
             Boolean.TRUE.toString());
 
     private OpenShiftClient client;
@@ -33,7 +33,7 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        if (DELETE_ON_FAIL.getAsBoolean()) {
+        if (DELETE_PROJECT_AFTER.getAsBoolean()) {
             client.deleteProject();
         }
     }

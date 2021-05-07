@@ -16,7 +16,7 @@ import io.quarkus.test.utils.FileUtils;
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "kubectl-client";
-    private static final PropertyLookup DELETE_ON_FAIL = new PropertyLookup("ts.kubernetes.delete.namespace.on.failure",
+    private static final PropertyLookup DELETE_NAMESPACE_AFTER = new PropertyLookup("ts.kubernetes.delete.namespace.after.all",
             Boolean.TRUE.toString());
 
     private KubectlClient client;
@@ -33,7 +33,7 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        if (DELETE_ON_FAIL.getAsBoolean()) {
+        if (DELETE_NAMESPACE_AFTER.getAsBoolean()) {
             client.deleteNamespace();
         }
     }
