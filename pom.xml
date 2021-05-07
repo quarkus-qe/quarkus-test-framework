@@ -305,6 +305,9 @@
                                 </configuration>
                             </execution>
                         </executions>
+                        <configuration>
+                            <trimStackTrace>false</trimStackTrace>
+                        </configuration>
                     </plugin>
                 </plugins>
             </build>

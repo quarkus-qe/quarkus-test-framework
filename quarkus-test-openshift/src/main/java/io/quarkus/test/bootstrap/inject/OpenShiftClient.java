@@ -21,6 +21,7 @@ import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 
+import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
@@ -61,6 +62,7 @@ public final class OpenShiftClient {
     private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
+    private final KnativeClient kn;
 
     private OpenShiftClient() {
         currentNamespace = createProject();
@@ -69,6 +71,7 @@ public final class OpenShiftClient {
 
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
+        kn = client.adapt(KnativeClient.class);
     }
 
     public static OpenShiftClient create() {
@@ -151,7 +154,7 @@ public final class OpenShiftClient {
     /**
      * Expose the service and port defined by service name.
      *
-     * @param service
+     * @param serviceName
      * @param port
      */
     public void expose(String serviceName, int port) {
@@ -175,6 +178,10 @@ public final class OpenShiftClient {
      * @param replicas
      */
     public void scaleTo(Service service, int replicas) {
+        if (isServerlessService(service.getName())) {
+            return;
+        }
+
         try {
             new Command(OC, "scale", "dc/" + service.getName(), "--replicas=" + replicas, "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
@@ -239,10 +246,15 @@ public final class OpenShiftClient {
     /**
      * Resolve the url by the service name.
      *
-     * @param service
+     * @param serviceName
      * @return
      */
     public String url(String serviceName) {
+        if (isServerlessService(serviceName)) {
+            io.fabric8.knative.serving.v1.Route knRoute = kn.routes().withName(serviceName).get();
+            return knRoute.getStatus().getUrl();
+        }
+
         Route route = client.routes().withName(serviceName).get();
         if (route == null || route.getSpec() == null) {
             fail("Route for service " + serviceName + " not found");
@@ -304,6 +316,16 @@ public final class OpenShiftClient {
             execLatch.await(TIMEOUT_MINUTES, TimeUnit.MINUTES);
             return out.toString();
         }
+    }
+
+    /**
+     * Returns whether the service name is a serverless (knative) service.
+     * 
+     * @param serviceName
+     * @return
+     */
+    public boolean isServerlessService(String serviceName) {
+        return kn.services().withName(serviceName).get() != null;
     }
 
     /**

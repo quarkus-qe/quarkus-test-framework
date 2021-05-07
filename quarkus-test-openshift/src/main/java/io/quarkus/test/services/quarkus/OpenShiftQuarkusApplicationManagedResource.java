@@ -47,6 +47,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource extends Quarkus
         }
 
         client.scaleTo(model.getContext().getOwner(), 1);
+
         running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
@@ -77,6 +78,10 @@ public abstract class OpenShiftQuarkusApplicationManagedResource extends Quarkus
 
     @Override
     public boolean isRunning() {
+        if (client.isServerlessService(model.getContext().getName())) {
+            return routeIsReachable(Protocol.HTTP);
+        }
+
         return super.isRunning() && routeIsReachable(Protocol.HTTP);
     }
 

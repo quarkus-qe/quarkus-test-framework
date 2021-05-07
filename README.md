@@ -321,11 +321,11 @@ And now, we can write also scenarios to be run in OpenShift by adding the `@Open
 #### Enable/Disable Project Deletion on Failures
 
 By default, the framework will always delete the OpenShift project and, sometimes, it's useful to not delete 
-the OpenShift project on failures to troubleshooting purposes. For disabling the deletion on failures, we need to run the 
+the OpenShift project on failures to troubleshooting purposes. For disabling the deletion, we need to run the 
 test using:
 
 ```
-mvn clean verify -Dts.openshift.delete.project.on.failure=false
+mvn clean verify -Dts.openshift.delete.project.after.all=false
 ```  
 
 #### Deployment Strategies
@@ -530,7 +530,7 @@ the Kubernetes namespace on failures to troubleshooting purposes. For disabling 
 test using:
 
 ```
-mvn clean verify -Dts.kubernetes.delete.namespace.on.failure=false
+mvn clean verify -Dts.kubernetes.delete.namespace.after.all=false
 ```
 
 #### Deployment Strategies
