@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.bootstrap.inject.KubectlClient;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.scenarios.KubernetesScenario;
 import io.quarkus.test.utils.FileUtils;
@@ -15,6 +16,8 @@ import io.quarkus.test.utils.FileUtils;
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "kubectl-client";
+    private static final PropertyLookup DELETE_ON_FAIL = new PropertyLookup("ts.kubernetes.delete.namespace.on.failure",
+            Boolean.TRUE.toString());
 
     private KubectlClient client;
 
@@ -30,7 +33,9 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        client.deleteNamespace();
+        if (DELETE_ON_FAIL.getAsBoolean()) {
+            client.deleteNamespace();
+        }
     }
 
     @Override
