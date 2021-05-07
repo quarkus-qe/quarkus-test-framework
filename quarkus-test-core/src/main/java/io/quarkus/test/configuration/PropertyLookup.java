@@ -53,4 +53,9 @@ public class PropertyLookup {
 
         return defaultValue;
     }
+
+    public Boolean getAsBoolean() {
+        String value = get();
+        return Boolean.TRUE.toString().equalsIgnoreCase(value);
+    }
 }

@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.utils.FileUtils;
@@ -15,6 +16,8 @@ import io.quarkus.test.utils.FileUtils;
 public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "openshift-client";
+    private static final PropertyLookup DELETE_ON_FAIL = new PropertyLookup("ts.openshift.delete.project.on.failure",
+            Boolean.TRUE.toString());
 
     private OpenShiftClient client;
 
@@ -30,7 +33,9 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void afterAll(ExtensionContext context) {
-        client.deleteProject();
+        if (DELETE_ON_FAIL.getAsBoolean()) {
+            client.deleteProject();
+        }
     }
 
     @Override

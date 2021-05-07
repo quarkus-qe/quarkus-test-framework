@@ -318,6 +318,16 @@ Use this Maven dependency:
 
 And now, we can write also scenarios to be run in OpenShift by adding the `@OpenShiftScenario`.
 
+#### Enable/Disable Project Deletion on Failures
+
+By default, the framework will always delete the OpenShift project and, sometimes, it's useful to not delete 
+the OpenShift project on failures to troubleshooting purposes. For disabling the deletion on failures, we need to run the 
+test using:
+
+```
+mvn clean verify -Dts.openshift.delete.project.on.failure=false
+```  
+
 #### Deployment Strategies
 
 - **(Default) Using Build**
@@ -511,6 +521,16 @@ public class KubernetesPingPongResourceIT {
         pingApp.given().get("/pong").then().statusCode(HttpStatus.SC_NOT_FOUND);
     }
 }
+```
+
+#### Enable/Disable Namespace Deletion on Failures
+
+By default, the framework will always delete the Kubernetes namespace and, sometimes, it's useful to not delete 
+the Kubernetes namespace on failures to troubleshooting purposes. For disabling the deletion on failures, we need to run the 
+test using:
+
+```
+mvn clean verify -Dts.kubernetes.delete.namespace.on.failure=false
 ```
 
 #### Deployment Strategies
