@@ -9,6 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        quarkus-version: ["1.13.3.Final", "2.0.0.Alpha2"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -26,7 +27,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Dvalidate-format
+          mvn -s .github/mvn-settings.xml clean install -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dquarkus-plugin.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -57,7 +58,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,native
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dquarkus-plugin.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-native${{ matrix.java }}.zip '*-reports/*'
@@ -97,7 +98,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -B -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dquarkus-plugin.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -139,7 +140,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ quarkus-version }}" -Dquarkus-plugin.version="${{ quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-k8s-native${{ matrix.java }}.zip '*-reports/*'
