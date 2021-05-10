@@ -8,8 +8,8 @@ items:
         app: registry
     spec:
       ports:
-        - port: 8080
-          targetPort: 8080
+        - port: ${KAFKA_REGISTRY_PORT}
+          targetPort: ${KAFKA_REGISTRY_PORT}
           name: client
       selector:
         app: registry
@@ -28,7 +28,7 @@ items:
         spec:
           containers:
             - name: kafka-registry
-              image: apicurio/apicurio-registry-mem:1.3.1.Final
+              image: ${KAFKA_REGISTRY_IMAGE}
               env:
                 - name: QUARKUS_PROFILE
                   value: "prod"
@@ -39,7 +39,7 @@ items:
                 - name: APPLICATION_SERVER
                   value: "localhost:9000"
               ports:
-                - containerPort: 8080
+                - containerPort: ${KAFKA_REGISTRY_PORT}
                   name: client
           restartPolicy: Always
       triggers:

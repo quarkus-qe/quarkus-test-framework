@@ -11,8 +11,8 @@ items:
     spec:
       ports:
         - name: "http"
-          port: 9092
-          targetPort: 9092
+          port: ${KAFKA_PORT}
+          targetPort: ${KAFKA_PORT}
       selector:
         app: ${SERVICE_NAME}
       type: LoadBalancer
@@ -50,12 +50,12 @@ items:
               image: ${IMAGE}:${VERSION}
               imagePullPolicy: IfNotPresent
               command: [ "/bin/sh" ]
-              args: [ "-c", "bin/kafka-server-start.sh config/server.properties --override listeners=PLAINTEXT://0.0.0.0:9092 --override advertised.listeners=PLAINTEXT://${SERVICE_NAME}:9092 --override zookeeper.connect=zookeeper-service:2181" ]
+              args: [ "-c", "bin/kafka-server-start.sh config/server.properties --override listeners=PLAINTEXT://0.0.0.0:${KAFKA_PORT} --override advertised.listeners=PLAINTEXT://${SERVICE_NAME}:${KAFKA_PORT} --override zookeeper.connect=zookeeper-service:2181" ]
               env:
                 - name: "LOG_DIR"
                   value: "/tmp"
               ports:
-                - containerPort: 9092
+                - containerPort: ${KAFKA_PORT}
               resources: {}
       triggers:
       - type: "ConfigChange"

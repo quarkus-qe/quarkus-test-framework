@@ -7,21 +7,8 @@ import org.testcontainers.utility.DockerImageName;
 
 public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
-    private static final String REGISTRY_IMAGE = "confluentinc/cp-schema-registry:";
-    private static final int REGISTRY_PORT = 8081;
-
     protected ConfluentKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
-    }
-
-    @Override
-    protected int getTargetPort() {
-        return KafkaContainer.KAFKA_PORT;
-    }
-
-    @Override
-    protected int getRegistryTargetPort() {
-        return REGISTRY_PORT;
     }
 
     @Override
@@ -31,10 +18,10 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
 
     @Override
     protected GenericContainer<?> initRegistryContainer(GenericContainer<?> kafka) {
-        GenericContainer<?> schemaRegistry = new GenericContainer<>(REGISTRY_IMAGE + getKafkaVersion());
-        schemaRegistry.withExposedPorts(REGISTRY_PORT);
+        GenericContainer<?> schemaRegistry = new GenericContainer<>(DockerImageName.parse(getKafkaRegistryImage()));
+        schemaRegistry.withExposedPorts(getKafkaRegistryPort());
         schemaRegistry.withEnv("SCHEMA_REGISTRY_HOST_NAME", "schema-registry");
-        schemaRegistry.withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:" + REGISTRY_PORT);
+        schemaRegistry.withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:" + getKafkaRegistryPort());
         schemaRegistry.withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS",
                 "PLAINTEXT://" + kafka.getNetworkAliases().get(0) + ":9092");
         return schemaRegistry;
