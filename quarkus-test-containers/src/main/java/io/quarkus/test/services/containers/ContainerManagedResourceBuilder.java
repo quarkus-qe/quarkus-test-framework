@@ -7,6 +7,7 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.Container;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -42,9 +43,9 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
-        this.image = metadata.image();
+        this.image = PropertiesUtils.resolveProperty(metadata.image());
         this.command = metadata.command();
-        this.expectedLog = metadata.expectedLog();
+        this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.port = metadata.port();
     }
 

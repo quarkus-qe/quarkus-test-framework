@@ -8,6 +8,7 @@ import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.containers.model.KafkaVendor;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -44,8 +45,8 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
     public void init(Annotation annotation) {
         KafkaContainer metadata = (KafkaContainer) annotation;
         this.vendor = metadata.vendor();
-        this.image = metadata.image();
-        this.version = metadata.version();
+        this.image = PropertiesUtils.resolveProperty(metadata.image());
+        this.version = PropertiesUtils.resolveProperty(metadata.version());
         this.withRegistry = metadata.withRegistry();
     }
 
