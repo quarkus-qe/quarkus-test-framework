@@ -1,15 +1,19 @@
 package io.quarkus.test.services.containers.model;
 
 public enum KafkaVendor {
-    CONFLUENT("confluentinc/cp-kafka", "6.1.1"),
-    STRIMZI("quay.io/strimzi/kafka", "0.22.1-kafka-2.5.0");
+    CONFLUENT("confluentinc/cp-kafka", "6.1.1", 9093, KafkaRegistry.CONFLUENT),
+    STRIMZI("quay.io/strimzi/kafka", "0.22.1-kafka-2.7.0", 9092, KafkaRegistry.APICURIO);
 
     private final String image;
     private final String defaultVersion;
+    private final int port;
+    private final KafkaRegistry registry;
 
-    KafkaVendor(String image, String defaultVersion) {
+    KafkaVendor(String image, String defaultVersion, int port, KafkaRegistry registry) {
         this.image = image;
         this.defaultVersion = defaultVersion;
+        this.port = port;
+        this.registry = registry;
     }
 
     public String getImage() {
@@ -18,5 +22,13 @@ public enum KafkaVendor {
 
     public String getDefaultVersion() {
         return defaultVersion;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public KafkaRegistry getRegistry() {
+        return registry;
     }
 }

@@ -21,28 +21,9 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         this.model = model;
     }
 
-    protected abstract int getRegistryTargetPort();
-
     protected abstract GenericContainer<?> initKafkaContainer();
 
     protected abstract GenericContainer<?> initRegistryContainer(GenericContainer<?> kafka);
-
-    @Override
-    protected GenericContainer<?> initContainer() {
-        GenericContainer<?> kafkaContainer = initKafkaContainer();
-
-        if (model.isWithRegistry()) {
-            schemaRegistry = initRegistryContainer(kafkaContainer);
-            schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext(), schemaRegistry);
-
-            // Setup common network for kafka and the registry
-            network = Network.newNetwork();
-            kafkaContainer.withNetwork(network);
-            schemaRegistry.withNetwork(network);
-        }
-
-        return kafkaContainer;
-    }
 
     @Override
     public void start() {
@@ -67,8 +48,34 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         return StringUtils.defaultIfBlank(model.getVersion(), model.getVendor().getDefaultVersion());
     }
 
-    protected String getRegistryPath() {
-        return StringUtils.EMPTY;
+    protected String getKafkaRegistryImage() {
+        return model.getVendor().getRegistry().getImage() + ":" + model.getVendor().getRegistry().getDefaultVersion();
+    }
+
+    protected int getKafkaRegistryPort() {
+        return model.getVendor().getRegistry().getPort();
+    }
+
+    @Override
+    protected GenericContainer<?> initContainer() {
+        GenericContainer<?> kafkaContainer = initKafkaContainer();
+
+        if (model.isWithRegistry()) {
+            schemaRegistry = initRegistryContainer(kafkaContainer);
+            schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext(), schemaRegistry);
+
+            // Setup common network for kafka and the registry
+            network = Network.newNetwork();
+            kafkaContainer.withNetwork(network);
+            schemaRegistry.withNetwork(network);
+        }
+
+        return kafkaContainer;
+    }
+
+    @Override
+    protected int getTargetPort() {
+        return model.getVendor().getPort();
     }
 
     private void startRegistryIfEnabled() {
@@ -99,8 +106,9 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     }
 
     private String getSchemaRegistryUrl() {
-        return "http://" + schemaRegistry.getContainerIpAddress() + ":" + schemaRegistry.getMappedPort(getRegistryTargetPort())
-                + getRegistryPath();
+        return "http://" + schemaRegistry.getContainerIpAddress()
+                + ":" + schemaRegistry.getMappedPort(model.getVendor().getRegistry().getPort())
+                + model.getVendor().getRegistry().getPath();
     }
 
 }

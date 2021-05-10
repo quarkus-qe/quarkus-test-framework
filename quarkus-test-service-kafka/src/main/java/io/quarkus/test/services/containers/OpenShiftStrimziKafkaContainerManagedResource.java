@@ -22,7 +22,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/strimzi-deployment-template.yml";
     private static final String DEPLOYMENT = "kafka.yml";
 
-    private static final String REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/apicurio-deployment-template.yml";
+    private static final String REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/registry-deployment-template.yml";
     private static final String REGISTRY_DEPLOYMENT = "registry.yml";
     private static final int REGISTRY_PORT = 8080;
 
@@ -116,7 +116,9 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     private void applyRegistryDeployment() {
         client.applyServicePropertiesUsingTemplate(registry, REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT,
-                content -> content.replaceAll(quote("${KAFKA_BOOTSTRAP_URL}"), getKafkaBootstrapUrl()),
+                content -> content.replaceAll(quote("${KAFKA_BOOTSTRAP_URL}"), getKafkaBootstrapUrl())
+                        .replaceAll(quote("${KAFKA_REGISTRY_IMAGE}"), getKafkaRegistryImage())
+                        .replaceAll(quote("${KAFKA_REGISTRY_PORT}"), "" + model.getVendor().getRegistry().getPort()),
                 model.getContext().getServiceFolder().resolve(REGISTRY_DEPLOYMENT));
 
         client.expose(registry, REGISTRY_PORT);
@@ -142,6 +144,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
         return content.replaceAll(quote("${IMAGE}"), getKafkaImage())
                 .replaceAll(quote("${VERSION}"), getKafkaVersion())
+                .replaceAll(quote("${KAFKA_PORT}"), "" + model.getVendor().getPort())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName());
     }
 
@@ -151,6 +154,10 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     protected String getKafkaVersion() {
         return StringUtils.defaultIfBlank(model.getVersion(), model.getVendor().getDefaultVersion());
+    }
+
+    protected String getKafkaRegistryImage() {
+        return model.getVendor().getRegistry().getImage() + ":" + model.getVendor().getRegistry().getDefaultVersion();
     }
 
 }
