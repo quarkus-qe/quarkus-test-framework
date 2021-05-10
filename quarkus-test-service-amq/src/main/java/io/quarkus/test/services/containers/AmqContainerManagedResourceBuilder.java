@@ -7,6 +7,7 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.AmqContainer;
 import io.quarkus.test.services.containers.model.AmqProtocol;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class AmqContainerManagedResourceBuilder extends ContainerManagedResourceBuilder {
 
@@ -45,8 +46,8 @@ public class AmqContainerManagedResourceBuilder extends ContainerManagedResource
     @Override
     public void init(Annotation annotation) {
         AmqContainer metadata = (AmqContainer) annotation;
-        this.image = metadata.image();
-        this.expectedLog = metadata.expectedLog();
+        this.image = PropertiesUtils.resolveProperty(metadata.image());
+        this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.protocol = metadata.protocol();
     }
 
