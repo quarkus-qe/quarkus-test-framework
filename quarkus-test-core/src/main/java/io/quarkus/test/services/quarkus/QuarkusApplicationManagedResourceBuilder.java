@@ -35,6 +35,11 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private ServiceContext context;
     private boolean sslEnabled = false;
     private Map<String, String> propertiesSnapshot;
+    private String gitRepositoryUri;
+    private String gitRef;
+    private String contextDir;
+    private String quarkusBuildVersion;
+    private Map<String, String> envVars;
 
     protected abstract void build();
 
@@ -60,6 +65,38 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected boolean isSelectedAppClasses() {
         return selectedAppClasses;
+    }
+
+    protected String getGitRepositoryUri() {
+        return gitRepositoryUri;
+    }
+
+    public void setGitRepositoryUri(String gitRepositoryUri) {
+        this.gitRepositoryUri = gitRepositoryUri;
+    }
+
+    protected String getGitRef() {
+        return gitRef;
+    }
+
+    public void setGitRef(String gitRef) {
+        this.gitRef = gitRef;
+    }
+
+    protected String getContextDir() {
+        return contextDir;
+    }
+
+    public void setContextDir(String contextDir) {
+        this.contextDir = contextDir;
+    }
+
+    public String getQuarkusBuildVersion() {
+        return quarkusBuildVersion;
+    }
+
+    public void setQuarkusBuildVersion(String quarkusBuildVersion) {
+        this.quarkusBuildVersion = quarkusBuildVersion;
     }
 
     public boolean containsBuildProperties() {
