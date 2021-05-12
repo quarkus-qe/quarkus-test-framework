@@ -519,6 +519,27 @@ public class OpenShiftUsingExtensionPingPongResourceIT {
 
 The same limitations as in `OpenShift Extension` strategy apply here too.
 
+- **Quarkus Source S2I**
+
+This strategy utilises source S2I process described by the Quarkus product documentation:
+```shell
+oc import-image --confirm ubi8/openjdk-11 --from=registry.access.redhat.com/ubi8/openjdk-11
+oc new-app ubi8/openjdk-11 <git_path> --context-dir=<context_dir> --name=<project_name>
+```
+
+The application's git repository, ref, context dir and Quarkus version are all specified in `@QuarkusApplication` annotation.
+
+Example:
+
+```java
+@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.QuarkusS2IBuild)
+public class OpenShiftS2iQuickstartIT {
+
+    @QuarkusApplication(gitRepositoryUri = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    static final RestService app = new RestService();
+    //
+```
+
 - **Container Registry**
 
 This strategy will build the image locally and push it to an intermediary container registry (provided by a system property). Then, the image will be pulled from the container registry in OpenShift.

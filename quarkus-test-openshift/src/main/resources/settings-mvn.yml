@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-mvn
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+        <profiles>
+            <profile>
+                <id>redhat</id>
+                <repositories>
+                    <repository>
+                        <id>redhat</id>
+                        <name>Repository for Redhat dependencies</name>
+                        <url>https://maven.repository.redhat.com/ga/</url>
+                    </repository>
+                </repositories>
+                <pluginRepositories>
+                    <pluginRepository>
+                        <id>redhat</id>
+                        <name>Repository for Redhat dependencies</name>
+                        <url>https://maven.repository.redhat.com/ga/</url>
+                    </pluginRepository>
+                </pluginRepositories>
+            </profile>
+            <profile>
+                <id>customRemoteRepository</id>
+                <repositories>
+                    <repository>
+                        <id>ts.s2i.maven.remote.repository</id>
+                        <url>${ts.s2i.maven.remote.repository}</url>
+                        <snapshots>
+                            <enabled>false</enabled>
+                        </snapshots>
+                    </repository>
+                </repositories>
+                <pluginRepositories>
+                    <pluginRepository>
+                        <id>ts.s2i.maven.remote.repository</id>
+                        <url>${ts.s2i.maven.remote.repository}</url>
+                        <snapshots>
+                            <enabled>false</enabled>
+                        </snapshots>
+                    </pluginRepository>
+                </pluginRepositories>
+            </profile>
+        </profiles>
+        <activeProfiles>
+            <activeProfile>customRemoteRepository</activeProfile>
+            <activeProfile>redhat</activeProfile>
+        </activeProfiles>
+    </settings>

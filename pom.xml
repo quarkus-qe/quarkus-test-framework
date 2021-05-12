@@ -341,6 +341,7 @@
                 <module>examples/amq-amqp</module>
                 <module>examples/jaeger</module>
                 <module>examples/database-mysql</module>
+                <module>examples/external-applications</module>
             </modules>
         </profile>
         <profile>

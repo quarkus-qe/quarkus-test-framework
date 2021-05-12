@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -65,6 +67,14 @@ public final class FileUtils {
         }
     }
 
+    public static void copyFileTo(String resourceFileName, Path targetPath) {
+        try (InputStream resources = FileUtils.class.getClassLoader().getResourceAsStream(resourceFileName)) {
+            Files.copy(resources, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
     public static void copyCurrentDirectoryTo(Path target) {
         try {
             org.apache.commons.io.FileUtils.copyDirectory(Paths.get(".").toFile(), target.toFile(),
@@ -100,4 +110,5 @@ public final class FileUtils {
 
         return Optional.empty();
     }
+
 }
