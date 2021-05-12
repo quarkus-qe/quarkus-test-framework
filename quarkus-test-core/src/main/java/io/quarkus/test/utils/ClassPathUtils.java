@@ -22,6 +22,9 @@ public final class ClassPathUtils {
         List<Class<?>> classes = new LinkedList<>();
         try {
             Path classesPathInSources = Path.of(SOURCE_CLASSES_LOCATION);
+            if (!Files.exists(classesPathInSources)) {
+                return new Class<?>[0];
+            }
             try (Stream<Path> stream = Files.walk(classesPathInSources)) {
                 stream.map(Path::toString).filter(s -> s.endsWith(CLASS_SUFFIX)).map(ClassPathUtils::normalizeClassName)
                         .forEach(className -> {

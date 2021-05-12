@@ -310,6 +310,7 @@
                 <module>examples/amq-tcp</module>
                 <module>examples/amq-amqp</module>
                 <module>examples/jaeger</module>
+                <module>examples/external-applications</module>
             </modules>
         </profile>
         <profile>

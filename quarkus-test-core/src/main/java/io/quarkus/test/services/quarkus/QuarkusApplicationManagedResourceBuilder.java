@@ -61,6 +61,11 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
     private boolean selectedAppClasses = true;
     private QuarkusManagedResource managedResource;
     private Map<String, String> propertiesSnapshot;
+    private String sourceS2iRepositoryUri;
+    private String sourceS2iGitRef;
+    private String sourceS2iContextDir;
+    private String[] sourceS2iEnvVars;
+    private Map<String, String> envVars;
 
     protected LaunchMode getLaunchMode() {
         return launchMode;
@@ -86,6 +91,22 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
         return sslEnabled;
     }
 
+    protected String getSourceS2iRepositoryUri() {
+        return sourceS2iRepositoryUri;
+    }
+
+    protected String getSourceS2iGitRef() {
+        return sourceS2iGitRef;
+    }
+
+    protected String[] getSourceS2iEnvVars() {
+        return sourceS2iEnvVars;
+    }
+
+    protected String getSourceS2iContextDir() {
+        return sourceS2iContextDir;
+    }
+
     @Override
     public void init(Annotation annotation) {
         QuarkusApplication metadata = (QuarkusApplication) annotation;
@@ -95,6 +116,10 @@ public class QuarkusApplicationManagedResourceBuilder implements ManagedResource
             appClasses = ClassPathUtils.findAllClassesFromSource();
             selectedAppClasses = false;
         }
+        sourceS2iRepositoryUri = metadata.sourceS2iRepositoryUri();
+        sourceS2iGitRef = metadata.sourceS2iGitRef();
+        sourceS2iContextDir = metadata.sourceS2iContextDir();
+        sourceS2iEnvVars = metadata.sourceS2iEnvVars();
     }
 
     @Override

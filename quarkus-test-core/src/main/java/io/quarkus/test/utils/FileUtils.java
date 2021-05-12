@@ -4,10 +4,12 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -100,4 +102,15 @@ public final class FileUtils {
 
         return Optional.empty();
     }
+
+    public static Path copyResourceIntoTempFile(String resourceFileName) {
+        try (InputStream resources = FileUtils.class.getClassLoader().getResourceAsStream(resourceFileName)) {
+            Path tempFile = Files.createTempFile(resourceFileName.split("\\.")[0], "." + resourceFileName.split("\\.")[1]);
+            Files.copy(resources, tempFile, StandardCopyOption.REPLACE_EXISTING);
+            return tempFile;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex);
+        }
+    }
+
 }

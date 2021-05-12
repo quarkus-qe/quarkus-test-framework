@@ -21,4 +21,13 @@ public @interface QuarkusApplication {
      * `quarkus.http.ssl.certificate.key-store-password` to be set.
      */
     boolean ssl() default false;
+
+    String sourceS2iRepositoryUri() default "";
+
+    String sourceS2iGitRef() default "";
+
+    String sourceS2iContextDir() default "";
+
+    String[] sourceS2iEnvVars() default {};
+
 }
