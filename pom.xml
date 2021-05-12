@@ -6,9 +6,24 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
+    <licenses>
+        <license>
+            <name>The Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+    <developers>
+        <developer>
+            <id>quarkus-qe</id>
+            <name>Quarkus QE</name>
+            <organization>Quarkus QE</organization>
+            <url>https://github.com/quarkus-qe</url>
+        </developer>
+    </developers>
     <properties>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <source-plugin.version>3.2.1</source-plugin.version>
+        <javadoc-plugin.version>3.2.0</javadoc-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
@@ -128,6 +143,19 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>${javadoc-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
                         </goals>
                     </execution>
                 </executions>
