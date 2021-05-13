@@ -11,6 +11,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
 
     private static final String USER = "admin";
     private static final String PASSWORD = "admin";
+    private static final int HTTP_80 = 80;
 
     private final String realm;
 
@@ -26,7 +27,13 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public String getRealmUrl() {
-        return String.format("%s:%s/auth/realms/%s", getHost(), getPort(), realm);
+        String url = getHost();
+        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
+        if (getPort() != HTTP_80) {
+            url += ":" + getPort();
+        }
+
+        return String.format("%s/auth/realms/%s", url, realm);
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {
