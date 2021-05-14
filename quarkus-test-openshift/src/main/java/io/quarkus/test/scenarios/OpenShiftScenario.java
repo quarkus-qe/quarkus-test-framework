@@ -9,6 +9,7 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
+import io.quarkus.test.services.Operator;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
@@ -16,4 +17,6 @@ import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 @Inherited
 public @interface OpenShiftScenario {
     OpenShiftDeploymentStrategy deployment() default OpenShiftDeploymentStrategy.Build;
+
+    Operator[] operators() default {};
 }

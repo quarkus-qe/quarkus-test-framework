@@ -7,6 +7,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,21 +29,29 @@ import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
+import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
+import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroup;
+import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroupSpec;
+import io.fabric8.openshift.api.model.operatorhub.v1alpha1.ClusterServiceVersion;
+import io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription;
+import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
 import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.operator.model.CustomResourceStatus;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 import okhttp3.Response;
@@ -56,6 +65,9 @@ public final class OpenShiftClient {
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
+    private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
+    private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
+    private static final String CUSTOM_RESOURCE_EXPECTED_STATUS = "True";
 
     private static final String OC = "oc";
 
@@ -286,6 +298,66 @@ public final class OpenShiftClient {
         } catch (IOException e) {
             fail("Fail to load the file " + file + ". Caused by " + e.getMessage());
         }
+    }
+
+    public void installOperator(String name, String channel, String source, String sourceNamespace) {
+
+        // Install the operator group
+        OperatorGroup groupModel = new OperatorGroup();
+        groupModel.setMetadata(new ObjectMeta());
+        groupModel.getMetadata().setName(name);
+        groupModel.setSpec(new OperatorGroupSpec());
+        groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
+        client.resource(groupModel).createOrReplace();
+
+        // Install the subscription
+        Subscription subscriptionModel = new Subscription();
+        subscriptionModel.setMetadata(new ObjectMeta());
+        subscriptionModel.getMetadata().setName(name);
+        subscriptionModel.getMetadata().setNamespace(currentNamespace);
+
+        subscriptionModel.setSpec(new SubscriptionSpec());
+        subscriptionModel.getSpec().setChannel(channel);
+        subscriptionModel.getSpec().setName(name);
+        subscriptionModel.getSpec().setSource(source);
+        subscriptionModel.getSpec().setSourceNamespace(sourceNamespace);
+
+        Log.info("Installing operator... %s", name);
+        client.operatorHub().subscriptions().create(subscriptionModel);
+
+        // Wait for the operator to be installed
+        Awaitility.await().atMost(TIMEOUT_MINUTES, TimeUnit.MINUTES)
+                .until(() -> {
+                    // Get Cluster Service Version
+                    Subscription subscription = client.operatorHub().subscriptions().withName(name).get();
+                    String installedCsv = subscription.getStatus().getInstalledCSV();
+                    if (StringUtils.isEmpty(installedCsv)) {
+                        return false;
+                    }
+
+                    // Check Cluster Service Version status
+                    ClusterServiceVersion operatorService = client.operatorHub().clusterServiceVersions().withName(installedCsv)
+                            .get();
+                    return OPERATOR_PHASE_INSTALLED.equals(operatorService.getStatus().getPhase());
+                });
+        Log.info("Operator installed... %s", name);
+    }
+
+    /**
+     * Check whether the the custom resource to have a condition status "Ready" with value "True".
+     */
+    public boolean isCustomResourceReady(String name,
+            Class<? extends CustomResource<?, ? extends CustomResourceStatus>> crdType) {
+        CustomResource<?, ? extends CustomResourceStatus> customResource = client.customResources(crdType).withName(name).get();
+        if (customResource == null
+                || customResource.getStatus() == null
+                || customResource.getStatus().getConditions() == null) {
+            return false;
+        }
+
+        return customResource.getStatus().getConditions().stream()
+                .anyMatch(condition -> CUSTOM_RESOURCE_EXPECTED_TYPE.equals(condition.getType())
+                        && CUSTOM_RESOURCE_EXPECTED_STATUS.equals(condition.getStatus()));
     }
 
     public String execOnPod(String namespace, String podName, String containerId, String... input)
