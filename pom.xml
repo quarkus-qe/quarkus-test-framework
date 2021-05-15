@@ -6,6 +6,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
+    <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
     <licenses>
         <license>
             <name>The Apache License, Version 2.0</name>
@@ -20,6 +21,13 @@
             <url>https://github.com/quarkus-qe</url>
         </developer>
     </developers>
+    <scm>
+        <connection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</connection>
+        <developerConnection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</developerConnection>
+        <url>https://github.com/quarkus-qe/quarkus-test-framework</url>
+        <tag>HEAD</tag>
+    </scm>
+    <url>https://github.com/quarkus-qe/quarkus-test-framework/</url>
     <properties>
         <compiler-plugin.version>3.8.1</compiler-plugin.version>
         <source-plugin.version>3.2.1</source-plugin.version>
@@ -27,6 +35,7 @@
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>11</maven.compiler.source>
         <maven.compiler.target>11</maven.compiler.target>
+        <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
@@ -47,6 +56,16 @@
         <src.sort.goal>sort</src.sort.goal>
         <xml.format.goal>xml-format</xml.format.goal>
     </properties>
+    <distributionManagement>
+        <snapshotRepository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+        </snapshotRepository>
+        <repository>
+            <id>oss.sonatype</id>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+        </repository>
+    </distributionManagement>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -159,6 +178,17 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-release-plugin</artifactId>
+                <configuration>
+                    <autoVersionSubmodules>true</autoVersionSubmodules>
+                    <tagNameFormat>@{project.version}</tagNameFormat>
+                    <pushChanges>false</pushChanges>
+                    <localCheckout>true</localCheckout>
+                    <remoteTagging>false</remoteTagging>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>net.revelc.code.formatter</groupId>
@@ -385,6 +415,55 @@
                 <src.sort.goal>check</src.sort.goal>
                 <xml.format.goal>xml-check</xml.format.goal>
             </properties>
+        </profile>
+        <profile>
+            <id>release</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <configuration>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <artifactId>maven-javadoc-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <phase>package</phase>
+                                <goals>
+                                    <goal>jar</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.sonatype.plugins</groupId>
+                        <artifactId>nexus-staging-maven-plugin</artifactId>
+                        <version>1.6.8</version>
+                        <extensions>true</extensions>
+                        <configuration>
+                            <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                            <serverId>ossrh</serverId>
+                            <autoReleaseAfterClose>false</autoReleaseAfterClose>
+                            <stagingProgressTimeoutMinutes>60</stagingProgressTimeoutMinutes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
