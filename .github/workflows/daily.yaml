@@ -143,7 +143,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ quarkus-version }}"
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-k8s-native${{ matrix.java }}.zip '*-reports/*'
