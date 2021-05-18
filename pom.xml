@@ -372,7 +372,7 @@
             <properties>
                 <quarkus.package.type>native</quarkus.package.type>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
-                <quarkus.native.native-image-xmx>3g</quarkus.native.native-image-xmx>
+                <quarkus.native.native-image-xmx>5g</quarkus.native.native-image-xmx>
             </properties>
         </profile>
         <profile>
