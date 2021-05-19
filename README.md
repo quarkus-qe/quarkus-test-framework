@@ -326,7 +326,83 @@ test using:
 
 ```
 mvn clean verify -Dts.openshift.delete.project.after.all=false
-```  
+```
+
+#### Operators
+
+The OpenShift scenarios support Operator based test cases. There are two ways to deal with Operators:
+
+- Installing the Operators as part of the `OpenShiftScenario`:
+
+```java
+@OpenShiftScenario(
+        operators = @Operator(name = "strimzi-kafka-operator")
+)
+public class StrimziOperatorKafkaWithoutRegistryMessagingIT {
+    // We can now use the new Operator CRDs manually
+}
+```
+
+- Installing and managing Custom Resource Definitions as services
+
+First, we need to create our Custom Resource YAML file, for example, for Kafka:
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: kafka-instance
+spec:
+  ...
+```
+
+Now, we can create an OperatorService to load this YAML as part of an Operator installation:
+
+```java
+@OpenShiftScenario
+public class OperatorExampleIT {
+
+    @Operator(name = "my-operator", source = "...")
+    static final OperatorService operator = new OperatorService().withCrd("kafka-instance", "/my-crd.yaml");
+
+    @QuarkusApplication
+    static final RestService app = new RestService();
+
+    // ...
+}
+```
+
+The framework will install the operator and load the YAML file by you.
+
+Note that the framework will wait for the operator to be installed before loading the CRD yaml files, but will not wait for the CRDs to be ready. If you are working with CRDs that update conditions, then we can ease this for you by providing the custom resource definition:
+
+```java
+@Version("v1beta2")
+@Group("kafka.strimzi.io")
+@Kind("Kafka")
+public class KafkaInstanceCustomResource
+        extends CustomResource<CustomResourceSpec, CustomResourceStatus>
+        implements Namespaced {
+}
+```
+
+And then registering the CRD with this type:
+
+```java
+@OpenShiftScenario
+public class OperatorExampleIT {
+
+    @Operator(name = "my-operator", source = "...")
+    static final OperatorService operator = new OperatorService().withCrd("kafka-instance", "/my-crd.yaml", KafkaInstanceCustomResource.class);
+
+    @QuarkusApplication
+    static final RestService app = new RestService();
+
+    // ...
+}
+```
+
+Now, the framework will wait for the operator to be installed and the custom resource named `kafka-instance` to be with a condition "Ready" as "True".
 
 #### Deployment Strategies
 
