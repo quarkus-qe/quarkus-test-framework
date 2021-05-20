@@ -13,7 +13,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.operator.KafkaInstance;
 
 @OpenShiftScenario
-public class StrimziOperatorKafkaWithoutRegistryMessagingIT {
+public class OpenShiftStrimziOperatorKafkaWithoutRegistryMessagingIT {
 
     @Operator(name = "strimzi-kafka-operator")
     static final KafkaInstance kafka = new KafkaInstance();
