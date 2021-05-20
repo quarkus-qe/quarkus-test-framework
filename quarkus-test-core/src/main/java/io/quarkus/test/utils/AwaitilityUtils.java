@@ -65,7 +65,7 @@ public final class AwaitilityUtils {
         awaits().untilAsserted(assertion);
     }
 
-    private static <T> T until(Supplier<T> supplier, Matcher<T> matcher) {
+    public static <T> T until(Supplier<T> supplier, Matcher<T> matcher) {
         return awaits().until(get(supplier), matcher);
     }
 

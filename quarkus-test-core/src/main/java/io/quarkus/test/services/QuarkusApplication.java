@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
-import io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder;
+import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -14,7 +14,7 @@ public @interface QuarkusApplication {
     // By default, it will load all the classes in the classpath.
     Class<?>[] classes() default {};
 
-    Class<? extends ManagedResourceBuilder> builder() default QuarkusApplicationManagedResourceBuilder.class;
+    Class<? extends ManagedResourceBuilder> builder() default ProdQuarkusApplicationManagedResourceBuilder.class;
 
     /**
      * Enable SSL configuration. This property needs `quarkus.http.ssl.certificate.key-store-file` and

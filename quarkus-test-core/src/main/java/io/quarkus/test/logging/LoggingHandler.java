@@ -28,6 +28,7 @@ public abstract class LoggingHandler {
         logs.clear();
         running = true;
         innerThread = new Thread(this::run);
+        innerThread.setDaemon(true);
         innerThread.start();
     }
 

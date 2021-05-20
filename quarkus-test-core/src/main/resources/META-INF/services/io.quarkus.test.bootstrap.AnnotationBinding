@@ -1,1 +1,2 @@
 io.quarkus.test.services.quarkus.QuarkusApplicationAnnotationBinding
+io.quarkus.test.services.quarkus.DevModeQuarkusApplicationAnnotationBinding

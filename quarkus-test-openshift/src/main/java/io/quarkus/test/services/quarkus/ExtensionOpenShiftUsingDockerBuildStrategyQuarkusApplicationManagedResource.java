@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.MavenUtils.withProperty;
 import static java.util.regex.Pattern.quote;
 
 import java.nio.file.Files;
@@ -18,7 +19,7 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManaged
     private static final String DOCKERFILE_SOURCE_FOLDER = "src/main/docker";
 
     public ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManagedResource(
-            QuarkusApplicationManagedResourceBuilder model) {
+            ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 

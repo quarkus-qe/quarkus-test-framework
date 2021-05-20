@@ -35,5 +35,9 @@
             <artifactId>shrinkwrap-depchain</artifactId>
             <type>pom</type>
         </dependency>
+        <dependency>
+            <groupId>net.sourceforge.htmlunit</groupId>
+            <artifactId>htmlunit</artifactId>
+        </dependency>
     </dependencies>
 </project>

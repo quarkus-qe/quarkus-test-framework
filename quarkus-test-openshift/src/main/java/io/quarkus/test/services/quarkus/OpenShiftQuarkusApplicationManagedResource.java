@@ -17,14 +17,14 @@ public abstract class OpenShiftQuarkusApplicationManagedResource extends Quarkus
 
     private static final int EXTERNAL_PORT = 80;
 
-    protected final QuarkusApplicationManagedResourceBuilder model;
+    protected final ProdQuarkusApplicationManagedResourceBuilder model;
     protected final OpenShiftClient client;
 
     private LoggingHandler loggingHandler;
     private boolean init;
     private boolean running;
 
-    public OpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+    public OpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
         this.client = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
     }

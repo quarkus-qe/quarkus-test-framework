@@ -106,6 +106,42 @@ public class OnlyOnJvmIT {
 }
 ```
 
+### Dev mode
+
+The test framework supports bare metal testing of DEV mode Quarkus testing. Example:
+
+```java
+@QuarkusScenario
+public class DevModeGreetingResourceIT {
+    @DevModeQuarkusApplication
+    static DevModeQuarkusService app = new DevModeQuarkusService();
+}
+```
+
+The application will start on DEV mode and will have enabled all the live coding features.
+
+This feature includes a new `DevModeQuarkusService` service with the next functionality:
+
+- `enableContinuousTesting` - to enable continuous testing
+
+```java
+app.enableContinuousTesting();
+```
+
+Internally, the framework will load the DEV UI and enable the continuous testing by clicking on the HTML element.
+
+- `modifyFile` - to modify a Java source or resources file:
+
+```java
+app.modifyFile("src/main/java/io/quarkus/qe/GreetingResource.java",content -> content.replace("victor", "manuel"));
+```
+
+- `copyFile` - to copy a Java source or resources file from one source to a destination. Note that the framework will overwrite the destination file if it exists:
+
+```java
+app.copyFile("src/test/resources/jose.properties", "src/main/resources/application.properties");
+```
+
 ### Disable Tests on a Concrete Quarkus version
 
 ```java
@@ -759,6 +795,25 @@ public class GreetingResourceIT {
 
 
 ## More Features
+
+- Log verifications
+
+All the services provide the logs of the running container or Quarkus application. Example of usage:
+
+```java
+@QuarkusScenario
+public class DevModeMySqlDatabaseIT {
+
+    @DevModeQuarkusApplication
+    static RestService app = new RestService();
+
+    @Test
+    public void verifyLogsToAssertDevMode() {
+        app.logs().assertContains("Profile dev activated. Live Coding activated");
+        // or app.getLogs() to get the full list of logs.
+    }
+}
+```
 
 - Discovery of build time properties to build Quarkus applications
 
