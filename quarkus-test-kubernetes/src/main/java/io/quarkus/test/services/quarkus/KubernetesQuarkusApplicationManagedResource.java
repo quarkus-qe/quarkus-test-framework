@@ -22,7 +22,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final int INTERNAL_PORT_DEFAULT = 8080;
 
-    private final QuarkusApplicationManagedResourceBuilder model;
+    private final ProdQuarkusApplicationManagedResourceBuilder model;
     private final KubectlClient client;
 
     private LoggingHandler loggingHandler;
@@ -30,7 +30,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private boolean running;
     private String image;
 
-    public KubernetesQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+    public KubernetesQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
         this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
     }

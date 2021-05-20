@@ -143,6 +143,7 @@ public class QuarkusScenarioBootstrap
 
         field.setAccessible(true);
         Service service = (Service) field.get(null);
+        service.validate(field);
         service.register(field.getName());
         ServiceContext serviceContext = new ServiceContext(service, context);
         extensions.forEach(ext -> ext.updateServiceContext(serviceContext));

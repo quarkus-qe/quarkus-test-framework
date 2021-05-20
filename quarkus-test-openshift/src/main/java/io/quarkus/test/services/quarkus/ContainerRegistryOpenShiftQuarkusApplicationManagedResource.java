@@ -16,7 +16,7 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends
 
     private String image;
 
-    public ContainerRegistryOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+    public ContainerRegistryOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 

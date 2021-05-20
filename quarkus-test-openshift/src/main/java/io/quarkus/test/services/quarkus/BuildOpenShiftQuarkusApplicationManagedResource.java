@@ -26,7 +26,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQu
     private static final PropertyLookup UBI_QUARKUS_NATIVE_S2I = new PropertyLookup("quarkus.s2i.base-native-image",
             "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
 
-    public BuildOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+    public BuildOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 

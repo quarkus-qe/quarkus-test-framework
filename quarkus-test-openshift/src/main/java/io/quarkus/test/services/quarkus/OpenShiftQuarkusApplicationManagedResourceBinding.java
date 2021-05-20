@@ -13,13 +13,13 @@ public class OpenShiftQuarkusApplicationManagedResourceBinding implements Quarku
     }
 
     @Override
-    public QuarkusManagedResource init(QuarkusApplicationManagedResourceBuilder builder) {
+    public QuarkusManagedResource init(ProdQuarkusApplicationManagedResourceBuilder builder) {
         OpenShiftScenario annotation = builder.getContext().getTestContext().getRequiredTestClass()
                 .getAnnotation(OpenShiftScenario.class);
 
         try {
             return annotation.deployment().getStrategyClass()
-                    .getDeclaredConstructor(QuarkusApplicationManagedResourceBuilder.class)
+                    .getDeclaredConstructor(ProdQuarkusApplicationManagedResourceBuilder.class)
                     .newInstance(builder);
         } catch (Exception exception) {
             fail("Failed to load OpenShift strategy. Caused by " + exception.getMessage());

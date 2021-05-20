@@ -3,6 +3,7 @@ package io.quarkus.test.bootstrap;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -15,6 +16,7 @@ import java.util.stream.Stream;
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.LogsVerifier;
 import io.quarkus.test.utils.PropertiesUtils;
 
 public class BaseService<T extends Service> implements Service {
@@ -102,6 +104,11 @@ public class BaseService<T extends Service> implements Service {
         return Collections.unmodifiableMap(properties);
     }
 
+    @Override
+    public List<String> getLogs() {
+        return new ArrayList<>(managedResource.logs());
+    }
+
     /**
      * Start the managed resource. If the managed resource is running, it does
      * nothing.
@@ -155,6 +162,11 @@ public class BaseService<T extends Service> implements Service {
 
     public void restart() {
         managedResource.restart();
+    }
+
+    @Override
+    public LogsVerifier logs() {
+        return new LogsVerifier(this);
     }
 
     protected <U> U getPropertyFromContext(String key) {

@@ -15,5 +15,5 @@ public interface QuarkusApplicationManagedResourceBinding {
      * @param builder
      * @return
      */
-    QuarkusManagedResource init(QuarkusApplicationManagedResourceBuilder builder);
+    QuarkusManagedResource init(ProdQuarkusApplicationManagedResourceBuilder builder);
 }

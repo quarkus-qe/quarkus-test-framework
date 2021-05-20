@@ -11,7 +11,7 @@ public class KubernetesQuarkusApplicationManagedResourceBinding implements Quark
     }
 
     @Override
-    public QuarkusManagedResource init(QuarkusApplicationManagedResourceBuilder builder) {
+    public QuarkusManagedResource init(ProdQuarkusApplicationManagedResourceBuilder builder) {
         return new KubernetesQuarkusApplicationManagedResource(builder);
     }
 

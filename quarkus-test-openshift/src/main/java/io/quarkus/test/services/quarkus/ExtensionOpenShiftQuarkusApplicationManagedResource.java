@@ -1,10 +1,17 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
+import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
+import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
+import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
+import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
+import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
+import static io.quarkus.test.utils.MavenUtils.mvnCommand;
+import static io.quarkus.test.utils.MavenUtils.withProperty;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -21,17 +28,9 @@ import io.quarkus.test.utils.PropertiesUtils;
 
 public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
 
-    private static final String MVN_COMMAND = "mvn";
-    private static final String PACKAGE_GOAL = "package";
     private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
     private static final String QUARKUS_PLUGIN_EXPOSE = "-Dquarkus.openshift.expose=true";
-    private static final String MVN_REPOSITORY_LOCAL = "maven.repo.local";
-    private static final String SKIP_TESTS = "-DskipTests=true";
-    private static final String SKIP_ITS = "-DskipITs=true";
-    private static final String BATCH_MODE = "-B";
-    private static final String DISPLAY_VERSION = "-V";
-    private static final String SKIP_CHECKSTYLE = "-Dcheckstyle.skip";
     private static final String QUARKUS_PROFILE = "quarkus.profile";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
     private static final String QUARKUS_KUBERNETES_CLIENT_NAMESPACE = "quarkus.kubernetes-client.namespace";
@@ -44,7 +43,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
 
-    public ExtensionOpenShiftQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+    public ExtensionOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 
@@ -78,10 +77,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     }
 
-    protected String withProperty(String property, String value) {
-        return String.format("-D%s=%s", property, value);
-    }
-
     private void copyBuildPropertiesIntoAppFolder() {
         Map<String, String> buildProperties = model.getBuildProperties();
         if (buildProperties.isEmpty()) {
@@ -100,17 +95,15 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private void deployProjectUsingMavenCommand() {
         String namespace = client.project();
 
-        List<String> args = new ArrayList<>(
-                Arrays.asList(MVN_COMMAND, USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
-                        QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_EXPOSE, SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE));
+        List<String> args = mvnCommand(model.getContext());
+        args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
+                QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_EXPOSE, SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE));
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
-        withQuarkusProfile(args);
         withQuarkusProperties(args);
-        withMavenRepositoryLocalIfSet(args);
         withEnvVars(args, model.getContext().getOwner().getProperties());
         withAdditionalArguments(args);
 
@@ -128,17 +121,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
 
     private String withContainerName() {
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
-    }
-
-    private void withQuarkusProfile(List<String> args) {
-        args.add(withProperty(QUARKUS_PROFILE, model.getContext().getTestContext().getRequiredTestClass().getSimpleName()));
-    }
-
-    private void withMavenRepositoryLocalIfSet(List<String> args) {
-        String mvnRepositoryPath = System.getProperty(MVN_REPOSITORY_LOCAL);
-        if (mvnRepositoryPath != null) {
-            args.add(withProperty(MVN_REPOSITORY_LOCAL, mvnRepositoryPath));
-        }
     }
 
     private void withQuarkusProperties(List<String> args) {

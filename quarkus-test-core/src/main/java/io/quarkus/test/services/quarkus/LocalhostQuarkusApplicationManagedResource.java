@@ -3,7 +3,6 @@ package io.quarkus.test.services.quarkus;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -14,9 +13,8 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.SocketUtils;
-import io.quarkus.utilities.JavaBinFinder;
 
-public class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
+public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
     private static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
@@ -32,6 +30,8 @@ public class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedRe
         this.model = model;
     }
 
+    protected abstract List<String> prepareCommand(List<String> systemArguments);
+
     @Override
     public void start() {
         if (process != null && process.isAlive()) {
@@ -41,8 +41,10 @@ public class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedRe
 
         try {
             assignPorts();
-            process = new ProcessBuilder(prepareCommand()).redirectErrorStream(true)
-                    .directory(model.getArtifact().getParent().toFile()).start();
+            process = new ProcessBuilder(prepareCommand(getPropertiesForCommand()))
+                    .redirectErrorStream(true)
+                    .directory(model.getContext().getServiceFolder().toFile())
+                    .start();
 
             loggingHandler = new FileQuarkusApplicationLoggingHandler(model.getContext(), "out.log", process.getInputStream());
             loggingHandler.startWatching();
@@ -120,27 +122,16 @@ public class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedRe
         return Integer.parseInt(port);
     }
 
-    private List<String> prepareCommand() {
+    private List<String> getPropertiesForCommand() {
         Map<String, String> runtimeProperties = new HashMap<>(model.getContext().getOwner().getProperties());
         runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + assignedHttpPort);
         if (model.isSslEnabled()) {
             runtimeProperties.putIfAbsent(QUARKUS_HTTP_SSL_PORT_PROPERTY, "" + assignedHttpsPort);
         }
 
-        List<String> systemProperties = runtimeProperties.entrySet().stream()
-                .map(e -> "-D" + e.getKey() + "=" + e.getValue()).collect(Collectors.toList());
-        List<String> command = new LinkedList<>();
-        if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
-            command.add(JavaBinFinder.findBin());
-            command.addAll(systemProperties);
-            command.add("-jar");
-            command.add(model.getArtifact().toAbsolutePath().toString());
-        } else {
-            command.add(model.getArtifact().toAbsolutePath().toString());
-            command.addAll(systemProperties);
-        }
-
-        return command;
+        return runtimeProperties.entrySet().stream()
+                .map(e -> "-D" + e.getKey() + "=" + e.getValue())
+                .collect(Collectors.toList());
     }
 
     private void validateProtocol(Protocol protocol) {
