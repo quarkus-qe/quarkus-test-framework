@@ -53,6 +53,7 @@ public class VerifyNonAppEndpointsIT {
     }
 
     @DisabledOnQuarkusVersion(version = "2\\..*", reason = "Redirection is no longer supported in 2.x")
+    @DisabledOnQuarkusVersion(version = "999-SNAPSHOT", reason = "Redirection is no longer supported in 999-SNAPSHOT")
     @Test
     public void verifyNonAppRootPathIsRedirected() {
         givenRootPath("/api");
