@@ -1,6 +1,7 @@
 package io.quarkus.test.scenarios.annotations;
 
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -17,6 +18,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(DisabledOnQuarkusVersionCondition.class)
+@Repeatable(DisabledOnQuarkusVersions.class)
 public @interface DisabledOnQuarkusVersion {
     /**
      * Regular expression that is matched against the version of Quarkus used in the test suite.
