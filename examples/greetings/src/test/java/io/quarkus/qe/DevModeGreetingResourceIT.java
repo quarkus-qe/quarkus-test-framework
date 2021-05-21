@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
 
 @DisabledOnNative
+@DisabledOnQuarkusVersion(version = "1\\..*", reason = "Continuous Testing was entered in 2.x")
 @QuarkusScenario
 public class DevModeGreetingResourceIT {
 
@@ -38,7 +40,7 @@ public class DevModeGreetingResourceIT {
         // And now, Quarkus find it and run it
         app.logs().assertContains("Running 0/1");
         // So good so far!
-        app.logs().assertContains("Tests all passed");
+        app.logs().assertContains("All 1 tests are passing");
     }
 
     @Test
