@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha2"]
+        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha3"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -41,7 +41,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha2"]
+        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha3"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha2"]
+        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha3"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha2"]
+        quarkus-version: ["1.13.4.Final", "2.0.0.Alpha3"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
