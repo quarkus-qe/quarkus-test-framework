@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
@@ -51,6 +52,7 @@ public class VerifyNonAppEndpointsIT {
         thenNonAppEndpointsShouldBeNotFound("/api");
     }
 
+    @DisabledOnQuarkusVersion(version = "2\\..*", reason = "Redirection is no longer supported in 2.x")
     @Test
     public void verifyNonAppRootPathIsRedirected() {
         givenRootPath("/api");
