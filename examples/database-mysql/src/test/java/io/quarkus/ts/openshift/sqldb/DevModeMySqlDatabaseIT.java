@@ -4,11 +4,13 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 /**
  * Running Quarkus on DEV mode will spin up a Database instance automatically.
  */
+@DisabledOnNative
 @QuarkusScenario
 public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
