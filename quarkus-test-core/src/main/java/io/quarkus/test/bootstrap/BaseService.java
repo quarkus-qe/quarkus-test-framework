@@ -1,15 +1,16 @@
 package io.quarkus.test.bootstrap;
 
-import static org.awaitility.Awaitility.await;
+import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -178,9 +179,11 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        await().pollInterval(SERVICE_WAITER_POLL_EVERY_SECONDS, TimeUnit.SECONDS)
-                .atMost(SERVICE_WAITER_TIMEOUT_MINUTES, TimeUnit.MINUTES)
-                .until(this::isManagedResourceRunning);
+        untilIsTrue(this::isManagedResourceRunning, AwaitilitySettings
+                .using(Duration.ofSeconds(SERVICE_WAITER_POLL_EVERY_SECONDS),
+                        Duration.ofMinutes(SERVICE_WAITER_TIMEOUT_MINUTES))
+                .withService(this)
+                .timeoutMessage("Service didn't start in %s minutes", SERVICE_WAITER_TIMEOUT_MINUTES));
     }
 
     private boolean isManagedResourceRunning() {

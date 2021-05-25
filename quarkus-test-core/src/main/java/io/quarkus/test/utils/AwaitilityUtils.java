@@ -1,16 +1,22 @@
 package io.quarkus.test.utils;
 
+import java.time.Duration;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionEvaluationListener;
 import org.awaitility.core.ConditionFactory;
+import org.awaitility.core.EvaluatedCondition;
 import org.awaitility.core.ThrowingRunnable;
+import org.awaitility.core.TimeoutEvent;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.logging.Log;
 
 /**
@@ -20,9 +26,30 @@ public final class AwaitilityUtils {
 
     private static final int POLL_SECONDS = 1;
     private static final int TIMEOUT_SECONDS = 30;
+    private static final int MINUTE_IN_SECONDS = 60;
 
     private AwaitilityUtils() {
 
+    }
+
+    /**
+     * Wait until supplier returns true.
+     *
+     * @param supplier method to return the instance.
+     */
+    @SuppressWarnings("unchecked")
+    public static void untilIsTrue(Callable<Boolean> supplier) {
+        untilIsTrue(supplier, AwaitilitySettings.defaults());
+    }
+
+    /**
+     * Wait until supplier returns true.
+     *
+     * @param supplier method to return the instance.
+     */
+    @SuppressWarnings("unchecked")
+    public static void untilIsTrue(Callable<Boolean> supplier, AwaitilitySettings settings) {
+        awaits(settings).until(supplier);
     }
 
     /**
@@ -61,7 +88,7 @@ public final class AwaitilityUtils {
      *
      * @param assertion custom assertions that the instance must satisfy.
      */
-    public static void untilAsserted(final ThrowingRunnable assertion) {
+    public static void untilAsserted(ThrowingRunnable assertion) {
         awaits().untilAsserted(assertion);
     }
 
@@ -78,9 +105,87 @@ public final class AwaitilityUtils {
     }
 
     private static ConditionFactory awaits() {
-        return Awaitility.await()
+        return awaits(AwaitilitySettings.defaults());
+    }
+
+    private static ConditionFactory awaits(AwaitilitySettings settings) {
+        ConditionFactory factory = Awaitility.await()
                 .ignoreExceptions()
-                .pollInterval(POLL_SECONDS, TimeUnit.SECONDS)
-                .atMost(TIMEOUT_SECONDS, TimeUnit.SECONDS);
+                .pollInterval(settings.interval.toSeconds(), TimeUnit.SECONDS)
+                .atMost(settings.timeout.toSeconds(), TimeUnit.SECONDS);
+
+        if (settings.service != null || StringUtils.isNotEmpty(settings.timeoutMessage)) {
+            // Enable logging
+            factory = factory.conditionEvaluationListener(new CustomConditionEvaluationListener(settings));
+        }
+
+        return factory;
+    }
+
+    public static final class CustomConditionEvaluationListener implements ConditionEvaluationListener {
+
+        final AwaitilitySettings settings;
+
+        CustomConditionEvaluationListener(AwaitilitySettings settings) {
+            this.settings = settings;
+        }
+
+        @Override
+        public void conditionEvaluated(EvaluatedCondition condition) {
+            if (settings.service != null) {
+                Log.debug(settings.service, condition.getDescription());
+            } else {
+                Log.debug(condition.getDescription());
+            }
+        }
+
+        @Override
+        public void onTimeout(TimeoutEvent timeoutEvent) {
+            String message = timeoutEvent.getDescription();
+            if (StringUtils.isNotEmpty(message)) {
+                message = settings.timeoutMessage;
+            }
+
+            if (settings.service != null) {
+                Log.warn(settings.service, message);
+            } else {
+                Log.warn(message);
+            }
+        }
+    }
+
+    public static final class AwaitilitySettings {
+
+        Duration interval = Duration.ofSeconds(POLL_SECONDS);
+        Duration timeout = Duration.ofSeconds(TIMEOUT_SECONDS);
+        Service service;
+        String timeoutMessage = StringUtils.EMPTY;
+
+        public AwaitilitySettings withService(Service service) {
+            this.service = service;
+            return this;
+        }
+
+        public AwaitilitySettings timeoutMessage(String message, Object... args) {
+            this.timeoutMessage = String.format(message, args);
+            return this;
+        }
+
+        public static AwaitilitySettings defaults() {
+            return new AwaitilitySettings();
+        }
+
+        public static AwaitilitySettings usingTimeout(Duration timeout) {
+            AwaitilitySettings settings = defaults();
+            settings.timeout = timeout;
+            return settings;
+        }
+
+        public static AwaitilitySettings using(Duration interval, Duration timeout) {
+            AwaitilitySettings settings = defaults();
+            settings.interval = interval;
+            settings.timeout = timeout;
+            return settings;
+        }
     }
 }
