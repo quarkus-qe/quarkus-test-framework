@@ -40,6 +40,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <testcontainers.version>1.15.3</testcontainers.version>
+        <jaeger-client.version>1.6.0</jaeger-client.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.15.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.6.2</impsort-maven-plugin.version>
@@ -131,6 +132,11 @@
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-service-jaeger</artifactId>
                 <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.jaegertracing</groupId>
+                <artifactId>jaeger-client</artifactId>
+                <version>${jaeger-client.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -342,6 +348,7 @@
                 <module>examples/jaeger</module>
                 <module>examples/database-mysql</module>
                 <module>examples/external-applications</module>
+                <module>examples/tracing-extension</module>
             </modules>
         </profile>
         <profile>
