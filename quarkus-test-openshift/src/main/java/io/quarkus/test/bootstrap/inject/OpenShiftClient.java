@@ -1,5 +1,7 @@
 package io.quarkus.test.bootstrap.inject;
 
+import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -7,6 +9,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +23,6 @@ import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.StringUtils;
-import org.awaitility.Awaitility;
 
 import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -291,8 +293,8 @@ public final class OpenShiftClient {
                 if (obj instanceof ImageStream
                         && !StringUtils.equals(obj.getMetadata().getName(), service.getName())) {
                     ImageStream is = (ImageStream) obj;
-                    Awaitility.await().atMost(TIMEOUT_MINUTES, TimeUnit.MINUTES)
-                            .until(() -> hasImageStreamTags(is));
+                    untilIsTrue(() -> hasImageStreamTags(is),
+                            AwaitilitySettings.usingTimeout(Duration.ofMinutes(TIMEOUT_MINUTES)).withService(service));
                 }
             }
         } catch (IOException e) {
@@ -326,20 +328,19 @@ public final class OpenShiftClient {
         client.operatorHub().subscriptions().create(subscriptionModel);
 
         // Wait for the operator to be installed
-        Awaitility.await().atMost(TIMEOUT_MINUTES, TimeUnit.MINUTES)
-                .until(() -> {
-                    // Get Cluster Service Version
-                    Subscription subscription = client.operatorHub().subscriptions().withName(name).get();
-                    String installedCsv = subscription.getStatus().getInstalledCSV();
-                    if (StringUtils.isEmpty(installedCsv)) {
-                        return false;
-                    }
+        untilIsTrue(() -> {
+            // Get Cluster Service Version
+            Subscription subscription = client.operatorHub().subscriptions().withName(name).get();
+            String installedCsv = subscription.getStatus().getInstalledCSV();
+            if (StringUtils.isEmpty(installedCsv)) {
+                return false;
+            }
 
-                    // Check Cluster Service Version status
-                    ClusterServiceVersion operatorService = client.operatorHub().clusterServiceVersions().withName(installedCsv)
-                            .get();
-                    return OPERATOR_PHASE_INSTALLED.equals(operatorService.getStatus().getPhase());
-                });
+            // Check Cluster Service Version status
+            ClusterServiceVersion operatorService = client.operatorHub().clusterServiceVersions().withName(installedCsv)
+                    .get();
+            return OPERATOR_PHASE_INSTALLED.equals(operatorService.getStatus().getPhase());
+        }, AwaitilitySettings.usingTimeout(Duration.ofMinutes(TIMEOUT_MINUTES)));
         Log.info("Operator installed... %s", name);
     }
 
