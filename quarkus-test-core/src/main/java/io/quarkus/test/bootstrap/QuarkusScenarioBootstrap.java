@@ -25,13 +25,14 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.LifecycleMethodExecutionExceptionHandler;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.TestWatcher;
 
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
 
 public class QuarkusScenarioBootstrap
-        implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, ParameterResolver,
-        LifecycleMethodExecutionExceptionHandler {
+        implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
+        ParameterResolver, LifecycleMethodExecutionExceptionHandler, TestWatcher {
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
@@ -55,13 +56,7 @@ public class QuarkusScenarioBootstrap
             currentClass = currentClass.getSuperclass();
         }
 
-        try {
-            services.forEach(Service::start);
-        } catch (Error throwable) {
-            notifyExtensionsOnError(context, throwable);
-            throw throwable;
-        }
-
+        services.forEach(service -> launchService(context, service));
     }
 
     @Override
@@ -77,6 +72,7 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void beforeEach(ExtensionContext context) {
+        extensions.forEach(ext -> ext.beforeEach(context));
         services.forEach(Service::start);
     }
 
@@ -106,8 +102,30 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
+    public void testSuccessful(ExtensionContext context) {
+        extensions.forEach(ext -> ext.onSuccess(context));
+    }
+
+    @Override
+    public void testFailed(ExtensionContext context, Throwable cause) {
+        extensions.forEach(ext -> ext.onError(context, cause));
+    }
+
+    @Override
     public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
+    }
+
+    private void launchService(ExtensionContext context, Service service) {
+        try {
+            extensions.forEach(ext -> ext.onServiceInitiate(context, service));
+            service.start();
+            extensions.forEach(ext -> ext.onServiceStarted(context, service));
+        } catch (Error throwable) {
+            extensions.forEach(ext -> ext.onServiceError(context, service, throwable));
+            notifyExtensionsOnError(context, throwable);
+            throw throwable;
+        }
     }
 
     private void notifyExtensionsOnError(ExtensionContext context, Throwable throwable) {

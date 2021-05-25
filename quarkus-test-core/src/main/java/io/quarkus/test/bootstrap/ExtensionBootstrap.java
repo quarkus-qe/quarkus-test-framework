@@ -24,6 +24,34 @@ public interface ExtensionBootstrap {
 
     }
 
+    default void onServiceInitiate(ExtensionContext context, Service service) {
+
+    }
+
+    default void onServiceError(ExtensionContext context, Service service, Throwable throwable) {
+
+    }
+
+    default void onServiceStarted(ExtensionContext context, Service service) {
+
+    }
+
+    default void onServiceStopped(ExtensionContext context, Service service) {
+
+    }
+
+    default void onSuccess(ExtensionContext context) {
+
+    }
+
+    default void beforeEach(ExtensionContext context) {
+
+    }
+
+    default void afterEach(ExtensionContext context) {
+
+    }
+
     default Optional<Object> getParameter(Class<?> clazz) {
         return Optional.empty();
     }
