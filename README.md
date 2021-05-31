@@ -51,6 +51,26 @@ public class PingPongResourceIT {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
+### Configuration
+
+Test framework allows to customise the configuration for running the test case via a `test.properties` file placed under `src/test/resources` folder.
+
+The current configuration options are: 
+
+- Enable/Disable logging (enabled by default):
+
+```
+ts.<YOUR SERVICE NAME>.log.enable=true
+```
+
+Where `<YOUR SERVICE NAME>` could be either `pingApp`, `pongApp` or `pingPongApp` following the [Getting Started](#getting-started) example. If you want to use the same property for all your services, there is a special scope called `global` for such purposes:
+
+```
+ts.global.log.enable=false
+```
+
+The above configuration will disable logging for all your services. The same can be set via system properties by running `-Dts.global.log.enable=false`.
+
 ### Native
 
 The `@QuarkusScenario` annotation is also compatible with Native. This means that if we run our tests using Native build:
@@ -853,12 +873,6 @@ For OpenShift and Kubernetes, when some test fail, the logs of all the pods with
 - Colourify logging
 
 The test framework will output a different colour by service. This will extremely ease the troubleshooting of the logic.
-
-You can enable the logging by adding a `test.properties` in your module with the next property:
-
-```
-ts.<YOUR SERVICE NAME>.log.enable=true
-```
 
 - Parallel test execution
 
