@@ -1,2 +1,3 @@
 io.quarkus.test.services.quarkus.QuarkusApplicationAnnotationBinding
 io.quarkus.test.services.quarkus.DevModeQuarkusApplicationAnnotationBinding
+io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationAnnotationBinding

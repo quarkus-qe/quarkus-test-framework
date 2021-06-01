@@ -35,7 +35,7 @@ items:
             - name: ARTIFACT_COPY_ARGS
               value: -p -r quarkus-app/quarkus-run.jar
             - name: MAVEN_ARGS
-              value: -s /configuration/settings.xml -Dquarkus.version=${QUARKUS_VERSION} -DskipTests=true
+              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.verison=${QUARKUS_VERSION} -Dquarkus.platform.version=${QUARKUS_VERSION} -Dquarkus.plugin.version=${QUARKUS_VERSION} -Dquarkus-plugin.version=${QUARKUS_VERSION}
           from:
             kind: ImageStreamTag
             name: openjdk-11:latest
