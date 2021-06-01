@@ -55,6 +55,8 @@ As seen in the above example, everything is bounded to a Service object that wil
 
 Test framework allows to customise the configuration for running the test case via a `test.properties` file placed under `src/test/resources` folder.
 
+All the properties can be configured globally by replacing `<YOUR SERVICE NAME>` with `global`.
+
 The current configuration options are: 
 
 - Enable/Disable logging (enabled by default):
@@ -70,6 +72,37 @@ ts.global.log.enable=false
 ```
 
 The above configuration will disable logging for all your services. The same can be set via system properties by running `-Dts.global.log.enable=false`.
+
+- Timeouts
+
+Timeouts are quite important property to, as an example, control how long to wait for a service to start. The existing options to configure timeouts are:
+ 
+```
+# Startup timeout for services is 5 minutes
+ts.<global or YOUR SERVICE NAME>.startup.timeout=5m
+# Default startup check poll interval is every 2 seconds
+ts.<global or YOUR SERVICE NAME>.startup.check-poll-interval=2s
+# Install operator timeout is 10 minutes
+ts.<global or YOUR SERVICE NAME>.operator.install.timeout=10m
+# Install image stream timeout is 5 minutes
+ts.<global or YOUR SERVICE NAME>.imagestream.install.timeout=5m
+```
+
+In order to increase the default timeout for all the services, we can use the `global` scope. For example, to increase the default startup timeout: `ts.global.startup.timeout=10m`. Also, we can configure how often the test framework will check for the startup condition using the property `ts.global.startup.check-poll-interval=3s`. Using these two properties, we are making all the services to wait up to 10 minutes to start and checking the condition every 3 seconds.
+
+On the other hand, if we want to update the timeout for a single service because we know that this service is quite slow, the scope of the property is the service name. For example, let's imagine that the `pingApp` service from the [Getting Started](#getting-started) section is very slow, we can use `ts.pingApp.startup.timeout=20m` to wait up to 20 min for only the ping application to start. 
+
+How can we manipulate the overall timeout in slower environments? Let's say that our environment is twice and a half slower than a good environment, then we can instruct the test framework with:
+
+```
+ts.global.factor.timeout=2.5
+```
+
+And all the timeouts will take into account this factor value. For example, if previously, the startup timeout was 10 minutes, now it will be 10 * 2.5 = 25 minutes.
+
+In a Multi-Module Maven test suite, if we want to configure the timeouts, we can do this via system properties:
+- Increase the startup timeout only: `mvn clean verify -Dts.global.startup.timeout=20m`
+- Increase all the timeouts at once using the factor: `mvn clean verify -Dts.global.factor.timeout=2.5`
 
 ### Native
 

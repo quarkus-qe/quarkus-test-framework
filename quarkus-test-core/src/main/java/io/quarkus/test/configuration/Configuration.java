@@ -1,6 +1,7 @@
 package io.quarkus.test.configuration;
 
 import java.io.InputStream;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,28 @@ public final class Configuration {
 
     private Configuration(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public Duration getAsDuration(String property, Duration defaultValue) {
+        String value = get(property);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+
+        if (Character.isDigit(value.charAt(0))) {
+            value = "PT" + value;
+        }
+
+        return Duration.parse(value);
+    }
+
+    public Double getAsDouble(String property, double defaultValue) {
+        String value = get(property);
+        if (StringUtils.isEmpty(value)) {
+            return defaultValue;
+        }
+
+        return Double.parseDouble(value);
     }
 
     public String get(String property) {
