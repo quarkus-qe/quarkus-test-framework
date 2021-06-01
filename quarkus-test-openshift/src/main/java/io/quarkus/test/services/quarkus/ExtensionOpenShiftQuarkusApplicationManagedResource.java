@@ -6,6 +6,7 @@ import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
 import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
 import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
 import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
+import static io.quarkus.test.utils.MavenUtils.installParentPomsIfNeeded;
 import static io.quarkus.test.utils.MavenUtils.mvnCommand;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -31,7 +32,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
     private static final String QUARKUS_PLUGIN_EXPOSE = "-Dquarkus.openshift.expose=true";
-    private static final String QUARKUS_PROFILE = "quarkus.profile";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
     private static final String QUARKUS_KUBERNETES_CLIENT_NAMESPACE = "quarkus.kubernetes-client.namespace";
     private static final String QUARKUS_KUBERNETES_CLIENT_TRUST_CERTS = "quarkus.kubernetes-client.trust-certs";
@@ -93,6 +93,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShi
     }
 
     private void deployProjectUsingMavenCommand() {
+        installParentPomsIfNeeded();
+
         String namespace = client.project();
 
         List<String> args = mvnCommand(model.getContext());
