@@ -90,6 +90,9 @@ public class OperatorManagedResource implements ManagedResource {
     }
 
     private void installOperator() {
-        client.installOperator(model.getName(), model.getChannel(), model.getSource(), model.getSourceNamespace());
+        client.installOperator(model.getContext().getOwner(),
+                model.getChannel(),
+                model.getSource(),
+                model.getSourceNamespace());
     }
 }

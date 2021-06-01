@@ -63,7 +63,9 @@ public final class OpenShiftClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
 
-    private static final int TIMEOUT_MINUTES = 5;
+    private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
+    private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
+    private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int PROJECT_NAME_SIZE = 10;
@@ -303,7 +305,9 @@ public final class OpenShiftClient {
                         && !StringUtils.equals(obj.getMetadata().getName(), service.getName())) {
                     ImageStream is = (ImageStream) obj;
                     untilIsTrue(() -> hasImageStreamTags(is),
-                            AwaitilitySettings.usingTimeout(Duration.ofMinutes(TIMEOUT_MINUTES)).withService(service));
+                            AwaitilitySettings.defaults().withService(service)
+                                    .usingTimeout(
+                                            service.getConfiguration().getAsDuration(IMAGE_STREAM_TIMEOUT, TIMEOUT_DEFAULT)));
                 }
             }
         } catch (IOException e) {
@@ -311,12 +315,11 @@ public final class OpenShiftClient {
         }
     }
 
-    public void installOperator(String name, String channel, String source, String sourceNamespace) {
-
+    public void installOperator(Service service, String channel, String source, String sourceNamespace) {
         // Install the operator group
         OperatorGroup groupModel = new OperatorGroup();
         groupModel.setMetadata(new ObjectMeta());
-        groupModel.getMetadata().setName(name);
+        groupModel.getMetadata().setName(service.getName());
         groupModel.setSpec(new OperatorGroupSpec());
         groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
         client.resource(groupModel).createOrReplace();
@@ -324,22 +327,22 @@ public final class OpenShiftClient {
         // Install the subscription
         Subscription subscriptionModel = new Subscription();
         subscriptionModel.setMetadata(new ObjectMeta());
-        subscriptionModel.getMetadata().setName(name);
+        subscriptionModel.getMetadata().setName(service.getName());
         subscriptionModel.getMetadata().setNamespace(currentNamespace);
 
         subscriptionModel.setSpec(new SubscriptionSpec());
         subscriptionModel.getSpec().setChannel(channel);
-        subscriptionModel.getSpec().setName(name);
+        subscriptionModel.getSpec().setName(service.getName());
         subscriptionModel.getSpec().setSource(source);
         subscriptionModel.getSpec().setSourceNamespace(sourceNamespace);
 
-        Log.info("Installing operator... %s", name);
+        Log.info("Installing operator... %s", service.getName());
         client.operatorHub().subscriptions().create(subscriptionModel);
 
         // Wait for the operator to be installed
         untilIsTrue(() -> {
             // Get Cluster Service Version
-            Subscription subscription = client.operatorHub().subscriptions().withName(name).get();
+            Subscription subscription = client.operatorHub().subscriptions().withName(service.getName()).get();
             String installedCsv = subscription.getStatus().getInstalledCSV();
             if (StringUtils.isEmpty(installedCsv)) {
                 return false;
@@ -349,8 +352,11 @@ public final class OpenShiftClient {
             ClusterServiceVersion operatorService = client.operatorHub().clusterServiceVersions().withName(installedCsv)
                     .get();
             return OPERATOR_PHASE_INSTALLED.equals(operatorService.getStatus().getPhase());
-        }, AwaitilitySettings.usingTimeout(Duration.ofMinutes(TIMEOUT_MINUTES)));
-        Log.info("Operator installed... %s", name);
+        }, AwaitilitySettings
+                .defaults()
+                .withService(service)
+                .usingTimeout(service.getConfiguration().getAsDuration(OPERATOR_INSTALL_TIMEOUT, TIMEOUT_DEFAULT)));
+        Log.info("Operator installed... %s", service.getName());
     }
 
     /**
@@ -395,7 +401,7 @@ public final class OpenShiftClient {
                     }
                 })
                 .exec(input)) {
-            execLatch.await(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+            execLatch.await(TIMEOUT_DEFAULT.ZERO.toMinutes(), TimeUnit.MINUTES);
             return out.toString();
         }
     }

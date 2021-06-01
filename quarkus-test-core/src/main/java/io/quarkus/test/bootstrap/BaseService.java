@@ -22,8 +22,10 @@ import io.quarkus.test.utils.PropertiesUtils;
 
 public class BaseService<T extends Service> implements Service {
 
-    private static final int SERVICE_WAITER_POLL_EVERY_SECONDS = 2;
-    private static final int SERVICE_WAITER_TIMEOUT_MINUTES = 5;
+    private static final String SERVICE_STARTUP_CHECK_POLL_INTERVAL = "startup.check-poll-interval";
+    private static final Duration SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT = Duration.ofSeconds(2);
+    private static final String SERVICE_STARTUP_TIMEOUT = "startup.timeout";
+    private static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(5);
 
     private final List<Action> onPreStartActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
@@ -179,11 +181,14 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
+        Duration startupTimeout = getConfiguration()
+                .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
+        Duration startupCheckInterval = getConfiguration()
+                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
         untilIsTrue(this::isManagedResourceRunning, AwaitilitySettings
-                .using(Duration.ofSeconds(SERVICE_WAITER_POLL_EVERY_SECONDS),
-                        Duration.ofMinutes(SERVICE_WAITER_TIMEOUT_MINUTES))
+                .using(startupTimeout, startupCheckInterval)
                 .withService(this)
-                .timeoutMessage("Service didn't start in %s minutes", SERVICE_WAITER_TIMEOUT_MINUTES));
+                .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
     }
 
     private boolean isManagedResourceRunning() {

@@ -24,9 +24,9 @@ import io.quarkus.test.logging.Log;
  */
 public final class AwaitilityUtils {
 
+    private static final String TIMEOUT_FACTOR_PROPERTY = "factor.timeout";
     private static final int POLL_SECONDS = 1;
     private static final int TIMEOUT_SECONDS = 30;
-    private static final int MINUTE_IN_SECONDS = 60;
 
     private AwaitilityUtils() {
 
@@ -112,7 +112,7 @@ public final class AwaitilityUtils {
         ConditionFactory factory = Awaitility.await()
                 .ignoreExceptions()
                 .pollInterval(settings.interval.toSeconds(), TimeUnit.SECONDS)
-                .atMost(settings.timeout.toSeconds(), TimeUnit.SECONDS);
+                .atMost(timeoutInSeconds(settings), TimeUnit.SECONDS);
 
         if (settings.service != null || StringUtils.isNotEmpty(settings.timeoutMessage)) {
             // Enable logging
@@ -120,6 +120,15 @@ public final class AwaitilityUtils {
         }
 
         return factory;
+    }
+
+    private static long timeoutInSeconds(AwaitilitySettings settings) {
+        double timeoutFactor = 1.0;
+        if (settings.service != null) {
+            timeoutFactor = settings.service.getConfiguration().getAsDouble(TIMEOUT_FACTOR_PROPERTY, timeoutFactor);
+        }
+
+        return Math.round(settings.timeout.toSeconds() * timeoutFactor);
     }
 
     public static final class CustomConditionEvaluationListener implements ConditionEvaluationListener {
