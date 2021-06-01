@@ -1,6 +1,7 @@
 package io.quarkus.test.bootstrap.inject;
 
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsNotNull;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -205,6 +206,7 @@ public final class OpenShiftClient {
     }
 
     public void followBuildConfigLogs(String buildConfigName) {
+        untilIsNotNull(client.buildConfigs().withName(buildConfigName)::get);
         try {
             new Command(OC, "logs", "bc/" + buildConfigName, "--follow").runAndWait();
         } catch (Exception e) {
