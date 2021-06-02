@@ -3,6 +3,7 @@ package io.quarkus.test.utils;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -32,6 +33,18 @@ public final class FileUtils {
         }
 
         return target;
+    }
+
+    public static String loadFile(File file) {
+        try {
+            return IOUtils.toString(
+                    new FileInputStream(file),
+                    StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            fail("Could not load file " + file.getName() + " . Caused by " + e.getMessage());
+        }
+
+        return null;
     }
 
     public static String loadFile(String file) {
