@@ -27,7 +27,8 @@ import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 
-public class ExtensionOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
+public class ExtensionOpenShiftQuarkusApplicationManagedResource
+        extends OpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
     private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";

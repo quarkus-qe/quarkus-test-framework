@@ -10,7 +10,8 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.utils.Command;
 
-public class BuildOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
+public class BuildOpenShiftQuarkusApplicationManagedResource
+        extends OpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
     private static final String S2I_DEFAULT_VERSION = "latest";
 

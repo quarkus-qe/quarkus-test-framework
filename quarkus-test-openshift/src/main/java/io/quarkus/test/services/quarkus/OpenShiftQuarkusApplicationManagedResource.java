@@ -13,18 +13,19 @@ import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 
-public abstract class OpenShiftQuarkusApplicationManagedResource extends QuarkusManagedResource {
+public abstract class OpenShiftQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
+        extends QuarkusManagedResource {
 
     private static final int EXTERNAL_PORT = 80;
 
-    protected final ProdQuarkusApplicationManagedResourceBuilder model;
+    protected final T model;
     protected final OpenShiftClient client;
 
     private LoggingHandler loggingHandler;
     private boolean init;
     private boolean running;
 
-    public OpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
+    public OpenShiftQuarkusApplicationManagedResource(T model) {
         this.model = model;
         this.client = model.getContext().get(OpenShiftExtensionBootstrap.CLIENT);
     }

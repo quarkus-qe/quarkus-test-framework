@@ -14,7 +14,7 @@ public class DevModeQuarkusApplicationAnnotationBinding implements AnnotationBin
     }
 
     @Override
-    public ManagedResourceBuilder createBuilder(Field field) throws Exception {
+    public ManagedResourceBuilder createBuilder(Field field) {
         DevModeQuarkusApplication metadata = field.getAnnotation(DevModeQuarkusApplication.class);
 
         ManagedResourceBuilder builder = new DevModeQuarkusApplicationManagedResourceBuilder();

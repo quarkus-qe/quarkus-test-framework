@@ -4,14 +4,13 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
-import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
-import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
-@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.QuarkusS2IBuild)
+@OpenShiftScenario
 public class OpenShiftS2iQuickstartIT {
 
-    @QuarkusApplication(gitRepositoryUri = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
     static final RestService app = new RestService();
 
     @Test

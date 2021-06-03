@@ -587,10 +587,10 @@ The application's git repository, ref, context dir and Quarkus version are all s
 Example:
 
 ```java
-@OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.QuarkusS2IBuild)
+@OpenShiftScenario
 public class OpenShiftS2iQuickstartIT {
 
-    @QuarkusApplication(gitRepositoryUri = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
     static final RestService app = new RestService();
     //
 ```

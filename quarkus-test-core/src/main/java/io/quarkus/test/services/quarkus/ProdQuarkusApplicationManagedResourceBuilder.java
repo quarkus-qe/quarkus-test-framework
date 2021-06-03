@@ -50,10 +50,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
         QuarkusApplication metadata = (QuarkusApplication) annotation;
         setSslEnabled(metadata.ssl());
         initAppClasses(metadata.classes());
-        setGitRepositoryUri(metadata.gitRepositoryUri());
-        setGitRef(metadata.gitRef());
-        setContextDir(metadata.contextDir());
-        setQuarkusBuildVersion(metadata.quarkusBuildVersion());
     }
 
     @Override

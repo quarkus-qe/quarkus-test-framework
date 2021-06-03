@@ -6,7 +6,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.utils.DockerUtils;
 
-public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
+public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
+        extends OpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
     private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-registry-openshift-template.yml";
     private static final String DEPLOYMENT = "openshift.yml";
