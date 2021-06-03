@@ -11,4 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(DisabledOnNativeCondition.class)
 public @interface DisabledOnNative {
+    /**
+     * Why is the annotated test class or test method disabled.
+     */
+    String reason() default "";
 }

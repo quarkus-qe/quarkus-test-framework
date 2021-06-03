@@ -10,8 +10,8 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.QuarkusApplication;
 
+@DisabledOnNative(reason = "Due to high native build execution time for the three Quarkus services")
 @QuarkusScenario
-@DisabledOnNative
 public class PingPongResourceIT {
 
     @QuarkusApplication(classes = PingResource.class)
