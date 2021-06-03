@@ -12,7 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 
 public final class Configuration {
 
-    private static final String GLOBAL_PROPERTIES = "global.properties";
+    private static final PropertyLookup GLOBAL_PROPERTIES = new PropertyLookup("ts.test.resources.file.location",
+            "global.properties");
     private static final String TEST_PROPERTIES = "test.properties";
     private static final String PREFIX_TEMPLATE = "ts.%s.";
     private static final String GLOBAL_SCOPE = "global";
@@ -64,7 +65,7 @@ public final class Configuration {
     public static Configuration load(String serviceName) {
         Map<String, String> properties = new HashMap<>();
         // Lowest priority: properties from global.properties and scope `global`
-        properties.putAll(loadPropertiesFrom(GLOBAL_PROPERTIES, GLOBAL_SCOPE));
+        properties.putAll(loadPropertiesFrom(GLOBAL_PROPERTIES.get(), GLOBAL_SCOPE));
         // Then, properties from system properties and scope `global`
         properties.putAll(loadPropertiesFromSystemProperties(GLOBAL_SCOPE));
         // Then, properties from test.properties and scope as service name

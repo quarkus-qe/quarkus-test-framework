@@ -54,6 +54,7 @@ As seen in the above example, everything is bounded to a Service object that wil
 ### Configuration
 
 Test framework allows to customise the configuration for running the test case via a `test.properties` file placed under `src/test/resources` folder.
+Also, a global properties file can be specified using the system property `mvn clean verify -Dts.test.resources.file.location=path/to/custom.properties`.
 
 All the properties can be configured globally by replacing `<YOUR SERVICE NAME>` with `global`.
 
