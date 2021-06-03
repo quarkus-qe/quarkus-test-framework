@@ -370,6 +370,19 @@ Same with Kubernetes `ts.consul.openshift.use-internal-service-as-url`.
 
 This framework is designed to follow **extension model** patterns. Therefore, we can extend any functionality just by adding other dependencies that extend the current functionality. As an example, Quarkus applications will be deployed locally, but if we add the OpenShift module. we can automatically deploy it in OpenShift/K8s just by adding the `@OpenShiftScenario`.
 
+### Concepts
+
+- `Scenario` - infrastructure to bootstrap test cases
+- `Services` - how test cases interact with resources
+- `Resources` - resource to manage the lifecycle of an application
+- `Managed Resource` - environment where resources will be running
+
+### Extension Points
+
+- `Bootstrap extension point` - create your own custom scenario. Examples: OpenShift, Kubernetes, Kogito, Camel, …
+- `Annotations extension point` - create your own annotations. @QuarkusApplication, @KafkaContainer, @Container, ...
+- `Deployments extension point` - deploy your resources into custom environments: Localhost, OpenShift, Kubernetes
+
 ### Packages
 
 The modules within the test framework must follow the next package convention:
