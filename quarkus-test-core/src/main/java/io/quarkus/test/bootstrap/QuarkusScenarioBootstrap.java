@@ -27,12 +27,18 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestWatcher;
 
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
 import io.quarkus.test.utils.FileUtils;
 
 public class QuarkusScenarioBootstrap
         implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
         ParameterResolver, LifecycleMethodExecutionExceptionHandler, TestWatcher {
+
+    private static final PropertyLookup CREATE_SERVICE_BY_DEFAULT = new PropertyLookup("create.service.by.default",
+            Boolean.TRUE.toString());
+    private static final String DEFAULT_SERVICE_NAME = "app";
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
@@ -47,15 +53,24 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void beforeAll(ExtensionContext context) throws Exception {
+        // Init extensions
         extensions = initExtensions(context);
         extensions.forEach(ext -> ext.beforeAll(context));
 
+        // Init services from test fields
         Class<?> currentClass = context.getRequiredTestClass();
         while (currentClass != Object.class) {
             initResourcesFromClass(context, currentClass);
             currentClass = currentClass.getSuperclass();
         }
 
+        // If no service was found, create one by default
+        if (services.isEmpty() && CREATE_SERVICE_BY_DEFAULT.getAsBoolean()) {
+            // Add One Quarkus Application
+            services.add(createDefaultService(context));
+        }
+
+        // Launch services
         services.forEach(service -> launchService(context, service));
     }
 
@@ -193,6 +208,23 @@ public class QuarkusScenarioBootstrap
         }
 
         return list;
+    }
+
+    private Service createDefaultService(ExtensionContext context) {
+        try {
+            ProdQuarkusApplicationManagedResourceBuilder resource = new ProdQuarkusApplicationManagedResourceBuilder();
+            resource.initAppClasses(null);
+
+            Service service = new RestService();
+            service.register(DEFAULT_SERVICE_NAME);
+            ServiceContext serviceContext = new ServiceContext(service, context);
+            extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
+
+            service.init(resource, serviceContext);
+            return service;
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     private void configureLogging() {

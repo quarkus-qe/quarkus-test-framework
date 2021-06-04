@@ -83,9 +83,9 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    protected void initAppClasses(Class<?>[] classes) {
+    public void initAppClasses(Class<?>[] classes) {
         appClasses = classes;
-        if (appClasses.length == 0) {
+        if (appClasses == null || appClasses.length == 0) {
             appClasses = ClassPathUtils.findAllClassesFromSource();
             selectedAppClasses = false;
         }
