@@ -6,6 +6,8 @@ import io.quarkus.test.bootstrap.ServiceContext;
 
 public class PropertyLookup {
 
+    private static final Configuration GLOBAL = Configuration.load();
+
     private final String propertyKey;
     private final String defaultValue;
 
@@ -46,7 +48,14 @@ public class PropertyLookup {
     }
 
     public String get() {
-        String value = System.getProperty(propertyKey);
+        // Try first using the Configuration API
+        String value = GLOBAL.get(propertyKey);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        // Then via System Properties.
+        value = System.getProperty(propertyKey);
         if (StringUtils.isNotBlank(value)) {
             return value;
         }

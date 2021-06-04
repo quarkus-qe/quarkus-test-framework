@@ -12,8 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 public final class Configuration {
 
-    private static final PropertyLookup GLOBAL_PROPERTIES = new PropertyLookup("ts.test.resources.file.location",
-            "global.properties");
+    private static final String GLOBAL_PROPERTIES = System.getProperty("ts.test.resources.file.location", "global.properties");
     private static final String TEST_PROPERTIES = "test.properties";
     private static final String PREFIX_TEMPLATE = "ts.%s.";
     private static final String GLOBAL_SCOPE = "global";
@@ -62,18 +61,26 @@ public final class Configuration {
         return StringUtils.equalsIgnoreCase(properties.get(property), expected);
     }
 
-    public static Configuration load(String serviceName) {
+    public static Configuration load() {
         Map<String, String> properties = new HashMap<>();
         // Lowest priority: properties from global.properties and scope `global`
-        properties.putAll(loadPropertiesFrom(GLOBAL_PROPERTIES.get(), GLOBAL_SCOPE));
+        properties.putAll(loadPropertiesFrom(GLOBAL_PROPERTIES, GLOBAL_SCOPE));
         // Then, properties from system properties and scope `global`
         properties.putAll(loadPropertiesFromSystemProperties(GLOBAL_SCOPE));
-        // Then, properties from test.properties and scope as service name
-        properties.putAll(loadPropertiesFrom(TEST_PROPERTIES, serviceName));
-        // Then, highest priority: properties from system properties and scope as service name
-        properties.putAll(loadPropertiesFromSystemProperties(serviceName));
+        // Then, properties from test.properties and scope as global
+        properties.putAll(loadPropertiesFrom(TEST_PROPERTIES, GLOBAL_SCOPE));
 
         return new Configuration(properties);
+    }
+
+    public static Configuration load(String serviceName) {
+        Configuration configuration = load();
+        // Then, properties from test.properties and scope as service name
+        configuration.properties.putAll(loadPropertiesFrom(TEST_PROPERTIES, serviceName));
+        // Then, highest priority: properties from system properties and scope as service name
+        configuration.properties.putAll(loadPropertiesFromSystemProperties(serviceName));
+
+        return configuration;
     }
 
     private static Map<String, String> loadPropertiesFromSystemProperties(String scope) {

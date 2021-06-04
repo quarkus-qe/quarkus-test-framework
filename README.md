@@ -28,7 +28,22 @@ In order to write Quarkus application in your tests, you first need to add the c
 </dependency>
 ```
 
-The framework aims to think on scenarios to verify. One scenario could include a few Quarkus instances and other container resources:
+The framework aims to think on scenarios to verify. The easiest scenario is to cope with the coverage of the current test module:
+
+```java
+@QuarkusScenario
+public class PingPongResourceIT {
+    @Test
+    public void shouldPingPongWorks() {
+        given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+    }
+}
+```
+
+This mimics the usage of the `@QuarkusTest` or `@QuarkusIntegrationTest` from the Quarkus framework. Plus, it has all the benefits of using this test framework like easy logging, tracing, etc. This behaviour can be disabled by setting `ts.global.create.service.by.default=false`.
+
+Another more complex scenario could include a few Quarkus instances:
 
 ```java
 @QuarkusScenario
