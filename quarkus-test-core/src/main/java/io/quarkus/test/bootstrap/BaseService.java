@@ -181,12 +181,12 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        Duration startupTimeout = getConfiguration()
-                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
         Duration startupCheckInterval = getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
+        Duration startupTimeout = getConfiguration()
+                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
         untilIsTrue(this::isManagedResourceRunning, AwaitilitySettings
-                .using(startupTimeout, startupCheckInterval)
+                .using(startupCheckInterval, startupTimeout)
                 .withService(this)
                 .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
     }
