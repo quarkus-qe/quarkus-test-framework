@@ -41,7 +41,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.6.Final", "2.0.0.CR2", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.6.Final", "2.0.0.CR3", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -82,7 +82,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.6.Final", "2.0.0.CR2", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.6.Final", "2.0.0.CR3", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -123,7 +123,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.6.Final", "2.0.0.CR2", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.6.Final", "2.0.0.CR3", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -175,7 +175,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.6.Final", "2.0.0.CR2", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.6.Final", "2.0.0.CR3", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
