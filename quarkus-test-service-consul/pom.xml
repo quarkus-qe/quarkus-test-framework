@@ -9,7 +9,7 @@
     <artifactId>quarkus-test-service-consul</artifactId>
     <name>Quarkus - Test Framework - Service - Consul</name>
     <properties>
-        <consul-client.version>1.5.1</consul-client.version>
+        <consul-client.version>1.5.2</consul-client.version>
     </properties>
     <dependencies>
         <dependency>
