@@ -19,6 +19,22 @@ This framework follows the Quarkus version convention, so we can selectively spe
 
 ## Getting Started
 
+### Building the sources
+
+In order to build the project and - most likely - to get started by executing some of the [examples](./examples) 
+here provided, you'll first need to install the framework by issuing: 
+
+```shell
+mvn clean install -Pframework
+```
+
+Then you'll be able to build and run examples, as well, e.g.:
+```shell
+mvn clean verify -pl examples/greetings/
+```
+
+### Using the framework
+
 In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file;
 
 ```xml
@@ -189,7 +205,7 @@ public class DevModeGreetingResourceIT {
 
 The application will start on DEV mode and will have enabled all the live coding features.
 
-This feature includes a new `DevModeQuarkusService` service with the next functionality:
+This feature includes a new `DevModeQuarkusService` service with the following functionality:
 
 - `enableContinuousTesting` - to enable continuous testing
 
@@ -400,7 +416,7 @@ This framework is designed to follow **extension model** patterns. Therefore, we
 
 ### Packages
 
-The modules within the test framework must follow the next package convention:
+Modules within the testing framework must conform to the following package naming conventions:
 
 - `io.quarkus.test.bootstrap` - manage the lifecycle of the tests
 - `io.quarkus.test.bootstrap.inject` - services that are injectable at test method level
