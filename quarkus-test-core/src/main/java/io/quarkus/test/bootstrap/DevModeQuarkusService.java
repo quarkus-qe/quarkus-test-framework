@@ -29,15 +29,16 @@ public class DevModeQuarkusService extends BaseService<DevModeQuarkusService> {
 
     private static final String DEV_UI_PATH = "/q/dev";
     private static final String ENABLE_CONTINUOUS_TESTING_BTN = "//a[@class='btn btnPowerOnOffButton text-warning']";
+    private static final String DEV_UI_READY_XPATH = "//a[@class='testsFooterButton btnDisplayTestHelp btn']";
 
     public RequestSpecification given() {
         return RestAssured.given().baseUri(getHost()).basePath("/").port(getPort());
     }
 
     public DevModeQuarkusService enableContinuousTesting() {
-        AwaitilityUtils.until(
-                () -> getElementsByXPath(webDevUiPage(), ENABLE_CONTINUOUS_TESTING_BTN),
-                Matchers.is(Matchers.not(Matchers.empty()))).forEach(this::clickOnElement);
+        waitForDevUiReady();
+        // If the enable continuous testing btn is not found, we assume it's already enabled it.
+        getElementsByXPath(webDevUiPage(), ENABLE_CONTINUOUS_TESTING_BTN).forEach(this::clickOnElement);
 
         return this;
     }
@@ -71,6 +72,12 @@ public class DevModeQuarkusService extends BaseService<DevModeQuarkusService> {
         if (!field.isAnnotationPresent(DevModeQuarkusApplication.class)) {
             Assertions.fail("DevModeQuarkusService service is not annotated with DevModeQuarkusApplication");
         }
+    }
+
+    private void waitForDevUiReady() {
+        AwaitilityUtils.until(
+                () -> getElementsByXPath(webDevUiPage(), DEV_UI_READY_XPATH),
+                Matchers.not(Matchers.empty()));
     }
 
     private Path servicePath() {
