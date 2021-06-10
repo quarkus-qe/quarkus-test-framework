@@ -4,10 +4,12 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.jupiter.api.extension.ExtensionContext;
+
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.utils.LogsVerifier;
 
-public interface Service {
+public interface Service extends ExtensionContext.Store.CloseableResource {
 
     String getName();
 
@@ -17,9 +19,13 @@ public interface Service {
 
     List<String> getLogs();
 
-    void register(String name);
+    default ServiceContext register(String serviceName) {
+        return register(serviceName, null); // No test context attached
+    }
 
-    void init(ManagedResourceBuilder resource, ServiceContext serviceContext);
+    ServiceContext register(String serviceName, ExtensionContext testContext);
+
+    void init(ManagedResourceBuilder resource);
 
     void start();
 
@@ -31,5 +37,13 @@ public interface Service {
 
     default void validate(Field field) {
 
+    }
+
+    /**
+     * Let JUnit close remaining resources.
+     */
+    @Override
+    default void close() {
+        stop();
     }
 }

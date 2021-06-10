@@ -177,11 +177,9 @@ public class QuarkusScenarioBootstrap
         field.setAccessible(true);
         Service service = (Service) field.get(null);
         service.validate(field);
-        service.register(field.getName());
-        ServiceContext serviceContext = new ServiceContext(service, context);
+        ServiceContext serviceContext = service.register(field.getName(), context);
         extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
-
-        service.init(resource, serviceContext);
+        service.init(resource);
         services.add(service);
     }
 
@@ -216,11 +214,10 @@ public class QuarkusScenarioBootstrap
             resource.initAppClasses(null);
 
             Service service = new RestService();
-            service.register(DEFAULT_SERVICE_NAME);
-            ServiceContext serviceContext = new ServiceContext(service, context);
+            ServiceContext serviceContext = service.register(DEFAULT_SERVICE_NAME, context);
             extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
 
-            service.init(resource, serviceContext);
+            service.init(resource);
             return service;
         } catch (Exception ex) {
             throw new RuntimeException(ex);

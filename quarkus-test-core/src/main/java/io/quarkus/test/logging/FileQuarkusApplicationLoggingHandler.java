@@ -17,8 +17,10 @@ public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
 
     @Override
     protected void handle() {
-        String newContent = FileUtils.loadFile(file);
-        onStringDifference(newContent, printedContent);
-        printedContent = newContent;
+        if (file.exists()) {
+            String newContent = FileUtils.loadFile(file);
+            onStringDifference(newContent, printedContent);
+            printedContent = newContent;
+        }
     }
 }

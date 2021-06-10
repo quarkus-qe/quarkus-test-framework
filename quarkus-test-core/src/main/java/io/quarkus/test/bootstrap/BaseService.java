@@ -4,6 +4,7 @@ import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+
+import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
@@ -149,15 +152,17 @@ public class BaseService<T extends Service> implements Service {
     }
 
     @Override
-    public void register(String serviceName) {
+    public ServiceContext register(String serviceName, ExtensionContext testContext) {
         this.serviceName = serviceName;
         this.configuration = Configuration.load(serviceName);
+        this.context = new ServiceContext(this, testContext);
         onPreStart(s -> futureProperties.forEach(Runnable::run));
+        testContext.getStore(ExtensionContext.Namespace.create(QuarkusScenarioBootstrap.class)).put(serviceName, this);
+        return this.context;
     }
 
     @Override
-    public void init(ManagedResourceBuilder managedResourceBuilder, ServiceContext context) {
-        this.context = context;
+    public void init(ManagedResourceBuilder managedResourceBuilder) {
         Log.info(this, "Initialize service");
         FileUtils.recreateDirectory(context.getServiceFolder());
         managedResource = managedResourceBuilder.build(context);
@@ -170,6 +175,10 @@ public class BaseService<T extends Service> implements Service {
     @Override
     public LogsVerifier logs() {
         return new LogsVerifier(this);
+    }
+
+    protected Path getServiceFolder() {
+        return context.getServiceFolder();
     }
 
     protected <U> U getPropertyFromContext(String key) {
