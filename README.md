@@ -57,7 +57,7 @@ public class PingPongResourceIT {
 }
 ```
 
-This mimics the usage of the `@QuarkusTest` or `@QuarkusIntegrationTest` from the Quarkus framework. Plus, it has all the benefits of using this test framework like easy logging, tracing, etc. This behaviour can be disabled by setting `ts.global.create.service.by.default=false`.
+This mimics the usage of the `@QuarkusTest` or `@QuarkusIntegrationTest` from the Quarkus framework. Plus, it has all the benefits of using this test framework like easy logging, tracing, etc. This behaviour can be disabled by setting `ts.global.generated-service.enabled=false`.
 
 Another more complex scenario could include a few Quarkus instances:
 

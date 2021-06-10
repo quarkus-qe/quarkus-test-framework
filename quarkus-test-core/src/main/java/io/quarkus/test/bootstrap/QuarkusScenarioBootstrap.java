@@ -36,7 +36,7 @@ public class QuarkusScenarioBootstrap
         implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
         ParameterResolver, LifecycleMethodExecutionExceptionHandler, TestWatcher {
 
-    private static final PropertyLookup CREATE_SERVICE_BY_DEFAULT = new PropertyLookup("create.service.by.default",
+    private static final PropertyLookup CREATE_SERVICE_BY_DEFAULT = new PropertyLookup("generated-service.enabled",
             Boolean.TRUE.toString());
     private static final String DEFAULT_SERVICE_NAME = "app";
 
