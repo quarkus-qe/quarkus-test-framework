@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
 
 public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
@@ -65,14 +66,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             loggingHandler.stopWatching();
         }
 
-        try {
-            if (process != null) {
-                process.destroy();
-                process.waitFor();
-            }
-        } catch (InterruptedException ignored) {
-
-        }
+        ProcessUtils.destroy(process);
     }
 
     @Override

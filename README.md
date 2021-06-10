@@ -191,6 +191,8 @@ public class OnlyOnJvmIT {
 }
 ```
 
+Similarly, we can enable tests to be run only on Native build by using the `@EnabledOnNative` annotation.
+
 ### Dev mode
 
 The test framework supports bare metal testing of DEV mode Quarkus testing. Example:
@@ -226,6 +228,58 @@ app.modifyFile("src/main/java/io/quarkus/qe/GreetingResource.java",content -> co
 ```java
 app.copyFile("src/test/resources/jose.properties", "src/main/resources/application.properties");
 ```
+
+### Quarkus CLI
+
+The Quarkus Test Framework supports the usage of [the Quarkus CLI tool](https://quarkus.io/version/main/guides/cli-tooling):
+
+```java
+@QuarkusScenario
+public class QuarkusCliClientIT {
+
+    @Inject
+    static QuarkusCliClient cliClient;
+
+    @Test
+    public void shouldVersionMatchQuarkusVersion() {
+        String cliVersion = cliClient.getVersion();
+        assertEquals("Client Version " + Version.getVersion(), cliVersion);
+    }
+
+    @Test
+    public void shouldCreateApplicationOnJvm() {
+        // Create application
+        QuarkusCliRestService app = cliClient.createApplication("app");
+
+        // Should build on Jvm
+        QuarkusCliClient.Result result = app.buildOnJvm();
+        assertTrue(result.isSuccessful(), "The application didn't build on JVM. Output: " + result.getOutput());
+
+        // Start using DEV mode
+        app.start();
+        app.given().get().then().statusCode(HttpStatus.SC_OK);
+    }
+}
+```
+
+Current features:
+- `run` - run any command
+- `createApplication` - create a service at `target/<APP NAME>`
+- `buildOnJvm` - build the service in JVM mode
+- `buildOnNative` - build the service in Native mode
+- `runOnDev` - run the service on DEV mode (it's the same as using `QuarkusCliRestService.start`)
+- `getInstalledExtensions` - get the installed extensions
+- `installExtension` - install a concrete Quarkus extension
+- `removeExtension` - remove a concrete Quarkus extension
+
+The framework will not install the Quarkus CLI tool, so before running these scenarios, it needs to be installed it beforehand.
+The default command name is `quarkus`, but it can be changed using the property `ts.quarkus.cli.cmd`. For example:
+
+```
+mvn clean verify -Dts.quarkus.cli.cmd="java -jar quarkus-cli.jar"
+```
+
+The above command will use directly the binary from Quarkus upstream build.
 
 ### Disable Tests on a Concrete Quarkus version
 

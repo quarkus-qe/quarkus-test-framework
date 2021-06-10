@@ -49,6 +49,7 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>2.0.0.CR3</quarkus.platform.version>
         <quarkus-plugin.version>${quarkus.platform.version}</quarkus-plugin.version>
+        <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
@@ -92,6 +93,11 @@
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-containers</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-cli</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -304,6 +310,7 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
                             <includes>
                                 <include>${include.tests}</include>
                             </includes>
@@ -328,6 +335,7 @@
             </activation>
             <modules>
                 <module>quarkus-test-core</module>
+                <module>quarkus-test-cli</module>
                 <module>quarkus-test-containers</module>
                 <module>quarkus-test-images</module>
                 <module>quarkus-test-kubernetes</module>
@@ -345,6 +353,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
+                <module>examples/quarkus-cli</module>
                 <module>examples/pingpong</module>
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>
@@ -485,6 +494,17 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <id>run-cli-tests</id>
+            <activation>
+                <property>
+                    <name>run-cli-tests</name>
+                </property>
+            </activation>
+            <properties>
+                <exclude.tests.with.tags/>
+            </properties>
         </profile>
     </profiles>
 </project>
