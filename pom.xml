@@ -40,6 +40,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <testcontainers.version>1.15.3</testcontainers.version>
+        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jaeger-client.version>1.6.0</jaeger-client.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.15.0</formatter-maven-plugin.version>
@@ -58,6 +59,8 @@
         <src.sort.goal>sort</src.sort.goal>
         <xml.format.goal>xml-format</xml.format.goal>
         <checkstyle.version>8.43</checkstyle.version>
+        <!-- Code Coverage Properties-->
+        <jacoco.agent.argLine/>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -163,6 +166,10 @@
         <pluginManagement>
             <plugins>
                 <plugin>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${surefire-plugin.version}</version>
+                </plugin>
+                <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-javadoc-plugin</artifactId>
                     <version>${javadoc-plugin.version}</version>
@@ -185,6 +192,11 @@
                         <localCheckout>true</localCheckout>
                         <remoteTagging>false</remoteTagging>
                     </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco-maven-plugin.version}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -302,7 +314,6 @@
             </plugin>
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>${surefire-plugin.version}</version>
                 <executions>
                     <execution>
                         <goals>
@@ -310,6 +321,7 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <argLine>${jacoco.agent.argLine}</argLine>
                             <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
                             <includes>
                                 <include>${include.tests}</include>
@@ -383,7 +395,6 @@
                 <plugins>
                     <plugin>
                         <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${surefire-plugin.version}</version>
                         <executions>
                             <execution>
                                 <configuration>
@@ -445,6 +456,35 @@
                 <src.sort.goal>check</src.sort.goal>
                 <xml.format.goal>xml-check</xml.format.goal>
             </properties>
+        </profile>
+        <!-- This profile generates jacoco coverage files. To generate html report use "-Pcoverage-generate-report" -->
+        <profile>
+            <id>coverage</id>
+            <properties>
+                <jacoco.agent.argLine>${jacoco.activated.agent.argLine}</jacoco.agent.argLine>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jacoco</groupId>
+                        <artifactId>jacoco-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>agent</id>
+                                <goals>
+                                    <goal>prepare-agent</goal>
+                                </goals>
+                                <configuration>
+                                    <includes>
+                                        <include>io.quarkus.test*</include>
+                                    </includes>
+                                    <propertyName>jacoco.activated.agent.argLine</propertyName>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>release</id>
