@@ -1,3 +1,16 @@
+<p align="center">
+    <a href="https://github.com/quarkus-qe/quarkus-test-framework/graphs/contributors" alt="Contributors">
+        <img src="https://img.shields.io/github/contributors/quarkus-qe/quarkus-test-framework"/></a>
+    <a href="https://github.com/quarkus-qe/quarkus-test-framework/pulse" alt="Activity">
+        <img src="https://img.shields.io/github/commit-activity/m/quarkus-qe/quarkus-test-framework"/></a>
+    <a href="https://github.com/quarkus-qe/quarkus-test-framework/actions/workflows/daily.yaml" alt="Build Status">
+        <img src="https://github.com/quarkus-qe/quarkus-test-framework/actions/workflows/daily.yaml/badge.svg"></a>
+    <a href="https://github.com/quarkus-qe/quarkus-test-framework" alt="Top Language">
+        <img src="https://img.shields.io/github/languages/top/quarkus-qe/quarkus-test-framework"></a>
+    <a href="https://github.com/quarkus-qe/quarkus-test-framework" alt="Coverage">
+        <img src=".github/badges/jacoco.svg"></a>
+</p>
+
 # Quarkus QE Test Framework
 
 The framework is designed using Extension Model architecture patterns, so supporting additional features or deployment options like Kubernetes or AWS is just a matter of implementing extension points and providing the new Maven module in the classpath.
@@ -21,17 +34,7 @@ This framework follows the Quarkus version convention, so we can selectively spe
 
 ### Building the sources
 
-In order to build the project and - most likely - to get started by executing some of the [examples](./examples) 
-here provided, you'll first need to install the framework by issuing: 
-
-```shell
-mvn clean install -Pframework
-```
-
-Then you'll be able to build and run examples, as well, e.g.:
-```shell
-mvn clean verify -pl examples/greetings/
-```
+The build instructions are available in the [contribution guide](CONTRIBUTING.md).
 
 ### Using the framework
 
