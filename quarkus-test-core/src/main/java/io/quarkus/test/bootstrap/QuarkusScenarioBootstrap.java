@@ -122,6 +122,11 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
+    public void testDisabled(ExtensionContext context, Optional<String> reason) {
+        extensions.forEach(ext -> ext.onDisabled(context, reason));
+    }
+
+    @Override
     public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
         notifyExtensionsOnError(context, throwable);
     }

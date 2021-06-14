@@ -44,6 +44,10 @@ public interface ExtensionBootstrap {
 
     }
 
+    default void onDisabled(ExtensionContext context, Optional<String> reason) {
+
+    }
+
     default void beforeEach(ExtensionContext context) {
 
     }

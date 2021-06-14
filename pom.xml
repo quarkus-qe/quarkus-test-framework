@@ -42,6 +42,7 @@
         <testcontainers.version>1.16.0</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jaeger-client.version>1.6.0</jaeger-client.version>
+        <prometheus.simpleclient_pushgateway.version>0.10.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.16.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.6.2</impsort-maven-plugin.version>
@@ -153,6 +154,11 @@
                 <groupId>net.sourceforge.htmlunit</groupId>
                 <artifactId>htmlunit</artifactId>
                 <version>${htmlunit.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.prometheus</groupId>
+                <artifactId>simpleclient_pushgateway</artifactId>
+                <version>${prometheus.simpleclient_pushgateway.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -378,6 +384,7 @@
                 <module>examples/database-mysql</module>
                 <module>examples/external-applications</module>
                 <module>examples/tracing-extension</module>
+                <module>examples/metrics-extension</module>
             </modules>
         </profile>
         <profile>
