@@ -108,7 +108,7 @@ jobs:
         if: steps.coverage.outputs.needs-commit-badge == 'true'
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.COVERAGE_BADGE_CI_TOKEN }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
       - name: Zip Artifacts
         if: failure()
