@@ -1,10 +1,12 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.regex.Pattern.quote;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.nio.file.Path;
 
 import io.quarkus.builder.Version;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.utils.FileUtils;
 
 public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
@@ -14,6 +16,8 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends 
     private static final String DEPLOYMENT = "openshift.yml";
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
     private static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
+    private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
+    private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository", EMPTY);
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
@@ -65,7 +69,9 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends 
     private void createMavenSettings() {
         Path targetQuarkusSourceS2iSettingsMvnFilename = model.getContext().getServiceFolder()
                 .resolve(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
-        FileUtils.copyFileTo(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME, targetQuarkusSourceS2iSettingsMvnFilename);
+        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME)
+                .replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), MAVEN_REMOTE_REPOSITORY.get(model.getContext()));
+        FileUtils.copyContentTo(content, targetQuarkusSourceS2iSettingsMvnFilename);
         client.apply(model.getContext().getOwner(), targetQuarkusSourceS2iSettingsMvnFilename);
     }
 

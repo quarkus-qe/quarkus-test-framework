@@ -30,8 +30,8 @@ data:
                 <id>customRemoteRepository</id>
                 <repositories>
                     <repository>
-                        <id>ts.s2i.maven.remote.repository</id>
-                        <url>${ts.s2i.maven.remote.repository}</url>
+                        <id>internal.s2i.maven.remote.repository</id>
+                        <url>${internal.s2i.maven.remote.repository}</url>
                         <snapshots>
                             <enabled>false</enabled>
                         </snapshots>
@@ -39,8 +39,8 @@ data:
                 </repositories>
                 <pluginRepositories>
                     <pluginRepository>
-                        <id>ts.s2i.maven.remote.repository</id>
-                        <url>${ts.s2i.maven.remote.repository}</url>
+                        <id>internal.s2i.maven.remote.repository</id>
+                        <url>${internal.s2i.maven.remote.repository}</url>
                         <snapshots>
                             <enabled>false</enabled>
                         </snapshots>
