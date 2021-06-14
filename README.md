@@ -696,6 +696,33 @@ public class OpenShiftS2iQuickstartIT {
     //
 ```
 
+It's important to note that, by default, OpenShift will build the application's source code using the Red Hat maven repository `https://maven.repository.redhat.com/ga/`. However, some applications might require some dependencies from other remote Maven repositories. In order to allow us to add another remote Maven repository, you can use `-Dts.global.s2i.maven.remote.repository=http://host:port/repo/name`. If you only want to configure different maven repositories by service, you can do it by replacing `global` to the service name, for example: `-Dts.pingPong.s2i.maven.remote.repository=...`.
+
+The test framework will automatically load a custom maven settings with the provided maven remote repository. But if you're using a custom template, all you need to do is to configure the `settings-mvn` config map and the Maven args as follows:
+
+```
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: myApp
+spec:
+  source:
+    git:
+      uri: https://github.com/repo/name.git
+    type: Git
+    configMaps:
+    - configMap:
+        name: settings-mvn
+      destinationDir: "/configuration"
+  strategy:
+    type: Source
+    sourceStrategy:
+      env:
+      - name: MAVEN_ARGS
+        value: -s /configuration/settings.xml
+      // ...
+```
+
 - **Container Registry**
 
 This strategy will build the image locally and push it to an intermediary container registry (provided by a system property). Then, the image will be pulled from the container registry in OpenShift.
