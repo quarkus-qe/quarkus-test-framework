@@ -92,7 +92,7 @@ jobs:
         id: coverage
         run: |
           echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
-          if [[ `git status --porcelain` ]]; then
+          if [[ `git status | grep .svg | wc -l` > 0 ]]; then
             echo ::set-output name=needs-commit-badge::true
           else
             echo ::set-output name=needs-commit-badge::false
