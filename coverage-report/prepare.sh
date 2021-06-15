@@ -16,6 +16,9 @@ done
 rm -r target/classes/io/quarkus/qe
 rm -r target/classes/org/acme
 
+#delete classes from quarkus cli
+rm -r target/classes/io/quarkus/cli
+
 #we don't care about classes in the 'graal' package, because they are only used in native image generation
 find target/classes/ -name graal -exec rm -r {} \;
 
