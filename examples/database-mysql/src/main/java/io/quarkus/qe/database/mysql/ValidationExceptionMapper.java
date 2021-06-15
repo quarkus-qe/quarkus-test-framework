@@ -1,4 +1,4 @@
-package io.quarkus.ts.openshift.sqldb;
+package io.quarkus.qe.database.mysql;
 
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;

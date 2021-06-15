@@ -1,4 +1,4 @@
-package io.quarkus.ts.openshift.sqldb;
+package io.quarkus.qe.database.mysql;
 
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsInAnyOrder;

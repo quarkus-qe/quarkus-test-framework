@@ -65,6 +65,15 @@ jobs:
       - name: Extract Maven Repo
         shell: bash
         run: tar -xzf maven-repo.tgz -C ~
+      - uses: engineerd/setup-kind@v0.5.0
+      - name: Configure Load Balancer
+        run: .github/configure-load-balancer.sh bridge
+      - name: Login to Docker Registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ secrets.CI_REGISTRY }}
+          username: ${{ secrets.CI_REGISTRY_USERNAME }}
+          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build Quarkus CLI
         run: |
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly
@@ -77,7 +86,7 @@ jobs:
           chmod +x ./quarkus-dev-cli
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dexclude.kubernetes.tests=no -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Generate Jacoco Report
         run: |
           cd coverage-report
@@ -217,7 +226,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.6.Final", "2.0.0.CR3", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.6.Final", "2.0.0.CR3"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
