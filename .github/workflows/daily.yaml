@@ -120,6 +120,11 @@ jobs:
         with:
           name: ci-artifacts
           path: artifacts-jvm-latest-${{ matrix.java }}.zip
+      - name: Archive Coverage Report
+        uses: actions/upload-artifact@v1
+        with:
+          name: ci-coverage
+          path: coverage-report/target/site/jacoco
   build-jvm-released:
     name: Daily build - JVM - released Quarkus
     runs-on: ubuntu-latest
