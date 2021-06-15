@@ -1,4 +1,4 @@
-package io.quarkus.ts.openshift.sqldb;
+package io.quarkus.qe.database.mysql;
 
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.core.Response;

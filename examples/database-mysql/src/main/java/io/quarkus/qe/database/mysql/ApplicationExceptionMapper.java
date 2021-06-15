@@ -1,4 +1,4 @@
-package io.quarkus.ts.openshift.sqldb;
+package io.quarkus.qe.database.mysql;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
