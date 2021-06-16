@@ -34,11 +34,6 @@ public class Command {
         return this;
     }
 
-    public Command outputToList(List<String> list) {
-        outputConsumer = listOutput(list);
-        return this;
-    }
-
     public Command onDirectory(Path path) {
         directory = path.toString();
         return this;
@@ -71,18 +66,6 @@ public class Command {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     Log.info("%s: %s", description, line);
-                }
-            } catch (IOException ignored) {
-            }
-        };
-    }
-
-    private static BiConsumer<String, InputStream> listOutput(List<String> list) {
-        return (description, is) -> {
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    list.add(line);
                 }
             } catch (IOException ignored) {
             }

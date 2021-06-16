@@ -42,6 +42,19 @@
     <build>
         <plugins>
             <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <configuration>
+                            <systemProperties>
+                                <custom.kafka.image>quay.io/strimzi/kafka</custom.kafka.image>
+                                <custom.kafka.version>0.23.0-kafka-2.8.0</custom.kafka.version>
+                            </systemProperties>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>
                 <version>${quarkus-plugin.version}</version>
