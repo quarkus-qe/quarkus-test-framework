@@ -202,13 +202,12 @@ public class BaseService<T extends Service> implements Service {
 
     private boolean isManagedResourceRunning() {
         Log.debug(this, "Checking if resource is running");
-        boolean isRunning = managedResource.isRunning();
-        if (isRunning) {
+        if (managedResource != null && managedResource.isRunning()) {
             Log.debug(this, "Resource is running");
-        } else {
-            Log.debug(this, "Resource is not running");
+            return true;
         }
 
-        return isRunning;
+        Log.debug(this, "Resource is not running");
+        return false;
     }
 }
