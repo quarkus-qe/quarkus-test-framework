@@ -17,10 +17,12 @@
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-bootstrap-core</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-test-common</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
