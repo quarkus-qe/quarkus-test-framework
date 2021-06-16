@@ -109,8 +109,11 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
 
             Path testLocation = PathTestHelper.getTestClassesLocation(getContext().getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
-                    .setMode(QuarkusBootstrap.Mode.PROD).setLocalProjectDiscovery(true).addExcludedPath(testLocation)
-                    .setProjectRoot(testLocation).setBaseName(getContext().getName())
+                    .setMode(QuarkusBootstrap.Mode.PROD)
+                    .setLocalProjectDiscovery(true)
+                    .addExcludedPath(testLocation)
+                    .setProjectRoot(testLocation)
+                    .setBaseName(getContext().getName())
                     .setTargetDirectory(appFolder);
 
             AugmentResult result;

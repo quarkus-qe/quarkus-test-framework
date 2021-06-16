@@ -33,8 +33,6 @@ public class DevModeGreetingResourceIT {
         app.enableContinuousTesting();
         // We wait for Quarkus to run the tests
         app.logs().assertContains("Running Tests for the first time");
-        // But there are no tests yet
-        app.logs().assertContains("No tests to run");
         // We add a new test
         app.copyFile("src/test/resources/GreetingResourceTest.java.template", "src/test/java/GreetingResourceTest.java");
         // And now, Quarkus find it and run it
