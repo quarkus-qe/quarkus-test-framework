@@ -1,20 +1,29 @@
 package io.quarkus.test.tracing;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import com.google.common.collect.Sets;
 
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
 import io.quarkus.test.bootstrap.Service;
-import io.quarkus.test.scenarios.QuarkusScenario;
 
 public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
-    private final QuarkusScenarioTracer quarkusScenarioTracer = new QuarkusScenarioTracer();
+    private static final String JAEGER_HTTP_ENDPOINT_PROPERTY = "ts.jaeger-http-endpoint";
+
+    private QuarkusScenarioTracer quarkusScenarioTracer;
+
+    public TracingExtensionBootstrap() {
+        String jaegerHttpEndpoint = System.getProperty(JAEGER_HTTP_ENDPOINT_PROPERTY);
+        if (StringUtils.isNotEmpty(jaegerHttpEndpoint)) {
+            quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
+        }
+    }
 
     @Override
     public boolean appliesFor(ExtensionContext context) {
-        return context.getRequiredTestClass().isAnnotationPresent(QuarkusScenario.class);
+        return quarkusScenarioTracer != null;
     }
 
     @Override

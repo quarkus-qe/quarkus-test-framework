@@ -23,15 +23,13 @@ import io.quarkus.test.configuration.PropertyLookup;
 public class QuarkusScenarioTracer {
 
     private static final String DEFAULT_SERVICE_NAME = "quarkus-test-framework";
-    private static final String DEFAULT_JAEGER_HTTP_ENDPOINT = "http://localhost:14268/api/traces";
+
     private final Tracer tracer;
     private final QuarkusScenarioSpan quarkusScenarioSpan;
     private final QuarkusScenarioTags quarkusScenarioTags;
 
-    public QuarkusScenarioTracer() {
-
+    public QuarkusScenarioTracer(String jaegerHttpEndpoint) {
         String serviceName = new PropertyLookup("ts.service-name", DEFAULT_SERVICE_NAME).get();
-        String jaegerHttpEndpoint = new PropertyLookup("ts.jaeger-http-endpoint", DEFAULT_JAEGER_HTTP_ENDPOINT).get();
 
         tracer = new JaegerTracer.Builder(serviceName).withReporter(new RemoteReporter.Builder()
                 .withSender(new HttpSender.Builder(jaegerHttpEndpoint).build()).build())

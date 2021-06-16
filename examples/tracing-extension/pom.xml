@@ -33,14 +33,14 @@
     <build>
         <plugins>
             <plugin>
-                <groupId>io.quarkus</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus-plugin.version}</version>
+                <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
                     <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
+                        <configuration>
+                            <systemProperties>
+                                <ts.jaeger-http-endpoint>http://localhost:14268/api/traces</ts.jaeger-http-endpoint>
+                            </systemProperties>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
