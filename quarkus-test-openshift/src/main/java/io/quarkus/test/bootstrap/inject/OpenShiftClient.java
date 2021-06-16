@@ -40,7 +40,6 @@ import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.openshift.api.model.BuildConfig;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
@@ -462,50 +461,6 @@ public final class OpenShiftClient {
                                         envVar.setValue(property.getValue());
                                     }
                                 }));
-            }
-        }
-
-        KubernetesList list = new KubernetesList();
-        list.setItems(objs);
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            Serialization.yamlMapper().writeValue(os, list);
-            template = new String(os.toByteArray());
-        } catch (IOException e) {
-            fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
-        }
-
-        return template;
-    }
-
-    public String addGitRefToBuildConfig(String buildConfigName, String gitRef, String template) {
-        List<HasMetadata> objs = loadYaml(template);
-        for (HasMetadata obj : objs) {
-            if (obj instanceof BuildConfig && StringUtils.equals(obj.getMetadata().getName(), buildConfigName)) {
-                BuildConfig bc = (BuildConfig) obj;
-                bc.getSpec().getSource().getGit().setRef(gitRef);
-            }
-        }
-
-        KubernetesList list = new KubernetesList();
-        list.setItems(objs);
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            Serialization.yamlMapper().writeValue(os, list);
-            template = new String(os.toByteArray());
-        } catch (IOException e) {
-            fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
-        }
-
-        return template;
-    }
-
-    public String addContextDirToBuildConfig(String buildConfigName, String contextDir, String template) {
-        List<HasMetadata> objs = loadYaml(template);
-        for (HasMetadata obj : objs) {
-            if (obj instanceof BuildConfig && StringUtils.equals(obj.getMetadata().getName(), buildConfigName)) {
-                BuildConfig bc = (BuildConfig) obj;
-                bc.getSpec().getSource().setContextDir(contextDir);
             }
         }
 
