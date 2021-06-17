@@ -17,10 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
-
-import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.utils.Command;
@@ -39,8 +36,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
-
-    private static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
 
     private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
 
@@ -106,7 +101,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
-        withQuarkusProperties(args);
         withEnvVars(args, model.getContext().getOwner().getProperties());
         withAdditionalArguments(args);
 
@@ -126,16 +120,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
     }
 
-    private void withQuarkusProperties(List<String> args) {
-        System.getProperties().entrySet().stream()
-                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()))
-                .forEach(property -> {
-                    String key = (String) property.getKey();
-                    String value = (String) property.getValue();
-                    args.add(withProperty(key, value));
-                });
-    }
-
     private String withContainerImageGroup(String namespace) {
         return withProperty(QUARKUS_CONTAINER_IMAGE_GROUP, namespace);
     }
@@ -153,14 +137,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
             args.add(withProperty(QUARKUS_OPENSHIFT_ENV_VARS + envVarKey, envVar.getValue()));
         }
-    }
-
-    private Predicate<Entry<Object, Object>> propertyValueIsNotEmpty() {
-        return property -> StringUtils.isNotEmpty((String) property.getValue());
-    }
-
-    private Predicate<Entry<Object, Object>> isQuarkusProperty() {
-        return property -> StringUtils.startsWith((String) property.getKey(), QUARKUS_PROPERTY_PREFIX);
     }
 
     private void cloneProjectToServiceAppFolder() {
