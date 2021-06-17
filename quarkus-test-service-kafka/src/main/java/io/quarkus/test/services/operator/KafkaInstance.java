@@ -5,7 +5,8 @@ import io.quarkus.test.services.operator.model.KafkaInstanceCustomResource;
 
 public class KafkaInstance extends OperatorService<KafkaInstance> {
 
-    private static final String BOOTSTRAP_URL = "%s-kafka-bootstrap:9092";
+    private static final String HOST = "%s-kafka-bootstrap";
+    private static final int PORT = 9092;
     private static final String KAFKA_INSTANCE_NAME_DEFAULT = "kafka-instance";
     private static final String KAFKA_INSTANCE_TEMPLATE_DEFAULT = "/strimzi-operator-kafka-instance.yaml";
 
@@ -20,7 +21,17 @@ public class KafkaInstance extends OperatorService<KafkaInstance> {
         withCrd(name, crdFile, KafkaInstanceCustomResource.class);
     }
 
+    @Override
+    public String getHost() {
+        return String.format(HOST, name);
+    }
+
+    @Override
+    public Integer getPort() {
+        return PORT;
+    }
+
     public String getBootstrapUrl() {
-        return String.format(BOOTSTRAP_URL, name);
+        return getHost() + ":" + getPort();
     }
 }
