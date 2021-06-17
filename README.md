@@ -85,6 +85,54 @@ public class PingPongResourceIT {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
+### Services Start Up Order
+
+By default, the services are initialized in Natural Order of presence. For example, having:
+
+```java
+class MyParent {
+    @QuarkusApplication // ... or @Container
+    static final RestService firstAppInParent = new RestService();
+    
+    @QuarkusApplication // ... or @Container
+    static final RestService secondAppInParent = new RestService();
+
+}
+
+@QuarkusScenario
+class MyScenarioIT extends MyParent {
+    @QuarkusApplication // ... or @Container
+    static final RestService firstAppInChild = new RestService();
+
+    @QuarkusApplication // ... or @Container
+    static final RestService secondAppInChild = new RestService();
+}
+```
+
+Then, the framework will initialize the services at this order: `firstAppInParent`,  `secondAppInParent`, `firstAppInChild` and `secondAppInChild`.
+
+We can change this order by using the `@LookupService` annotation:
+
+```java
+class MyParent {
+    @LookupService
+    static final RestService appInChild; // field name must match with the service name declared in MyScenarioIT.
+
+    @QuarkusApplication // ... or @Container
+    static final RestService appInParent = new RestService().withProperty("x", () -> appInChild.getHost());
+}
+
+@QuarkusScenario
+class MyScenarioIT extends MyParent {
+    @QuarkusApplication // ... or @Container
+    static final RestService appInChild = new RestService();
+}
+```
+
+| Note that field name of the `@LookupService` must match with the service name declared in MyScenarioIT.
+
+Now, the framework will initialize the `appInChild` service first and then the `appInParent` service.
+
 ### Configuration
 
 Test framework allows to customise the configuration for running the test case via a `test.properties` file placed under `src/test/resources` folder.

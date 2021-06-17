@@ -97,7 +97,12 @@ public final class Log {
                 UNUSED_SERVICE_COLORS.addAll(ALL_SERVICE_COLORS);
             }
 
-            color = UNUSED_SERVICE_COLORS.remove(RND.nextInt(UNUSED_SERVICE_COLORS.size() - 1));
+            int colorIdx = 0;
+            if (UNUSED_SERVICE_COLORS.size() > 1) {
+                colorIdx = RND.nextInt(UNUSED_SERVICE_COLORS.size() - 1);
+            }
+
+            color = UNUSED_SERVICE_COLORS.remove(colorIdx);
             SERVICE_COLOR_MAPPING.put(service.getName(), color);
         }
 

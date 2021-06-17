@@ -16,9 +16,9 @@ public class GreetingResourceUsingRuntimePropertiesIT {
     static final String MANUEL_NAME = "manuel";
 
     @QuarkusApplication
-    static final RestService joseApp = new RestService().withProperty(GreetingResource.PROPERTY, JOSE_NAME);
+    static RestService joseApp = new RestService().withProperty(GreetingResource.PROPERTY, JOSE_NAME);
     @QuarkusApplication
-    static final RestService manuelApp = new RestService().withProperty(GreetingResource.PROPERTY, MANUEL_NAME);
+    static RestService manuelApp = new RestService().withProperty(GreetingResource.PROPERTY, MANUEL_NAME);
 
     @Test
     public void shouldSayJose() {
