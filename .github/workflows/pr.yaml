@@ -76,3 +76,40 @@ jobs:
         with:
           name: ci-artifacts
           path: artifacts-latest-jvm${{ matrix.java }}.zip
+  build-ocp:
+    name: OpenShift Tests PR build using Released Quarkus
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        quarkus-version: ["2.0.0.CR3"]
+        java: [ 11 ]
+        openshift: [v3.11.0]
+    steps:
+      - uses: actions/checkout@v1
+      - name: Setup OpenShift
+        uses: manusa/actions-setup-openshift@v1.1.3
+        with:
+          oc version: ${{ matrix.openshift }}
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Build in JVM mode in OCP
+        run: |
+          mvn -T 1C -s .github/mvn-settings.xml clean install -Pframework,examples,openshift -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+      - name: Zip Artifacts
+        run: |
+          zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ci-artifacts
+          path: artifacts-jvm${{ matrix.java }}.zip
