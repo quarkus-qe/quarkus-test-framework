@@ -89,6 +89,19 @@ public class BaseService<T extends Service> implements Service {
         return (T) this;
     }
 
+    @Override
+    public boolean isRunning() {
+        Log.debug(this, "Checking if resource is running");
+        boolean isRunning = managedResource != null && managedResource.isRunning();
+        if (isRunning) {
+            Log.debug(this, "Resource is running");
+        } else {
+            Log.debug(this, "Resource is not running");
+        }
+
+        return isRunning;
+    }
+
     public String getHost() {
         return getHost(Protocol.HTTP);
     }
@@ -123,7 +136,7 @@ public class BaseService<T extends Service> implements Service {
      */
     @Override
     public void start() {
-        if (isManagedResourceRunning()) {
+        if (isRunning()) {
             return;
         }
 
@@ -141,7 +154,7 @@ public class BaseService<T extends Service> implements Service {
      */
     @Override
     public void stop() {
-        if (!isManagedResourceRunning()) {
+        if (!isRunning()) {
             return;
         }
 
@@ -163,7 +176,6 @@ public class BaseService<T extends Service> implements Service {
 
     @Override
     public void init(ManagedResourceBuilder managedResourceBuilder) {
-        Log.info(this, "Initialize service");
         FileUtils.recreateDirectory(context.getServiceFolder());
         managedResource = managedResourceBuilder.build(context);
     }
@@ -194,20 +206,9 @@ public class BaseService<T extends Service> implements Service {
                 .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
         Duration startupTimeout = getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
-        untilIsTrue(this::isManagedResourceRunning, AwaitilitySettings
+        untilIsTrue(this::isRunning, AwaitilitySettings
                 .using(startupCheckInterval, startupTimeout)
                 .withService(this)
                 .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
-    }
-
-    private boolean isManagedResourceRunning() {
-        Log.debug(this, "Checking if resource is running");
-        if (managedResource != null && managedResource.isRunning()) {
-            Log.debug(this, "Resource is running");
-            return true;
-        }
-
-        Log.debug(this, "Resource is not running");
-        return false;
     }
 }

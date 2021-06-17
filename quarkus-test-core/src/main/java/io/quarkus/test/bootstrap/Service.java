@@ -31,6 +31,8 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     void stop();
 
+    boolean isRunning();
+
     LogsVerifier logs();
 
     Service withProperty(String key, String value);

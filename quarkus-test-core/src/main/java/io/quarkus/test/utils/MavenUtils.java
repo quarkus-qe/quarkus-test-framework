@@ -7,6 +7,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Model;
@@ -26,6 +28,7 @@ public final class MavenUtils {
     public static final String DISPLAY_VERSION = "-V";
     public static final String SKIP_CHECKSTYLE = "-Dcheckstyle.skip";
     public static final String QUARKUS_PROFILE = "quarkus.profile";
+    public static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
     public static final String POM_XML = "pom.xml";
 
     private MavenUtils() {
@@ -37,6 +40,7 @@ public final class MavenUtils {
         args.add(MVN_COMMAND);
         args.add(withQuarkusProfile(serviceContext));
         withMavenRepositoryLocalIfSet(args);
+        withQuarkusProperties(args);
         return args;
     }
 
@@ -64,6 +68,7 @@ public final class MavenUtils {
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList(MVN_COMMAND, INSTALL_GOAL, SKIP_CHECKSTYLE, SKIP_TESTS, SKIP_ITS, "-pl", "."));
         withMavenRepositoryLocalIfSet(args);
+        withQuarkusProperties(args);
 
         Command cmd = new Command(args);
         cmd.onDirectory(relativePath);
@@ -94,5 +99,23 @@ public final class MavenUtils {
         }
 
         return null;
+    }
+
+    private static void withQuarkusProperties(List<String> args) {
+        System.getProperties().entrySet().stream()
+                .filter(isQuarkusProperty().and(propertyValueIsNotEmpty()))
+                .forEach(property -> {
+                    String key = (String) property.getKey();
+                    String value = (String) property.getValue();
+                    args.add(withProperty(key, value));
+                });
+    }
+
+    private static Predicate<Map.Entry<Object, Object>> propertyValueIsNotEmpty() {
+        return property -> StringUtils.isNotEmpty((String) property.getValue());
+    }
+
+    private static Predicate<Map.Entry<Object, Object>> isQuarkusProperty() {
+        return property -> StringUtils.startsWith((String) property.getKey(), QUARKUS_PROPERTY_PREFIX);
     }
 }

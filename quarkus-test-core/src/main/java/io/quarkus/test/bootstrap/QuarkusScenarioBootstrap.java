@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,6 +30,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.ReflectionUtils;
 
 public class QuarkusScenarioBootstrap
         implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
@@ -52,17 +52,13 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) throws Exception {
+    public void beforeAll(ExtensionContext context) {
         // Init extensions
         extensions = initExtensions(context);
         extensions.forEach(ext -> ext.beforeAll(context));
 
         // Init services from test fields
-        Class<?> currentClass = context.getRequiredTestClass();
-        while (currentClass != Object.class) {
-            initResourcesFromClass(context, currentClass);
-            currentClass = currentClass.getSuperclass();
-        }
+        ReflectionUtils.findAllFields(context.getRequiredTestClass()).forEach(field -> initResourceFromField(context, field));
 
         // If no service was found, create one by default
         if (services.isEmpty() && CREATE_SERVICE_BY_DEFAULT.getAsBoolean()) {
@@ -132,6 +128,7 @@ public class QuarkusScenarioBootstrap
     }
 
     private void launchService(ExtensionContext context, Service service) {
+        Log.info(service, "Initialize service");
         try {
             extensions.forEach(ext -> ext.onServiceInitiate(context, service));
             service.start();
@@ -148,39 +145,67 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onError(context, throwable));
     }
 
-    private void initResourcesFromClass(ExtensionContext context, Class<?> clazz) throws Exception {
-        for (Field field : clazz.getDeclaredFields()) {
-            if (Service.class.isAssignableFrom(field.getType())) {
-                initService(context, field);
-            } else if (field.isAnnotationPresent(Inject.class)) {
-                injectDependency(context, field);
-            }
+    private void initResourceFromField(ExtensionContext context, Field field) {
+        if (field.isAnnotationPresent(LookupService.class)) {
+            initLookupService(context, field);
+        } else if (Service.class.isAssignableFrom(field.getType())) {
+            initService(context, field);
+        } else if (field.isAnnotationPresent(Inject.class)) {
+            injectDependency(field);
         }
     }
 
-    private void injectDependency(ExtensionContext context, Field field) throws Exception {
+    private void injectDependency(Field field) {
         Object parameter = getParameter(field.getName(), field.getType());
-        field.setAccessible(true);
-        if (Modifier.isStatic(field.getModifiers())) {
-            field.set(null, parameter);
-        } else {
-            fail("Fields can only be injected into static instances. Problematic field: " + field.getName());
-        }
+        ReflectionUtils.setStaticFieldValue(field, parameter);
     }
 
-    private void initService(ExtensionContext context, Field field) throws Exception {
-        AnnotationBinding binding = bindingsRegistry.stream().map(Provider::get).filter(b -> b.isFor(field)).findFirst()
-                .orElseThrow(() -> new RuntimeException("Unknown annotation for service"));
+    private Service initService(ExtensionContext context, Field field) {
+        // Get Service from field
+        Service service = ReflectionUtils.getStaticFieldValue(field);
+        if (service.isRunning()) {
+            return service;
+        }
 
-        ManagedResourceBuilder resource = binding.createBuilder(field);
-
-        field.setAccessible(true);
-        Service service = (Service) field.get(null);
+        // Validate
         service.validate(field);
+
+        // Resolve managed resource builder
+        ManagedResourceBuilder resource = getManagedResourceBuilder(field);
+
+        // Initialize it
         ServiceContext serviceContext = service.register(field.getName(), context);
         extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
         service.init(resource);
         services.add(service);
+        return service;
+    }
+
+    private ManagedResourceBuilder getManagedResourceBuilder(Field field) {
+        AnnotationBinding binding = bindingsRegistry.stream().map(Provider::get).filter(b -> b.isFor(field)).findFirst()
+                .orElseThrow(() -> new RuntimeException("Unknown annotation for service"));
+
+        try {
+            return binding.createBuilder(field);
+        } catch (Exception ex) {
+            fail("Could not create the Managed Resource Builder for " + field.getName() + ". Caused by: " + ex.getMessage());
+        }
+
+        return null;
+    }
+
+    private void initLookupService(ExtensionContext context, Field fieldToInject) {
+        Optional<Field> fieldService = ReflectionUtils.findAllFields(context.getRequiredTestClass())
+                .stream()
+                .filter(field -> field.getName().equals(fieldToInject.getName())
+                        && !field.isAnnotationPresent(LookupService.class))
+                .findAny();
+        if (!fieldService.isPresent()) {
+            fail("Could not lookup service with name " + fieldToInject.getName());
+        }
+
+        Service service = initService(context, fieldService.get());
+        ReflectionUtils.setStaticFieldValue(fieldToInject, service);
     }
 
     private Object getParameter(String name, Class<?> clazz) {
