@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_PORT_PROPERTY;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -20,9 +22,6 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
     private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
     private static final String DEPLOYMENT = "kubernetes.yml";
-
-    private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
-    private static final int INTERNAL_PORT_DEFAULT = 8080;
 
     private final ProdQuarkusApplicationManagedResourceBuilder model;
     private final KubectlClient client;
@@ -103,6 +102,8 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS) {
             fail("SSL is not supported for Kubernetes tests yet");
+        } else if (protocol == Protocol.GRPC) {
+            fail("gRPC is not supported for Kubernetes tests yet");
         }
     }
 
@@ -128,16 +129,8 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
-                .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());
-    }
-
-    private int getInternalPort() {
-        String internalPort = model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
-        if (StringUtils.isNotBlank(internalPort)) {
-            return Integer.parseInt(internalPort);
-        }
-
-        return INTERNAL_PORT_DEFAULT;
+                .replaceAll(quote("${INTERNAL_PORT}"),
+                        model.getContext().getOwner().getProperty(QUARKUS_HTTP_PORT_PROPERTY, "" + HTTP_PORT_DEFAULT));
     }
 
 }
