@@ -166,7 +166,10 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
+             EXCLUDE_MODULES="-pl !examples/grpc"
+          fi
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -209,7 +212,10 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
+             EXCLUDE_MODULES="-pl !examples/grpc"
+          fi
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -261,7 +267,10 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
         run: |
-          mvn -B -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
+             EXCLUDE_MODULES="-pl !examples/grpc"
+          fi
+          mvn -B -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -313,7 +322,10 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
+             EXCLUDE_MODULES="-pl !examples/grpc"
+          fi
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
