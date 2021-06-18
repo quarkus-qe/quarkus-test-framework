@@ -332,6 +332,32 @@ mvn clean verify -Dts.quarkus.cli.cmd="java -jar quarkus-cli.jar"
 
 The above command will use directly the binary from Quarkus upstream build.
 
+### gRPC Integration
+
+Internally, the test framework will map the gRPC service of our Quarkus application using a random port.
+This does not work for OpenShift/Kubernetes deployments as it requires to enable HTTP/2 protocol (more information in [here](https://docs.openshift.com/container-platform/4.5/networking/ingress-operator.html#nw-http2-haproxy_configuring-ingress)).
+
+We can enable the gRPC feature to test Quarkus application using the `@QuarkusApplication(grpc = true)` annotation. This way we can verify purely gRPC applications using the `GrpcService` service wrapper:
+
+```java
+@QuarkusScenario
+public class GrpcServiceIT {
+
+    static final String NAME = "Victor";
+
+    @QuarkusApplication(grpc = true) // enable gRPC support
+    static final GrpcService app = new GrpcService();
+
+    @Test
+    public void shouldHelloWorldServiceWork() {
+        HelloRequest request = HelloRequest.newBuilder().setName(NAME).build();
+        HelloReply response = GreeterGrpc.newBlockingStub(app.grpcChannel()).sayHello(request);
+
+        assertEquals("Hello " + NAME, response.getMessage());
+    }
+}
+```
+
 ### Disable Tests on a Concrete Quarkus version
 
 ```java
