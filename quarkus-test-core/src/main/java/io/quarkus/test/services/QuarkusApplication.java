@@ -21,4 +21,9 @@ public @interface QuarkusApplication {
      * `quarkus.http.ssl.certificate.key-store-password` to be set.
      */
     boolean ssl() default false;
+
+    /**
+     * Enable GRPC configuration. This property will map the gPRC service to a random port.
+     */
+    boolean grpc() default false;
 }
