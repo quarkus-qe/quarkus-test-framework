@@ -19,10 +19,6 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     List<String> getLogs();
 
-    default ServiceContext register(String serviceName) {
-        return register(serviceName, null); // No test context attached
-    }
-
     ServiceContext register(String serviceName, ExtensionContext testContext);
 
     void init(ManagedResourceBuilder resource);
