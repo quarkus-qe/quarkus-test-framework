@@ -25,7 +25,11 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build in JVM mode
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
+             EXCLUDE_MODULES="-pl !examples/grpc"
+          fi
+
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         run: |
           zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'

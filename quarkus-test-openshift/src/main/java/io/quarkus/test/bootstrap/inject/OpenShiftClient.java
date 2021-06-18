@@ -182,7 +182,8 @@ public final class OpenShiftClient {
         }
 
         try {
-            new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace).runAndWait();
+            new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace)
+                    .runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
         }

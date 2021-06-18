@@ -23,6 +23,12 @@ import io.quarkus.test.utils.PropertiesUtils;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
+    public static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
+    public static final String QUARKUS_GRPC_SERVER_PORT_PROPERTY = "quarkus.grpc.server.port";
+    public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
+    public static final int HTTP_PORT_DEFAULT = 8080;
+    public static final int GRPC_PORT_DEFAULT = 9000;
+
     private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
     private static final String RESOURCES_FOLDER = "src/main/resources";
     private static final String TEST_RESOURCES_FOLDER = "src/test/resources";
@@ -34,6 +40,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean selectedAppClasses = true;
     private ServiceContext context;
     private boolean sslEnabled = false;
+    private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
 
     protected abstract void build();
@@ -52,6 +59,14 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void setSslEnabled(boolean sslEnabled) {
         this.sslEnabled = sslEnabled;
+    }
+
+    protected boolean isGrpcEnabled() {
+        return grpcEnabled;
+    }
+
+    protected void setGrpcEnabled(boolean grpcEnabled) {
+        this.grpcEnabled = grpcEnabled;
     }
 
     protected Class<?>[] getAppClasses() {

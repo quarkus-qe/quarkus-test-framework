@@ -1,5 +1,8 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_GRPC_SERVER_PORT_PROPERTY;
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_PORT_PROPERTY;
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_SSL_PORT_PROPERTY;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -18,8 +21,6 @@ import io.quarkus.test.utils.SocketUtils;
 
 public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
-    private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
-    private static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     private static final String LOG_OUTPUT_FILE = "out.log";
 
     private final QuarkusApplicationManagedResourceBuilder model;
@@ -29,6 +30,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     private LoggingHandler loggingHandler;
     private int assignedHttpPort;
     private int assignedHttpsPort;
+    private int assignedGrpcPort;
 
     public LocalhostQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
         this.model = model;
@@ -80,6 +82,8 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         validateProtocol(protocol);
         if (protocol == Protocol.HTTPS) {
             return assignedHttpsPort;
+        } else if (protocol == Protocol.GRPC) {
+            return assignedGrpcPort;
         }
 
         return assignedHttpPort;
@@ -110,6 +114,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         if (model.isSslEnabled()) {
             assignedHttpsPort = getOrAssignPortByProperty(QUARKUS_HTTP_SSL_PORT_PROPERTY);
         }
+
+        if (model.isGrpcEnabled()) {
+            assignedGrpcPort = getOrAssignPortByProperty(QUARKUS_GRPC_SERVER_PORT_PROPERTY);
+        }
     }
 
     private int getOrAssignPortByProperty(String property) {
@@ -128,6 +136,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             runtimeProperties.putIfAbsent(QUARKUS_HTTP_SSL_PORT_PROPERTY, "" + assignedHttpsPort);
         }
 
+        if (model.isGrpcEnabled()) {
+            runtimeProperties.putIfAbsent(QUARKUS_GRPC_SERVER_PORT_PROPERTY, "" + assignedGrpcPort);
+        }
+
         return runtimeProperties.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue())
                 .collect(Collectors.toList());
@@ -136,6 +148,8 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS && !model.isSslEnabled()) {
             fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
+        } else if (protocol == Protocol.GRPC && !model.isGrpcEnabled()) {
+            fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
         }
     }
 
