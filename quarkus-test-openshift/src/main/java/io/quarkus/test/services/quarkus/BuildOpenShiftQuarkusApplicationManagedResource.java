@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -36,7 +37,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     protected void doInit() {
         super.doInit();
         startBuild();
-        client.expose(model.getContext().getOwner(), getInternalPort());
+        exposeServices();
     }
 
     protected String replaceDeploymentContent(String content) {
@@ -47,6 +48,10 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
                 StringUtils.substringBeforeLast(s2iImage, IMAGE_TAG_SEPARATOR))
                 .replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER_VERSION}"), s2iVersion)
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString());
+    }
+
+    private void exposeServices() {
+        client.expose(model.getContext().getOwner(), HTTP_PORT_DEFAULT);
     }
 
     private void startBuild() {

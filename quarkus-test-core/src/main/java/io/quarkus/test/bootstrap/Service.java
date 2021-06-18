@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.Configuration;
@@ -43,5 +44,14 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
     @Override
     default void close() {
         stop();
+    }
+
+    default String getProperty(String property, String defaultValue) {
+        String value = getProperties().get(property);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        return defaultValue;
     }
 }
