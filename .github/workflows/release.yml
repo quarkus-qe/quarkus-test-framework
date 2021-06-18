@@ -1,4 +1,4 @@
-name: Quarkus QE Test Suite Release
+name: Release
 
 on:
   pull_request:
