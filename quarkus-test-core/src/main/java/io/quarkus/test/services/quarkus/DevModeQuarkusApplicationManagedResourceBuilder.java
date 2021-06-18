@@ -15,6 +15,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     public void init(Annotation annotation) {
         DevModeQuarkusApplication metadata = (DevModeQuarkusApplication) annotation;
         initAppClasses(metadata.classes());
+        setGrpcEnabled(metadata.grpc());
     }
 
     @Override

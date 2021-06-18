@@ -370,6 +370,7 @@
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>
                 <module>examples/https</module>
+                <module>examples/grpc</module>
                 <module>examples/consul</module>
                 <module>examples/microprofile</module>
                 <module>examples/keycloak</module>
