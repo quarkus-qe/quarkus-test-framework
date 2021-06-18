@@ -25,7 +25,7 @@ jobs:
           java-version: ${{ matrix.java }}
       - name: Build in JVM mode
         run: |
-          mvn -T 1C -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
