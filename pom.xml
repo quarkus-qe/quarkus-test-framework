@@ -48,7 +48,7 @@
         <xml-format-maven-plugin.version>3.2.0</xml-format-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
+        <quarkus.platform.version>2.0.0.CR3</quarkus.platform.version>
         <quarkus-plugin.version>${quarkus.platform.version}</quarkus-plugin.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
@@ -181,17 +181,6 @@
                             </goals>
                         </execution>
                     </executions>
-                </plugin>
-                <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-release-plugin</artifactId>
-                    <configuration>
-                        <autoVersionSubmodules>true</autoVersionSubmodules>
-                        <tagNameFormat>@{project.version}</tagNameFormat>
-                        <pushChanges>false</pushChanges>
-                        <localCheckout>true</localCheckout>
-                        <remoteTagging>false</remoteTagging>
-                    </configuration>
                 </plugin>
                 <plugin>
                     <groupId>org.jacoco</groupId>
@@ -488,6 +477,18 @@
             <id>release</id>
             <build>
                 <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-release-plugin</artifactId>
+                        <configuration>
+                            <autoVersionSubmodules>true</autoVersionSubmodules>
+                            <tagNameFormat>@{project.version}</tagNameFormat>
+                            <pushChanges>false</pushChanges>
+                            <localCheckout>true</localCheckout>
+                            <remoteTagging>false</remoteTagging>
+                            <arguments>-DskipTests=true</arguments>
+                        </configuration>
+                    </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
