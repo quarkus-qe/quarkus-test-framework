@@ -460,9 +460,6 @@
         <!-- This profile generates jacoco coverage files. To generate html report use "-Pcoverage-generate-report" -->
         <profile>
             <id>coverage</id>
-            <properties>
-                <jacoco.agent.argLine>${jacoco.activated.agent.argLine}</jacoco.agent.argLine>
-            </properties>
             <build>
                 <plugins>
                     <plugin>
@@ -478,7 +475,7 @@
                                     <includes>
                                         <include>io.quarkus.test*</include>
                                     </includes>
-                                    <propertyName>jacoco.activated.agent.argLine</propertyName>
+                                    <propertyName>jacoco.agent.argLine</propertyName>
                                 </configuration>
                             </execution>
                         </executions>
