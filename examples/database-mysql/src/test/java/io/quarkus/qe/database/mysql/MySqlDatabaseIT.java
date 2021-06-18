@@ -14,7 +14,7 @@ public class MySqlDatabaseIT extends AbstractSqlDatabaseIT {
     static final String MYSQL_DATABASE = "mydb";
     static final int MYSQL_PORT = 3306;
 
-    @Container(image = "mysql/mysql-server:8.0.22", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
+    @Container(image = "mysql/mysql-server:8.0", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
     static DefaultService database = new DefaultService()
             .withProperty("MYSQL_USER", MYSQL_USER)
             .withProperty("MYSQL_PASSWORD", MYSQL_PASSWORD)
