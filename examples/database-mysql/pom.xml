@@ -7,7 +7,7 @@
         <version>0.0.2-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
-    <artifactId>database-mysql</artifactId>
+    <artifactId>examples-database-mysql</artifactId>
     <packaging>jar</packaging>
     <name>Quarkus - Test Framework - Examples - Database - MySQL</name>
     <dependencies>
