@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.QuarkusApplication;
 
+@DisabledOnNative(reason = "Due to high native build execution time in every restart")
 @QuarkusScenario
 public class VerifyNonAppEndpointsIT {
 
