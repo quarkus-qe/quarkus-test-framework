@@ -10,4 +10,9 @@ import java.lang.annotation.Target;
 public @interface DevModeQuarkusApplication {
     // By default, it will load all the classes in the classpath.
     Class<?>[] classes() default {};
+
+    /**
+     * Enable GRPC configuration. This property will map the gPRC service to a random port.
+     */
+    boolean grpc() default false;
 }

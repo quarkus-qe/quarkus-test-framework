@@ -3,8 +3,6 @@ package io.quarkus.test.tracing;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import com.google.common.collect.Sets;
-
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
 import io.quarkus.test.bootstrap.Service;
 
@@ -33,7 +31,7 @@ public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void onServiceStarted(ExtensionContext context, Service service) {
-        quarkusScenarioTracer.finishWithSuccess(context, Sets.newHashSet(service.getName()));
+        quarkusScenarioTracer.finishWithSuccess(context, service.getName());
     }
 
     @Override

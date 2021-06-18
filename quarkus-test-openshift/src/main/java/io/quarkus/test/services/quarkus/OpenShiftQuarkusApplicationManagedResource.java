@@ -110,6 +110,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS) {
             fail("SSL is not supported for OpenShift tests yet");
+        } else if (protocol == Protocol.GRPC) {
+            fail("gRPC is not supported for OpenShift tests yet");
         }
     }
 
