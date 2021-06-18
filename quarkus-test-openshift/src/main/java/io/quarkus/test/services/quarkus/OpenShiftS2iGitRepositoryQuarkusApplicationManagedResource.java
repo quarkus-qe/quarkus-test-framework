@@ -1,23 +1,26 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.regex.Pattern.quote;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.nio.file.Path;
+
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.builder.Version;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.utils.FileUtils;
 
-public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends OpenShiftQuarkusApplicationManagedResource {
+public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
+        extends TemplateOpenShiftQuarkusApplicationManagedResource<GitRepositoryQuarkusApplicationManagedResourceBuilder> {
 
     private static final String QUARKUS_SOURCE_S2I_BASE_IMAGE_FILENAME = "openjdk-11.yml";
-    private static final String QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME = "quarkus-s2i-source-build-template.yml";
-    private static final String DEPLOYMENT = "openshift.yml";
+    private static final String QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME = "/quarkus-s2i-source-build-template.yml";
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
     private static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
-    private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository", EMPTY);
+    private static final String QUARKUS_SNAPSHOT_VERSION = "999-SNAPSHOT";
+    private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository");
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
@@ -26,6 +29,11 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends 
         super(model);
 
         this.model = model;
+    }
+
+    @Override
+    protected String getDefaultTemplate() {
+        return QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME;
     }
 
     /**
@@ -44,18 +52,33 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends 
     protected void doInit() {
         waitForBaseImage();
         createMavenSettings();
-        applyTemplate();
+        super.doInit();
         client.followBuildConfigLogs(model.getContext().getName());
-    }
-
-    @Override
-    protected void doUpdate() {
-        applyTemplate();
     }
 
     @Override
     protected boolean needsBuildArtifact() {
         return false;
+    }
+
+    @Override
+    protected void validate() {
+        super.validate();
+        if (QUARKUS_SNAPSHOT_VERSION.equals(Version.getVersion())
+                && StringUtils.isEmpty(MAVEN_REMOTE_REPOSITORY.get(model.getContext()))) {
+            Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if not Maven repository has been provided");
+        }
+    }
+
+    protected String replaceDeploymentContent(String content) {
+        String quarkusVersion = Version.getVersion();
+        String mavenArgs = model.getMavenArgs().replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
+        return content.replaceAll(quote("${APP_NAME}"), model.getContext().getOwner().getName())
+                .replaceAll(quote("${GIT_URI}"), model.getGitRepository())
+                .replaceAll(quote("${GIT_REF}"), model.getGitBranch())
+                .replaceAll(quote("${CONTEXT_DIR}"), model.getContextDir())
+                .replaceAll(quote("${GIT_MAVEN_ARGS}"), mavenArgs)
+                .replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
     }
 
     private void waitForBaseImage() {
@@ -69,31 +92,15 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource extends 
     private void createMavenSettings() {
         Path targetQuarkusSourceS2iSettingsMvnFilename = model.getContext().getServiceFolder()
                 .resolve(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
-        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME)
-                .replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), MAVEN_REMOTE_REPOSITORY.get(model.getContext()));
+        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
+
+        String remoteRepo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
+        if (StringUtils.isNotEmpty(remoteRepo)) {
+            content = content.replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), remoteRepo);
+        }
+
         FileUtils.copyContentTo(content, targetQuarkusSourceS2iSettingsMvnFilename);
         client.apply(model.getContext().getOwner(), targetQuarkusSourceS2iSettingsMvnFilename);
-    }
-
-    private void applyTemplate() {
-        Path targetQuarkusSourceS2iBuildTemplateFileName = model.getContext().getServiceFolder().resolve(DEPLOYMENT);
-        FileUtils.copyFileTo(QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME,
-                targetQuarkusSourceS2iBuildTemplateFileName);
-        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(),
-                "/" + QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME,
-                this::replaceDeploymentContent,
-                targetQuarkusSourceS2iBuildTemplateFileName);
-    }
-
-    private String replaceDeploymentContent(String content) {
-        String quarkusVersion = Version.getVersion();
-        String mavenArgs = model.getMavenArgs().replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
-        return content.replaceAll(quote("${APP_NAME}"), model.getContext().getOwner().getName())
-                .replaceAll(quote("${GIT_URI}"), model.getGitRepository())
-                .replaceAll(quote("${GIT_REF}"), model.getGitBranch())
-                .replaceAll(quote("${CONTEXT_DIR}"), model.getContextDir())
-                .replaceAll(quote("${GIT_MAVEN_ARGS}"), mavenArgs)
-                .replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
     }
 
 }
