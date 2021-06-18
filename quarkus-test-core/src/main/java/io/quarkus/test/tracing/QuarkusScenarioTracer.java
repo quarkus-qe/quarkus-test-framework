@@ -4,12 +4,11 @@ import static io.quarkus.test.tracing.QuarkusScenarioTags.ERROR;
 import static io.quarkus.test.tracing.QuarkusScenarioTags.SUCCESS;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
-
-import com.google.common.collect.Sets;
 
 import io.jaegertracing.internal.JaegerTracer;
 import io.jaegertracing.internal.reporters.RemoteReporter;
@@ -41,22 +40,20 @@ public class QuarkusScenarioTracer {
     }
 
     public void finishWithSuccess(ExtensionContext extensionContext) {
-        finishWithSuccess(extensionContext, Sets.newHashSet(SUCCESS));
+        finishWithSuccess(extensionContext, SUCCESS);
     }
 
-    public void finishWithSuccess(ExtensionContext extensionContext, Set<String> tags) {
-        tags.add(SUCCESS);
-        quarkusScenarioSpan.save(Collections.emptyMap(), tags, extensionContext).finish();
+    public void finishWithSuccess(ExtensionContext extensionContext, String tag) {
+        quarkusScenarioSpan.save(Collections.emptyMap(), newHashSet(tag), extensionContext).finish();
     }
 
     public void finishWithError(ExtensionContext extensionContext, Throwable cause) {
-        finishWithError(extensionContext, cause, Sets.newHashSet(ERROR));
+        finishWithError(extensionContext, cause, ERROR);
     }
 
-    public void finishWithError(ExtensionContext extensionContext, Throwable cause, Set<String> tags) {
-        tags.add(ERROR);
+    public void finishWithError(ExtensionContext extensionContext, Throwable cause, String tag) {
         Map<String, ?> err = Map.of(Fields.EVENT, "error", Fields.ERROR_OBJECT, cause, Fields.MESSAGE, cause.getMessage());
-        quarkusScenarioSpan.save(err, tags, extensionContext).finish();
+        quarkusScenarioSpan.save(err, newHashSet(tag), extensionContext).finish();
     }
 
     public Span createSpanContext(ExtensionContext extensionContext) {
@@ -69,5 +66,11 @@ public class QuarkusScenarioTracer {
 
     public QuarkusScenarioTags getTestFrameworkTags() {
         return quarkusScenarioTags;
+    }
+
+    private static Set<String> newHashSet(String value) {
+        Set<String> set = new HashSet<>();
+        set.add(value);
+        return set;
     }
 }
