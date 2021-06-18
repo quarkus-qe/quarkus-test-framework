@@ -666,6 +666,8 @@ public class OpenShiftPingPongResourceIT {
 }
 ```
 
+The default template used by this strategy can be overwritten using the property `ts.global.openshift.template`. 
+
 - **OpenShift Extension**
 
 This strategy will delegate the deployment into the Quarkus OpenShift extension, so it will trigger a Maven command to run it. 
@@ -771,6 +773,8 @@ spec:
       // ...
 ```
 
+The default template used by this strategy can be overwritten using the property `ts.global.openshift.template`.
+
 - **Container Registry**
 
 This strategy will build the image locally and push it to an intermediary container registry (provided by a system property). Then, the image will be pulled from the container registry in OpenShift.
@@ -797,6 +801,8 @@ public class OpenShiftUsingExtensionPingPongResourceIT {
     // ...
 }
 ```
+
+The default template used by this strategy can be overwritten using the property `ts.global.openshift.template`.
 
 #### Interact with the OpenShift Client directly
 
@@ -886,6 +892,8 @@ public class KubernetesPingPongResourceIT {
     }
 }
 ```
+
+The default template used by this strategy can be overwritten using the property `ts.global.kubernetes.template`.
 
 #### Enable/Disable Namespace Deletion on Failures
 
