@@ -49,6 +49,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     public void init(Annotation annotation) {
         QuarkusApplication metadata = (QuarkusApplication) annotation;
         setSslEnabled(metadata.ssl());
+        setGrpcEnabled(metadata.grpc());
         initAppClasses(metadata.classes());
     }
 
