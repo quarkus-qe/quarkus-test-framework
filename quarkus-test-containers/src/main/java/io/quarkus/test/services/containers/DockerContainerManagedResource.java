@@ -1,5 +1,8 @@
 package io.quarkus.test.services.containers;
 
+import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT;
+import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,10 +40,9 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         }
 
         innerContainer = initContainer();
-
-        Map<String, String> properties = resolveProperties();
-        innerContainer.withEnv(properties);
-
+        innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
+                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
+        innerContainer.withEnv(resolveProperties());
         innerContainer.start();
 
         loggingHandler = new TestContainersLoggingHandler(context, innerContainer);
