@@ -22,6 +22,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.ReflectionUtils;
 
 public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
 
@@ -111,11 +112,17 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
             Path testLocation = PathTestHelper.getTestClassesLocation(getContext().getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
                     .setMode(QuarkusBootstrap.Mode.PROD)
-                    .setLocalProjectDiscovery(true)
                     .addExcludedPath(testLocation)
                     .setProjectRoot(testLocation)
                     .setBaseName(getContext().getName())
                     .setTargetDirectory(appFolder);
+
+            // The method `setLocalProjectDiscovery` signature changed from `Boolean` to `boolean` and this might make
+            // to fail the tests at runtime when using different versions.
+            // In order to workaround this, we need to invoke this method at runtime to let JVM unbox the arguments properly.
+            // Note that this is happening because we want to support both 2.x and 1.13.x Quarkus versions.
+            // Another strategy could be to have our own version of Quarkus bootstrap.
+            ReflectionUtils.invokeMethod(builder, "setLocalProjectDiscovery", true);
 
             AugmentResult result;
             try (CuratedApplication curatedApplication = builder.build().bootstrap()) {

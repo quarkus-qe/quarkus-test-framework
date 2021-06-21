@@ -3,6 +3,7 @@ package io.quarkus.test.utils;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,5 +50,16 @@ public final class ReflectionUtils {
         fields.addAll(findAllFields(clazz.getSuperclass()));
         fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         return fields;
+    }
+
+    public static Object invokeMethod(Object instance, String methodName, Object... args) {
+        for (Method method : instance.getClass().getMethods()) {
+            if (methodName.equals(method.getName())) {
+                return org.junit.platform.commons.util.ReflectionUtils.invokeMethod(method, instance, args);
+            }
+        }
+
+        fail("Method " + methodName + " not found in " + instance.getClass());
+        return null;
     }
 }
