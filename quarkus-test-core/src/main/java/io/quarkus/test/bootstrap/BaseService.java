@@ -25,10 +25,11 @@ import io.quarkus.test.utils.PropertiesUtils;
 
 public class BaseService<T extends Service> implements Service {
 
+    public static final String SERVICE_STARTUP_TIMEOUT = "startup.timeout";
+    public static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(5);
+
     private static final String SERVICE_STARTUP_CHECK_POLL_INTERVAL = "startup.check-poll-interval";
     private static final Duration SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT = Duration.ofSeconds(2);
-    private static final String SERVICE_STARTUP_TIMEOUT = "startup.timeout";
-    private static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(5);
 
     private final List<Action> onPreStartActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
