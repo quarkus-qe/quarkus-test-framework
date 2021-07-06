@@ -49,7 +49,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>2.0.0.CR3</quarkus.platform.version>
-        <quarkus-plugin.version>${quarkus.platform.version}</quarkus-plugin.version>
+        <quarkus-plugin.version>2.0.1.Final</quarkus-plugin.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
