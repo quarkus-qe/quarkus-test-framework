@@ -45,6 +45,7 @@
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.15.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.6.2</impsort-maven-plugin.version>
+        <htmlunit.version>2.40.0</htmlunit.version>
         <xml-format-maven-plugin.version>3.2.0</xml-format-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
@@ -58,7 +59,7 @@
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
         <xml.format.goal>xml-format</xml.format.goal>
-        <checkstyle.version>8.43</checkstyle.version>
+        <checkstyle.version>8.44</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine/>
     </properties>
@@ -147,6 +148,11 @@
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
                 <version>${jaeger-client.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>net.sourceforge.htmlunit</groupId>
+                <artifactId>htmlunit</artifactId>
+                <version>${htmlunit.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
