@@ -29,7 +29,7 @@ jobs:
              EXCLUDE_MODULES="-pl !examples/grpc"
           fi
 
-          mvn -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
       - name: Zip Artifacts
         run: |
           zip -R artifacts-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -71,7 +71,7 @@ jobs:
           chmod +x ./quarkus-dev-cli
       - name: Build in JVM mode
         run: |
-          mvn -s .github/mvn-settings.xml clean install -Pframework -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-jvm${{ matrix.java }}.zip '*-reports/*'
