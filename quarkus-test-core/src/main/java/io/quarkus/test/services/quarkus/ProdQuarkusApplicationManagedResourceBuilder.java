@@ -113,6 +113,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)
                     .setMode(QuarkusBootstrap.Mode.PROD)
                     .addExcludedPath(testLocation)
+                    .setIsolateDeployment(true)
                     .setProjectRoot(testLocation)
                     .setBaseName(getContext().getName())
                     .setTargetDirectory(appFolder);
