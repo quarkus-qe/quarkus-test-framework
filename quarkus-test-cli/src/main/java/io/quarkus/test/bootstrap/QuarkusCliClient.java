@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
@@ -66,8 +67,11 @@ public class QuarkusCliClient {
 
         // Generate project
         List<String> args = new ArrayList<>();
-        args.addAll(Arrays.asList("create", "app", "--artifact-id=" + name));
-        args.addAll(Arrays.asList(extensions));
+        args.addAll(Arrays.asList("create", "app", name));
+        if (extensions.length > 0) {
+            args.add("-x=" + Stream.of(extensions).collect(Collectors.joining(",")));
+        }
+
         Result result = runCliAndWait(args.toArray(new String[args.size()]));
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
