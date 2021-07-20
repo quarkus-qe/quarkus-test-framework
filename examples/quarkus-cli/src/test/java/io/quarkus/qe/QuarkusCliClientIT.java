@@ -1,7 +1,6 @@
 package io.quarkus.test;
 
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
@@ -74,8 +73,6 @@ public class QuarkusCliClientIT {
 
     private void assertInstalledExtensions(QuarkusCliRestService app, String... expectedExtensions) {
         List<String> extensions = app.getInstalledExtensions();
-        assertEquals(expectedExtensions.length, extensions.size(),
-                "More than " + expectedExtensions.length + " extension(s) has been installed");
         Stream.of(expectedExtensions).forEach(expectedExtension -> assertTrue(extensions.contains(expectedExtension),
                 expectedExtension + " not found in " + extensions));
     }
