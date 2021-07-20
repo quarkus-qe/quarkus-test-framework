@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "2.0.0.CR3"]
+        quarkus-version: ["1.13.7.Final", "2.0.2.Final"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1

@@ -68,7 +68,8 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
         for (Operator operator : openShiftScenario.operators()) {
             Service defaultService = new DefaultService();
             defaultService.register(operator.name(), context);
-            client.installOperator(defaultService, operator.channel(), operator.source(), operator.sourceNamespace());
+            client.installOperator(defaultService, operator.name(), operator.channel(), operator.source(),
+                    operator.sourceNamespace());
         }
     }
 }
