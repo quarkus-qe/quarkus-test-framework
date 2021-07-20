@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkus.qe</groupId>
     <artifactId>quarkus-test-parent</artifactId>
-    <version>0.0.3</version>
+    <version>0.0.4-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
     <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
@@ -25,7 +25,7 @@
         <connection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</connection>
         <developerConnection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</developerConnection>
         <url>https://github.com/quarkus-qe/quarkus-test-framework</url>
-        <tag>0.0.3</tag>
+        <tag>HEAD</tag>
     </scm>
     <url>https://github.com/quarkus-qe/quarkus-test-framework/</url>
     <properties>
@@ -61,7 +61,7 @@
         <xml.format.goal>xml-format</xml.format.goal>
         <checkstyle.version>8.44</checkstyle.version>
         <!-- Code Coverage Properties-->
-        <jacoco.agent.argLine/>
+        <jacoco.agent.argLine />
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -551,7 +551,7 @@
                 </property>
             </activation>
             <properties>
-                <exclude.tests.with.tags/>
+                <exclude.tests.with.tags />
             </properties>
         </profile>
     </profiles>
