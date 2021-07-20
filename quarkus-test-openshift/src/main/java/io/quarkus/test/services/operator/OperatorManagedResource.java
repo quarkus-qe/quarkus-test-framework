@@ -91,6 +91,7 @@ public class OperatorManagedResource implements ManagedResource {
 
     private void installOperator() {
         client.installOperator(model.getContext().getOwner(),
+                model.getName(),
                 model.getChannel(),
                 model.getSource(),
                 model.getSourceNamespace());

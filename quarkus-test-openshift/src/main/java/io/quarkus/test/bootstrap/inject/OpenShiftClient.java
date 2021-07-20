@@ -317,7 +317,7 @@ public final class OpenShiftClient {
         }
     }
 
-    public void installOperator(Service service, String channel, String source, String sourceNamespace) {
+    public void installOperator(Service service, String name, String channel, String source, String sourceNamespace) {
         // Install the operator group
         OperatorGroup groupModel = new OperatorGroup();
         groupModel.setMetadata(new ObjectMeta());
@@ -329,12 +329,12 @@ public final class OpenShiftClient {
         // Install the subscription
         Subscription subscriptionModel = new Subscription();
         subscriptionModel.setMetadata(new ObjectMeta());
-        subscriptionModel.getMetadata().setName(service.getName());
+        subscriptionModel.getMetadata().setName(name);
         subscriptionModel.getMetadata().setNamespace(currentNamespace);
 
         subscriptionModel.setSpec(new SubscriptionSpec());
         subscriptionModel.getSpec().setChannel(channel);
-        subscriptionModel.getSpec().setName(service.getName());
+        subscriptionModel.getSpec().setName(name);
         subscriptionModel.getSpec().setSource(source);
         subscriptionModel.getSpec().setSourceNamespace(sourceNamespace);
 
@@ -344,7 +344,7 @@ public final class OpenShiftClient {
         // Wait for the operator to be installed
         untilIsTrue(() -> {
             // Get Cluster Service Version
-            Subscription subscription = client.operatorHub().subscriptions().withName(service.getName()).get();
+            Subscription subscription = client.operatorHub().subscriptions().withName(name).get();
             String installedCsv = subscription.getStatus().getInstalledCSV();
             if (StringUtils.isEmpty(installedCsv)) {
                 return false;
