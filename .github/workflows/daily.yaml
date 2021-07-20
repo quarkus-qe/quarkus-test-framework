@@ -232,7 +232,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "2.0.2.Final"]
+        quarkus-version: ["2.0.2.Final"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -287,7 +287,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "2.0.2.Final", "999-SNAPSHOT"]
+        quarkus-version: ["2.0.2.Final"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
