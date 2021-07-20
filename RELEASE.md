@@ -14,8 +14,8 @@ Spite the test framework does not include Quarkus upstream dependencies, it need
 ```yml
 name: Quarkus QE Test Framework
 release:
-  current-version: 0.0.2
-  next-version: 0.0.3-SNAPSHOT
+  current-version: 0.0.3
+  next-version: 0.0.4-SNAPSHOT
 ```
 
 3. Commit these two changes and create a pull request (NOT from your fork)
