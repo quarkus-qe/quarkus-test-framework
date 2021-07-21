@@ -61,7 +61,7 @@
         <xml.format.goal>xml-format</xml.format.goal>
         <checkstyle.version>8.44</checkstyle.version>
         <!-- Code Coverage Properties-->
-        <jacoco.agent.argLine />
+        <jacoco.agent.argLine/>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -551,7 +551,7 @@
                 </property>
             </activation>
             <properties>
-                <exclude.tests.with.tags />
+                <exclude.tests.with.tags/>
             </properties>
         </profile>
     </profiles>
