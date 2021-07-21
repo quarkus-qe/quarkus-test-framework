@@ -3,6 +3,7 @@ package io.quarkus.qe;
 import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
@@ -25,6 +26,7 @@ public class DevModeGreetingResourceIT {
     @DevModeQuarkusApplication
     static DevModeQuarkusService app = new DevModeQuarkusService();
 
+    @Disabled("TODO: Fix flaky test: https://github.com/quarkus-qe/quarkus-test-framework/issues/146")
     @Test
     public void shouldDetectNewTests() {
         // At first, there are no tests annotated with @QuarkusTest
