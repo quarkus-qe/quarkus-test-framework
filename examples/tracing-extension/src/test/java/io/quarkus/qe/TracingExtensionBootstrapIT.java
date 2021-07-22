@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
@@ -44,6 +45,7 @@ public class TracingExtensionBootstrapIT {
     }
 
     @Test
+    @Tag("custom-tag-example")
     @Order(1)
     public void successExample() {
         // This test is needed by 'shouldTraceSuccessTest', because will generate a trace on Jaeger
@@ -63,7 +65,8 @@ public class TracingExtensionBootstrapIT {
                                         "success=true",
                                         "bare-metal=true",
                                         "buildNumber=777-default",
-                                        "versionNumber=999-default")));
+                                        "versionNumber=999-default",
+                                        "custom-tag-example=true")));
     }
 
     @Test
@@ -88,6 +91,7 @@ public class TracingExtensionBootstrapIT {
                                         "error=true",
                                         "bare-metal=true",
                                         "buildNumber=777-default",
-                                        "versionNumber=999-default")));
+                                        "versionNumber=999-default",
+                                        "custom-tag-example=true")));
     }
 }
