@@ -18,6 +18,11 @@ import io.quarkus.test.utils.SocketUtils;
 public class CliDevModeLocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
+    private static final String QUARKUS_PLATFORM_GROUP_ID = "quarkus.platform.group-id";
+    private static final String QUARKUS_PLATFORM_GROUP_ID_VALUE = "io.quarkus";
+    private static final String QUARKUS_PLATFORM_ARTIFACT_ID = "quarkus.platform.artifact-id";
+    private static final String QUARKUS_PLATFORM_ARTIFACT_ID_VALUE = "quarkus-bom";
+    private static final String QUARKUS_PLATFORM_VERSION = "quarkus.platform.version";
 
     private final ServiceContext serviceContext;
     private final QuarkusCliClient client;
@@ -89,6 +94,9 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     private Map<String, String> getPropertiesForCommand() {
         Map<String, String> runtimeProperties = new HashMap<>(serviceContext.getOwner().getProperties());
         runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + assignedHttpPort);
+        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_GROUP_ID, QUARKUS_PLATFORM_GROUP_ID_VALUE);
+        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_ARTIFACT_ID, QUARKUS_PLATFORM_ARTIFACT_ID_VALUE);
+        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_VERSION, io.quarkus.builder.Version.getVersion());
 
         return runtimeProperties;
     }
