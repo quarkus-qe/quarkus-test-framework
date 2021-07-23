@@ -19,9 +19,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 
 import io.quarkus.qe.resources.JaegerContainer;
-import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
@@ -30,9 +28,6 @@ public class TracingExtensionBootstrapIT {
     static final String MAIN_SERVICE_NAME = "quarkus-test-framework";
 
     static JaegerContainer jaegerContainer = new JaegerContainer();
-
-    @QuarkusApplication
-    static RestService app = new RestService();
 
     @BeforeAll
     static public void tearUp() {
