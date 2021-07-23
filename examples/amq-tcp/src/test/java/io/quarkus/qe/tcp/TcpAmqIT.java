@@ -3,15 +3,18 @@ package io.quarkus.qe.tcp;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.lessThan;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.AmqService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.AmqContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.AmqProtocol;
@@ -46,5 +49,12 @@ public class TcpAmqIT {
             assertThat(intValue, greaterThanOrEqualTo(0));
             assertThat(intValue, lessThan(PriceProducer.PRICES_MAX));
         });
+    }
+
+    @Test
+    @DisabledOnNative
+    public void testShouldLoadResources() {
+        app.given().get("/file/custom/text.txt").then().statusCode(HttpStatus.SC_OK).body(is("found!"));
+        app.given().get("/file/custom.cc").then().statusCode(HttpStatus.SC_OK).body(is("cc!"));
     }
 }

@@ -10,7 +10,7 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class GreetingResourceUsingUsingPropertiesFileIT {
+public class GreetingResourceUsingPropertiesFileIT {
 
     static final String JOSE_NAME = "jose";
     static final String MANUEL_NAME = "manuel";
