@@ -1,18 +1,20 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.stream.Collectors.toSet;
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -27,13 +29,11 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final String QUARKUS_GRPC_SERVER_PORT_PROPERTY = "quarkus.grpc.server.port";
     public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     public static final int HTTP_PORT_DEFAULT = 8080;
-    public static final int GRPC_PORT_DEFAULT = 9000;
 
     private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
     private static final String RESOURCES_FOLDER = "src/main/resources";
     private static final String TEST_RESOURCES_FOLDER = "src/test/resources";
     private static final String APPLICATION_PROPERTIES = "application.properties";
-    private static final List<String> RESOURCES_TO_COPY = Arrays.asList(".sql", ".keystore", ".truststore");
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
 
     private Class<?>[] appClasses;
@@ -124,9 +124,22 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private void copyResourcesInFolderToAppFolder(String folder) {
         try (Stream<Path> binariesFound = Files
                 .find(Paths.get(folder), Integer.MAX_VALUE,
-                        (path, basicFileAttributes) -> RESOURCES_TO_COPY.stream()
-                                .anyMatch(filter -> path.toFile().getName().endsWith(filter)))) {
-            binariesFound.forEach(path -> FileUtils.copyFileTo(path.toFile(), context.getServiceFolder()));
+                        (path, basicFileAttributes) -> !Files.isDirectory(path)
+                                && !path.toFile().getName().contains(APPLICATION_PROPERTIES))) {
+            binariesFound.forEach(path -> {
+                Path target = context.getServiceFolder();
+                File src = path.toFile();
+                for (String subFolder : src.getPath().replace(folder, EMPTY).replace(src.getName(), EMPTY).split("/")) {
+                    if (StringUtils.isNotEmpty(subFolder)) {
+                        target = target.resolve(subFolder);
+                        if (!Files.exists(target)) {
+                            FileUtils.createDirectory(target);
+                        }
+                    }
+                }
+
+                FileUtils.copyFileTo(src, target);
+            });
         } catch (IOException ex) {
             // ignored
         }

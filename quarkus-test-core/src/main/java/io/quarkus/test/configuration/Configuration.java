@@ -4,9 +4,12 @@ import java.io.InputStream;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -21,6 +24,15 @@ public final class Configuration {
 
     private Configuration(Map<String, String> properties) {
         this.properties = properties;
+    }
+
+    public List<String> getAsList(String property) {
+        String value = get(property);
+        if (StringUtils.isEmpty(value)) {
+            return Collections.emptyList();
+        }
+
+        return Stream.of(value.split(",")).collect(Collectors.toList());
     }
 
     public Duration getAsDuration(String property, Duration defaultValue) {

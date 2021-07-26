@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
@@ -28,6 +29,13 @@ public class GreetingResourceUsingRuntimePropertiesIT {
     @Test
     public void shouldSayManuel() {
         manuelApp.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello, I'm " + MANUEL_NAME));
+    }
+
+    @DisabledOnNative
+    @Test
+    public void shouldLoadResources() {
+        joseApp.given().get("/greeting/file").then().statusCode(HttpStatus.SC_OK).body(is("found!"));
+        manuelApp.given().get("/greeting/file").then().statusCode(HttpStatus.SC_OK).body(is("found!"));
     }
 
 }

@@ -53,4 +53,9 @@ public class DevModeGreetingResourceIT {
                 () -> app.given().get("/greeting").then().statusCode(HttpStatus.SC_OK)
                         .body(is(HELLO_IN_SPANISH + ", I'm " + VICTOR_NAME)));
     }
+
+    @Test
+    public void shouldLoadResources() {
+        app.given().get("/greeting/file").then().statusCode(HttpStatus.SC_OK).body(is("found!"));
+    }
 }
