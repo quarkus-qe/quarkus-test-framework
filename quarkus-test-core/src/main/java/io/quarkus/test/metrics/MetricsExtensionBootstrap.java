@@ -15,13 +15,13 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
 
     private static final String PROMETHEUS_ENDPOINT_PROPERTY = "ts.prometheus-http-endpoint";
     private final boolean extensionEnabled;
-    private  QuarkusGauges quarkusGauges;
-    private  QuarkusHistograms quarkusHistograms;
+    private QuarkusGauges quarkusGauges;
+    private QuarkusHistograms quarkusHistograms;
 
     public MetricsExtensionBootstrap() {
         String prometheusHttpEndpoint = System.getProperty(PROMETHEUS_ENDPOINT_PROPERTY);
         extensionEnabled = !Strings.isNullOrEmpty(prometheusHttpEndpoint);
-        if(extensionEnabled) {
+        if (extensionEnabled) {
             quarkusGauges = new QuarkusGauges(prometheusHttpEndpoint);
             quarkusHistograms = new QuarkusHistograms(prometheusHttpEndpoint);
         }
@@ -29,37 +29,31 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public boolean appliesFor(ExtensionContext context) {
-        return context.getRequiredTestClass().isAnnotationPresent(QuarkusScenario.class);
+        return extensionEnabled && context.getRequiredTestClass().isAnnotationPresent(QuarkusScenario.class);
     }
 
     @Override
     public void onSuccess(ExtensionContext context) {
-        if(extensionEnabled) {
-            quarkusGauges.upsert(GaugesTypes.TOTAL_SUCCESS);
-            quarkusGauges.upsert(GaugesTypes.TOTAL);
-            quarkusGauges.upsert(GaugesTypes.MODULE_SUCCESS);
-            onlyIfRequiredForcePush(context);
-        }
+        quarkusGauges.upsert(GaugesTypes.TOTAL_SUCCESS);
+        quarkusGauges.upsert(GaugesTypes.TOTAL);
+        quarkusGauges.upsert(GaugesTypes.MODULE_SUCCESS);
+        onlyIfRequiredForcePush(context);
     }
 
     @Override
     public void onError(ExtensionContext context, Throwable throwable) {
-        if(extensionEnabled) {
-            quarkusGauges.upsert(GaugesTypes.TOTAL_FAIL);
-            quarkusGauges.upsert(GaugesTypes.TOTAL);
-            quarkusGauges.upsert(GaugesTypes.MODULE_FAIL);
-            onlyIfRequiredForcePush(context);
-        }
+        quarkusGauges.upsert(GaugesTypes.TOTAL_FAIL);
+        quarkusGauges.upsert(GaugesTypes.TOTAL);
+        quarkusGauges.upsert(GaugesTypes.MODULE_FAIL);
+        onlyIfRequiredForcePush(context);
     }
 
     @Override
     public void onDisabled(ExtensionContext context, Optional<String> reason) {
-        if(extensionEnabled) {
-            quarkusGauges.upsert(GaugesTypes.TOTAL_IGNORE);
-            quarkusGauges.upsert(GaugesTypes.TOTAL);
-            quarkusGauges.upsert(GaugesTypes.MODULE_IGNORE);
-            onlyIfRequiredForcePush(context);
-        }
+        quarkusGauges.upsert(GaugesTypes.TOTAL_IGNORE);
+        quarkusGauges.upsert(GaugesTypes.TOTAL);
+        quarkusGauges.upsert(GaugesTypes.MODULE_IGNORE);
+        onlyIfRequiredForcePush(context);
     }
 
     @Override
@@ -76,18 +70,14 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        if(extensionEnabled) {
-            quarkusHistograms.startDurationBeforeAll(HistogramTypes.MODULE_TEST_TIME_SEC);
-        }
+        quarkusHistograms.startDurationBeforeAll(HistogramTypes.MODULE_TEST_TIME_SEC);
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
-        if(extensionEnabled) {
-            quarkusHistograms.stopDurationAfterAll(HistogramTypes.MODULE_TEST_TIME_SEC);
-            quarkusHistograms.push();
-            quarkusGauges.push();
-        }
+        quarkusHistograms.stopDurationAfterAll(HistogramTypes.MODULE_TEST_TIME_SEC);
+        quarkusHistograms.push();
+        quarkusGauges.push();
     }
 
     private static boolean checkForcePush(String tag) {
