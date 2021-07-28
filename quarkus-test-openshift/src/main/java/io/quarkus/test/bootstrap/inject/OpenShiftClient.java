@@ -442,12 +442,18 @@ public final class OpenShiftClient {
 
     /**
      * Returns whether the service name is a serverless (knative) service.
+     * If the underlying API returns an exception, it will return false.
      *
      * @param serviceName
      * @return
      */
     public boolean isServerlessService(String serviceName) {
-        return kn.services().withName(serviceName).get() != null;
+        try {
+            return kn.services().withName(serviceName).get() != null;
+        } catch (Exception ex) {
+            Log.warn("Failed to check serverless service. Will assume it's not serverless", ex);
+            return false;
+        }
     }
 
     /**
