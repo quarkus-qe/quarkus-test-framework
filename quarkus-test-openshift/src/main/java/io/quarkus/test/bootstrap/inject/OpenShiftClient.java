@@ -107,12 +107,44 @@ public final class OpenShiftClient {
      *
      * @param file
      */
-    public void apply(Service service, Path file) {
+    public void apply(Path file) {
+        applyInProject(file, currentNamespace);
+    }
+
+    /**
+     * Apply the file into OpenShift.
+     *
+     * @param file YAML file to apply
+     * @param project where to apply the YAML file.
+     */
+    public void applyInProject(Path file, String project) {
         try {
-            new Command(OC, "apply", "-f", file.toAbsolutePath().toString(), "-n", currentNamespace).runAndWait();
+            new Command(OC, "apply", "-f", file.toAbsolutePath().toString(), "-n", project).runAndWait();
         } catch (Exception e) {
-            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " for " + service.getName() + " . Caused by "
-                    + e.getMessage());
+            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
+        }
+    }
+
+    /**
+     * Delete the file into OpenShift.
+     *
+     * @param file
+     */
+    public void delete(Path file) {
+        deleteInProject(file, currentNamespace);
+    }
+
+    /**
+     * Delete the file into OpenShift.
+     *
+     * @param file YAML file to apply
+     * @param project where to apply the YAML file.
+     */
+    public void deleteInProject(Path file, String project) {
+        try {
+            new Command(OC, "delete", "-f", file.toAbsolutePath().toString(), "-n", project).runAndWait();
+        } catch (Exception e) {
+            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
         }
     }
 
@@ -125,7 +157,7 @@ public final class OpenShiftClient {
     public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update, Path target) {
         String content = FileUtils.loadFile(file);
         content = enrichTemplate(service, update.apply(content));
-        apply(service, FileUtils.copyContentTo(content, target));
+        apply(FileUtils.copyContentTo(content, target));
     }
 
     /**

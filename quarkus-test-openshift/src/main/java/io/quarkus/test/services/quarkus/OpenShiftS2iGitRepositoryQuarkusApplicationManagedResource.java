@@ -85,7 +85,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
         Path targetQuarkusSourceS2iBaseImageFileName = model.getContext().getServiceFolder()
                 .resolve(QUARKUS_SOURCE_S2I_BASE_IMAGE_FILENAME);
         FileUtils.copyFileTo(QUARKUS_SOURCE_S2I_BASE_IMAGE_FILENAME, targetQuarkusSourceS2iBaseImageFileName);
-        client.apply(model.getContext().getOwner(), targetQuarkusSourceS2iBaseImageFileName);
+        client.apply(targetQuarkusSourceS2iBaseImageFileName);
         client.awaitFor(model.getContext().getOwner(), targetQuarkusSourceS2iBaseImageFileName);
     }
 
@@ -100,7 +100,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
         }
 
         FileUtils.copyContentTo(content, targetQuarkusSourceS2iSettingsMvnFilename);
-        client.apply(model.getContext().getOwner(), targetQuarkusSourceS2iSettingsMvnFilename);
+        client.apply(targetQuarkusSourceS2iSettingsMvnFilename);
     }
 
 }
