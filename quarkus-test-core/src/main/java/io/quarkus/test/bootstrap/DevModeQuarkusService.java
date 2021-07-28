@@ -22,10 +22,8 @@ import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
-import io.restassured.RestAssured;
-import io.restassured.specification.RequestSpecification;
 
-public class DevModeQuarkusService extends BaseService<DevModeQuarkusService> {
+public class DevModeQuarkusService extends RestService {
     public static final String DEV_UI_PATH = "/q/dev";
 
     private static final int ENABLE_CONTINUOUS_TESTING_WAIT_TIME_MS = 2000;
@@ -34,10 +32,6 @@ public class DevModeQuarkusService extends BaseService<DevModeQuarkusService> {
     private static final String CONTINUOUS_TESTING_BTN = "//a[" + XPATH_BTN_CLASS + " and " + XPATH_BTN_ON_OFF_CLASS + "]";
     private static final String CONTINUOUS_TESTING_LABEL_DISABLED = "Tests not running";
     private static final String DEV_UI_READY_XPATH = "//a[@class='testsFooterButton btnDisplayTestHelp btn']";
-
-    public RequestSpecification given() {
-        return RestAssured.given().baseUri(getHost()).basePath("/").port(getPort());
-    }
 
     public DevModeQuarkusService enableContinuousTesting() {
         waitForDevUiReady();
