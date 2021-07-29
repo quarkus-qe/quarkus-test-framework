@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.ProcessBuilderProvider;
 import io.quarkus.test.utils.ProcessUtils;
@@ -49,7 +50,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
         try {
             assignPorts();
-            process = ProcessBuilderProvider.command(prepareCommand(getPropertiesForCommand()))
+            List<String> command = prepareCommand(getPropertiesForCommand());
+            Log.info("Running command: %s", String.join(" ", command));
+
+            process = ProcessBuilderProvider.command(command)
                     .redirectErrorStream(true)
                     .redirectOutput(logOutputFile)
                     .directory(model.getContext().getServiceFolder().toFile())
@@ -103,6 +107,11 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         }
 
         start();
+    }
+
+    @Override
+    public boolean isRunning() {
+        return process != null && process.isAlive() && super.isRunning();
     }
 
     @Override

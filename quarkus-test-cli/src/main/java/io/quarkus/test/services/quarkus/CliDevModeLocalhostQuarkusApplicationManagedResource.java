@@ -87,6 +87,11 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     }
 
     @Override
+    public boolean isRunning() {
+        return process != null && process.isAlive() && super.isRunning();
+    }
+
+    @Override
     protected LoggingHandler getLoggingHandler() {
         return loggingHandler;
     }

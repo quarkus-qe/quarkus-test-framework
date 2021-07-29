@@ -1,7 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.logging.LoggingHandler;
 
@@ -12,15 +10,12 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     @Override
     public boolean isRunning() {
-        if (getLoggingHandler() == null) {
-            return false;
-        }
+        return getLoggingHandler() != null && getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
+    }
 
-        if (getLoggingHandler().logsContains(UNRECOVERABLE_ERROR)) {
-            fail("Application failed to start");
-        }
-
-        return getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
+    @Override
+    public boolean isFailed() {
+        return getLoggingHandler() != null && getLoggingHandler().logsContains(UNRECOVERABLE_ERROR);
     }
 
     protected abstract LoggingHandler getLoggingHandler();
