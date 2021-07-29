@@ -33,6 +33,26 @@ public final class AwaitilityUtils {
     }
 
     /**
+     * Wait until supplier returns false.
+     *
+     * @param supplier method to return the instance.
+     */
+    @SuppressWarnings("unchecked")
+    public static void untilIsFalse(Callable<Boolean> supplier) {
+        untilIsFalse(supplier, AwaitilitySettings.defaults());
+    }
+
+    /**
+     * Wait until supplier returns false.
+     *
+     * @param supplier method to return the instance.
+     */
+    @SuppressWarnings("unchecked")
+    public static void untilIsFalse(Callable<Boolean> supplier, AwaitilitySettings settings) {
+        awaits(settings).until(() -> !supplier.call());
+    }
+
+    /**
      * Wait until supplier returns true.
      *
      * @param supplier method to return the instance.
