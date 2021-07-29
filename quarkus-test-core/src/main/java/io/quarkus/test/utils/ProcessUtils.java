@@ -19,10 +19,12 @@ public final class ProcessUtils {
             if (process != null) {
                 process.children().forEach(child -> {
                     if (child.supportsNormalTermination()) {
-                        child.destroy();
+                        child.destroyForcibly();
                     }
 
                     pidKiller(child.pid());
+
+                    AwaitilityUtils.untilIsFalse(child::isAlive);
                 });
 
                 if (process.supportsNormalTermination()) {
@@ -31,6 +33,7 @@ public final class ProcessUtils {
                 }
 
                 pidKiller(process.pid());
+                AwaitilityUtils.untilIsFalse(process::isAlive);
             }
         } catch (Exception e) {
             Log.warn("Error trying to stop process. Caused by " + e.getMessage());
