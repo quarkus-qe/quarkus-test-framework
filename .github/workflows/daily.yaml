@@ -36,7 +36,7 @@ jobs:
           name: maven-repo
           path: maven-repo.tgz
   linux-build-jvm-released:
-    name: PR - Linux - JVM build - Released Versions
+    name: Daily - Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
     strategy:
       matrix:
