@@ -48,7 +48,7 @@ public class Command {
 
     public void runAndWait() throws IOException, InterruptedException {
         Log.info("Running command: %s", String.join(" ", command));
-        Process process = new ProcessBuilder().redirectErrorStream(true).command(command)
+        Process process = ProcessBuilderProvider.command(command).redirectErrorStream(true)
                 .directory(new File(directory).getAbsoluteFile()).start();
 
         new Thread(() -> outputConsumer.accept(description, process.getInputStream()),

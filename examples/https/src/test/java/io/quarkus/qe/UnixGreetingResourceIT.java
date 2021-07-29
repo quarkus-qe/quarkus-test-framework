@@ -5,15 +5,19 @@ import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class GreetingResourceIT {
+@DisabledOnOs(OS.WINDOWS)
+public class UnixGreetingResourceIT {
     @QuarkusApplication(ssl = true)
-    static final RestService app = new RestService();
+    static final RestService app = new RestService()
+            .withProperties("unix.application.properties");
 
     @Test
     public void shouldSayHelloWorld() {

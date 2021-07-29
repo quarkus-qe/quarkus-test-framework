@@ -1,6 +1,5 @@
 package io.quarkus.test.bootstrap;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +8,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public final class ServiceContext {
+
     private final Service owner;
     private final Optional<ExtensionContext> testContext;
     private final Path serviceFolder;
@@ -17,7 +17,7 @@ public final class ServiceContext {
     protected ServiceContext(Service owner, ExtensionContext testContext) {
         this.owner = owner;
         this.testContext = Optional.ofNullable(testContext);
-        this.serviceFolder = new File("target", getName()).toPath();
+        this.serviceFolder = Path.of("target", testContext.getRequiredTestClass().getSimpleName(), getName());
     }
 
     public Service getOwner() {
