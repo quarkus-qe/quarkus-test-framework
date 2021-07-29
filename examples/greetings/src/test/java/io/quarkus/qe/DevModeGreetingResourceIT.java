@@ -7,6 +7,8 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
 import io.quarkus.test.scenarios.QuarkusScenario;
@@ -15,9 +17,9 @@ import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
 
+@QuarkusScenario
 @DisabledOnNative
 @DisabledOnQuarkusVersion(version = "1\\..*", reason = "Continuous Testing was entered in 2.x")
-@QuarkusScenario
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DevModeGreetingResourceIT {
 
@@ -31,6 +33,7 @@ public class DevModeGreetingResourceIT {
 
     @Test
     @Order(1)
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "TODO: https://github.com/quarkus-qe/quarkus-test-framework/issues/162")
     public void shouldDetectNewTests() {
         // At first, there are no tests annotated with @QuarkusTest
         app.logs().assertContains("Tests paused");

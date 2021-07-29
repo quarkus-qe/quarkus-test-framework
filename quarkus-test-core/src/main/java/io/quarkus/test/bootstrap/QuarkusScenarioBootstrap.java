@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -251,7 +250,12 @@ public class QuarkusScenarioBootstrap
 
     private void configureLogging() {
         Locale.setDefault(new Locale("en", "EN"));
-        FileUtils.recreateDirectory(Paths.get(Log.LOG_OUTPUT_DIRECTORY));
+        try {
+            FileUtils.recreateDirectory(Log.LOG_OUTPUT_DIRECTORY);
+        } catch (RuntimeException ex) {
+            // ignore
+        }
+
         try (InputStream in = QuarkusScenarioBootstrap.class.getResourceAsStream("/logging.properties")) {
             LogManager.getLogManager().readConfiguration(in);
         } catch (IOException e) {

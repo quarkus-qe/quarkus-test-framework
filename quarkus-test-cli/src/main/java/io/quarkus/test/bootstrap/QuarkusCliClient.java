@@ -17,6 +17,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.CliDevModeLocalhostQuarkusApplicationManagedResource;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.ProcessBuilderProvider;
 
 public class QuarkusCliClient {
 
@@ -72,7 +73,7 @@ public class QuarkusCliClient {
             args.add("-x=" + Stream.of(extensions).collect(Collectors.joining(",")));
         }
 
-        Result result = runCliAndWait(args.toArray(new String[args.size()]));
+        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
         return service;
@@ -107,7 +108,7 @@ public class QuarkusCliClient {
         Log.info(cmd.stream().collect(Collectors.joining(" ")));
 
         try {
-            return new ProcessBuilder(cmd)
+            return ProcessBuilderProvider.command(cmd)
                     .redirectErrorStream(true)
                     .redirectOutput(workingDirectory.resolve(LOG_FILE).toFile())
                     .directory(workingDirectory.toFile())

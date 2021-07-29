@@ -10,6 +10,7 @@ import java.util.ServiceLoader;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
+import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.bootstrap.app.AugmentAction;
 import io.quarkus.bootstrap.app.AugmentResult;
@@ -27,8 +28,9 @@ import io.quarkus.test.utils.ReflectionUtils;
 public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
 
     private static final String NATIVE_RUNNER = "-runner";
+    private static final String EXE = ".exe";
     private static final String JVM_RUNNER = "-runner.jar";
-    private static final String QUARKUS_APP = "quarkus-app/";
+    private static final String QUARKUS_APP = "quarkus-app";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
 
     private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
@@ -87,7 +89,13 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
         Optional<String> artifactLocation = Optional.empty();
         if (!containsBuildProperties() && !isSelectedAppClasses()) {
             if (QuarkusProperties.isNativePackageType(getContext())) {
-                artifactLocation = FileUtils.findTargetFile(NATIVE_RUNNER);
+                String nativeRunnerExpectedLocation = NATIVE_RUNNER;
+                if (OS.WINDOWS.isCurrentOs()) {
+                    nativeRunnerExpectedLocation += EXE;
+                }
+
+                artifactLocation = FileUtils.findTargetFile(nativeRunnerExpectedLocation);
+
             } else {
                 artifactLocation = FileUtils.findTargetFile(JVM_RUNNER)
                         .or(() -> FileUtils.findTargetFile(QUARKUS_APP, QUARKUS_RUN));

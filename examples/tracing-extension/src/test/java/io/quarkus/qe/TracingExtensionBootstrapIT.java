@@ -30,12 +30,12 @@ public class TracingExtensionBootstrapIT {
     static JaegerContainer jaegerContainer = new JaegerContainer();
 
     @BeforeAll
-    static public void tearUp() {
+    public static void tearUp() {
         jaegerContainer.start();
     }
 
     @AfterAll
-    static public void tearDown() {
+    public static void tearDown() {
         jaegerContainer.stop();
     }
 

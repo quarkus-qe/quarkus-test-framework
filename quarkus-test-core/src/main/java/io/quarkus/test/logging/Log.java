@@ -1,5 +1,6 @@
 package io.quarkus.test.logging;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -14,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.Service;
 
 public final class Log {
-    public static final String LOG_OUTPUT_DIRECTORY = "target/logs";
+    public static final Path LOG_OUTPUT_DIRECTORY = Path.of("target", "logs");
     public static final String LOG_SUFFIX = ".log";
 
     private static final Service NO_SERVICE = null;

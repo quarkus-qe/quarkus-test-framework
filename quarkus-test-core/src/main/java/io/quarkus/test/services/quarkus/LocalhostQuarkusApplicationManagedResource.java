@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.utils.ProcessBuilderProvider;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
 
@@ -48,7 +49,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
         try {
             assignPorts();
-            process = new ProcessBuilder(prepareCommand(getPropertiesForCommand()))
+            process = ProcessBuilderProvider.command(prepareCommand(getPropertiesForCommand()))
                     .redirectErrorStream(true)
                     .redirectOutput(logOutputFile)
                     .directory(model.getContext().getServiceFolder().toFile())

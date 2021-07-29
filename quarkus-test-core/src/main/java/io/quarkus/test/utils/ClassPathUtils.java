@@ -4,14 +4,18 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.condition.OS;
+
 import io.quarkus.test.logging.Log;
 
 public final class ClassPathUtils {
-    private static final String SOURCE_CLASSES_LOCATION = "target/classes/";
+    private static final Path SOURCE_CLASSES_LOCATION = Paths.get("target", "classes");
     private static final String CLASS_SUFFIX = ".class";
 
     private ClassPathUtils() {
@@ -21,12 +25,13 @@ public final class ClassPathUtils {
     public static Class<?>[] findAllClassesFromSource() {
         List<Class<?>> classes = new LinkedList<>();
         try {
-            Path classesPathInSources = Path.of(SOURCE_CLASSES_LOCATION);
-            if (!Files.exists(classesPathInSources)) {
+            if (!Files.exists(SOURCE_CLASSES_LOCATION)) {
                 return new Class<?>[0];
             }
-            try (Stream<Path> stream = Files.walk(classesPathInSources)) {
-                stream.map(Path::toString).filter(s -> s.endsWith(CLASS_SUFFIX)).map(ClassPathUtils::normalizeClassName)
+            try (Stream<Path> stream = Files.walk(SOURCE_CLASSES_LOCATION)) {
+                stream.map(Path::toString)
+                        .filter(s -> s.endsWith(CLASS_SUFFIX))
+                        .map(ClassPathUtils::normalizeClassName)
                         .forEach(className -> {
                             try {
                                 classes.add(Thread.currentThread().getContextClassLoader().loadClass(className));
@@ -43,6 +48,14 @@ public final class ClassPathUtils {
     }
 
     private static String normalizeClassName(String path) {
-        return path.replace(CLASS_SUFFIX, "").replace(SOURCE_CLASSES_LOCATION, "").replace("/", ".");
+        String source = SOURCE_CLASSES_LOCATION.relativize(Paths.get(path)).toString()
+                .replace(CLASS_SUFFIX, StringUtils.EMPTY);
+        if (OS.WINDOWS.isCurrentOs()) {
+            source = source.replace("\\", ".");
+        } else {
+            source = source.replace("/", ".");
+        }
+
+        return source;
     }
 }

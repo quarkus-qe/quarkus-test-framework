@@ -1,7 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
 import static java.util.stream.Collectors.toSet;
-import static org.apache.commons.lang3.StringUtils.EMPTY;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,8 +12,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -31,8 +28,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final int HTTP_PORT_DEFAULT = 8080;
 
     private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
-    private static final String RESOURCES_FOLDER = "src/main/resources";
-    private static final String TEST_RESOURCES_FOLDER = "src/test/resources";
+    private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
+    private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
 
@@ -121,24 +118,24 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return BUILD_PROPERTIES.stream().anyMatch(build -> name.matches(build) || name.startsWith(build));
     }
 
-    private void copyResourcesInFolderToAppFolder(String folder) {
+    private void copyResourcesInFolderToAppFolder(Path folder) {
         try (Stream<Path> binariesFound = Files
-                .find(Paths.get(folder), Integer.MAX_VALUE,
+                .find(folder, Integer.MAX_VALUE,
                         (path, basicFileAttributes) -> !Files.isDirectory(path)
                                 && !path.toFile().getName().contains(APPLICATION_PROPERTIES))) {
             binariesFound.forEach(path -> {
+                File fileToCopy = path.toFile();
+
+                Path source = folder.relativize(path).getParent();
                 Path target = context.getServiceFolder();
-                File src = path.toFile();
-                for (String subFolder : src.getPath().replace(folder, EMPTY).replace(src.getName(), EMPTY).split("/")) {
-                    if (StringUtils.isNotEmpty(subFolder)) {
-                        target = target.resolve(subFolder);
-                        if (!Files.exists(target)) {
-                            FileUtils.createDirectory(target);
-                        }
-                    }
+                if (source != null) {
+                    // Resource is in a sub-folder:
+                    target = target.resolve(source);
+                    // Create subdirectories if necessary
+                    target.toFile().mkdirs();
                 }
 
-                FileUtils.copyFileTo(src, target);
+                FileUtils.copyFileTo(fileToCopy, target);
             });
         } catch (IOException ex) {
             // ignored
