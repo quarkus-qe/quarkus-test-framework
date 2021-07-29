@@ -1149,3 +1149,9 @@ The test framework will trace all your test/method invocations, so you can revie
 or filter by tags as `openshift`, `bare-metal`, `k8s` or errors. 
 
 For more information about this feature, go to [the Tracing page](/misc/Tracing.md).
+
+- Test Metrics 
+
+The test framework will aggregate an over all metrics and push it to prometheus. 
+
+For more information about this feature, go to [the Metrics page](/misc/Metrics.md).

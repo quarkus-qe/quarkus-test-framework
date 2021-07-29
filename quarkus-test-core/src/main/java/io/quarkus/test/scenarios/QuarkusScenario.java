@@ -15,5 +15,4 @@ import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 @ExtendWith(QuarkusScenarioBootstrap.class)
 @Inherited
 public @interface QuarkusScenario {
-
 }
