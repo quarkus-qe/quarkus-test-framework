@@ -82,6 +82,8 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void beforeEach(ExtensionContext context) {
+        Log.info("## Running test " + context.getParent().map(ctx -> ctx.getDisplayName() + ".").orElse("") + context
+                .getDisplayName());
         extensions.forEach(ext -> ext.beforeEach(context));
         services.forEach(Service::start);
     }

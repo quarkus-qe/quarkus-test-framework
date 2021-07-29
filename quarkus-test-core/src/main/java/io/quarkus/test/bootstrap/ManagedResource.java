@@ -32,6 +32,13 @@ public interface ManagedResource {
     boolean isRunning();
 
     /**
+     * @return if the resource has failed.
+     */
+    default boolean isFailed() {
+        return false;
+    }
+
+    /**
      * @return the list of logs.
      */
     List<String> logs();

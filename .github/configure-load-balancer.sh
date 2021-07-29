@@ -6,6 +6,10 @@ kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manife
 kubectl create secret generic -n metallb-system memberlist --from-literal=secretkey="$(openssl rand -base64 128)"
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/master/manifests/metallb.yaml
 
+# Inspect docker network (only for troubleshooting)
+docker network inspect -f '{{.IPAM.Config}}' $DOCKER_NETWORK
+
+# Get the IPs ranges
 NETWORK_IPS=($(docker network inspect -f '{{.IPAM.Config}}' $DOCKER_NETWORK | grep -oP '[\d]+\.'))
 cat <<-EOF | kubectl apply -f -
 apiVersion: v1

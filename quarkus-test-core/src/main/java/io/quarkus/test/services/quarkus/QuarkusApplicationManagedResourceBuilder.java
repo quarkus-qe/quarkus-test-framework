@@ -30,7 +30,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
     private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
     private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
-    private static final String APPLICATION_PROPERTIES = "application.properties";
+    private static final String PROPERTIES_SUFFIX = ".properties";
+    private static final String APPLICATION_PROPERTIES = "application" + PROPERTIES_SUFFIX;
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
 
     private Class<?>[] appClasses;
@@ -122,7 +123,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         try (Stream<Path> binariesFound = Files
                 .find(folder, Integer.MAX_VALUE,
                         (path, basicFileAttributes) -> !Files.isDirectory(path)
-                                && !path.toFile().getName().contains(APPLICATION_PROPERTIES))) {
+                                && !path.toFile().getName().contains(PROPERTIES_SUFFIX))) {
             binariesFound.forEach(path -> {
                 File fileToCopy = path.toFile();
 
