@@ -399,6 +399,10 @@ public class GreetingResourceIT {
 }
 ```
 
+Some containers require `--privileged` mode to run properly. This mode can be enabled on a per-container basis via property `ts.{container}.container.privileged-mode=true` or for all containers via property `ts.global.container.privileged-mode=true`. This property only affects containers which are both: 
+1) Deployed on bare metal, not in Kubernetes/OpenShift.
+2) Use `@Container` annotation, not a specialised one(`@KafkaContainer`, `@AmqContainer`, etc).
+
 #### Kafka Containers
 
 Due to the complexity of Kafka deployments, there is a special implementation of containers for Kafka that we can use by adding the dependency:

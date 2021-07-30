@@ -6,6 +6,7 @@ import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
 public class GenericDockerContainerManagedResource extends DockerContainerManagedResource {
 
+    private static final String PRIVILEGED_MODE = "container.privileged-mode";
     private final ContainerManagedResourceBuilder model;
 
     protected GenericDockerContainerManagedResource(ContainerManagedResourceBuilder model) {
@@ -30,8 +31,14 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
             container.withCommand(model.getCommand());
         }
 
+        container.setPrivilegedMode(isPrivileged());
+
         container.withExposedPorts(model.getPort());
+
         return container;
     }
 
+    private boolean isPrivileged() {
+        return model.getContext().getOwner().getConfiguration().isTrue(PRIVILEGED_MODE);
+    }
 }
