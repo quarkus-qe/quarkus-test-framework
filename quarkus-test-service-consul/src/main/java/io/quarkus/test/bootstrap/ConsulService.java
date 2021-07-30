@@ -13,20 +13,18 @@ import com.orbitz.consul.KeyValueClient;
 
 public class ConsulService extends BaseService<ConsulService> {
 
-    private static final String KEY = "config/app";
-
-    public void loadPropertiesFromString(String content) {
+    public void loadPropertiesFromString(String key, String content) {
         KeyValueClient kvClient = consulClient().keyValueClient();
-        kvClient.putValue(KEY, content);
+        kvClient.putValue(key, content);
     }
 
-    public void loadPropertiesFromFile(String file) {
+    public void loadPropertiesFromFile(String key, String file) {
         KeyValueClient kvClient = consulClient().keyValueClient();
         try {
             String properties = IOUtils.toString(
                     ConsulService.class.getClassLoader().getResourceAsStream(file),
                     StandardCharsets.UTF_8);
-            kvClient.putValue(KEY, properties);
+            kvClient.putValue(key, properties);
         } catch (IOException e) {
             fail("Failed to load properties. Caused by " + e.getMessage());
         }

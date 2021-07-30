@@ -15,6 +15,7 @@ import io.quarkus.test.services.QuarkusApplication;
 public abstract class BaseGreetingResourceIT {
 
     private static final String CUSTOM_PROPERTY = "my.property";
+    private static final String KEY = "config/examples-consul";
 
     @LookupService
     static ConsulService consul;
@@ -32,11 +33,11 @@ public abstract class BaseGreetingResourceIT {
     }
 
     protected static final void onLoadConfigureConsul(Service service) {
-        consul.loadPropertiesFromFile("application.properties");
+        consul.loadPropertiesFromFile(KEY, "application.properties");
     }
 
     private void whenUpdateCustomPropertyTo(String newValue) {
-        consul.loadPropertiesFromString(CUSTOM_PROPERTY + "=" + newValue);
+        consul.loadPropertiesFromString(KEY, CUSTOM_PROPERTY + "=" + newValue);
 
         app.stop();
         app.start();
