@@ -1,6 +1,7 @@
 package io.quarkus.qe;
 
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
+import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.apache.http.HttpStatus;
@@ -30,6 +31,11 @@ public abstract class BaseGreetingResourceIT {
 
         whenUpdateCustomPropertyTo("Test");
         thenGreetingsApiReturns("Hello Test");
+    }
+
+    @Test
+    public void shouldFindPropertyFromCustomSource() {
+        app.given().get("/api/from-custom-source").then().statusCode(HttpStatus.SC_OK).body(is("Hello Config Source!"));
     }
 
     protected static final void onLoadConfigureConsul(Service service) {
