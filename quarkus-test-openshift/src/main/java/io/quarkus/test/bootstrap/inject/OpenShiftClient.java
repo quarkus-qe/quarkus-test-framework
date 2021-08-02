@@ -71,6 +71,7 @@ public final class OpenShiftClient {
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
+    private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
     private static final String CUSTOM_RESOURCE_EXPECTED_STATUS = "True";
 
@@ -239,6 +240,11 @@ public final class OpenShiftClient {
         }
     }
 
+    /**
+     * Waits until the Build Config finishes.
+     *
+     * @param buildConfigName
+     */
     public void followBuildConfigLogs(String buildConfigName) {
         untilIsNotNull(client.buildConfigs().withName(buildConfigName)::get);
         try {
@@ -246,6 +252,21 @@ public final class OpenShiftClient {
         } catch (Exception e) {
             fail("Log retrieval from bc failed. Caused by " + e.getMessage());
         }
+
+        if (isBuildFailed(buildConfigName)) {
+            fail("Build failed");
+        }
+    }
+
+    /**
+     * Check whether the build failed.
+     *
+     * @param buildConfigName
+     * @return
+     */
+    public boolean isBuildFailed(String buildConfigName) {
+        return client.builds().withLabel("buildconfig", buildConfigName).list().getItems().stream()
+                .anyMatch(build -> BUILD_FAILED_STATUS.equals(build.getStatus().getPhase()));
     }
 
     /**

@@ -370,6 +370,8 @@ public class AuthzSecurityHttpsIT {
 
 This test will not run if the quarkus version is `1.13.X`.
 
+Moreover, if we are building Quarkus upstream ourselves, we can also disable tests on Quarkus upstream snapshot version (999-SNAPSHOT) using `@DisabledOnQuarkusSnapshot`.
+
 ### Containers 
 
 The framework also supports to deployment of third party components provided by docker. First, we need an additional module:
