@@ -16,8 +16,7 @@ import io.quarkus.test.services.QuarkusApplication;
 @DisabledOnOs(OS.WINDOWS)
 public class UnixGreetingResourceIT {
     @QuarkusApplication(ssl = true)
-    static final RestService app = new RestService()
-            .withProperties("unix.application.properties");
+    static final RestService app = new RestService();
 
     @Test
     public void shouldSayHelloWorld() {
