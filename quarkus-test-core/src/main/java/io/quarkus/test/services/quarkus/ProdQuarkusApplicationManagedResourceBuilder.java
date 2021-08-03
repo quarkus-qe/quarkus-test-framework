@@ -70,6 +70,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
 
     public void build() {
         detectLaunchMode();
+        copyResourcesToAppFolder();
         if (managedResource.needsBuildArtifact()) {
             tryToReuseOrBuildArtifact();
         }
@@ -115,8 +116,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
 
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(getAppClasses());
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());
-
-            copyResourcesToAppFolder();
 
             Path testLocation = PathTestHelper.getTestClassesLocation(getContext().getTestContext().getRequiredTestClass());
             QuarkusBootstrap.Builder builder = QuarkusBootstrap.builder().setApplicationRoot(appFolder)

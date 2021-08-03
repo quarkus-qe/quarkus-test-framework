@@ -70,6 +70,12 @@ public final class FileUtils {
         }
     }
 
+    public static void createDirectoryIfDoesNotExist(Path folder) {
+        if (!Files.exists(folder)) {
+            folder.toFile().mkdirs();
+        }
+    }
+
     public static void copyFileTo(File file, Path target) {
         try {
             org.apache.commons.io.FileUtils.copyFileToDirectory(file, target.toFile());

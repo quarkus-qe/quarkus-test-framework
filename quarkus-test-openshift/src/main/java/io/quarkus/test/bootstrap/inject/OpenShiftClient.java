@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -248,7 +250,7 @@ public final class OpenShiftClient {
     public void followBuildConfigLogs(String buildConfigName) {
         untilIsNotNull(client.buildConfigs().withName(buildConfigName)::get);
         try {
-            new Command(OC, "logs", "bc/" + buildConfigName, "--follow").runAndWait();
+            new Command(OC, "logs", "bc/" + buildConfigName, "--follow", "-n", currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Log retrieval from bc failed. Caused by " + e.getMessage());
         }
@@ -475,6 +477,34 @@ public final class OpenShiftClient {
             Log.warn("Failed to check serverless service. Will assume it's not serverless", ex);
             return false;
         }
+    }
+
+    /**
+     * @return status of the namespace.
+     */
+    public String getEvents() {
+        List<String> output = new ArrayList<>();
+        try {
+            new Command(OC, "get", "events", "-n", currentNamespace).outputToLines(output).runAndWait();
+        } catch (Exception ex) {
+            Log.warn("Failed to get project status", ex);
+        }
+
+        return output.stream().collect(Collectors.joining(System.lineSeparator()));
+    }
+
+    /**
+     * @return status of the namespace.
+     */
+    public String getStatus() {
+        List<String> output = new ArrayList<>();
+        try {
+            new Command(OC, "status", "--suggest", "-n", currentNamespace).outputToLines(output).runAndWait();
+        } catch (Exception ex) {
+            Log.warn("Failed to get project status", ex);
+        }
+
+        return output.stream().collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**

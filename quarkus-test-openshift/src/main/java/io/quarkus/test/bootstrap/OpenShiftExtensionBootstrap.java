@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -17,6 +18,8 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "openshift-client";
 
+    private static final PropertyLookup PRINT_INFO_ON_ERROR = new PropertyLookup("ts.openshift.print.info.on.error",
+            Boolean.TRUE.toString());
     private static final PropertyLookup DELETE_PROJECT_AFTER = new PropertyLookup("ts.openshift.delete.project.after.all",
             Boolean.TRUE.toString());
 
@@ -56,10 +59,31 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void onError(ExtensionContext context, Throwable throwable) {
+        if (PRINT_INFO_ON_ERROR.getAsBoolean()) {
+            FileUtils.createDirectoryIfDoesNotExist(logsTestFolder(context));
+            printStatus(context);
+            printEvents(context);
+            printPodLogs(context);
+        }
+    }
+
+    private void printEvents(ExtensionContext context) {
+        FileUtils.copyContentTo(client.getEvents(), logsTestFolder(context).resolve("events" + Log.LOG_SUFFIX));
+    }
+
+    private void printStatus(ExtensionContext context) {
+        FileUtils.copyContentTo(client.getStatus(), logsTestFolder(context).resolve("status" + Log.LOG_SUFFIX));
+    }
+
+    private void printPodLogs(ExtensionContext context) {
         Map<String, String> logs = client.logs();
         for (Entry<String, String> podLog : logs.entrySet()) {
-            FileUtils.copyContentTo(podLog.getValue(), Log.LOG_OUTPUT_DIRECTORY.resolve(podLog.getKey() + Log.LOG_SUFFIX));
+            FileUtils.copyContentTo(podLog.getValue(), logsTestFolder(context).resolve(podLog.getKey() + Log.LOG_SUFFIX));
         }
+    }
+
+    private Path logsTestFolder(ExtensionContext context) {
+        return Log.LOG_OUTPUT_DIRECTORY.resolve(context.getRequiredTestClass().getSimpleName());
     }
 
     private void installOperators(ExtensionContext context) {

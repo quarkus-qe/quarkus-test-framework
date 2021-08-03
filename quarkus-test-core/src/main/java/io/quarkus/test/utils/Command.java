@@ -34,6 +34,11 @@ public class Command {
         return this;
     }
 
+    public Command outputToLines(List<String> output) {
+        outputConsumer = linesOutput(output);
+        return this;
+    }
+
     public Command onDirectory(Path path) {
         directory = path.toString();
         return this;
@@ -58,6 +63,19 @@ public class Command {
         if (result != 0) {
             throw new RuntimeException(description + " failed (executed " + command + ", return code " + result + ")");
         }
+    }
+
+    private static BiConsumer<String, InputStream> linesOutput(List<String> lines) {
+        return (description, is) -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    Log.info("%s: %s", description, line);
+                    lines.add(line);
+                }
+            } catch (IOException ignored) {
+            }
+        };
     }
 
     private static BiConsumer<String, InputStream> consoleOutput() {
