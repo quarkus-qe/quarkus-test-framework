@@ -601,6 +601,11 @@ test using:
 mvn clean verify -Dts.openshift.delete.project.after.all=false
 ```
 
+#### Print useful information on errors
+
+The test framework will print the project status, events and pod logs when a test fails. This functionality is enabled by default, 
+however it can be disabled using the property `-Dts.openshift.print.info.on.error=false`.
+
 #### Operators
 
 The OpenShift scenarios support Operator based test cases. There are two ways to deal with Operators:
