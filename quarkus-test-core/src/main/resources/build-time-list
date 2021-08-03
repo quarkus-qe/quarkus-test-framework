@@ -37,6 +37,7 @@ quarkus.http.auth.form.enabled
 quarkus.http.auth.permission.(.+).enabled
 quarkus.http.non-application-root-path
 quarkus.http.redirect-to-non-application-root-path
+quarkus.http.root-path
 quarkus.http.ssl.client-auth
 quarkus.jaeger.enabled
 quarkus.jaeger.metrics.enabled

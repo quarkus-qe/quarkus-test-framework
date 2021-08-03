@@ -112,6 +112,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
 
     private Path buildArtifact() {
         try {
+            createSnapshotOfBuildProperties();
             Path appFolder = getContext().getServiceFolder();
 
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(getAppClasses());

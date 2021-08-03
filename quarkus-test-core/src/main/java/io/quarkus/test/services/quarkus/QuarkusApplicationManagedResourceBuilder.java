@@ -122,7 +122,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         }
 
         // Then put the build properties
-        map.putAll(createSnapshotOfBuildProperties());
+        map.putAll(context.getOwner().getProperties());
         // Then replace the application properties
         PropertiesUtils.fromMap(map, applicationProperties);
     }

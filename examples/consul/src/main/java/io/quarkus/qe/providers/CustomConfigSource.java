@@ -3,6 +3,7 @@ package io.quarkus.qe.providers;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -18,6 +19,14 @@ public class CustomConfigSource implements ConfigSource {
 
     public CustomConfigSource() throws IOException {
         loadProperties();
+    }
+
+    /**
+     * This method is only to backward compatibility purposes.
+     */
+    @Override
+    public Map<String, String> getProperties() {
+        return (Map) customProperties;
     }
 
     @Override
