@@ -33,6 +33,7 @@ public abstract class LoggingHandler {
     }
 
     public void stopWatching() {
+        handle();
         running = false;
         logs.clear();
         if (innerThread != null) {

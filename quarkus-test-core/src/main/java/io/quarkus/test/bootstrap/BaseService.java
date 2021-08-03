@@ -97,6 +97,7 @@ public class BaseService<T extends Service> implements Service {
             Log.debug(this, "Resource is not running");
             return false;
         } else if (managedResource.isFailed()) {
+            managedResource.stop();
             fail("Resource failed to start");
         }
 
