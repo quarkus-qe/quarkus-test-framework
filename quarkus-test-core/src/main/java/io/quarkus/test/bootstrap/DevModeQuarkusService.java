@@ -12,9 +12,10 @@ import java.util.List;
 import java.util.function.Function;
 
 import org.apache.commons.io.FileUtils;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 
+import com.gargoylesoftware.htmlunit.BrowserVersion;
+import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
 import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
@@ -26,22 +27,19 @@ import io.quarkus.test.utils.AwaitilityUtils;
 public class DevModeQuarkusService extends RestService {
     public static final String DEV_UI_PATH = "/q/dev";
 
-    private static final int ENABLE_CONTINUOUS_TESTING_WAIT_TIME_MS = 2000;
+    private static final int JAVASCRIPT_WAIT_TIMEOUT_MILLIS = 10000;
     private static final String XPATH_BTN_CLASS = "contains(@class, 'btn')";
     private static final String XPATH_BTN_ON_OFF_CLASS = "contains(@class, 'btnPowerOnOffButton')";
     private static final String CONTINUOUS_TESTING_BTN = "//a[" + XPATH_BTN_CLASS + " and " + XPATH_BTN_ON_OFF_CLASS + "]";
     private static final String CONTINUOUS_TESTING_LABEL_DISABLED = "Tests not running";
-    private static final String DEV_UI_READY_XPATH = "//a[@class='testsFooterButton btnDisplayTestHelp btn']";
 
     public DevModeQuarkusService enableContinuousTesting() {
-        waitForDevUiReady();
-        // If the enable continuous testing btn is not found, we assume it's already enabled it.
-        if (isContinuousTestingBtnDisabled()) {
-            clickOnElement(getContinuousTestingBtn());
-        }
+        HtmlPage webDevUi = webDevUiPage();
 
-        // Wait a couple of seconds to ensure that continuous testing is enabled
-        sleep(ENABLE_CONTINUOUS_TESTING_WAIT_TIME_MS);
+        // If the enable continuous testing btn is not found, we assume it's already enabled it.
+        if (isContinuousTestingBtnDisabled(webDevUi)) {
+            clickOnElement(getContinuousTestingBtn(webDevUi));
+        }
 
         return this;
     }
@@ -78,29 +76,25 @@ public class DevModeQuarkusService extends RestService {
         }
     }
 
-    public HtmlElement getContinuousTestingBtn() {
-        List<HtmlElement> btn = getElementsByXPath(webDevUiPage(), CONTINUOUS_TESTING_BTN);
+    public HtmlElement getContinuousTestingBtn(HtmlPage page) {
+        List<HtmlElement> btn = getElementsByXPath(page, CONTINUOUS_TESTING_BTN);
         assertEquals(1, btn.size(), "Should be only one button to enable continuous testing");
         return btn.get(0);
     }
 
-    public boolean isContinuousTestingBtnDisabled() {
-        HtmlElement btn = getContinuousTestingBtn();
+    public boolean isContinuousTestingBtnDisabled(HtmlPage page) {
+        HtmlElement btn = getContinuousTestingBtn(page);
         return btn.getTextContent().trim().equals(CONTINUOUS_TESTING_LABEL_DISABLED);
     }
 
-    public void waitForDevUiReady() {
-        AwaitilityUtils.until(
-                () -> getElementsByXPath(webDevUiPage(), DEV_UI_READY_XPATH),
-                Matchers.not(Matchers.empty()));
-    }
-
-    public void clickOnElement(HtmlElement elem) {
+    public HtmlPage clickOnElement(HtmlElement elem) {
         try {
-            elem.click();
+            return elem.click();
         } catch (IOException e) {
             Assertions.fail("Can't click on element. Caused by: " + e.getMessage());
         }
+
+        return null;
     }
 
     public List<HtmlElement> getElementsByXPath(HtmlPage htmlPage, String path) {
@@ -112,10 +106,16 @@ public class DevModeQuarkusService extends RestService {
 
     public HtmlPage webDevUiPage() {
         try {
-            return (HtmlPage) webPage(DEV_UI_PATH).refresh();
+            HtmlPage page = (HtmlPage) webPage(DEV_UI_PATH).refresh();
+            waitUntilLoaded(page);
+            return page;
         } catch (IOException e) {
             return null;
         }
+    }
+
+    private void waitUntilLoaded(HtmlPage page) {
+        AwaitilityUtils.untilIsTrue(() -> page.getEnclosingWindow().getJobManager().getJobCount() == 0);
     }
 
     public HtmlPage webPage(String path) {
@@ -129,11 +129,16 @@ public class DevModeQuarkusService extends RestService {
     }
 
     public WebClient webClient() {
-        WebClient webClient = new WebClient();
+        WebClient webClient = new WebClient(BrowserVersion.CHROME);
         webClient.getCookieManager().clearCookies();
         webClient.getCache().clear();
         webClient.getCache().setMaxSize(0);
         webClient.setCssErrorHandler(new SilentCssErrorHandler());
+        // re-synchronize asynchronous XHR.
+        webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+        // Timeout for JS to wait for
+        webClient.waitForBackgroundJavaScript(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
+        webClient.getOptions().setCssEnabled(false);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
         webClient.getOptions().setRedirectEnabled(true);
