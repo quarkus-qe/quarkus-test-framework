@@ -6,16 +6,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.List;
 
-import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.utils.FileUtils;
 
-public class FileQuarkusApplicationLoggingHandler extends LoggingHandler {
+public class FileLoggingHandler extends LoggingHandler {
 
     private final File file;
     private String printedContent;
 
-    public FileQuarkusApplicationLoggingHandler(ServiceContext context, File input) {
-        super(context);
+    public FileLoggingHandler(File input) {
         this.file = input;
     }
 

@@ -10,8 +10,9 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.ServiceContext;
-import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
+import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
@@ -51,7 +52,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
             process = client.runOnDev(serviceContext.getServiceFolder(), getPropertiesForCommand());
 
             File logFile = serviceContext.getServiceFolder().resolve(QuarkusCliClient.LOG_FILE).toFile();
-            loggingHandler = new FileQuarkusApplicationLoggingHandler(serviceContext, logFile);
+            loggingHandler = new FileServiceLoggingHandler(serviceContext.getOwner(), logFile);
             loggingHandler.startWatching();
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -106,9 +107,14 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     private Map<String, String> getPropertiesForCommand() {
         Map<String, String> runtimeProperties = new HashMap<>(serviceContext.getOwner().getProperties());
         runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + assignedHttpPort);
-        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_GROUP_ID, QUARKUS_PLATFORM_GROUP_ID_VALUE);
-        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_ARTIFACT_ID, QUARKUS_PLATFORM_ARTIFACT_ID_VALUE);
         runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_VERSION, io.quarkus.builder.Version.getVersion());
+
+        if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()) {
+            // In Quarkus Snapshot (999-SNAPSHOT), we can't use the quarkus platform bom as it's not resolved,
+            // so we need to overwrite it.
+            runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_GROUP_ID, QUARKUS_PLATFORM_GROUP_ID_VALUE);
+            runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_ARTIFACT_ID, QUARKUS_PLATFORM_ARTIFACT_ID_VALUE);
+        }
 
         return runtimeProperties;
     }

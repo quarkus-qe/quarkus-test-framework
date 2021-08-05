@@ -45,7 +45,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         innerContainer.withEnv(resolveProperties());
         innerContainer.start();
 
-        loggingHandler = new TestContainersLoggingHandler(context, innerContainer);
+        loggingHandler = new TestContainersLoggingHandler(context.getOwner(), innerContainer);
         loggingHandler.startWatching();
     }
 

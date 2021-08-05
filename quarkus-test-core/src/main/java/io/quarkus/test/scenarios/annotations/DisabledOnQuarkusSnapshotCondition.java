@@ -18,7 +18,7 @@ public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
         Optional<AnnotatedElement> element = context.getElement();
         return AnnotationUtils.findAnnotation(element, DisabledOnQuarkusSnapshot.class)
                 .stream()
-                .filter(this::isDisabledOnCurrentQuarkusVersion)
+                .filter(annotation -> DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion())
                 .findAny()
                 .map(this::testIsDisabled)
                 .orElse(ENABLED_BY_DEFAULT);
@@ -28,7 +28,7 @@ public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
         return ConditionEvaluationResult.disabled("Disabled on Quarkus snapshot (reason: " + disabledOnQuarkus.reason() + ")");
     }
 
-    private boolean isDisabledOnCurrentQuarkusVersion(DisabledOnQuarkusSnapshot disabledOnQuarkus) {
+    public static boolean isQuarkusSnapshotVersion() {
         return QUARKUS_SNAPSHOT_VERSION.equals(io.quarkus.builder.Version.getVersion());
     }
 }

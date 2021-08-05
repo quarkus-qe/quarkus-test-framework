@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.Protocol;
-import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
+import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.ProcessBuilderProvider;
@@ -60,7 +60,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
                     .directory(model.getContext().getServiceFolder().toFile())
                     .start();
 
-            loggingHandler = new FileQuarkusApplicationLoggingHandler(model.getContext(), logOutputFile);
+            loggingHandler = new FileServiceLoggingHandler(model.getContext().getOwner(), logOutputFile);
             loggingHandler.startWatching();
 
         } catch (Exception e) {
