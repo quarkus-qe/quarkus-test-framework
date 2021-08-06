@@ -103,6 +103,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withKubernetesClientTrustCerts());
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
+        args.add(withLabelsForScenarioId());
         withEnvVars(args, model.getContext().getOwner().getProperties());
         withAdditionalArguments(args);
 
@@ -116,6 +117,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private String withLabelsForWatching() {
         return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_TO_WATCH_FOR_LOGS,
                 model.getContext().getOwner().getName());
+    }
+
+    private String withLabelsForScenarioId() {
+        return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_SCENARIO_ID, client.getScenarioId());
     }
 
     private String withContainerName() {

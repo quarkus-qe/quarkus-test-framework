@@ -1315,6 +1315,23 @@ mvn -T 1C clean verify
 
 This Maven command would use 1 thread by CPU.
 
+- Disable ephemeral namespaces
+
+Most of the time ephemeral namespace is a good idea, but some other times is not possible because maybe you are 
+not allowed to create namespaces on the fly with your own user. In those cases, you can disable ephemeral namespaces 
+and run all your tests in your current namespace.
+
+* OpenShift: 
+`-Dts.openshift.ephemeral.namespaces.enabled=false`
+
+* Kubernetes:
+`-Dts.kubernetes.ephemeral.namespaces.enabled=false`
+
+Full example command: `mvn clean verify -Popenshift -Dts.openshift.ephemeral.namespaces.enabled=false`
+
+Default value: `ts.openshift.ephemeral.namespaces.enabled=true`
+**Note:** this feature doesn't support operators
+
 - Partial SSL support
 
 This is only supported when running tests on bare metal:

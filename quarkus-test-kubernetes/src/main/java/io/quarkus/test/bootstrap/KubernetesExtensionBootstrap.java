@@ -11,8 +11,8 @@ import io.quarkus.test.scenarios.KubernetesScenario;
 import io.quarkus.test.utils.FileUtils;
 
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
-
     public static final String CLIENT = "kubectl-client";
+
     private static final PropertyLookup DELETE_NAMESPACE_AFTER = new PropertyLookup("ts.kubernetes.delete.namespace.after.all",
             Boolean.TRUE.toString());
 
@@ -25,7 +25,7 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void beforeAll(ScenarioContext context) {
-        client = KubectlClient.create();
+        client = KubectlClient.create(context.getId());
     }
 
     @Override
