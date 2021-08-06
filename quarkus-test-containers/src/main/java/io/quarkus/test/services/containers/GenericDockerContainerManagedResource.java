@@ -15,6 +15,11 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
     }
 
     @Override
+    public String getDisplayName() {
+        return model.getImage();
+    }
+
+    @Override
     protected int getTargetPort() {
         return model.getPort();
     }

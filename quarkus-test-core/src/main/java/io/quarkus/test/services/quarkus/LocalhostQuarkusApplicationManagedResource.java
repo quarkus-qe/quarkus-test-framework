@@ -35,6 +35,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     private int assignedGrpcPort;
 
     public LocalhostQuarkusApplicationManagedResource(QuarkusApplicationManagedResourceBuilder model) {
+        super(model.getContext());
         this.model = model;
         this.logOutputFile = new File(model.getContext().getServiceFolder().resolve(LOG_OUTPUT_FILE).toString());
     }

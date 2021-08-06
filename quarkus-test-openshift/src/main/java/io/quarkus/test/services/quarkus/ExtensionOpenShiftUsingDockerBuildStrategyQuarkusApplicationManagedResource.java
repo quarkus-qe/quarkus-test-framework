@@ -36,9 +36,9 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManaged
             FileUtils.createDirectory(dockerfileTarget);
         }
 
-        String dockerfileName = DockerUtils.getDockerfile(model.getLaunchMode());
+        String dockerfileName = DockerUtils.getDockerfile(getLaunchMode());
         if (!Files.exists(dockerfileTarget.resolve(dockerfileTarget))) {
-            String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(model.getLaunchMode()))
+            String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(getLaunchMode()))
                     .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
             FileUtils.copyContentTo(dockerFileContent,
                     model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName));

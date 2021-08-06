@@ -26,6 +26,11 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     protected abstract GenericContainer<?> initRegistryContainer(GenericContainer<?> kafka);
 
     @Override
+    public String getDisplayName() {
+        return model.getImage() + ":" + model.getVersion();
+    }
+
+    @Override
     public void start() {
         super.start();
 

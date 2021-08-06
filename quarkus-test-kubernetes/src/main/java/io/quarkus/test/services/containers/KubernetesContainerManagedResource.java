@@ -34,6 +34,11 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     @Override
+    public String getDisplayName() {
+        return model.getImage();
+    }
+
+    @Override
     public void start() {
         if (running) {
             return;

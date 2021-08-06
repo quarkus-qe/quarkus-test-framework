@@ -47,6 +47,11 @@ public class BaseService<T extends Service> implements Service {
     }
 
     @Override
+    public String getDisplayName() {
+        return managedResource.getDisplayName();
+    }
+
+    @Override
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -143,13 +148,13 @@ public class BaseService<T extends Service> implements Service {
             return;
         }
 
-        Log.debug(this, "Starting service");
+        Log.debug(this, "Starting service (%s)", getDisplayName());
 
         onPreStartActions.forEach(a -> a.handle(this));
         managedResource.start();
         waitUntilServiceIsStarted();
         onPostStartActions.forEach(a -> a.handle(this));
-        Log.info(this, "Service started");
+        Log.info(this, "Service started (%s)", getDisplayName());
     }
 
     /**
@@ -161,10 +166,10 @@ public class BaseService<T extends Service> implements Service {
             return;
         }
 
-        Log.debug(this, "Stopping service");
+        Log.debug(this, "Stopping service (%s)", getDisplayName());
         managedResource.stop();
 
-        Log.info(this, "Service stopped");
+        Log.info(this, "Service stopped (%s)", getDisplayName());
     }
 
     @Override

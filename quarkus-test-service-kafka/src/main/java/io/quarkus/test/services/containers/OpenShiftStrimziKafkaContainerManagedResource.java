@@ -43,6 +43,11 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     @Override
+    public String getDisplayName() {
+        return model.getImage() + ":" + model.getVersion();
+    }
+
+    @Override
     public void start() {
         if (running) {
             return;

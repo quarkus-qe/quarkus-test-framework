@@ -27,6 +27,11 @@ public class OperatorManagedResource implements ManagedResource {
     }
 
     @Override
+    public String getDisplayName() {
+        return model.getName();
+    }
+
+    @Override
     public void start() {
         if (!running) {
             installOperator();

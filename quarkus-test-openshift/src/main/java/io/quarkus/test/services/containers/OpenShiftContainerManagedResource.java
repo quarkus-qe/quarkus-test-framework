@@ -35,6 +35,11 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     @Override
+    public String getDisplayName() {
+        return model.getImage();
+    }
+
+    @Override
     public void start() {
         if (running) {
             return;

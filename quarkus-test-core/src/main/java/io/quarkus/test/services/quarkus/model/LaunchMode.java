@@ -3,7 +3,8 @@ package io.quarkus.test.services.quarkus.model;
 public enum LaunchMode {
     LEGACY_JAR("legacy-jar"),
     NATIVE("native"),
-    JVM("jvm");
+    JVM("jvm"),
+    DEV("dev");
 
     private final String name;
 
