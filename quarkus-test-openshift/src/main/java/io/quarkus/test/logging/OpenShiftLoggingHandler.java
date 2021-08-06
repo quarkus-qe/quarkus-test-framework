@@ -8,14 +8,14 @@ import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 
-public class OpenShiftLoggingHandler extends LoggingHandler {
+public class OpenShiftLoggingHandler extends ServiceLoggingHandler {
 
     private final OpenShiftClient client;
     private final Service service;
     private Map<String, String> oldLogs;
 
     public OpenShiftLoggingHandler(ServiceContext context) {
-        super(context);
+        super(context.getOwner());
 
         service = context.getOwner();
         client = context.get(OpenShiftExtensionBootstrap.CLIENT);

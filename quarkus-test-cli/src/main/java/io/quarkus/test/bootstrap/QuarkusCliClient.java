@@ -2,6 +2,7 @@ package io.quarkus.test.bootstrap;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -11,9 +12,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.logging.FileLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.CliDevModeLocalhostQuarkusApplicationManagedResource;
 import io.quarkus.test.utils.FileUtils;
@@ -23,6 +26,7 @@ public class QuarkusCliClient {
 
     public static final String LOG_FILE = "quarkus-cli.out";
 
+    private static final String BUILD = "build";
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
     private static final Path TARGET = Paths.get("target");
 
@@ -40,12 +44,19 @@ public class QuarkusCliClient {
         return runCliAndWait(args);
     }
 
-    public Result buildApplicationOnJvm(Path servicePath) {
-        return runCliAndWait(servicePath, "build");
+    public Result buildApplicationOnJvm(Path serviceFolder, String... extraArgs) {
+        List<String> args = new ArrayList<>();
+        args.add(BUILD);
+        args.addAll(Arrays.asList(extraArgs));
+        return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
 
-    public Result buildApplicationOnNative(Path servicePath) {
-        return runCliAndWait(servicePath, "build", "--native");
+    public Result buildApplicationOnNative(Path serviceFolder, String... extraArgs) {
+        List<String> args = new ArrayList<>();
+        args.add(BUILD);
+        args.add("--native");
+        args.addAll(Arrays.asList(extraArgs));
+        return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
 
     public Process runOnDev(Path servicePath, Map<String, String> arguments) {
@@ -57,7 +68,11 @@ public class QuarkusCliClient {
         return runCli(servicePath, cmd.toArray(new String[cmd.size()]));
     }
 
-    public QuarkusCliRestService createApplication(String name, String... extensions) {
+    public QuarkusCliRestService createApplication(String name) {
+        return createApplication(name, CreateApplicationRequest.defaults());
+    }
+
+    public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request) {
         QuarkusCliRestService service = new QuarkusCliRestService(this);
         ServiceContext serviceContext = service.register(name, context);
 
@@ -69,8 +84,21 @@ public class QuarkusCliClient {
         // Generate project
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList("create", "app", name));
-        if (extensions.length > 0) {
-            args.add("-x=" + Stream.of(extensions).collect(Collectors.joining(",")));
+        // Platform Bom
+        if (StringUtils.isNotEmpty(request.platformBom)) {
+            args.add("--platform-bom=" + request.platformBom);
+        }
+        // Stream
+        if (StringUtils.isNotEmpty(request.stream)) {
+            args.add("--stream=" + request.stream);
+        }
+        // Extensions
+        if (request.extensions != null && request.extensions.length > 0) {
+            args.add("-x=" + Stream.of(request.extensions).collect(Collectors.joining(",")));
+        }
+        // Extra args
+        if (request.extraArgs != null && request.extraArgs.length > 0) {
+            Stream.of(request.extraArgs).forEach(args::add);
         }
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
@@ -85,8 +113,10 @@ public class QuarkusCliClient {
 
     private Result runCliAndWait(Path workingDirectory, String... args) {
         Result result = new Result();
+        File output = workingDirectory.resolve(LOG_FILE).toFile();
 
-        try {
+        try (FileLoggingHandler loggingHandler = new FileLoggingHandler(output)) {
+            loggingHandler.startWatching();
             Process process = runCli(workingDirectory, args);
             result.exitCode = process.waitFor();
         } catch (Exception e) {
@@ -95,7 +125,7 @@ public class QuarkusCliClient {
             result.exitCode = 1;
         }
 
-        result.output = FileUtils.loadFile(workingDirectory.resolve(LOG_FILE).toFile()).trim();
+        result.output = FileUtils.loadFile(output).trim();
 
         return result;
     }
@@ -106,7 +136,6 @@ public class QuarkusCliClient {
         cmd.addAll(Arrays.asList(args));
 
         Log.info(cmd.stream().collect(Collectors.joining(" ")));
-
         try {
             return ProcessBuilderProvider.command(cmd)
                     .redirectErrorStream(true)
@@ -115,6 +144,37 @@ public class QuarkusCliClient {
                     .start();
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    public static class CreateApplicationRequest {
+        private String platformBom;
+        private String stream;
+        private String[] extensions;
+        private String[] extraArgs;
+
+        public CreateApplicationRequest withPlatformBom(String platformBom) {
+            this.platformBom = platformBom;
+            return this;
+        }
+
+        public CreateApplicationRequest withStream(String stream) {
+            this.stream = stream;
+            return this;
+        }
+
+        public CreateApplicationRequest withExtensions(String... extensions) {
+            this.extensions = extensions;
+            return this;
+        }
+
+        public CreateApplicationRequest withExtraArgs(String... extraArgs) {
+            this.extraArgs = extraArgs;
+            return this;
+        }
+
+        public static CreateApplicationRequest defaults() {
+            return new CreateApplicationRequest();
         }
     }
 

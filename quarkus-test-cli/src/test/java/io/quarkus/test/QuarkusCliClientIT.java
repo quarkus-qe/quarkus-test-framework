@@ -13,6 +13,8 @@ import javax.inject.Inject;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.builder.Version;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
@@ -58,7 +60,8 @@ public class QuarkusCliClientIT {
 
     @Test
     @EnabledOnNative
-    public void shouldBuildApplicationOnNative() {
+    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support Linux containers yet")
+    public void shouldBuildApplicationOnNativeUsingDocker() {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
 
@@ -70,7 +73,8 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldCreateApplicationWithCodeStarter() {
         // Create application with Resteasy Jackson
-        QuarkusCliRestService app = cliClient.createApplication("app", RESTEASY_SPRING_WEB_EXTENSION);
+        QuarkusCliRestService app = cliClient.createApplication("app",
+                QuarkusCliClient.CreateApplicationRequest.defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION));
 
         // Verify By default, it installs only "quarkus-resteasy"
         assertInstalledExtensions(app, RESTEASY_SPRING_WEB_EXTENSION);

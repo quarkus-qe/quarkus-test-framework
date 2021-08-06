@@ -13,12 +13,12 @@ public class QuarkusCliRestService extends RestService {
         this.cliClient = cliClient;
     }
 
-    public QuarkusCliClient.Result buildOnJvm() {
-        return cliClient.buildApplicationOnJvm(getServiceFolder());
+    public QuarkusCliClient.Result buildOnJvm(String... extraArgs) {
+        return cliClient.buildApplicationOnJvm(getServiceFolder(), extraArgs);
     }
 
-    public QuarkusCliClient.Result buildOnNative() {
-        return cliClient.buildApplicationOnNative(getServiceFolder());
+    public QuarkusCliClient.Result buildOnNative(String... extraArgs) {
+        return cliClient.buildApplicationOnNative(getServiceFolder(), extraArgs);
     }
 
     public QuarkusCliClient.Result installExtension(String extension) {

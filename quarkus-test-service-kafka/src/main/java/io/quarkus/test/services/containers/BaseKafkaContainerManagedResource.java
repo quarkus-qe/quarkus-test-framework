@@ -67,7 +67,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
 
         if (model.isWithRegistry()) {
             schemaRegistry = initRegistryContainer(kafkaContainer);
-            schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext(), schemaRegistry);
+            schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext().getOwner(), schemaRegistry);
 
             // Setup common network for kafka and the registry
             network = Network.newNetwork();
