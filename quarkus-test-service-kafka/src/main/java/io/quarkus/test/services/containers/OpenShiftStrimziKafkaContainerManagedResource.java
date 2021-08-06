@@ -121,7 +121,8 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     private void applyRegistryDeployment() {
         int registryPort = model.getVendor().getRegistry().getPort();
         client.applyServicePropertiesUsingTemplate(registry, REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT,
-                content -> content.replaceAll(quote("${KAFKA_BOOTSTRAP_URL}"), getKafkaBootstrapUrl())
+                content -> content
+                        .replaceAll(quote("${KAFKA_BOOTSTRAP_URL}"), getKafkaBootstrapUrl())
                         .replaceAll(quote("${KAFKA_REGISTRY_IMAGE}"), getKafkaRegistryImage())
                         .replaceAll(quote("${KAFKA_REGISTRY_PORT}"), "" + registryPort),
                 model.getContext().getServiceFolder().resolve(REGISTRY_DEPLOYMENT));
@@ -148,7 +149,8 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
         }
 
-        return content.replaceAll(quote("${IMAGE}"), getKafkaImage())
+        return content
+                .replaceAll(quote("${IMAGE}"), getKafkaImage())
                 .replaceAll(quote("${VERSION}"), getKafkaVersion())
                 .replaceAll(quote("${KAFKA_PORT}"), "" + model.getVendor().getPort())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName());

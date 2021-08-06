@@ -30,7 +30,7 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public void beforeAll(ScenarioContext context) {
-        client = OpenShiftClient.create();
+        client = OpenShiftClient.create(context.getId());
         installOperators(context);
     }
 

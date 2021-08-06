@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -49,6 +50,11 @@ public class Command {
             return program.substring(program.lastIndexOf(File.separator) + 1);
         }
         return program;
+    }
+
+    public void runAndWait(Duration waitAtLeast) throws IOException, InterruptedException {
+        runAndWait();
+        Thread.sleep(waitAtLeast.toMillis());
     }
 
     public void runAndWait() throws IOException, InterruptedException {

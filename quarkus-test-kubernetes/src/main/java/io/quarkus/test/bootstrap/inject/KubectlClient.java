@@ -35,17 +35,22 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
 public final class KubectlClient {
 
+    private static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
+            "ts.kubernetes.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
+
     private static final String RESOURCE_PREFIX = "resource::";
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int NAMESPACE_NAME_SIZE = 10;
     private static final int NAMESPACE_CREATION_RETRIES = 5;
     private static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
+    private static final String LABEL_SCENARIO_ID = "scenarioId";
 
     private static final String KUBECTL = "kubectl";
     private static final int HTTP_PORT_DEFAULT = 80;
@@ -53,18 +58,19 @@ public final class KubectlClient {
     private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
+    private final String scenarioId;
 
-    private KubectlClient() {
-        currentNamespace = createNamespace();
-
+    private KubectlClient(String scenarioUniqueName) {
+        this.scenarioId = scenarioUniqueName;
+        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
+        currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createNamespace() : activeNamespace;
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
     }
 
-    public static KubectlClient create() {
-        return new KubectlClient();
+    public static KubectlClient create(String scenarioName) {
+        return new KubectlClient(scenarioName);
     }
 
     /**
@@ -228,13 +234,39 @@ public final class KubectlClient {
      * Delete the namespace and all the resources.
      */
     public void deleteNamespace() {
+        if (ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            try {
+                new Command(KUBECTL, "delete", "namespace", currentNamespace).runAndWait();
+            } catch (Exception e) {
+                fail("Project failed to be deleted. Caused by " + e.getMessage());
+            } finally {
+                masterClient.close();
+            }
+        } else {
+            deleteResourcesByLabel(LABEL_SCENARIO_ID, getScenarioId());
+        }
+    }
+
+    private String getScenarioId() {
+        return scenarioId;
+    }
+
+    /**
+     * Delete test resources.
+     */
+    private void deleteResourcesByLabel(String labelName, String labelValue) {
         try {
-            new Command(KUBECTL, "delete", "namespace", currentNamespace).runAndWait();
+            String label = String.format("%s=%s", labelName, labelValue);
+            new Command(KUBECTL, "delete", "-n", currentNamespace, "all", "-l", label).runAndWait();
         } catch (Exception e) {
             fail("Project failed to be deleted. Caused by " + e.getMessage());
         } finally {
             masterClient.close();
         }
+    }
+
+    private String extractNamespace(String namespace) {
+        return namespace.split(":")[1];
     }
 
     private boolean isPodRunning(Pod pod) {
@@ -250,6 +282,11 @@ public final class KubectlClient {
         for (HasMetadata obj : objs) {
             // set namespace
             obj.getMetadata().setNamespace(namespace());
+            Map<String, String> objMetadataLabels = Optional.ofNullable(obj.getMetadata().getLabels())
+                    .orElse(new HashMap<>());
+
+            objMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
+            obj.getMetadata().setLabels(objMetadataLabels);
 
             if (obj instanceof Deployment) {
                 Deployment d = (Deployment) obj;
@@ -261,7 +298,9 @@ public final class KubectlClient {
                 d.getSpec().getTemplate().getMetadata().setNamespace(namespace());
 
                 // add label for logs
-                d.getSpec().getTemplate().getMetadata().getLabels().put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+                Map<String, String> templateMetadataLabels = d.getSpec().getTemplate().getMetadata().getLabels();
+                templateMetadataLabels.put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+                templateMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
 
                 // add env var properties
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), d);

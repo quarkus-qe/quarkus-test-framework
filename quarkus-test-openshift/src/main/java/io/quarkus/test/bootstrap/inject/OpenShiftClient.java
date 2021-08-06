@@ -55,6 +55,7 @@ import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.operator.model.CustomResourceStatus;
 import io.quarkus.test.utils.Command;
@@ -64,6 +65,7 @@ import okhttp3.Response;
 public final class OpenShiftClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
+    public static final String LABEL_SCENARIO_ID = "scenarioId";
 
     private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
     private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
@@ -79,23 +81,27 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
+    private static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
+            "ts.openshift.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
+
     private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
     private final KnativeClient kn;
+    private final String scenarioId;
 
-    private OpenShiftClient() {
-        currentNamespace = createProject();
-
+    private OpenShiftClient(String scenarioId) {
+        this.scenarioId = scenarioId;
+        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
+        currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createProject() : activeNamespace;
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
         kn = client.adapt(KnativeClient.class);
     }
 
-    public static OpenShiftClient create() {
-        return new OpenShiftClient();
+    public static OpenShiftClient create(String scenarioId) {
+        return new OpenShiftClient(scenarioId);
     }
 
     /**
@@ -217,8 +223,8 @@ public final class OpenShiftClient {
         }
 
         try {
-            new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace)
-                    .runAndWait();
+            new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace,
+                    "-l " + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
         }
@@ -380,6 +386,10 @@ public final class OpenShiftClient {
     }
 
     public void installOperator(Service service, String name, String channel, String source, String sourceNamespace) {
+        if (!ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            throw new UnsupportedOperationException("Operators not supported with ephemeral namespaces disabled");
+        }
+
         // Install the operator group
         OperatorGroup groupModel = new OperatorGroup();
         groupModel.setMetadata(new ObjectMeta());
@@ -518,8 +528,30 @@ public final class OpenShiftClient {
      * Delete the current project and all its resources.
      */
     public void deleteProject() {
+        if (ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            try {
+                new Command(OC, "delete", "project", currentNamespace).runAndWait();
+            } catch (Exception e) {
+                fail("Project failed to be deleted. Caused by " + e.getMessage());
+            } finally {
+                masterClient.close();
+            }
+        } else {
+            deleteResourcesByLabel(LABEL_SCENARIO_ID, getScenarioId());
+        }
+    }
+
+    public String getScenarioId() {
+        return scenarioId;
+    }
+
+    /**
+     * Delete test resources.
+     */
+    private void deleteResourcesByLabel(String labelName, String labelValue) {
         try {
-            new Command(OC, "delete", "project", client.getNamespace()).runAndWait();
+            String label = String.format("%s=%s", labelName, labelValue);
+            new Command(OC, "delete", "-n", currentNamespace, "all", "-l", label).runAndWait();
         } catch (Exception e) {
             fail("Project failed to be deleted. Caused by " + e.getMessage());
         } finally {
@@ -532,6 +564,11 @@ public final class OpenShiftClient {
         for (HasMetadata obj : objs) {
             // set namespace
             obj.getMetadata().setNamespace(project());
+            Map<String, String> objMetadataLabels = Optional.ofNullable(obj.getMetadata().getLabels())
+                    .orElse(new HashMap<>());
+
+            objMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
+            obj.getMetadata().setLabels(objMetadataLabels);
 
             if (obj instanceof DeploymentConfig) {
                 DeploymentConfig dc = (DeploymentConfig) obj;
@@ -542,8 +579,10 @@ public final class OpenShiftClient {
                 // set metadata to template
                 dc.getSpec().getTemplate().getMetadata().setNamespace(project());
 
-                // add label for logs
-                dc.getSpec().getTemplate().getMetadata().getLabels().put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+                // add label for logs and and unique scenarioId
+                Map<String, String> templateMetadataLabels = dc.getSpec().getTemplate().getMetadata().getLabels();
+                templateMetadataLabels.put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
+                templateMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
 
                 // add env var properties
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
@@ -669,4 +708,5 @@ public final class OpenShiftClient {
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
+
 }
