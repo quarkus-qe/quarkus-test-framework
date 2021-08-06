@@ -8,5 +8,3 @@ updates:
     ignore:
       # For Quarkus Maven Plugin, updates are managed by the Quarkus Bom dependency
       - dependency-name: io.quarkus:quarkus-maven-plugin
-      # Later versions of HTML Unit does not work properly when finding elements remotely.
-      - dependency-name: net.sourceforge.htmlunit:htmlunit

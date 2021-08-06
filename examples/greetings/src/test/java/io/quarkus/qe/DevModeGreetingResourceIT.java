@@ -7,8 +7,6 @@ import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
 import io.quarkus.test.scenarios.QuarkusScenario;
@@ -33,7 +31,6 @@ public class DevModeGreetingResourceIT {
 
     @Test
     @Order(1)
-    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "TODO: https://github.com/quarkus-qe/quarkus-test-framework/issues/162")
     public void shouldDetectNewTests() {
         // At first, there are no tests annotated with @QuarkusTest
         app.logs().assertContains("Tests paused");
