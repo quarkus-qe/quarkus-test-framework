@@ -5,6 +5,11 @@ import java.util.List;
 public interface ManagedResource {
 
     /**
+     * @return name of the running resource.
+     */
+    String getDisplayName();
+
+    /**
      * Start the resource. If the resource is already started, it will do nothing.
      *
      * @throws RuntimeException when application errors at startup.

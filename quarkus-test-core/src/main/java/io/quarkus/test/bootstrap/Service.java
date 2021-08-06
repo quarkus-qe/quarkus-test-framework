@@ -14,6 +14,8 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     String getName();
 
+    String getDisplayName();
+
     Configuration getConfiguration();
 
     Map<String, String> getProperties();

@@ -12,6 +12,7 @@ import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.FileQuarkusApplicationLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
 
@@ -33,6 +34,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
 
     public CliDevModeLocalhostQuarkusApplicationManagedResource(ServiceContext serviceContext,
             QuarkusCliClient client) {
+        super(serviceContext);
         this.serviceContext = serviceContext;
         this.client = client;
     }
@@ -89,6 +91,11 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     @Override
     public boolean isRunning() {
         return process != null && process.isAlive() && super.isRunning();
+    }
+
+    @Override
+    protected LaunchMode getLaunchMode() {
+        return LaunchMode.DEV;
     }
 
     @Override

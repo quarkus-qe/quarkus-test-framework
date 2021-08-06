@@ -134,7 +134,7 @@ public class QuarkusScenarioBootstrap
     }
 
     private void launchService(ExtensionContext context, Service service) {
-        Log.info(service, "Initialize service");
+        Log.info(service, "Initialize service (%s)", service.getDisplayName());
         try {
             extensions.forEach(ext -> ext.onServiceInitiate(context, service));
             service.start();

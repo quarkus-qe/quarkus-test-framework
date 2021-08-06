@@ -32,6 +32,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private String image;
 
     public KubernetesQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
+        super(model.getContext());
         this.model = model;
         this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
     }
@@ -108,7 +109,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     }
 
     private String createImageAndPush() {
-        return DockerUtils.createImageAndPush(model.getContext(), model.getLaunchMode(), model.getArtifact());
+        return DockerUtils.createImageAndPush(model.getContext(), getLaunchMode(), model.getArtifact());
     }
 
     private void loadDeployment() {

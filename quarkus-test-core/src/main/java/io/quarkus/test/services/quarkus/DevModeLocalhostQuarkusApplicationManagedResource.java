@@ -9,6 +9,8 @@ import static io.quarkus.test.utils.MavenUtils.withProperty;
 import java.util.Arrays;
 import java.util.List;
 
+import io.quarkus.test.services.quarkus.model.LaunchMode;
+
 public class DevModeLocalhostQuarkusApplicationManagedResource extends LocalhostQuarkusApplicationManagedResource {
 
     private final DevModeQuarkusApplicationManagedResourceBuilder model;
@@ -16,6 +18,11 @@ public class DevModeLocalhostQuarkusApplicationManagedResource extends Localhost
     public DevModeLocalhostQuarkusApplicationManagedResource(DevModeQuarkusApplicationManagedResourceBuilder model) {
         super(model);
         this.model = model;
+    }
+
+    @Override
+    protected LaunchMode getLaunchMode() {
+        return LaunchMode.DEV;
     }
 
     protected List<String> prepareCommand(List<String> systemProperties) {

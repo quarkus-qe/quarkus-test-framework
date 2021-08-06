@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.configuration.PropertyLookup;
-import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.utils.Command;
 
 public class BuildOpenShiftQuarkusApplicationManagedResource
@@ -84,9 +83,4 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
 
         return s2iImageProperty.get(model.getContext());
     }
-
-    private boolean isNativeTest() {
-        return model.getLaunchMode() == LaunchMode.NATIVE;
-    }
-
 }

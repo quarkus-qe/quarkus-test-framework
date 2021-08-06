@@ -39,6 +39,6 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
     }
 
     private String createImageAndPush() {
-        return DockerUtils.createImageAndPush(model.getContext(), model.getLaunchMode(), model.getArtifact());
+        return DockerUtils.createImageAndPush(model.getContext(), getLaunchMode(), model.getArtifact());
     }
 }

@@ -20,7 +20,6 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.services.QuarkusApplication;
-import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ReflectionUtils;
@@ -36,13 +35,8 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(QuarkusApplicationManagedResourceBinding.class);
 
-    private LaunchMode launchMode = LaunchMode.JVM;
     private Path artifact;
     private QuarkusManagedResource managedResource;
-
-    protected LaunchMode getLaunchMode() {
-        return launchMode;
-    }
 
     protected Path getArtifact() {
         return artifact;
@@ -69,7 +63,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     }
 
     public void build() {
-        detectLaunchMode();
         copyResourcesToAppFolder();
         if (managedResource.needsBuildArtifact()) {
             tryToReuseOrBuildArtifact();
@@ -148,16 +141,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
         }
 
         return null;
-    }
-
-    private void detectLaunchMode() {
-        if (QuarkusProperties.isNativePackageType(getContext())) {
-            launchMode = LaunchMode.NATIVE;
-        } else if (QuarkusProperties.isLegacyJarPackageType(getContext())) {
-            launchMode = LaunchMode.LEGACY_JAR;
-        } else {
-            launchMode = LaunchMode.JVM;
-        }
     }
 
 }
