@@ -1,11 +1,12 @@
 package io.quarkus.test.utils;
 
+import static java.util.Arrays.asList;
+
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -24,6 +25,7 @@ public final class MavenUtils {
     public static final String MVN_REPOSITORY_LOCAL = "maven.repo.local";
     public static final String SKIP_TESTS = "-DskipTests=true";
     public static final String SKIP_ITS = "-DskipITs=true";
+    public static final String DISPLAY_ERRORS = "-e";
     public static final String BATCH_MODE = "-B";
     public static final String DISPLAY_VERSION = "-V";
     public static final String SKIP_CHECKSTYLE = "-Dcheckstyle.skip";
@@ -38,6 +40,7 @@ public final class MavenUtils {
     public static List<String> mvnCommand(ServiceContext serviceContext) {
         List<String> args = new ArrayList<>();
         args.add(MVN_COMMAND);
+        args.add(DISPLAY_ERRORS);
         args.add(withQuarkusProfile(serviceContext));
         withMavenRepositoryLocalIfSet(args);
         withQuarkusProperties(args);
@@ -66,7 +69,7 @@ public final class MavenUtils {
 
     private static void installParentPom(Path relativePath) {
         List<String> args = new ArrayList<>();
-        args.addAll(Arrays.asList(MVN_COMMAND, INSTALL_GOAL, SKIP_CHECKSTYLE, SKIP_TESTS, SKIP_ITS, "-pl", "."));
+        args.addAll(asList(MVN_COMMAND, DISPLAY_ERRORS, INSTALL_GOAL, SKIP_CHECKSTYLE, SKIP_TESTS, SKIP_ITS, "-pl", "."));
         withMavenRepositoryLocalIfSet(args);
         withQuarkusProperties(args);
 
