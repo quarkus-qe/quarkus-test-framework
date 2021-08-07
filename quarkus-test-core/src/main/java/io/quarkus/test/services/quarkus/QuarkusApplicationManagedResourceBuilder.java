@@ -128,7 +128,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     }
 
     private boolean isBuildProperty(String name) {
-        return BUILD_PROPERTIES.stream().anyMatch(build -> name.matches(build) || name.startsWith(build));
+        return BUILD_PROPERTIES.stream().anyMatch(
+                build -> name.matches(build) // It's a regular expression
+                        || (build.endsWith(".") && name.startsWith(build)) // contains with
+                        || name.equals(build)); // or it's equal to
     }
 
     private void copyResourcesInFolderToAppFolder(Path folder) {
