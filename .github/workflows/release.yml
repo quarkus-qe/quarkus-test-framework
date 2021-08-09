@@ -45,10 +45,6 @@ jobs:
           git checkout ${{github.base_ref}}
           git rebase release
           mvn -B release:perform -DskipITs -Prelease,framework -s maven-settings.xml
-          // Format new changes
-          mvn clean verify -DskipTests -DskipITs
-          git add --all
-          git commit -m "[release] format changes after release"
       - name: Push changes to ${{github.base_ref}}
         uses: ad-m/github-push-action@v0.6.0
         with:
