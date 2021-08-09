@@ -60,7 +60,7 @@
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
         <xml.format.goal>xml-format</xml.format.goal>
-        <checkstyle.version>8.45</checkstyle.version>
+        <checkstyle.version>8.45.1</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine/>
     </properties>
