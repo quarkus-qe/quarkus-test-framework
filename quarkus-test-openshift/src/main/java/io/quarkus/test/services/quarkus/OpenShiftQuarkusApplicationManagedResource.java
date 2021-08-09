@@ -58,6 +58,10 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
 
     @Override
     public void stop() {
+        if (!running) {
+            return;
+        }
+
         if (loggingHandler != null) {
             loggingHandler.stopWatching();
         }
@@ -80,6 +84,10 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
 
     @Override
     public boolean isRunning() {
+        if (!running) {
+            return false;
+        }
+
         if (client.isServerlessService(model.getContext().getName())) {
             return routeIsReachable(Protocol.HTTP);
         }

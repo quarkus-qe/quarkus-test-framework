@@ -1,5 +1,8 @@
 package io.quarkus.test.services.quarkus;
 
+import java.util.Arrays;
+import java.util.List;
+
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.LoggingHandler;
@@ -9,7 +12,9 @@ import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 public abstract class QuarkusManagedResource implements ManagedResource {
 
     private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
-    private static final String UNRECOVERABLE_ERROR = "Failed to start application";
+    private static final List<String> ERRORS = Arrays.asList("Failed to start application",
+            "One or more configuration errors have prevented the application from starting",
+            "Attempting to start live reload endpoint to recover from previous Quarkus startup failure");
 
     private final ServiceContext serviceContext;
     private final LaunchMode launchMode;
@@ -31,7 +36,8 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     @Override
     public boolean isFailed() {
-        return getLoggingHandler() != null && getLoggingHandler().logsContains(UNRECOVERABLE_ERROR);
+        return getLoggingHandler() != null
+                && ERRORS.stream().anyMatch(error -> getLoggingHandler().logsContains(error));
     }
 
     public boolean isNativeTest() {
