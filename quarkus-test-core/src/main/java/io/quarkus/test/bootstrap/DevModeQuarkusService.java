@@ -135,6 +135,10 @@ public class DevModeQuarkusService extends RestService {
         webClient.setCssErrorHandler(new SilentCssErrorHandler());
         // re-synchronize asynchronous XHR.
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
+        webClient.getOptions().setUseInsecureSSL(true);
+        webClient.getOptions().setDownloadImages(false);
+        webClient.getOptions().setGeolocationEnabled(false);
+        webClient.getOptions().setAppletEnabled(false);
         webClient.getOptions().setCssEnabled(false);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
