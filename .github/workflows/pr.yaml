@@ -187,3 +187,55 @@ jobs:
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
+  macos-build-jvm-latest:
+    name: PR - MacOS - JVM build - Latest Version
+    runs-on: macos-11
+    needs: quarkus-main-build
+    strategy:
+      matrix:
+        quarkus-version: ["999-SNAPSHOT"]
+        java: [ 11 ]
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/cache@v1
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
+        with:
+          java-version: ${{ matrix.java }}
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v1
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
+      - name: Build Quarkus CLI
+        run: |
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly
+      - name: Install Quarkus CLI
+        run: |
+          cat <<EOF > ./quarkus-dev-cli
+          #!/bin/bash
+          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          EOF
+          chmod +x ./quarkus-dev-cli
+      - name: Build in JVM mode
+        run: |
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/mvn-settings.xml clean install -Pexamples -pl examples/greetings -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+      - name: Zip Artifacts
+        run: |
+          zip -R artifacts-latest-macos-jvm${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ci-artifacts
+          path: artifacts-latest-macos-jvm${{ matrix.java }}.zip
