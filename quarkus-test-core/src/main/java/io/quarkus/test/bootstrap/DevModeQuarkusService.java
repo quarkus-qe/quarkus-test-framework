@@ -22,7 +22,6 @@ import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
 import io.quarkus.test.services.DevModeQuarkusApplication;
-import io.quarkus.test.utils.AwaitilityUtils;
 
 public class DevModeQuarkusService extends RestService {
     public static final String DEV_UI_PATH = "/q/dev";
@@ -115,7 +114,7 @@ public class DevModeQuarkusService extends RestService {
     }
 
     private void waitUntilLoaded(HtmlPage page) {
-        AwaitilityUtils.untilIsTrue(() -> page.getEnclosingWindow().getJobManager().getJobCount() == 0);
+        page.getEnclosingWindow().getJobManager().waitForJobs(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
     }
 
     public HtmlPage webPage(String path) {
@@ -136,8 +135,6 @@ public class DevModeQuarkusService extends RestService {
         webClient.setCssErrorHandler(new SilentCssErrorHandler());
         // re-synchronize asynchronous XHR.
         webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-        // Timeout for JS to wait for
-        webClient.waitForBackgroundJavaScript(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
         webClient.getOptions().setCssEnabled(false);
         webClient.getOptions().setThrowExceptionOnScriptError(false);
         webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
