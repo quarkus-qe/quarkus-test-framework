@@ -2,7 +2,7 @@ package io.quarkus.test.utils;
 
 import java.net.InetAddress;
 import java.net.ServerSocket;
-import java.security.SecureRandom;
+import java.util.Random;
 
 import javax.net.ServerSocketFactory;
 
@@ -10,7 +10,7 @@ public final class SocketUtils {
 
     private static final int PORT_RANGE_MIN = 1024;
     private static final int PORT_RANGE_MAX = 65535;
-    private static final SecureRandom RND = new SecureRandom();
+    private static final Random RND = new Random(System.nanoTime());
 
     private SocketUtils() {
 
