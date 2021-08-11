@@ -21,4 +21,10 @@ public class LogsVerifier {
                     "Log does not contain " + expectedLog + ". Full logs: " + actualLogs);
         });
     }
+
+    public void assertDoesNotContain(String unexpectedLog) {
+        List<String> actualLogs = service.getLogs();
+        Assertions.assertTrue(actualLogs.stream().noneMatch(line -> line.contains(unexpectedLog)),
+                "Log does contain " + unexpectedLog + ". Full logs: " + actualLogs);
+    }
 }
