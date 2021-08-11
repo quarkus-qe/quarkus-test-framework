@@ -12,6 +12,11 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
     }
 
     @Override
+    public String getDisplayName() {
+        return getKafkaImage() + ":" + getKafkaVersion();
+    }
+
+    @Override
     protected GenericContainer<?> initKafkaContainer() {
         return new KafkaContainer(DockerImageName.parse(getKafkaImage() + ":" + getKafkaVersion()));
     }

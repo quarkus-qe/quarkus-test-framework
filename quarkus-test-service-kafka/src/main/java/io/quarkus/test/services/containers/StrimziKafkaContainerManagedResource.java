@@ -11,6 +11,11 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     }
 
     @Override
+    public String getDisplayName() {
+        return "quay.io/strimzi/kafka:" + getKafkaVersion();
+    }
+
+    @Override
     protected GenericContainer<?> initKafkaContainer() {
         return new StrimziKafkaContainer(getKafkaVersion());
     }
