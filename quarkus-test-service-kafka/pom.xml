@@ -9,7 +9,7 @@
     <artifactId>quarkus-test-service-kafka</artifactId>
     <name>Quarkus - Test Framework - Service - Kafka</name>
     <properties>
-        <strimzi.testcontainers.version>0.24.0</strimzi.testcontainers.version>
+        <strimzi.testcontainers.version>0.25.0</strimzi.testcontainers.version>
     </properties>
     <dependencies>
         <dependency>
