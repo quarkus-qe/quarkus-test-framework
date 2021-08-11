@@ -34,10 +34,10 @@ public final class PropertiesUtils {
         if (StringUtils.startsWith(value, PROPERTY_START_TAG)) {
             String propertyKey = StringUtils.substringBetween(value, PROPERTY_START_TAG, PROPERTY_END_TAG);
             String defaultValue = StringUtils.EMPTY;
-            if (StringUtils.contains(propertyKey, PROPERTY_WITH_OPTIONAL)) {
-                String[] propertyKeySplit = propertyKey.split(PROPERTY_WITH_OPTIONAL);
-                propertyKey = propertyKeySplit[0];
-                defaultValue = propertyKeySplit[1];
+            int optionalIndex = propertyKey.indexOf(PROPERTY_WITH_OPTIONAL);
+            if (optionalIndex > 0) {
+                defaultValue = propertyKey.substring(optionalIndex + 1);
+                propertyKey = propertyKey.substring(0, optionalIndex);
             }
 
             return System.getProperty(propertyKey, defaultValue);
