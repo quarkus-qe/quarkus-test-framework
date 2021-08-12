@@ -41,7 +41,7 @@
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <testcontainers.version>1.16.0</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
-        <jaeger-client.version>1.6.0</jaeger-client.version>
+        <jaeger.version>1.6.0</jaeger.version>
         <prometheus.simpleclient_pushgateway.version>0.11.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.16.0</formatter-maven-plugin.version>
@@ -148,7 +148,7 @@
             <dependency>
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
-                <version>${jaeger-client.version}</version>
+                <version>${jaeger.version}</version>
             </dependency>
             <dependency>
                 <groupId>net.sourceforge.htmlunit</groupId>

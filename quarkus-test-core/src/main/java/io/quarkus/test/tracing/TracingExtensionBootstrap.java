@@ -1,10 +1,12 @@
 package io.quarkus.test.tracing;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.thrift.transport.TTransportException;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.logging.Log;
 
 public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
@@ -15,7 +17,11 @@ public class TracingExtensionBootstrap implements ExtensionBootstrap {
     public TracingExtensionBootstrap() {
         String jaegerHttpEndpoint = System.getProperty(JAEGER_HTTP_ENDPOINT_PROPERTY);
         if (StringUtils.isNotEmpty(jaegerHttpEndpoint)) {
-            quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
+            try {
+                quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
+            } catch (TTransportException e) {
+                Log.error("Error setting up tracing capabilities. Turning off the tracing. Caused by: " + e.getMessage());
+            }
         }
     }
 

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.thrift.transport.TTransportException;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.jaegertracing.internal.JaegerTracer;
@@ -27,7 +28,7 @@ public class QuarkusScenarioTracer {
     private final QuarkusScenarioSpan quarkusScenarioSpan;
     private final QuarkusScenarioTags quarkusScenarioTags;
 
-    public QuarkusScenarioTracer(String jaegerHttpEndpoint) {
+    public QuarkusScenarioTracer(String jaegerHttpEndpoint) throws TTransportException {
         String serviceName = new PropertyLookup("ts.service-name", DEFAULT_SERVICE_NAME).get();
 
         tracer = new JaegerTracer.Builder(serviceName).withReporter(new RemoteReporter.Builder()
