@@ -40,7 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "2.1.1.Final"]
+        quarkus-version: ["1.13.7.Final", "current"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -61,7 +61,12 @@ jobs:
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
              EXCLUDE_MODULES="-pl !examples/grpc"
           fi
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
+
+          if [[ "${{ matrix.quarkus-version }}" != current ]]; then
+             QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
+          fi
+
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -179,7 +184,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "2.1.1.Final", "999-SNAPSHOT"]
+        quarkus-version: ["1.13.7.Final", "current", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -208,7 +213,12 @@ jobs:
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
              EXCLUDE_MODULES="-pl !examples/grpc"
           fi
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
+
+          if [[ "${{ matrix.quarkus-version }}" != current ]]; then
+             QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
+          fi
+
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
