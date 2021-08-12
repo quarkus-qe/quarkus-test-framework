@@ -13,6 +13,7 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
     private static final List<String> ERRORS = Arrays.asList("Failed to start application",
+            "Failed to load config value of type class",
             "Quarkus may already be running or the port is used by another application",
             "One or more configuration errors have prevented the application from starting",
             "Attempting to start live reload endpoint to recover from previous Quarkus startup failure");
