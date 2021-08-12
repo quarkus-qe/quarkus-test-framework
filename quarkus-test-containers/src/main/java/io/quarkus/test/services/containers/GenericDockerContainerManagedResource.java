@@ -4,6 +4,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
+import io.quarkus.test.logging.Log;
+
 public class GenericDockerContainerManagedResource extends DockerContainerManagedResource {
 
     private static final String PRIVILEGED_MODE = "container.privileged-mode";
@@ -36,7 +38,10 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
             container.withCommand(model.getCommand());
         }
 
-        container.setPrivilegedMode(isPrivileged());
+        if (isPrivileged()) {
+            Log.info(model.getContext().getOwner(), "Running container on Privileged mode");
+            container.setPrivilegedMode(true);
+        }
 
         container.withExposedPorts(model.getPort());
 

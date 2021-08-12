@@ -15,7 +15,7 @@ public @interface Container {
 
     int port();
 
-    String expectedLog();
+    String expectedLog() default "";
 
     String[] command() default {};
 

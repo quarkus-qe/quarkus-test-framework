@@ -65,6 +65,14 @@ public final class Log {
         log(NO_SERVICE, Level.WARNING, msg, args);
     }
 
+    public static void error(Service service, String msg, Object... args) {
+        log(service, Level.SEVERE, msg, args);
+    }
+
+    public static void error(String msg, Object... args) {
+        log(NO_SERVICE, Level.SEVERE, msg, args);
+    }
+
     private static void log(Service service, Level level, String msg, Object... args) {
         String textColor = findColorForText(level, service);
         String logMessage = msg;

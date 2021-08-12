@@ -43,16 +43,21 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
         innerContainer.withEnv(resolveProperties());
-        innerContainer.start();
 
         loggingHandler = new TestContainersLoggingHandler(context.getOwner(), innerContainer);
         loggingHandler.startWatching();
+
+        doStart();
     }
 
     protected abstract GenericContainer<?> initContainer();
 
     @Override
     public void stop() {
+        if (loggingHandler != null) {
+            loggingHandler.stopWatching();
+        }
+
         if (isRunning()) {
             innerContainer.stop();
             innerContainer = null;
@@ -81,6 +86,17 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
 
     protected int getMappedPort(int port) {
         return innerContainer.getMappedPort(port);
+    }
+
+    private void doStart() {
+        try {
+            innerContainer.start();
+        } catch (Exception ex) {
+            stop();
+
+            throw ex;
+        }
+
     }
 
     private Map<String, String> resolveProperties() {
