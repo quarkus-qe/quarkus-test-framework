@@ -15,10 +15,11 @@ public class BuildTimeGreetingResourceIT {
     @QuarkusApplication
     static RestService app = new RestService()
             .withProperty("quarkus.consul-config.enabled", "false")
-            .withProperty("quarkus.cache.enabled", "false"); // property to force build app at test time.
+            .withProperty("quarkus.http.root-path", "/root"); // property to force build app at test time.
 
     @Test
     public void shouldFindPropertyFromCustomSource() {
-        app.given().get("/api/from-custom-source").then().statusCode(HttpStatus.SC_OK).body(is("Hello Config Source!"));
+        app.given().get("/root/api/from-custom-source")
+                .then().statusCode(HttpStatus.SC_OK).body(is("Hello Config Source!"));
     }
 }
