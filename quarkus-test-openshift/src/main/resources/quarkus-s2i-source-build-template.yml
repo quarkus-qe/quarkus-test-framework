@@ -35,8 +35,8 @@ items:
             - name: MAVEN_ARGS
               value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.version=${QUARKUS_VERSION} -Dquarkus.platform.version=${QUARKUS_VERSION} -Dquarkus.plugin.version=${QUARKUS_VERSION} -Dquarkus-plugin.version=${QUARKUS_VERSION}
           from:
-            kind: ImageStreamTag
-            name: openjdk-11:latest
+            kind: DockerImage
+            name: ${QUARKUS_S2I_BUILDER_IMAGE}
       triggers:
         - type: ConfigChange
         - type: ImageChange

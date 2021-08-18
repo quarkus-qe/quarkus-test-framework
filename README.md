@@ -784,6 +784,13 @@ public class OpenShiftS2iQuickstartIT {
     //
 ```
 
+This scenario will work for JVM and Native builds. In order to manage the base image in use, you need to provide the properties:
+- For JVM: `ts.global.s2i.quarkus.jvm.builder.image`
+- For Native: `ts.global.s2i.quarkus.native.builder.image`
+
+The way these properties are up to users. In the examples, we supply this configuration in the pom.xml as part of system properties (in the Maven failsafe plugin). 
+But we can provide a custom property by service in the `test.properties` file. For further information about how to customise the properties, go to the [Configuration](#configuration) section.
+
 It's important to note that, by default, OpenShift will build the application's source code using the Red Hat maven repository `https://maven.repository.redhat.com/ga/`. However, some applications might require some dependencies from other remote Maven repositories. In order to allow us to add another remote Maven repository, you can use `-Dts.global.s2i.maven.remote.repository=http://host:port/repo/name`. If you only want to configure different maven repositories by service, you can do it by replacing `global` to the service name, for example: `-Dts.pingPong.s2i.maven.remote.repository=...`.
 
 The test framework will automatically load a custom maven settings with the provided maven remote repository. But if you're using a custom template, all you need to do is to configure the `settings-mvn` config map and the Maven args as follows:
