@@ -3,6 +3,7 @@ package io.quarkus.test.services.quarkus;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
+import java.nio.file.Path;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -16,6 +17,11 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
         DevModeQuarkusApplication metadata = (DevModeQuarkusApplication) annotation;
         initAppClasses(metadata.classes());
         setGrpcEnabled(metadata.grpc());
+    }
+
+    @Override
+    protected Path appResourcesFolder() {
+        return super.appResourcesFolder().resolve(RESOURCES_FOLDER);
     }
 
     @Override

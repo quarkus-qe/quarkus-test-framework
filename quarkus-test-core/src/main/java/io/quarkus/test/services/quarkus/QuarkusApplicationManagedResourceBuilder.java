@@ -27,8 +27,9 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     public static final int HTTP_PORT_DEFAULT = 8080;
 
+    protected static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
+
     private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
-    private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
     private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
@@ -113,8 +114,12 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         createEffectiveApplicationProperties();
     }
 
+    protected Path appResourcesFolder() {
+        return context.getServiceFolder();
+    }
+
     private void createEffectiveApplicationProperties() {
-        Path applicationProperties = context.getServiceFolder().resolve(APPLICATION_PROPERTIES);
+        Path applicationProperties = appResourcesFolder().resolve(APPLICATION_PROPERTIES);
         Map<String, String> map = new HashMap<>();
         // Put the original application properties
         if (Files.exists(applicationProperties)) {
@@ -142,7 +147,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 File fileToCopy = path.toFile();
 
                 Path source = folder.relativize(path).getParent();
-                Path target = context.getServiceFolder();
+                Path target = appResourcesFolder();
                 if (source != null) {
                     // Resource is in a sub-folder:
                     target = target.resolve(source);
