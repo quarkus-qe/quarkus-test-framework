@@ -1,29 +1,40 @@
 package io.quarkus.qe.database.mysql;
 
-import org.junit.jupiter.api.Test;
-
+import io.quarkus.test.bootstrap.DefaultService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
+import io.quarkus.test.services.Container;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 /**
- * Running Quarkus on DEV mode will spin up a Database instance automatically.
+ * This test verifies that resources in test can be used in DevMode.
  */
 @DisabledOnNative
 @QuarkusScenario
 public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
+    static final String MYSQL_USER = "user";
+    static final String MYSQL_PASSWORD = "user";
+    static final String MYSQL_DATABASE = "mydb";
+    static final int MYSQL_PORT = 3306;
+
+    @Container(image = "mysql/mysql-server:8.0", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
+    static DefaultService database = new DefaultService()
+            .withProperty("MYSQL_USER", MYSQL_USER)
+            .withProperty("MYSQL_PASSWORD", MYSQL_PASSWORD)
+            .withProperty("MYSQL_DATABASE", MYSQL_DATABASE);
+
     @DevModeQuarkusApplication
-    static RestService app = new RestService();
+    static RestService app = new RestService()
+            .withProperty("quarkus.hibernate-orm.sql-load-script", "import-in-test.sql")
+            .withProperty("quarkus.datasource.username", MYSQL_USER)
+            .withProperty("quarkus.datasource.password", MYSQL_PASSWORD)
+            .withProperty("quarkus.datasource.jdbc.url",
+                    () -> database.getHost().replace("http", "jdbc:mysql") + ":" + database.getPort() + "/" + MYSQL_DATABASE);
 
     @Override
     protected RestService getApp() {
         return app;
-    }
-
-    @Test
-    public void verifyLogsToAssertDevMode() {
-        app.logs().assertContains("Profile DevModeMySqlDatabaseIT activated. Live Coding activated");
     }
 }
