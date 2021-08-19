@@ -13,5 +13,9 @@
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java</artifactId>
+        </dependency>
     </dependencies>
 </project>
