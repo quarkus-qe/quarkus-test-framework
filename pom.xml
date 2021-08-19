@@ -47,7 +47,6 @@
         <formatter-maven-plugin.version>2.16.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.6.2</impsort-maven-plugin.version>
         <htmlunit.version>2.52.0</htmlunit.version>
-        <xml-format-maven-plugin.version>3.2.0</xml-format-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>2.1.2.Final</quarkus.platform.version>
@@ -59,10 +58,9 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
-        <xml.format.goal>xml-format</xml.format.goal>
         <checkstyle.version>8.45.1</checkstyle.version>
         <!-- Code Coverage Properties-->
-        <jacoco.agent.argLine/>
+        <jacoco.agent.argLine />
         <!-- S2i configuration -->
         <ts.global.s2i.quarkus.jvm.builder.image>registry.access.redhat.com/ubi8/openjdk-11:latest</ts.global.s2i.quarkus.jvm.builder.image>
         <ts.global.s2i.quarkus.native.builder.image>quay.io/quarkus/ubi-quarkus-native-s2i:21.2-java11</ts.global.s2i.quarkus.native.builder.image>
@@ -276,29 +274,6 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>au.com.acegi</groupId>
-                <artifactId>xml-format-maven-plugin</artifactId>
-                <version>${xml-format-maven-plugin.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>${xml.format.goal}</goal>
-                        </goals>
-                        <configuration>
-                            <indentSize>4</indentSize>
-                            <excludes>
-                                <!-- Exclude files from target folder -->
-                                <exclude>**/target/**/*.xml</exclude>
-                                <!-- Exclude files from target folder -->
-                                <exclude>**/.idea/**/*.xml</exclude>
-                                <!-- Exclude Quarkus main repository -->
-                                <exclude>**/quarkus/**/*.xml</exclude>
-                            </excludes>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${maven-checkstyle-plugin.version}</version>
@@ -470,7 +445,6 @@
             <properties>
                 <src.format.goal>validate</src.format.goal>
                 <src.sort.goal>check</src.sort.goal>
-                <xml.format.goal>xml-check</xml.format.goal>
             </properties>
         </profile>
         <!-- This profile generates jacoco coverage files. -->
@@ -571,7 +545,7 @@
                 </property>
             </activation>
             <properties>
-                <exclude.tests.with.tags/>
+                <exclude.tests.with.tags />
             </properties>
         </profile>
     </profiles>
