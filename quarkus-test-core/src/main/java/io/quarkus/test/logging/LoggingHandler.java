@@ -27,7 +27,7 @@ public abstract class LoggingHandler implements Closeable {
     }
 
     public void stopWatching() {
-        handle();
+        flush();
         running = false;
         logs.clear();
         if (innerThread != null) {
@@ -45,6 +45,10 @@ public abstract class LoggingHandler implements Closeable {
 
     public boolean logsContains(String expected) {
         return logs().stream().anyMatch(line -> line.contains(expected));
+    }
+
+    public void flush() {
+        handle();
     }
 
     @Override

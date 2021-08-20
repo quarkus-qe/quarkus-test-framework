@@ -33,7 +33,12 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     @Override
     public boolean isRunning() {
-        return getLoggingHandler() != null && getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED);
+        if (getLoggingHandler() != null && getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED)) {
+            getLoggingHandler().flush();
+            return true;
+        }
+
+        return false;
     }
 
     @Override
