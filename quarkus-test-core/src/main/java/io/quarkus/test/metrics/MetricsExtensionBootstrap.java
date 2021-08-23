@@ -3,10 +3,9 @@ package io.quarkus.test.metrics;
 import java.util.Optional;
 
 import org.gradle.internal.impldep.com.google.common.base.Strings;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
-import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.scenarios.QuarkusScenario;
 
 public class MetricsExtensionBootstrap implements ExtensionBootstrap {
@@ -28,12 +27,12 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public boolean appliesFor(ExtensionContext context) {
-        return extensionEnabled && context.getRequiredTestClass().isAnnotationPresent(QuarkusScenario.class);
+    public boolean appliesFor(ScenarioContext context) {
+        return extensionEnabled && context.isAnnotationPresent(QuarkusScenario.class);
     }
 
     @Override
-    public void onSuccess(ExtensionContext context) {
+    public void onSuccess(ScenarioContext context) {
         quarkusGauges.upsert(GaugesTypes.TOTAL_SUCCESS);
         quarkusGauges.upsert(GaugesTypes.TOTAL);
         quarkusGauges.upsert(GaugesTypes.MODULE_SUCCESS);
@@ -41,7 +40,7 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public void onError(ExtensionContext context, Throwable throwable) {
+    public void onError(ScenarioContext context, Throwable throwable) {
         quarkusGauges.upsert(GaugesTypes.TOTAL_FAIL);
         quarkusGauges.upsert(GaugesTypes.TOTAL);
         quarkusGauges.upsert(GaugesTypes.MODULE_FAIL);
@@ -49,7 +48,7 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public void onDisabled(ExtensionContext context, Optional<String> reason) {
+    public void onDisabled(ScenarioContext context, Optional<String> reason) {
         quarkusGauges.upsert(GaugesTypes.TOTAL_IGNORE);
         quarkusGauges.upsert(GaugesTypes.TOTAL);
         quarkusGauges.upsert(GaugesTypes.MODULE_IGNORE);
@@ -57,24 +56,12 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public void onServiceStarted(ExtensionContext context, Service service) {
-    }
-
-    @Override
-    public void onServiceInitiate(ExtensionContext context, Service service) {
-    }
-
-    @Override
-    public void beforeEach(ExtensionContext context) {
-    }
-
-    @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ScenarioContext context) {
         quarkusHistograms.startDurationBeforeAll(HistogramTypes.MODULE_TEST_TIME_SEC);
     }
 
     @Override
-    public void afterAll(ExtensionContext context) {
+    public void afterAll(ScenarioContext context) {
         quarkusHistograms.stopDurationAfterAll(HistogramTypes.MODULE_TEST_TIME_SEC);
         quarkusHistograms.push();
         quarkusGauges.push();
@@ -84,8 +71,8 @@ public class MetricsExtensionBootstrap implements ExtensionBootstrap {
         return tag.equalsIgnoreCase(METRIC_FORCE_PUSH_TAG);
     }
 
-    private void onlyIfRequiredForcePush(ExtensionContext context) {
-        context.getTags().stream()
+    private void onlyIfRequiredForcePush(ScenarioContext context) {
+        context.getTestContext().getTags().stream()
                 .filter(MetricsExtensionBootstrap::checkForcePush)
                 .findFirst().ifPresent(requiredForcePush -> quarkusGauges.push());
     }
