@@ -3,37 +3,40 @@ package io.quarkus.test.bootstrap;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public final class ServiceContext {
 
     private final Service owner;
-    private final Optional<ExtensionContext> testContext;
+    private final ScenarioContext scenarioContext;
     private final Path serviceFolder;
     private final Map<String, Object> store = new HashMap<>();
 
-    protected ServiceContext(Service owner, ExtensionContext testContext) {
+    protected ServiceContext(Service owner, ScenarioContext scenarioContext) {
         this.owner = owner;
-        this.testContext = Optional.ofNullable(testContext);
-        this.serviceFolder = Path.of("target", testContext.getRequiredTestClass().getSimpleName(), getName());
+        this.scenarioContext = scenarioContext;
+        this.serviceFolder = Path.of("target", scenarioContext.getRunningTestClassName(), getName());
     }
 
     public Service getOwner() {
         return owner;
     }
 
+    public String getScenarioId() {
+        return scenarioContext.getId();
+    }
+
     public String getName() {
         return owner.getName();
     }
 
-    public ExtensionContext getTestContext() {
-        if (testContext.isEmpty()) {
-            throw new RuntimeException("Service has not been initialized with test context");
-        }
+    public ScenarioContext getScenarioContext() {
+        return scenarioContext;
+    }
 
-        return testContext.get();
+    public ExtensionContext getTestContext() {
+        return scenarioContext.getTestContext();
     }
 
     public Path getServiceFolder() {
@@ -48,5 +51,4 @@ public final class ServiceContext {
     public <T> T get(String key) {
         return (T) store.get(key);
     }
-
 }

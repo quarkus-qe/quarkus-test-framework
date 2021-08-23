@@ -2,20 +2,21 @@ package io.quarkus.test.tracing;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.thrift.transport.TTransportException;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
-import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.logging.Log;
 
 public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
-    private static final String JAEGER_HTTP_ENDPOINT_PROPERTY = "ts.jaeger-http-endpoint";
+    public static final String TRACING_ID = "tracing";
+
+    private static final String JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY = "ts.jaeger-http-endpoint";
 
     private QuarkusScenarioTracer quarkusScenarioTracer;
 
     public TracingExtensionBootstrap() {
-        String jaegerHttpEndpoint = System.getProperty(JAEGER_HTTP_ENDPOINT_PROPERTY);
+        String jaegerHttpEndpoint = System.getProperty(JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY);
         if (StringUtils.isNotEmpty(jaegerHttpEndpoint)) {
             try {
                 quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
@@ -26,32 +27,30 @@ public class TracingExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public boolean appliesFor(ExtensionContext context) {
+    public boolean appliesFor(ScenarioContext context) {
         return quarkusScenarioTracer != null;
     }
 
     @Override
-    public void onError(ExtensionContext context, Throwable throwable) {
+    public void beforeAll(ScenarioContext context) {
+        context.getTestStore().put(TRACING_ID, quarkusScenarioTracer);
+        // Include span per test class only
+        quarkusScenarioTracer.createSpanContext(context);
+    }
+
+    @Override
+    public void beforeEach(ScenarioContext context) {
+        // Include span per test class ++ test method
+        quarkusScenarioTracer.createSpanContext(context);
+    }
+
+    @Override
+    public void onError(ScenarioContext context, Throwable throwable) {
         quarkusScenarioTracer.finishWithError(context, throwable);
     }
 
     @Override
-    public void onServiceStarted(ExtensionContext context, Service service) {
-        quarkusScenarioTracer.finishWithSuccess(context, service.getName());
-    }
-
-    @Override
-    public void onServiceInitiate(ExtensionContext context, Service service) {
-        quarkusScenarioTracer.createSpanContext(context);
-    }
-
-    @Override
-    public void onSuccess(ExtensionContext context) {
+    public void onSuccess(ScenarioContext context) {
         quarkusScenarioTracer.finishWithSuccess(context);
-    }
-
-    @Override
-    public void beforeEach(ExtensionContext context) {
-        quarkusScenarioTracer.createSpanContext(context);
     }
 }

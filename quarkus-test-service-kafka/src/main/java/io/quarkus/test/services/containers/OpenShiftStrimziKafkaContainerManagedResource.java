@@ -108,7 +108,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     private void createRegistryService() {
         registry = new DefaultService();
-        registry.register("registry", model.getContext().getTestContext());
+        registry.register("registry", model.getContext().getScenarioContext());
     }
 
     private void applyDeployment() {

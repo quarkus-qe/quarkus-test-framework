@@ -13,7 +13,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
@@ -30,9 +29,9 @@ public class QuarkusCliClient {
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
     private static final Path TARGET = Paths.get("target");
 
-    private final ExtensionContext context;
+    private final ScenarioContext context;
 
-    public QuarkusCliClient(ExtensionContext context) {
+    public QuarkusCliClient(ScenarioContext context) {
         this.context = context;
     }
 

@@ -2,21 +2,19 @@ package io.quarkus.test.bootstrap;
 
 import java.util.Optional;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 public interface ExtensionBootstrap {
 
-    boolean appliesFor(ExtensionContext context);
+    boolean appliesFor(ScenarioContext context);
 
-    default void beforeAll(ExtensionContext context) {
-
-    }
-
-    default void afterAll(ExtensionContext context) {
+    default void beforeAll(ScenarioContext context) {
 
     }
 
-    default void onError(ExtensionContext context, Throwable throwable) {
+    default void afterAll(ScenarioContext context) {
+
+    }
+
+    default void onError(ScenarioContext context, Throwable throwable) {
 
     }
 
@@ -24,35 +22,23 @@ public interface ExtensionBootstrap {
 
     }
 
-    default void onServiceInitiate(ExtensionContext context, Service service) {
+    default void onServiceLaunch(ScenarioContext context, Service service) {
 
     }
 
-    default void onServiceError(ExtensionContext context, Service service, Throwable throwable) {
+    default void onSuccess(ScenarioContext context) {
 
     }
 
-    default void onServiceStarted(ExtensionContext context, Service service) {
+    default void onDisabled(ScenarioContext context, Optional<String> reason) {
 
     }
 
-    default void onServiceStopped(ExtensionContext context, Service service) {
+    default void beforeEach(ScenarioContext context) {
 
     }
 
-    default void onSuccess(ExtensionContext context) {
-
-    }
-
-    default void onDisabled(ExtensionContext context, Optional<String> reason) {
-
-    }
-
-    default void beforeEach(ExtensionContext context) {
-
-    }
-
-    default void afterEach(ExtensionContext context) {
+    default void afterEach(ScenarioContext context) {
 
     }
 

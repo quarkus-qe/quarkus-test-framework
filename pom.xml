@@ -457,6 +457,7 @@
         <profile>
             <id>coverage</id>
             <properties>
+                <!--suppress UnresolvedMavenProperty to ignore warnings in idea-->
                 <jacoco.agent.argLine>${jacoco.generated.agent.argLine}</jacoco.agent.argLine>
             </properties>
             <build>

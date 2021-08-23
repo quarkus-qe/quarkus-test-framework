@@ -17,6 +17,7 @@ import java.util.logging.LogManager;
 import javax.inject.Inject;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.BeforeEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -32,7 +33,7 @@ import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ReflectionUtils;
 
 public class QuarkusScenarioBootstrap
-        implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback,
+        implements BeforeAllCallback, AfterAllCallback, BeforeEachCallback, AfterEachCallback,
         ParameterResolver, LifecycleMethodExecutionExceptionHandler, TestWatcher {
 
     private static final PropertyLookup CREATE_SERVICE_BY_DEFAULT = new PropertyLookup("generated-service.enabled",
@@ -43,7 +44,7 @@ public class QuarkusScenarioBootstrap
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
 
     private List<Service> services = new ArrayList<>();
-
+    private ScenarioContext scenario;
     private List<ExtensionBootstrap> extensions;
 
     public QuarkusScenarioBootstrap() {
@@ -52,9 +53,12 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void beforeAll(ExtensionContext context) {
+        // Init scenario context
+        scenario = new ScenarioContext(context);
+
         // Init extensions
-        extensions = initExtensions(context);
-        extensions.forEach(ext -> ext.beforeAll(context));
+        extensions = initExtensions();
+        extensions.forEach(ext -> ext.beforeAll(scenario));
 
         // Init services from test fields
         ReflectionUtils.findAllFields(context.getRequiredTestClass()).forEach(field -> initResourceFromField(context, field));
@@ -62,11 +66,11 @@ public class QuarkusScenarioBootstrap
         // If no service was found, create one by default
         if (services.isEmpty() && CREATE_SERVICE_BY_DEFAULT.getAsBoolean()) {
             // Add One Quarkus Application
-            services.add(createDefaultService(context));
+            services.add(createDefaultService());
         }
 
         // Launch services
-        services.forEach(service -> launchService(context, service));
+        services.forEach(service -> launchService(service));
     }
 
     @Override
@@ -76,7 +80,7 @@ public class QuarkusScenarioBootstrap
             Collections.reverse(servicesToStop);
             servicesToStop.forEach(Service::stop);
         } finally {
-            extensions.forEach(ext -> ext.afterAll(context));
+            extensions.forEach(ext -> ext.afterAll(scenario));
         }
     }
 
@@ -84,8 +88,14 @@ public class QuarkusScenarioBootstrap
     public void beforeEach(ExtensionContext context) {
         Log.info("## Running test " + context.getParent().map(ctx -> ctx.getDisplayName() + ".").orElse("") + context
                 .getDisplayName());
-        extensions.forEach(ext -> ext.beforeEach(context));
+        scenario.setMethodTestContext(context);
+        extensions.forEach(ext -> ext.beforeEach(scenario));
         services.forEach(Service::start);
+    }
+
+    @Override
+    public void afterEach(ExtensionContext extensionContext) throws Exception {
+        extensions.forEach(ext -> ext.afterEach(scenario));
     }
 
     @Override
@@ -100,55 +110,53 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(context, throwable);
+        notifyExtensionsOnError(throwable);
     }
 
     @Override
     public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(context, throwable);
+        notifyExtensionsOnError(throwable);
     }
 
     @Override
     public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(context, throwable);
+        notifyExtensionsOnError(throwable);
     }
 
     @Override
     public void testSuccessful(ExtensionContext context) {
-        extensions.forEach(ext -> ext.onSuccess(context));
+        extensions.forEach(ext -> ext.onSuccess(scenario));
     }
 
     @Override
     public void testFailed(ExtensionContext context, Throwable cause) {
-        extensions.forEach(ext -> ext.onError(context, cause));
+        extensions.forEach(ext -> ext.onError(scenario, cause));
     }
 
     @Override
     public void testDisabled(ExtensionContext context, Optional<String> reason) {
-        extensions.forEach(ext -> ext.onDisabled(context, reason));
+        extensions.forEach(ext -> ext.onDisabled(scenario, reason));
     }
 
     @Override
     public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(context, throwable);
+        notifyExtensionsOnError(throwable);
     }
 
-    private void launchService(ExtensionContext context, Service service) {
+    private void launchService(Service service) {
         Log.info(service, "Initialize service (%s)", service.getDisplayName());
+        extensions.forEach(ext -> ext.onServiceLaunch(scenario, service));
         try {
-            extensions.forEach(ext -> ext.onServiceInitiate(context, service));
             service.start();
-            extensions.forEach(ext -> ext.onServiceStarted(context, service));
         } catch (Error throwable) {
-            extensions.forEach(ext -> ext.onServiceError(context, service, throwable));
-            notifyExtensionsOnError(context, throwable);
+            notifyExtensionsOnError(throwable);
             throw throwable;
         }
     }
 
-    private void notifyExtensionsOnError(ExtensionContext context, Throwable throwable) {
+    private void notifyExtensionsOnError(Throwable throwable) {
         throwable.printStackTrace();
-        extensions.forEach(ext -> ext.onError(context, throwable));
+        extensions.forEach(ext -> ext.onError(scenario, throwable));
     }
 
     private void initResourceFromField(ExtensionContext context, Field field) {
@@ -162,8 +170,14 @@ public class QuarkusScenarioBootstrap
     }
 
     private void injectDependency(Field field) {
-        Object parameter = getParameter(field.getName(), field.getType());
-        ReflectionUtils.setStaticFieldValue(field, parameter);
+        Object fieldValue = null;
+        if (ScenarioContext.class.equals(field.getType())) {
+            fieldValue = scenario;
+        } else {
+            fieldValue = getParameter(field.getName(), field.getType());
+        }
+
+        ReflectionUtils.setStaticFieldValue(field, fieldValue);
     }
 
     private Service initService(ExtensionContext context, Field field) {
@@ -180,7 +194,7 @@ public class QuarkusScenarioBootstrap
         ManagedResourceBuilder resource = getManagedResourceBuilder(field);
 
         // Initialize it
-        ServiceContext serviceContext = service.register(field.getName(), context);
+        ServiceContext serviceContext = service.register(field.getName(), scenario);
         extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
         service.init(resource);
         services.add(service);
@@ -228,10 +242,10 @@ public class QuarkusScenarioBootstrap
         return parameter.get();
     }
 
-    private List<ExtensionBootstrap> initExtensions(ExtensionContext context) {
+    private List<ExtensionBootstrap> initExtensions() {
         List<ExtensionBootstrap> list = new ArrayList<>();
         for (ExtensionBootstrap binding : extensionsRegistry) {
-            if (binding.appliesFor(context)) {
+            if (binding.appliesFor(scenario)) {
                 list.add(binding);
             }
         }
@@ -239,13 +253,13 @@ public class QuarkusScenarioBootstrap
         return list;
     }
 
-    private Service createDefaultService(ExtensionContext context) {
+    private Service createDefaultService() {
         try {
             ProdQuarkusApplicationManagedResourceBuilder resource = new ProdQuarkusApplicationManagedResourceBuilder();
             resource.initAppClasses(null);
 
             Service service = new RestService();
-            ServiceContext serviceContext = service.register(DEFAULT_SERVICE_NAME, context);
+            ServiceContext serviceContext = service.register(DEFAULT_SERVICE_NAME, scenario);
             extensions.forEach(ext -> ext.updateServiceContext(serviceContext));
 
             service.init(resource);

@@ -4,8 +4,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
@@ -21,17 +19,17 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     private KubectlClient client;
 
     @Override
-    public boolean appliesFor(ExtensionContext context) {
-        return context.getRequiredTestClass().isAnnotationPresent(KubernetesScenario.class);
+    public boolean appliesFor(ScenarioContext context) {
+        return context.isAnnotationPresent(KubernetesScenario.class);
     }
 
     @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ScenarioContext context) {
         client = KubectlClient.create();
     }
 
     @Override
-    public void afterAll(ExtensionContext context) {
+    public void afterAll(ScenarioContext context) {
         if (DELETE_NAMESPACE_AFTER.getAsBoolean()) {
             client.deleteNamespace();
         }
@@ -52,7 +50,7 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     }
 
     @Override
-    public void onError(ExtensionContext context, Throwable throwable) {
+    public void onError(ScenarioContext context, Throwable throwable) {
         Map<String, String> logs = client.logs();
         for (Entry<String, String> podLog : logs.entrySet()) {
             FileUtils.copyContentTo(podLog.getValue(), Log.LOG_OUTPUT_DIRECTORY.resolve(podLog.getKey() + Log.LOG_SUFFIX));

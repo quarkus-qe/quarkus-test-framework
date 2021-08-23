@@ -12,6 +12,8 @@ import io.quarkus.test.utils.LogsVerifier;
 
 public interface Service extends ExtensionContext.Store.CloseableResource {
 
+    String getScenarioId();
+
     String getName();
 
     String getDisplayName();
@@ -22,7 +24,7 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     List<String> getLogs();
 
-    ServiceContext register(String serviceName, ExtensionContext testContext);
+    ServiceContext register(String serviceName, ScenarioContext context);
 
     void init(ManagedResourceBuilder resource);
 
