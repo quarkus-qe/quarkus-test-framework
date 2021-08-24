@@ -1,12 +1,14 @@
 package io.quarkus.test.utils;
 
 import static java.util.Arrays.asList;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.FileReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
@@ -35,6 +37,31 @@ public final class MavenUtils {
 
     private MavenUtils() {
 
+    }
+
+    public static void build(ServiceContext serviceContext, Path basePath, List<String> extraMavenArgs) {
+        List<String> command = mvnCommand(serviceContext);
+        command.addAll(extraMavenArgs);
+        command.add(PACKAGE_GOAL);
+        try {
+            new Command(command)
+                    .outputToConsole()
+                    .onDirectory(basePath)
+                    .runAndWait();
+
+        } catch (Exception e) {
+            fail("Failed to build Maven. Caused by: " + e.getMessage());
+        }
+    }
+
+    public static List<String> devModeMavenCommand(ServiceContext serviceContext, List<String> systemProperties) {
+        List<String> command = mvnCommand(serviceContext);
+        command.addAll(Arrays.asList(SKIP_CHECKSTYLE, SKIP_ITS));
+        command.addAll(systemProperties);
+        command.add(withProperty("debug", "false"));
+        command.add("quarkus:dev");
+
+        return command;
     }
 
     public static List<String> mvnCommand(ServiceContext serviceContext) {

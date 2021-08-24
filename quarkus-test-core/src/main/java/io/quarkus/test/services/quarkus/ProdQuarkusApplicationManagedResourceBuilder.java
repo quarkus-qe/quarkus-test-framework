@@ -1,9 +1,11 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -21,10 +23,11 @@ import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
-import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ReflectionUtils;
 
 public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
+
+    protected static final String TARGET = "target";
 
     private static final String NATIVE_RUNNER = "-runner";
     private static final String EXE = ".exe";
@@ -63,13 +66,16 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     }
 
     public void build() {
+        managedResource.onPreBuild();
         copyResourcesToAppFolder();
         if (managedResource.needsBuildArtifact()) {
             tryToReuseOrBuildArtifact();
         }
+
+        managedResource.onPostBuild();
     }
 
-    private QuarkusManagedResource findManagedResource() {
+    protected QuarkusManagedResource findManagedResource() {
         for (QuarkusApplicationManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(getContext())) {
                 return binding.init(this);
@@ -77,6 +83,10 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
         }
 
         return new ProdLocalhostQuarkusApplicationManagedResource(this);
+    }
+
+    protected Path getTargetFolderForLocalArtifacts() {
+        return Paths.get(TARGET);
     }
 
     private void tryToReuseOrBuildArtifact() {
@@ -88,11 +98,11 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
                     nativeRunnerExpectedLocation += EXE;
                 }
 
-                artifactLocation = FileUtils.findTargetFile(nativeRunnerExpectedLocation);
+                artifactLocation = findTargetFile(getTargetFolderForLocalArtifacts(), nativeRunnerExpectedLocation);
 
             } else {
-                artifactLocation = FileUtils.findTargetFile(JVM_RUNNER)
-                        .or(() -> FileUtils.findTargetFile(QUARKUS_APP, QUARKUS_RUN));
+                artifactLocation = findTargetFile(getTargetFolderForLocalArtifacts(), JVM_RUNNER)
+                        .or(() -> findTargetFile(getTargetFolderForLocalArtifacts().resolve(QUARKUS_APP), QUARKUS_RUN));
             }
         }
 
@@ -106,7 +116,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     private Path buildArtifact() {
         try {
             createSnapshotOfBuildProperties();
-            Path appFolder = getContext().getServiceFolder();
+            Path appFolder = getApplicationFolder();
 
             JavaArchive javaArchive = ShrinkWrap.create(JavaArchive.class).addClasses(getAppClasses());
             javaArchive.as(ExplodedExporter.class).exportExplodedInto(appFolder.toFile());

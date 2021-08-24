@@ -571,6 +571,30 @@ Modules within the testing framework must conform to the following package namin
 
 By default, the framework will run all the tests on bare metal (local machine). However, we can extend this functionality by adding other modules and annotating our tests.
 
+### Remote GIT repositories on Baremetal
+
+We can deploy a remote GIT repository using the annotation `@GitRepositoryQuarkusApplication`. Example:
+
+```java
+@QuarkusScenario
+public class QuickstartIT {
+
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    static final RestService app = new RestService();
+    //
+```
+
+This works on JVM and Native modes. For DEV mode, you need to set the devMode attribute as follows:
+
+```java
+@QuarkusScenario
+public class DevModeQuickstartIT {
+
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", devMode = true)
+    static final RestService app = new RestService();
+    //
+```
+
 ### OpenShift
 
 Requirements:

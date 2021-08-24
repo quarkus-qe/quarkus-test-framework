@@ -1,15 +1,14 @@
 package io.quarkus.test.services.quarkus;
 
 import java.lang.annotation.Annotation;
+import java.nio.file.Path;
 import java.util.ServiceLoader;
 
-import org.junit.jupiter.api.Assertions;
+import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.test.bootstrap.ManagedResource;
-import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
-public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
+public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQuarkusApplicationManagedResourceBuilder {
 
     private final ServiceLoader<GitRepositoryQuarkusApplicationManagedResourceBinding> bindings = ServiceLoader
             .load(GitRepositoryQuarkusApplicationManagedResourceBinding.class);
@@ -18,7 +17,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends Quark
     private String gitBranch;
     private String contextDir;
     private String mavenArgs;
-    private QuarkusManagedResource managedResource;
+    private boolean devMode;
 
     protected String getGitRepository() {
         return gitRepository;
@@ -36,6 +35,10 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends Quark
         return mavenArgs;
     }
 
+    protected boolean isDevMode() {
+        return devMode;
+    }
+
     @Override
     public void init(Annotation annotation) {
         GitRepositoryQuarkusApplication metadata = (GitRepositoryQuarkusApplication) annotation;
@@ -43,33 +46,33 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends Quark
         gitBranch = metadata.branch();
         contextDir = metadata.contextDir();
         mavenArgs = metadata.mavenArgs();
+        devMode = metadata.devMode();
+        initAppClasses(new Class[0]);
     }
 
     @Override
-    public ManagedResource build(ServiceContext context) {
-        setContext(context);
-        configureLogging();
-        managedResource = findManagedResource();
-        build();
-
-        managedResource.validate();
-
-        return managedResource;
-    }
-
-    @Override
-    protected void build() {
-
-    }
-
-    private QuarkusManagedResource findManagedResource() {
+    protected QuarkusManagedResource findManagedResource() {
         for (GitRepositoryQuarkusApplicationManagedResourceBinding binding : bindings) {
             if (binding.appliesFor(getContext())) {
                 return binding.init(this);
             }
         }
 
-        Assertions.fail("No managed resource builder found for @GitRepositoryQuarkusApplication annotation");
-        return null;
+        return new GitRepositoryLocalhostQuarkusApplicationManagedResource(this);
+    }
+
+    @Override
+    protected Path getTargetFolderForLocalArtifacts() {
+        return getApplicationFolder().resolve(TARGET);
+    }
+
+    @Override
+    protected Path getApplicationFolder() {
+        Path appFolder = getContext().getServiceFolder();
+        if (StringUtils.isNotEmpty(getContextDir())) {
+            appFolder = appFolder.resolve(getContextDir());
+        }
+
+        return appFolder;
     }
 }
