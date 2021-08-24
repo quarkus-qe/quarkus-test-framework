@@ -20,8 +20,8 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     }
 
     @Override
-    protected Path appResourcesFolder() {
-        return super.appResourcesFolder().resolve(RESOURCES_FOLDER);
+    protected Path getResourcesApplicationFolder() {
+        return super.getResourcesApplicationFolder().resolve(RESOURCES_FOLDER);
     }
 
     @Override

@@ -114,12 +114,16 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         createEffectiveApplicationProperties();
     }
 
-    protected Path appResourcesFolder() {
+    protected Path getApplicationFolder() {
         return context.getServiceFolder();
     }
 
+    protected Path getResourcesApplicationFolder() {
+        return getApplicationFolder();
+    }
+
     private void createEffectiveApplicationProperties() {
-        Path applicationProperties = appResourcesFolder().resolve(APPLICATION_PROPERTIES);
+        Path applicationProperties = getResourcesApplicationFolder().resolve(APPLICATION_PROPERTIES);
         Map<String, String> map = new HashMap<>();
         // Put the original application properties
         if (Files.exists(applicationProperties)) {
@@ -147,7 +151,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 File fileToCopy = path.toFile();
 
                 Path source = folder.relativize(path).getParent();
-                Path target = appResourcesFolder();
+                Path target = getResourcesApplicationFolder();
                 if (source != null) {
                     // Resource is in a sub-folder:
                     target = target.resolve(source);

@@ -51,6 +51,14 @@ public abstract class QuarkusManagedResource implements ManagedResource {
         return getLaunchMode() == LaunchMode.NATIVE;
     }
 
+    public void onPreBuild() {
+
+    }
+
+    public void onPostBuild() {
+
+    }
+
     protected ServiceContext getContext() {
         return serviceContext;
     }

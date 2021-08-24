@@ -6,6 +6,7 @@ import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResource
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -57,7 +58,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             process = ProcessBuilderProvider.command(command)
                     .redirectErrorStream(true)
                     .redirectOutput(logOutputFile)
-                    .directory(model.getContext().getServiceFolder().toFile())
+                    .directory(getApplicationFolder().toFile())
                     .start();
 
             loggingHandler = new FileServiceLoggingHandler(model.getContext().getOwner(), logOutputFile);
@@ -118,6 +119,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     @Override
     protected LoggingHandler getLoggingHandler() {
         return loggingHandler;
+    }
+
+    protected Path getApplicationFolder() {
+        return model.getContext().getServiceFolder();
     }
 
     private void assignPorts() {

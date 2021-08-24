@@ -15,4 +15,6 @@ public @interface GitRepositoryQuarkusApplication {
     String contextDir() default "";
 
     String mavenArgs() default "-DskipTests=true -DskipITs=true";
+
+    boolean devMode() default false;
 }

@@ -115,13 +115,9 @@ public final class FileUtils {
         }
     }
 
-    public static Optional<String> findTargetFile(String endsWith) {
-        return findTargetFile(StringUtils.EMPTY, endsWith);
-    }
-
-    public static Optional<String> findTargetFile(String subFolder, String endsWith) {
+    public static Optional<String> findTargetFile(Path basePath, String endsWith) {
         try (Stream<Path> binariesFound = Files
-                .find(Paths.get(TARGET, subFolder), NO_RECURSIVE,
+                .find(basePath, NO_RECURSIVE,
                         (path, basicFileAttributes) -> path.toFile().getName().endsWith(endsWith))) {
             return binariesFound.map(path -> path.normalize().toString()).findFirst();
         } catch (IOException ex) {
