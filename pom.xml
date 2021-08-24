@@ -164,7 +164,12 @@
             </dependency>
             <dependency>
                 <groupId>com.github.docker-java</groupId>
-                <artifactId>docker-java</artifactId>
+                <artifactId>docker-java-core</artifactId>
+                <version>${com.github.docker-java.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.github.docker-java</groupId>
+                <artifactId>docker-java-transport-zerodep</artifactId>
                 <version>${com.github.docker-java.version}</version>
             </dependency>
         </dependencies>
