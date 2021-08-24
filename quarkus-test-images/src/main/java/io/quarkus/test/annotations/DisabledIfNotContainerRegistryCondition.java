@@ -1,6 +1,6 @@
 package io.quarkus.test.annotations;
 
-import static io.quarkus.test.utils.DockerUtils.CONTAINER_REGISTY_URL_PROPERTY;
+import static io.quarkus.test.utils.DockerUtils.CONTAINER_REGISTRY_URL_PROPERTY;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -11,7 +11,7 @@ public class DisabledIfNotContainerRegistryCondition extends CheckIfSystemProper
 
     @Override
     protected String getSystemPropertyName(ExtensionContext context) {
-        return CONTAINER_REGISTY_URL_PROPERTY;
+        return CONTAINER_REGISTRY_URL_PROPERTY;
     }
 
     @Override
