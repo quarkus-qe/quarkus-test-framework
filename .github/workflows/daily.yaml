@@ -281,7 +281,7 @@ jobs:
       matrix:
         java: [ 11 ]
         quarkus-version: ["999-SNAPSHOT"]
-        graalvm-version: [ "21.0.0.java11"]
+        graalvm-version: [ "21.2.0.java11"]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
