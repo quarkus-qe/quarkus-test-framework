@@ -187,6 +187,17 @@ In a Multi-Module Maven test suite, if we want to configure the timeouts, we can
 - Increase the startup timeout only: `mvn clean verify -Dts.global.startup.timeout=20m`
 - Increase all the timeouts at once using the factor: `mvn clean verify -Dts.global.factor.timeout=2.5`
 
+- Ports
+
+The framework will allocate ports to deploy the services. We can configure the port range and the strategy to find an available port using:
+
+```
+ts.global.port.range.min=1100
+ts.global.port.range.max=49151
+## incremental (default) or random
+ts.global.port.resolution.strategy=incremental
+```
+
 ### Native
 
 The `@QuarkusScenario` annotation is also compatible with Native. This means that if we run our tests using Native build:

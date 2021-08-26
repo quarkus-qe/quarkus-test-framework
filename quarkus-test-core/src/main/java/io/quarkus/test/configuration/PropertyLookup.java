@@ -67,4 +67,9 @@ public class PropertyLookup {
         String value = get();
         return Boolean.TRUE.toString().equalsIgnoreCase(value);
     }
+
+    public Integer getAsInteger() {
+        String value = get();
+        return Integer.parseInt(value);
+    }
 }
