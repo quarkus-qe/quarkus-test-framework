@@ -59,7 +59,7 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
-        <checkstyle.version>8.45.1</checkstyle.version>
+        <checkstyle.version>9.0</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
         <!-- S2i configuration -->
