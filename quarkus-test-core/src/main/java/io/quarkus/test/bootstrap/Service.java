@@ -38,6 +38,10 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     Service withProperty(String key, String value);
 
+    default boolean isAutoStart() {
+        return true;
+    }
+
     default void validate(Field field) {
 
     }

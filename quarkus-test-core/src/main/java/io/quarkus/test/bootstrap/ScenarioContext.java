@@ -5,8 +5,6 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
 
-import io.quarkus.test.logging.Log;
-
 public final class ScenarioContext {
 
     private static final int SCENARIO_ID_MAX_SIZE = 60;
@@ -20,8 +18,6 @@ public final class ScenarioContext {
         this.testContext = testContext;
         this.id = generateScenarioId(testContext);
         this.testNamespace = ExtensionContext.Namespace.create(ScenarioContext.class);
-
-        Log.info("Scenario ID: '%s'", this.id);
     }
 
     public String getId() {

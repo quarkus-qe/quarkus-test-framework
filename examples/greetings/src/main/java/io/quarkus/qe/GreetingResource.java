@@ -12,9 +12,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @Path("/greeting")
 public class GreetingResource {
 
-    public static final String PROPERTY = "custom.property.name";
-
-    @ConfigProperty(name = PROPERTY)
+    @ConfigProperty(name = ValidateCustomProperty.CUSTOM_PROPERTY)
     String name;
 
     @GET

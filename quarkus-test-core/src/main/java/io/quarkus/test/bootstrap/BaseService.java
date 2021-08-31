@@ -41,6 +41,7 @@ public class BaseService<T extends Service> implements Service {
     private String serviceName;
     private Configuration configuration;
     private ServiceContext context;
+    private boolean autoStart = true;
 
     @Override
     public String getScenarioId() {
@@ -62,6 +63,11 @@ public class BaseService<T extends Service> implements Service {
         return configuration;
     }
 
+    @Override
+    public boolean isAutoStart() {
+        return autoStart;
+    }
+
     public T onPreStart(Action action) {
         onPreStartActions.add(action);
         return (T) this;
@@ -69,6 +75,11 @@ public class BaseService<T extends Service> implements Service {
 
     public T onPostStart(Action action) {
         onPostStartActions.add(action);
+        return (T) this;
+    }
+
+    public T setAutoStart(boolean autoStart) {
+        this.autoStart = autoStart;
         return (T) this;
     }
 
@@ -107,9 +118,6 @@ public class BaseService<T extends Service> implements Service {
         if (managedResource == null) {
             Log.debug(this, "Resource is not running");
             return false;
-        } else if (managedResource.isFailed()) {
-            managedResource.stop();
-            fail("Resource failed to start");
         }
 
         Log.debug(this, "Resource is running");
@@ -155,7 +163,6 @@ public class BaseService<T extends Service> implements Service {
         }
 
         Log.debug(this, "Starting service (%s)", getDisplayName());
-
         onPreStartActions.forEach(a -> a.handle(this));
         doStart();
         waitUntilServiceIsStarted();
@@ -226,12 +233,21 @@ public class BaseService<T extends Service> implements Service {
         return context.get(key);
     }
 
+    private boolean isRunningOrFailed() {
+        if (managedResource != null && managedResource.isFailed()) {
+            managedResource.stop();
+            fail("Resource failed to start");
+        }
+
+        return isRunning();
+    }
+
     private void waitUntilServiceIsStarted() {
         Duration startupCheckInterval = getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
         Duration startupTimeout = getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
-        untilIsTrue(this::isRunning, AwaitilitySettings
+        untilIsTrue(this::isRunningOrFailed, AwaitilitySettings
                 .using(startupCheckInterval, startupTimeout)
                 .doNotIgnoreExceptions()
                 .withService(this)
