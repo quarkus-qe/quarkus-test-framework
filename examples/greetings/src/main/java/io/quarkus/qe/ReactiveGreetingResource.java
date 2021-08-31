@@ -12,9 +12,7 @@ import io.smallrye.mutiny.Uni;
 @Path("/reactive-greeting")
 public class ReactiveGreetingResource {
 
-    public static final String PROPERTY = "custom.property.name";
-
-    @ConfigProperty(name = PROPERTY)
+    @ConfigProperty(name = ValidateCustomProperty.CUSTOM_PROPERTY)
     String name;
 
     @GET

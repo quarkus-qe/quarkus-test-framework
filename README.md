@@ -133,6 +133,37 @@ class MyScenarioIT extends MyParent {
 
 Now, the framework will initialize the `appInChild` service first and then the `appInParent` service.
 
+### Test expected failures
+
+With the test framework, we can assert startup failures using `service.setAutoStart(false)`. When disabling this flag, the
+test framework will not start the service and users will need to manually start them by doing `service.start()` at each test case. 
+Hence users should be able now to assert failure messages from the logs for each test case. For example:
+
+```java
+@QuarkusApplication
+static final RestService app = new RestService()
+        .setAutoStart(false);
+
+@Test
+public void shouldFailOnStart() {
+    assertThrows(AssertionError.class, () -> app.start(),
+            "Should fail because runtime exception in ValidateCustomProperty");
+    // or checks service logs
+    app.logs().assertContains("Missing property a.b.z");
+}
+```
+
+Moreover, we can try to fix the application during the test execution:
+
+```java
+@Test
+public void shouldWorkWhenPropertyIsCorrect() {
+    app.withProperty("a.b.z", "here you have!");
+    app.start();
+    app.given().get("/hello").then().statusCode(HttpStatus.SC_OK);
+}
+```
+
 ### Configuration
 
 Test framework allows to customise the configuration for running the test case via a `test.properties` file placed under `src/test/resources` folder.

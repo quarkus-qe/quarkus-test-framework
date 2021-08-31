@@ -55,6 +55,7 @@ public class QuarkusScenarioBootstrap
     public void beforeAll(ExtensionContext context) {
         // Init scenario context
         scenario = new ScenarioContext(context);
+        Log.info("Scenario ID: '%s'", scenario.getId());
 
         // Init extensions
         extensions = initExtensions();
@@ -90,7 +91,11 @@ public class QuarkusScenarioBootstrap
                 .getDisplayName());
         scenario.setMethodTestContext(context);
         extensions.forEach(ext -> ext.beforeEach(scenario));
-        services.forEach(Service::start);
+        services.forEach(service -> {
+            if (service.isAutoStart()) {
+                service.start();
+            }
+        });
     }
 
     @Override
@@ -144,6 +149,11 @@ public class QuarkusScenarioBootstrap
     }
 
     private void launchService(Service service) {
+        if (!service.isAutoStart()) {
+            Log.debug(service, "Service (%s) auto start is off", service.getDisplayName());
+            return;
+        }
+
         Log.info(service, "Initialize service (%s)", service.getDisplayName());
         extensions.forEach(ext -> ext.onServiceLaunch(scenario, service));
         try {
