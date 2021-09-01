@@ -13,14 +13,10 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.AmqService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.AmqContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.AmqProtocol;
 
-@DisabledOnQuarkusVersion(version = "2\\.1\\..*", reason = "Caused by https://github.com/quarkusio/quarkus/issues/18956")
-@DisabledOnQuarkusSnapshot(reason = "Caused by https://github.com/quarkusio/quarkus/issues/18956")
 @QuarkusScenario
 public class AmqpAmqIT {
 
