@@ -138,7 +138,7 @@ jobs:
           chmod +x ./quarkus-dev-cli
       - name: Build in JVM mode
         run: |
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'

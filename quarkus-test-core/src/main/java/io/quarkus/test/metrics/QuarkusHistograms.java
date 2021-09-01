@@ -1,72 +1,39 @@
 package io.quarkus.test.metrics;
 
-import static io.prometheus.client.Histogram.Timer;
-import static io.quarkus.test.metrics.QuarkusLabels.MODULE_STATUS;
-
-import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
-import io.prometheus.client.CollectorRegistry;
-import io.prometheus.client.Histogram;
-import io.prometheus.client.exporter.PushGateway;
+import org.apache.commons.lang3.time.StopWatch;
 
 public class QuarkusHistograms {
 
-    private final PushGateway prometheusClient;
-    private final Map<String, Histogram> histogramsBucket = new HashMap<>();
-    private final CollectorRegistry defaultRegistry;
-    private final Map<String, Timer> gaugeTimersBucket = new HashMap<>();
-    private final Map<HistogramTypes, CollectorRegistry> modulesRegistry = new HashMap<>();
-    private final QuarkusLabels labels;
+    private static final List<HistogramTypes> TYPES = Arrays.asList(HistogramTypes.SCENARIO_TEST_TIME_SEC);
 
-    public QuarkusHistograms(String prometheusHttpEndpoint) {
-        labels = new QuarkusLabels();
-        prometheusClient = new PushGateway(prometheusHttpEndpoint);
-        modulesRegistry.put(HistogramTypes.MODULE_TEST_TIME_SEC, new CollectorRegistry());
-        defaultRegistry = new CollectorRegistry();
+    private final MetricsExporterService exporter;
+    private final Map<HistogramTypes, StopWatch> timersBucket = new HashMap<>();
+
+    public QuarkusHistograms(MetricsExporterService exporter) {
+        this.exporter = exporter;
     }
 
     public void startDurationBeforeAll(HistogramTypes histogramTypes) {
-        String histogramBucketID = getHistogramBucketID(histogramTypes);
-        createHistogramIfNotExist(histogramTypes, histogramBucketID);
-        labels.addModuleNameLabel();
-        Timer duration = histogramsBucket.get(histogramBucketID).startTimer();
-        gaugeTimersBucket.put(histogramBucketID, duration);
+        StopWatch timer = new StopWatch();
+        timersBucket.put(histogramTypes, timer);
+        timer.start();
     }
 
     public void stopDurationAfterAll(HistogramTypes histogramTypes) {
-        String histogramBucketID = getHistogramBucketID(histogramTypes);
-        for (Map.Entry<String, Timer> durations : gaugeTimersBucket.entrySet()) {
-            if (durations.getKey().equalsIgnoreCase(histogramBucketID)) {
-                Double totalTime = durations.getValue().observeDuration();
-            }
+        StopWatch timer = timersBucket.get(histogramTypes);
+        if (timer != null && timer.isStarted()) {
+            timer.stop();
+            exporter.commit(histogramTypes.getCode(), timer.getTime(TimeUnit.SECONDS));
         }
     }
 
-    public void push() {
-        try {
-            for (Map.Entry<HistogramTypes, CollectorRegistry> registry : modulesRegistry.entrySet()) {
-                Map<String, String> registryLabels = labels.getLabelsBucket();
-                registryLabels.put(MODULE_STATUS, registry.getKey().name().toLowerCase());
-                prometheusClient.pushAdd(registry.getValue(), labels.getServiceName(), registryLabels);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private String getHistogramBucketID(HistogramTypes histogramTypes) {
-        return histogramTypes.getCode() + "_" + histogramTypes;
-    }
-
-    private void createHistogramIfNotExist(HistogramTypes histogramTypes, String histogramBucketID) {
-        if (!histogramsBucket.containsKey(histogramBucketID)) {
-            CollectorRegistry registry = Optional.ofNullable(modulesRegistry.get(histogramTypes)).orElse(defaultRegistry);
-            Histogram histogramModule = Histogram.build()
-                    .name(histogramTypes.getCode()).help("Test latency in seconds.").register(registry);
-            histogramsBucket.put(histogramBucketID, histogramModule);
-        }
+    public void push(QuarkusLabels labels) {
+        exporter.push(labels.getLabelsBucket());
     }
 }

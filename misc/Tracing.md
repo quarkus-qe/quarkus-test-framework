@@ -9,16 +9,11 @@ be included as Span tags, so then later you can filter in Jaeger by your custom 
 All errors are going to be tagged as `error` and the error message is going to be attached to your span as an event log.
 
 In order to push your tracing events to your Jaeger you must provide the following system properties:
-- ts.jaeger-http-endpoint (required):
+- ts.global.tracing.jaeger.endpoint (required):
         Default Value: `http://localhost:14268/api/traces` 
         Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:14268/api/traces`
-- ts.service-name (required): your application service name 
-        Default Value: `quarkus-test-framework`
-        Example `myCryptoApp`
-- ts.buildNumber: could be your Jenkins pipeline build number, in order to filter in Jaeger by this build.
-        Default Value: `quarkus-plugin.version` system property value, otherwise `777-default`.
-- ts.versionNumber: if your application is versioned, could be the version of your application
-        Default Value: `999-default`
+        
+All the metrics will be tagging [the test execution properties](Execution.md).
 
 ## Jaeger Installation
 

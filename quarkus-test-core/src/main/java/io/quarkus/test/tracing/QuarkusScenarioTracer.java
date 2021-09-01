@@ -19,21 +19,18 @@ import io.opentracing.Span;
 import io.opentracing.Tracer;
 import io.opentracing.log.Fields;
 import io.quarkus.test.bootstrap.ScenarioContext;
-import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.utils.TestExecutionProperties;
 
 public class QuarkusScenarioTracer {
-
-    private static final String DEFAULT_SERVICE_NAME = "quarkus-test-framework";
 
     private final Tracer tracer;
     private final QuarkusScenarioSpan quarkusScenarioSpan;
     private final QuarkusScenarioTags quarkusScenarioTags;
 
     public QuarkusScenarioTracer(String jaegerHttpEndpoint) throws TTransportException {
-        String serviceName = new PropertyLookup("ts.service-name", DEFAULT_SERVICE_NAME).get();
-
-        tracer = new JaegerTracer.Builder(serviceName).withReporter(new RemoteReporter.Builder()
-                .withSender(new HttpSender.Builder(jaegerHttpEndpoint).build()).build())
+        tracer = new JaegerTracer.Builder(TestExecutionProperties.getServiceName())
+                .withReporter(new RemoteReporter.Builder()
+                        .withSender(new HttpSender.Builder(jaegerHttpEndpoint).build()).build())
                 .withSampler(new ConstSampler(true))
                 .build();
 

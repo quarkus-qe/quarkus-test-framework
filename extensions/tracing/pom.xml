@@ -7,8 +7,8 @@
         <version>0.0.8-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
-    <artifactId>examples-metrics-extension</artifactId>
-    <name>Quarkus - Test Framework - Examples - metrics-extension</name>
+    <artifactId>extension-tracing</artifactId>
+    <name>Quarkus - Test Framework - Extensions - Tracing</name>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -21,26 +21,20 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-openshift</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-containers</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <configuration>
-                            <systemProperties>
-                                <ts.prometheus-http-endpoint>localhost:9091</ts.prometheus-http-endpoint>
-                            </systemProperties>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
     <profiles>
         <!-- Skipped on Windows as does not support Linux Containers / Testcontainers -->
         <profile>

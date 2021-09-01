@@ -382,8 +382,16 @@
                 <module>examples/jaeger</module>
                 <module>examples/database-mysql</module>
                 <module>examples/external-applications</module>
-                <module>examples/tracing-extension</module>
-                <module>examples/metrics-extension</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>extensions</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <modules>
+                <module>extensions/tracing</module>
+                <module>extensions/metrics</module>
             </modules>
         </profile>
         <profile>
