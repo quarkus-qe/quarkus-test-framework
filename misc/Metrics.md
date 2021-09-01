@@ -1,36 +1,35 @@
 # Metrics
 
-Quarkus test framework uses Prometheus Pushgateway in order to expose test metrics. 
-This decision was made because test cases behave as batch jobs. 
-
-Test Suite -> Prometheus Pushgateway -> prometheus -> Grafana
+Quarkus test framework uses Prometheus Pushgateway in order to expose test metrics. This feature is enabled by default. 
+You can turn off by setting `-Dts.global.metrics.enabled=false`. 
+All the metrics will be tagging [the test execution properties](Execution.md).
 
 These are the basic metrics that are exposed:
 
 - Metrics
-   - `ts_quarkus_gauge_requests_total` represent the total amount of test
-   - `ts_quarkus_gauge_requests_success` represent the total amount of succeed test
-   - `ts_quarkus_gauge_requests_ignore` represent the total amount of ignored test
-   - `ts_quarkus_gauge_requests_fail` represent the total amount of failures 
-   - `ts_quarkus_gauge_modules` represents metrics associated to the test modules. You will have one of this metrics per quarkus scenario / module.
-        - `ts_quarkus_module_name` represents the maven modules name
-        - `ts_quarkus_module_status` could be `module_success` or `module_fail`
-   - `ts_quarkus_histogram_modules_duration`
+   - `tests_total` represents the total amount of test
+   - `tests_succeed` represents the total amount of succeed test
+   - `tests_ignored` represents the total amount of ignored test
+   - `tests_failed` represents the total amount of failures
+   - `scenario_duration_seconds` represents the total duration of the scenario
 
 - Commons labels
-   - `ts_quarkus_build_number`
-   - `ts_quarkus_plugin_version`
-   - `ts_quarkus_service_name`
-   - `ts_quarkus_platform` could be `bare-metal`, `ocp` or `k8s` 
-   
-In order to push your metrics to prometheus you must provide the following system properties:
-- ts.prometheus-http-endpoint (required):
+   - `scenario_name` represents the running scenario (class name of the test)
+   - `module_name` represents the maven modules name
+   - `module_status` could be `module_success` or `module_fail`
+   - `execution_build_number`
+   - `execution_quarkus_version`
+   - `execution_service_name`
+   - `execution_platform` could be `bare-metal`, `ocp` or `k8s` 
+
+## File exporter
+
+By default, when the metrics extension is enabled, the metrics are exported into the file `target/logs/metrics.out`. We can
+configure the output file using `-Dts.global.metrics.export.file.output=/to/metrics.out`.
+
+## Prometheus Gateway
+
+In order to enable the Prometheus exported, you need to provide the following system properties:
+- ts.global.metrics.export.prometheus.endpoint (required):
         Default Value: `127.0.0.1:9091` 
         Example, `myprometheus.apps.ocp47.dynamic.quarkus:9091`
-- ts.service-name (required): your application service name 
-        Default Value: `quarkus-test-framework`
-        Example `myCryptoApp`
-- ts.buildNumber: could be your Jenkins pipeline build number, in order to filter in Jaeger by this build.
-        Default Value: `quarkus-plugin.version` system property value, otherwise `777-default`.
-- ts.versionNumber: if your application is versioned, could be the version of your application
-        Default Value: `999-default`   

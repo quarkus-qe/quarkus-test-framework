@@ -5,18 +5,19 @@ import org.apache.thrift.transport.TTransportException;
 
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
 import io.quarkus.test.bootstrap.ScenarioContext;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 
 public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String TRACING_ID = "tracing";
 
-    private static final String JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY = "ts.jaeger-http-endpoint";
+    private static final PropertyLookup JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY = new PropertyLookup("tracing.jaeger.endpoint");
 
     private QuarkusScenarioTracer quarkusScenarioTracer;
 
     public TracingExtensionBootstrap() {
-        String jaegerHttpEndpoint = System.getProperty(JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY);
+        String jaegerHttpEndpoint = JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY.get();
         if (StringUtils.isNotEmpty(jaegerHttpEndpoint)) {
             try {
                 quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
