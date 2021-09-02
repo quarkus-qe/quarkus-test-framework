@@ -11,7 +11,6 @@ import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.quarkus.test.utils.PropertiesUtils;
 
 public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuilder {
-
     private final ServiceLoader<KafkaContainerManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(KafkaContainerManagedResourceBinding.class);
 
@@ -20,6 +19,8 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
     private String image;
     private String version;
     private boolean withRegistry;
+    private String registryImage;
+    private String registryPath;
 
     protected KafkaVendor getVendor() {
         return vendor;
@@ -41,6 +42,33 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
         return withRegistry;
     }
 
+    protected String getDefaultRegistryImageVersion() {
+        String defaultImage = getVendor().getRegistry().getImage();
+        String defaultVersion = getVendor().getRegistry().getDefaultVersion();
+        return defaultImage + ":" + defaultVersion;
+    }
+
+    protected String getRegistryImage() {
+        return registryImage;
+    }
+
+    protected String getRegistryPath() {
+        return registryPath;
+    }
+
+    protected String getRegistryImageVersion() {
+        String registryImage = getDefaultRegistryImageVersion();
+        if (!getRegistryImage().isEmpty()) {
+            String defaultVersion = getVendor().getRegistry().getDefaultVersion();
+            registryImage = getRegistryImage();
+            if (!registryImage.contains(":")) {
+                registryImage += ":" + defaultVersion;
+            }
+        }
+
+        return registryImage.toLowerCase();
+    }
+
     @Override
     public void init(Annotation annotation) {
         KafkaContainer metadata = (KafkaContainer) annotation;
@@ -48,6 +76,8 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
         this.image = PropertiesUtils.resolveProperty(metadata.image());
         this.version = PropertiesUtils.resolveProperty(metadata.version());
         this.withRegistry = metadata.withRegistry();
+        this.registryImage = PropertiesUtils.resolveProperty(metadata.registryImage());
+        this.registryPath = PropertiesUtils.resolveProperty(metadata.registryPath());
     }
 
     @Override

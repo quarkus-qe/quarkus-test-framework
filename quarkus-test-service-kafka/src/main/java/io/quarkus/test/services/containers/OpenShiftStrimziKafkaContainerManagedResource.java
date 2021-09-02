@@ -24,7 +24,6 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     private static final String REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/registry-deployment-template.yml";
     private static final String REGISTRY_DEPLOYMENT = "registry.yml";
-    private static final int REGISTRY_PORT = 8080;
 
     private static final String EXPECTED_LOG = "started (kafka.server.KafkaServer)";
 
@@ -120,20 +119,22 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     private void applyRegistryDeployment() {
+        int registryPort = model.getVendor().getRegistry().getPort();
         client.applyServicePropertiesUsingTemplate(registry, REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT,
                 content -> content.replaceAll(quote("${KAFKA_BOOTSTRAP_URL}"), getKafkaBootstrapUrl())
                         .replaceAll(quote("${KAFKA_REGISTRY_IMAGE}"), getKafkaRegistryImage())
-                        .replaceAll(quote("${KAFKA_REGISTRY_PORT}"), "" + model.getVendor().getRegistry().getPort()),
+                        .replaceAll(quote("${KAFKA_REGISTRY_PORT}"), "" + registryPort),
                 model.getContext().getServiceFolder().resolve(REGISTRY_DEPLOYMENT));
 
-        client.expose(registry, REGISTRY_PORT);
+        client.expose(registry, registryPort);
         client.scaleTo(registry, 1);
 
         model.getContext().put(KafkaService.KAFKA_REGISTRY_URL_PROPERTY, getSchemaRegistryUrl());
     }
 
     private String getSchemaRegistryUrl() {
-        return client.url(registry) + "/api";
+        String path = StringUtils.defaultIfBlank(this.model.getRegistryPath(), this.model.getVendor().getRegistry().getPath());
+        return client.url(registry) + path;
     }
 
     private String getKafkaBootstrapUrl() {
@@ -162,7 +163,6 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     protected String getKafkaRegistryImage() {
-        return model.getVendor().getRegistry().getImage() + ":" + model.getVendor().getRegistry().getDefaultVersion();
+        return model.getRegistryImageVersion();
     }
-
 }

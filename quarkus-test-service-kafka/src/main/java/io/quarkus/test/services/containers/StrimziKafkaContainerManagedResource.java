@@ -2,6 +2,7 @@ package io.quarkus.test.services.containers;
 
 import org.testcontainers.containers.GenericContainer;
 
+import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.strimzi.StrimziKafkaContainer;
 
 public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
@@ -12,7 +13,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
 
     @Override
     public String getDisplayName() {
-        return "quay.io/strimzi/kafka:" + getKafkaVersion();
+        return KafkaVendor.STRIMZI.getImage() + getKafkaVersion();
     }
 
     @Override

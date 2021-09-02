@@ -49,7 +49,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     }
 
     protected String getKafkaRegistryImage() {
-        return model.getVendor().getRegistry().getImage() + ":" + model.getVendor().getRegistry().getDefaultVersion();
+        return model.getRegistryImageVersion();
     }
 
     protected int getKafkaRegistryPort() {
@@ -106,9 +106,9 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     }
 
     private String getSchemaRegistryUrl() {
-        return "http://" + schemaRegistry.getContainerIpAddress()
-                + ":" + schemaRegistry.getMappedPort(model.getVendor().getRegistry().getPort())
-                + model.getVendor().getRegistry().getPath();
+        String path = StringUtils.defaultIfBlank(model.getRegistryPath(), model.getVendor().getRegistry().getPath());
+        String containerIp = schemaRegistry.getContainerIpAddress();
+        return String.format("http://%s:%s%s", containerIp, schemaRegistry.getMappedPort(getKafkaRegistryPort()), path);
     }
 
 }
