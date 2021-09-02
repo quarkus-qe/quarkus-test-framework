@@ -14,6 +14,7 @@
         <confluent.kafka-avro-serializer.version>6.2.0</confluent.kafka-avro-serializer.version>
         <quarkiverse.apicurio.registry.client.version>0.0.2</quarkiverse.apicurio.registry.client.version>
     </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>

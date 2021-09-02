@@ -496,13 +496,34 @@ public class StrimziKafkaWithRegistryMessagingIT {
 }
 ```
 
+The registry default values as `Docker image / version` and Registry API `path` could be overwritten by the following annotation properties:
+
+- registryImage, this image follow the standard docker:version format as `quay.io/apicurio/apicurio-registry-mem:2.0.0.Final`  
+- registryPath
+
+This could be useful for some cases where the registry path has changed between Quarkus/Apicurio versions. 
+
+For example, 
+
+Quarkus 1.13.7.Final
+```
+ @KafkaContainer(vendor = KafkaVendor.STRIMZI, withRegistry = true)
+ static final KafkaService kafka = new KafkaService();
+```
+
+Quarkus 2.x.Final
+```
+@KafkaContainer(vendor = KafkaVendor.STRIMZI, withRegistry = true, registryPath = "/apis/registry/v2")
+static KafkaService kafka = new KafkaService();
+```
+
 We can also use a Confluent kafka container by doing:
 
 ```java
 @KafkaContainer(vendor = KafkaVendor.CONFLUENT)
 ```
 
-Note that this implemenation supports also registry, but not Kubernetes and OpenShift scenarios.
+Note that this implementation supports also registry, but not Kubernetes and OpenShift scenarios.
 
 #### AMQ Containers
 

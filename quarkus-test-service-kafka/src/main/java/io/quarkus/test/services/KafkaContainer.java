@@ -21,5 +21,9 @@ public @interface KafkaContainer {
 
     boolean withRegistry() default false;
 
+    String registryImage() default "";
+
+    String registryPath() default "";
+
     Class<? extends ManagedResourceBuilder> builder() default KafkaContainerManagedResourceBuilder.class;
 }
