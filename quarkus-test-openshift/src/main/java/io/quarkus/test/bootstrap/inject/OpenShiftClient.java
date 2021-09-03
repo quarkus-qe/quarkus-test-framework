@@ -283,6 +283,13 @@ public final class OpenShiftClient {
     }
 
     /**
+     * Get the running pods in the current service.
+     */
+    public List<Pod> podsInService(Service service) {
+        return client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, service.getName()).list().getItems();
+    }
+
+    /**
      * Get all the logs for all the pods.
      *
      * @return
@@ -305,7 +312,7 @@ public final class OpenShiftClient {
      */
     public Map<String, String> logs(Service service) {
         Map<String, String> logs = new HashMap<>();
-        for (Pod pod : client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, service.getName()).list().getItems()) {
+        for (Pod pod : podsInService(service)) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
                 logs.put(podName, client.pods().withName(podName).getLog());
