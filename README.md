@@ -322,6 +322,41 @@ app.modifyFile("src/main/java/io/quarkus/qe/GreetingResource.java",content -> co
 app.copyFile("src/test/resources/jose.properties", "src/main/resources/application.properties");
 ```
 
+### Remote Dev
+
+The test framework supports the Remote DEV mode in Quarkus for baremetal, OpenShift and Kubernetes. 
+Basically, we can deploy a Quarkus application in Remote DEV and after applying changes in the source code, these changes
+will be automatically deployed in the running application.
+
+```java
+@QuarkusScenario
+public class RemoteDevGreetingResourceIT {
+
+    static final String VICTOR_NAME = "victor";
+
+    static final String HELLO_IN_ENGLISH = "Hello";
+    static final String HELLO_IN_SPANISH = "Hola";
+
+    @RemoteDevModeQuarkusApplication
+    static DevModeQuarkusService app = new DevModeQuarkusService();
+
+    @Test
+    public void shouldUpdateResourcesAndSources() {
+        // Should say first Victor (the default name)
+        app.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is(HELLO_IN_ENGLISH + ", I'm " + VICTOR_NAME));
+
+        // Modify default name to manuel
+        app.modifyFile("src/main/java/io/quarkus/qe/GreetingResource.java",
+                content -> content.replace(HELLO_IN_ENGLISH, HELLO_IN_SPANISH));
+
+        // Now, the app should say Manuel
+        AwaitilityUtils.untilAsserted(
+                () -> app.given().get("/greeting").then().statusCode(HttpStatus.SC_OK)
+                        .body(is(HELLO_IN_SPANISH + ", I'm " + VICTOR_NAME)));
+    }
+}
+```
+
 ### Quarkus CLI
 
 The Quarkus Test Framework supports the usage of [the Quarkus CLI tool](https://quarkus.io/version/main/guides/cli-tooling):

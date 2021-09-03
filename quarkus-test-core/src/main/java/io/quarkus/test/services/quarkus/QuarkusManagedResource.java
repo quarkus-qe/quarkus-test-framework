@@ -16,7 +16,8 @@ public abstract class QuarkusManagedResource implements ManagedResource {
             "Failed to load config value of type class",
             "Quarkus may already be running or the port is used by another application",
             "One or more configuration errors have prevented the application from starting",
-            "Attempting to start live reload endpoint to recover from previous Quarkus startup failure");
+            "Attempting to start live reload endpoint to recover from previous Quarkus startup failure",
+            "Dev mode process did not complete successfully");
 
     private final ServiceContext serviceContext;
     private final LaunchMode launchMode;

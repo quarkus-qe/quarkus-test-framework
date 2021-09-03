@@ -10,7 +10,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.utils.Command;
 
 public class BuildOpenShiftQuarkusApplicationManagedResource
-        extends TemplateOpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
+        extends TemplateOpenShiftQuarkusApplicationManagedResource<ArtifactQuarkusApplicationManagedResourceBuilder> {
 
     private static final String S2I_DEFAULT_VERSION = "latest";
 
@@ -23,7 +23,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     private static final PropertyLookup UBI_QUARKUS_NATIVE_S2I = new PropertyLookup("quarkus.s2i.base-native-image",
             "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
 
-    public BuildOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
+    public BuildOpenShiftQuarkusApplicationManagedResource(ArtifactQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
 
@@ -56,7 +56,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     private void startBuild() {
         String fromArg = "--from-dir=" + model.getArtifact().toAbsolutePath().getParent().toString();
         if (isNativeTest()) {
-            fromArg = "--from-file=" + model.getArtifact().toAbsolutePath().toString();
+            fromArg = "--from-file=" + model.getArtifact().toAbsolutePath();
         }
 
         try {

@@ -2,6 +2,9 @@ package io.quarkus.test.services.quarkus;
 
 import static java.util.regex.Pattern.quote;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.logging.Log;
@@ -46,12 +49,17 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
         return INTERNAL_PORT_DEFAULT;
     }
 
+    protected Map<String, String> addExtraTemplateProperties() {
+        return Collections.emptyMap();
+    }
+
     private void applyTemplate() {
         String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
                 getDefaultTemplate());
 
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::internalReplaceDeploymentContent,
+                addExtraTemplateProperties(),
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
