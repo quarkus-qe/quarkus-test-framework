@@ -55,11 +55,14 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             List<String> command = prepareCommand(getPropertiesForCommand());
             Log.info("Running command: %s", String.join(" ", command));
 
-            process = ProcessBuilderProvider.command(command)
+            ProcessBuilder pb = ProcessBuilderProvider.command(command)
                     .redirectErrorStream(true)
-                    .redirectOutput(logOutputFile)
-                    .directory(getApplicationFolder().toFile())
-                    .start();
+                    .redirectOutput(getLogOutputFile())
+                    .directory(getApplicationFolder().toFile());
+
+            onPreStart(pb);
+
+            process = pb.start();
 
             loggingHandler = new FileServiceLoggingHandler(model.getContext().getOwner(), logOutputFile);
             loggingHandler.startWatching();
@@ -121,8 +124,16 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         return loggingHandler;
     }
 
+    protected File getLogOutputFile() {
+        return logOutputFile;
+    }
+
     protected Path getApplicationFolder() {
         return model.getContext().getServiceFolder();
+    }
+
+    protected void onPreStart(ProcessBuilder pb) {
+
     }
 
     private void assignPorts() {

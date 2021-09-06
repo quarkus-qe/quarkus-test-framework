@@ -39,9 +39,15 @@ public final class MavenUtils {
 
     }
 
+    public static void build(ServiceContext serviceContext, List<String> extraMavenArgs) {
+        build(serviceContext, serviceContext.getServiceFolder(), extraMavenArgs);
+    }
+
     public static void build(ServiceContext serviceContext, Path basePath, List<String> extraMavenArgs) {
         List<String> command = mvnCommand(serviceContext);
         command.addAll(extraMavenArgs);
+        command.add(DISPLAY_ERRORS);
+        command.add(DISPLAY_VERSION);
         command.add(PACKAGE_GOAL);
         try {
             new Command(command)

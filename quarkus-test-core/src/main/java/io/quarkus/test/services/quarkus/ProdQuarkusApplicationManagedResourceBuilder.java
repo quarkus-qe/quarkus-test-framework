@@ -25,7 +25,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ReflectionUtils;
 
-public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
+public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarkusApplicationManagedResourceBuilder {
 
     protected static final String TARGET = "target";
 
@@ -41,6 +41,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends QuarkusApplica
     private Path artifact;
     private QuarkusManagedResource managedResource;
 
+    @Override
     protected Path getArtifact() {
         return artifact;
     }

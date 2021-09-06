@@ -5,7 +5,9 @@ import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResource
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -23,7 +25,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
     private static final String DEPLOYMENT = "kubernetes.yml";
 
-    private final ProdQuarkusApplicationManagedResourceBuilder model;
+    private final ArtifactQuarkusApplicationManagedResourceBuilder model;
     private final KubectlClient client;
 
     private LoggingHandler loggingHandler;
@@ -31,7 +33,7 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     private boolean running;
     private String image;
 
-    public KubernetesQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
+    public KubernetesQuarkusApplicationManagedResource(ArtifactQuarkusApplicationManagedResourceBuilder model) {
         super(model.getContext());
         this.model = model;
         this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
@@ -100,6 +102,10 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
         return loggingHandler;
     }
 
+    protected Map<String, String> addExtraTemplateProperties() {
+        return Collections.emptyMap();
+    }
+
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS) {
             fail("SSL is not supported for Kubernetes tests yet");
@@ -116,7 +122,9 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
         String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
                 QUARKUS_KUBERNETES_TEMPLATE);
         client.applyServiceProperties(model.getContext().getOwner(), deploymentFile,
-                this::replaceDeploymentContent, model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+                this::replaceDeploymentContent,
+                addExtraTemplateProperties(),
+                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
     private String replaceDeploymentContent(String content) {

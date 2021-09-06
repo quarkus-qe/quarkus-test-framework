@@ -13,6 +13,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,12 +155,19 @@ public final class OpenShiftClient {
     /**
      * Update the file and then apply the file into Kubernetes.
      * A copy of the end template will be placed in the target location.
-     *
-     * @param file
      */
     public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update, Path target) {
+        applyServicePropertiesUsingTemplate(service, file, update, Collections.emptyMap(), target);
+    }
+
+    /**
+     * Update the file with extra template properties, and then apply the file into Kubernetes.
+     * A copy of the end template will be placed in the target location.
+     */
+    public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update,
+            Map<String, String> extraTemplateProperties, Path target) {
         String content = FileUtils.loadFile(file);
-        content = enrichTemplate(service, update.apply(content));
+        content = enrichTemplate(service, update.apply(content), extraTemplateProperties);
         apply(FileUtils.copyContentTo(content, target));
     }
 
@@ -527,7 +535,7 @@ public final class OpenShiftClient {
         }
     }
 
-    private String enrichTemplate(Service service, String template) {
+    private String enrichTemplate(Service service, String template, Map<String, String> extraTemplateProperties) {
         List<HasMetadata> objs = loadYaml(template);
         for (HasMetadata obj : objs) {
             // set namespace
@@ -547,6 +555,7 @@ public final class OpenShiftClient {
 
                 // add env var properties
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
+                enrichProperties.putAll(extraTemplateProperties);
                 dc.getSpec().getTemplate().getSpec().getContainers()
                         .forEach(container -> enrichProperties.entrySet().forEach(
                                 property -> {

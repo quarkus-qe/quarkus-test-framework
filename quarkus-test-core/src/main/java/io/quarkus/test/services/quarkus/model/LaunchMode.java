@@ -4,7 +4,8 @@ public enum LaunchMode {
     LEGACY_JAR("legacy-jar"),
     NATIVE("native"),
     JVM("jvm"),
-    DEV("dev");
+    DEV("dev"),
+    REMOTE_DEV("remote-dev");
 
     private final String name;
 

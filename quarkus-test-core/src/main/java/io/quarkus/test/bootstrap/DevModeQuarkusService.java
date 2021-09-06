@@ -5,7 +5,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.List;
@@ -21,8 +20,6 @@ import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlElement;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
-import io.quarkus.test.services.DevModeQuarkusApplication;
-
 public class DevModeQuarkusService extends RestService {
     public static final String DEV_UI_PATH = "/q/dev";
 
@@ -35,7 +32,7 @@ public class DevModeQuarkusService extends RestService {
     public DevModeQuarkusService enableContinuousTesting() {
         HtmlPage webDevUi = webDevUiPage();
 
-        // If the enable continuous testing btn is not found, we assume it's already enabled it.
+        // If the "enable continuous testing" btn is not found, we assume it's already enabled it.
         if (isContinuousTestingBtnDisabled(webDevUi)) {
             clickOnElement(getContinuousTestingBtn(webDevUi));
         }
@@ -65,13 +62,6 @@ public class DevModeQuarkusService extends RestService {
             targetPath.setLastModified(System.currentTimeMillis());
         } catch (IOException e) {
             Assertions.fail("Error copying file. Caused by " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void validate(Field field) {
-        if (!field.isAnnotationPresent(DevModeQuarkusApplication.class)) {
-            Assertions.fail("DevModeQuarkusService service is not annotated with DevModeQuarkusApplication");
         }
     }
 
@@ -113,10 +103,6 @@ public class DevModeQuarkusService extends RestService {
         }
     }
 
-    private void waitUntilLoaded(HtmlPage page) {
-        page.getEnclosingWindow().getJobManager().waitForJobs(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
-    }
-
     public HtmlPage webPage(String path) {
         try {
             return webClient().getPage(getHost() + ":" + getPort() + path);
@@ -146,11 +132,7 @@ public class DevModeQuarkusService extends RestService {
         return webClient;
     }
 
-    private static void sleep(int millis) {
-        try {
-            Thread.sleep(millis);
-        } catch (InterruptedException ignored) {
-
-        }
+    private void waitUntilLoaded(HtmlPage page) {
+        page.getEnclosingWindow().getJobManager().waitForJobs(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
     }
 }

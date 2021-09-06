@@ -14,7 +14,6 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 
 public final class FileUtils {
 
@@ -92,13 +91,16 @@ public final class FileUtils {
         }
     }
 
-    public static void copyCurrentDirectoryTo(Path target) {
+    public static void copyDirectoryTo(Path source, Path target) {
         try {
-            org.apache.commons.io.FileUtils.copyDirectory(Paths.get(".").toFile(), target.toFile(),
-                    path -> !StringUtils.contains(path.toString(), TARGET));
+            org.apache.commons.io.FileUtils.copyDirectory(source.toFile(), target.toFile());
         } catch (IOException e) {
             fail("Could not copy project. Caused by " + e.getMessage());
         }
+    }
+
+    public static void copyCurrentDirectoryTo(Path target) {
+        copyDirectoryTo(Paths.get("."), target);
     }
 
     public static void deletePath(Path folder) {

@@ -8,7 +8,9 @@ import io.quarkus.test.configuration.PropertyLookup;
 
 public final class QuarkusProperties {
 
-    public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup("quarkus.package.type");
+    public static final String PACKAGE_TYPE_NAME = "quarkus.package.type";
+    public static final String MUTABLE_JAR = "mutable-jar";
+    public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
     public static final List<String> PACKAGE_TYPE_NATIVE_VALUES = Arrays.asList("native", "native-sources");
     public static final List<String> PACKAGE_TYPE_LEGACY_JAR_VALUES = Arrays.asList("legacy-jar", "uber-jar", "mutable-jar");
     public static final List<String> PACKAGE_TYPE_JVM_VALUES = Arrays.asList("fast-jar", "jar");

@@ -71,6 +71,7 @@ quarkus.opentelemetry.enabled
 quarkus.opentelemetry.tracer.enabled
 quarkus.opentelemetry.tracer.exporter.jaeger.enabled
 quarkus.opentelemetry.tracer.exporter.otlp.enabled
+quarkus.package.type
 quarkus.reactive-messaging.health.enabled
 quarkus.reactive-messaging.kafka.serializer-autodetection.enabled
 quarkus.reactive-messaging.metrics.enabled
