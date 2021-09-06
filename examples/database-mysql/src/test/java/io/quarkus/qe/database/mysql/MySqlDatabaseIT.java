@@ -1,6 +1,8 @@
 package io.quarkus.qe.database.mysql;
 
-import io.quarkus.test.bootstrap.DefaultService;
+import static io.quarkus.qe.database.mysql.DevModeMySqlDatabaseIT.MYSQL_PORT;
+
+import io.quarkus.test.bootstrap.MySqlService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.Container;
@@ -9,23 +11,14 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class MySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
-    static final String MYSQL_USER = "user";
-    static final String MYSQL_PASSWORD = "user";
-    static final String MYSQL_DATABASE = "mydb";
-    static final int MYSQL_PORT = 3306;
-
     @Container(image = "mysql/mysql-server:8.0", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
-    static DefaultService database = new DefaultService()
-            .withProperty("MYSQL_USER", MYSQL_USER)
-            .withProperty("MYSQL_PASSWORD", MYSQL_PASSWORD)
-            .withProperty("MYSQL_DATABASE", MYSQL_DATABASE);
+    static MySqlService database = new MySqlService();
 
     @QuarkusApplication
     static RestService app = new RestService()
-            .withProperty("quarkus.datasource.username", MYSQL_USER)
-            .withProperty("quarkus.datasource.password", MYSQL_PASSWORD)
-            .withProperty("quarkus.datasource.jdbc.url",
-                    () -> database.getHost().replace("http", "jdbc:mysql") + ":" + database.getPort() + "/" + MYSQL_DATABASE);
+            .withProperty("quarkus.datasource.username", database.getUser())
+            .withProperty("quarkus.datasource.password", database.getPassword())
+            .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
     @Override
     protected RestService getApp() {

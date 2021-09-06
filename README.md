@@ -1185,6 +1185,51 @@ public class GreetingResourceIT {
 }
 ```
 
+#### Database Services
+
+The test framework have some utilities to ease the setup of database containers. In order to use these services, you need to 
+add the following dependency into your Maven configuration:
+
+```xml
+<dependency>
+    <groupId>io.quarkus.qe</groupId>
+    <artifactId>quarkus-test-service-database</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+The supported database services are:
+
+- MySQL service
+- MariaDB service
+- DB2 service
+- SQL Server service (we can't set a custom user, password and database)
+- PostgreSQL service
+
+All the database services contain the following methods:
+
+- `getJdbcUrl`: to return the JDBC connection URL.
+- `getReactiveUrl`: to return the reactive way connection URL.
+
+Example usage:
+
+```java
+@QuarkusScenario
+public class MySqlDatabaseIT {
+
+    @Container(image = "mysql/mysql-server:8.0", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
+    static MySqlService database = new MySqlService();
+
+    @QuarkusApplication
+    static RestService app = new RestService()
+            .withProperty("quarkus.datasource.username", database.getUser())
+            .withProperty("quarkus.datasource.password", database.getPassword())
+            .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl)
+            .withProperty("quarkus.datasource.reactive.url", database::getReactiveUrl);
+    
+    // ...
+}
+```
 
 ## More Features
 
