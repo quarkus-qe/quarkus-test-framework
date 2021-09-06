@@ -1,0 +1,4 @@
+[allowlist]
+  description = "a description string for a global allowlist config"
+  ## SqlServerService in quarkus-test-service-database contains sensitive data that needs to be ignored
+  paths = ['''quarkus-test-service-database/*''']
