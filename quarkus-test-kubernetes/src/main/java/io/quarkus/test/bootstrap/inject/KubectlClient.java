@@ -273,10 +273,6 @@ public final class KubectlClient {
         }
     }
 
-    private String extractNamespace(String namespace) {
-        return namespace.split(":")[1];
-    }
-
     private boolean isPodRunning(Pod pod) {
         return pod.getStatus().getPhase().equals("Running");
     }

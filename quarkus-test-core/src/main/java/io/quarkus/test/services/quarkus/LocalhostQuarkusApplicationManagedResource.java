@@ -148,12 +148,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     }
 
     private int getOrAssignPortByProperty(String property) {
-        String port = model.getContext().getOwner().getProperties().get(property);
-        if (StringUtils.isEmpty(port)) {
-            return SocketUtils.findAvailablePort();
-        }
-
-        return Integer.parseInt(port);
+        return model.getContext().getOwner().getProperty(property)
+                .filter(StringUtils::isNotEmpty)
+                .map(Integer::parseInt)
+                .orElseGet(SocketUtils::findAvailablePort);
     }
 
     private List<String> getPropertiesForCommand() {

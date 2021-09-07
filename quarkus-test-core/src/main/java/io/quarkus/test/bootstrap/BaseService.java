@@ -16,6 +16,8 @@ import java.util.ServiceLoader;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.FileUtils;
@@ -37,6 +39,7 @@ public class BaseService<T extends Service> implements Service {
     private final Map<String, String> properties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
 
+    private ManagedResourceBuilder managedResourceBuilder;
     private ManagedResource managedResource;
     private String serviceName;
     private Configuration configuration;
@@ -150,6 +153,21 @@ public class BaseService<T extends Service> implements Service {
         return new ArrayList<>(managedResource.logs());
     }
 
+    @Override
+    public String getProperty(String property, String defaultValue) {
+        String value = getProperties().get(property);
+        if (StringUtils.isNotBlank(value)) {
+            return value;
+        }
+
+        String computedValue = managedResourceBuilder.getComputedProperty(property);
+        if (StringUtils.isNotBlank(computedValue)) {
+            return computedValue;
+        }
+
+        return defaultValue;
+    }
+
     /**
      * Start the managed resource. If the managed resource is running, it does
      * nothing.
@@ -209,7 +227,8 @@ public class BaseService<T extends Service> implements Service {
     @Override
     public void init(ManagedResourceBuilder managedResourceBuilder) {
         FileUtils.recreateDirectory(context.getServiceFolder());
-        managedResource = managedResourceBuilder.build(context);
+        this.managedResourceBuilder = managedResourceBuilder;
+        this.managedResource = managedResourceBuilder.build(context);
     }
 
     public void restart() {

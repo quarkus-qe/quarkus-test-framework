@@ -38,13 +38,9 @@ public class PropertyLookup {
         }
 
         // Or from service properties
-        value = service.getOwner().getProperties().get(value);
-        if (StringUtils.isNotBlank(value)) {
-            return value;
-        }
-
-        // Or from system properties
-        return get();
+        return service.getOwner().getProperty(propertyKey)
+                // Or from system properties
+                .orElseGet(this::get);
     }
 
     public String get() {
