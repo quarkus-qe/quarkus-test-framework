@@ -121,14 +121,14 @@ After the build was successful, the artifacts are available in your local Maven 
 
 ### Test Coverage
 
-Quarkus Test Framework uses JaCoCo to generate test coverage. If you would like to generate the report run `mvn install -Ptest-coverage`,
+Quarkus Test Framework uses JaCoCo to generate test coverage. If you would like to generate the report run `mvn install -Pcoverage`,
 then change into the `coverage-report` directory and run `mvn package`. The code coverage report will be generated in
 `target/site/jacoco/`.
 
 This currently does not work on Windows as it uses a shell script to copy all the classes and files into the code coverage
 module.
 
-If you just need a report for a single module, run `mvn install jacoco:report -Ptest-coverage` in that module (or with `-f ...`).
+If you just need a report for a single module, run `mvn install jacoco:report -Pcoverage` in that module (or with `-f ...`).
 
 ## The small print
 
