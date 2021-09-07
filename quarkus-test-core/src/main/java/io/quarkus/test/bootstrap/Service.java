@@ -3,8 +3,8 @@ package io.quarkus.test.bootstrap;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import io.quarkus.test.configuration.Configuration;
@@ -21,6 +21,12 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
     Configuration getConfiguration();
 
     Map<String, String> getProperties();
+
+    default Optional<String> getProperty(String property) {
+        return Optional.ofNullable(getProperty(property, null));
+    }
+
+    String getProperty(String property, String defaultValue);
 
     List<String> getLogs();
 
@@ -52,14 +58,5 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
     @Override
     default void close() {
         stop();
-    }
-
-    default String getProperty(String property, String defaultValue) {
-        String value = getProperties().get(property);
-        if (StringUtils.isNotBlank(value)) {
-            return value;
-        }
-
-        return defaultValue;
     }
 }

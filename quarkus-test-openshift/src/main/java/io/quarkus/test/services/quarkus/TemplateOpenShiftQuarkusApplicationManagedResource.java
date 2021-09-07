@@ -41,12 +41,10 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
     }
 
     protected int getInternalPort() {
-        String internalPort = model.getContext().getOwner().getProperties().get(QUARKUS_HTTP_PORT_PROPERTY);
-        if (StringUtils.isNotBlank(internalPort)) {
-            return Integer.parseInt(internalPort);
-        }
-
-        return INTERNAL_PORT_DEFAULT;
+        return model.getContext().getOwner().getProperty(QUARKUS_HTTP_PORT_PROPERTY)
+                .filter(StringUtils::isNotBlank)
+                .map(Integer::parseInt)
+                .orElse(INTERNAL_PORT_DEFAULT);
     }
 
     protected Map<String, String> addExtraTemplateProperties() {

@@ -9,6 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -75,6 +76,23 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return selectedAppClasses;
     }
 
+    @Override
+    public String getComputedProperty(String name) {
+        Path applicationProperties = getComputedApplicationProperties();
+        if (!Files.exists(applicationProperties)) {
+            // computed properties have not been propagated yet, we use the one from src/main/resources
+            applicationProperties = RESOURCES_FOLDER.resolve(APPLICATION_PROPERTIES);
+        }
+
+        if (!Files.exists(applicationProperties)) {
+            return null;
+        }
+
+        Map<String, String> computedProperties = PropertiesUtils.toMap(applicationProperties);
+        return Optional.ofNullable(computedProperties.get(name))
+                .orElseGet(() -> computedProperties.get(propertyWithProfile(name)));
+    }
+
     public boolean containsBuildProperties() {
         Map<String, String> differenceProperties = MapUtils.difference(context.getOwner().getProperties(), propertiesSnapshot);
         Set<String> properties = differenceProperties.keySet();
@@ -111,7 +129,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     protected void copyResourcesToAppFolder() {
         copyResourcesInFolderToAppFolder(RESOURCES_FOLDER);
         copyResourcesInFolderToAppFolder(TEST_RESOURCES_FOLDER);
-        createEffectiveApplicationProperties();
+        createComputedApplicationProperties();
     }
 
     protected Path getApplicationFolder() {
@@ -122,8 +140,12 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return getApplicationFolder();
     }
 
-    private void createEffectiveApplicationProperties() {
-        Path applicationProperties = getResourcesApplicationFolder().resolve(APPLICATION_PROPERTIES);
+    private Path getComputedApplicationProperties() {
+        return getResourcesApplicationFolder().resolve(APPLICATION_PROPERTIES);
+    }
+
+    private void createComputedApplicationProperties() {
+        Path applicationProperties = getComputedApplicationProperties();
         Map<String, String> map = new HashMap<>();
         // Put the original application properties
         if (Files.exists(applicationProperties)) {
@@ -164,6 +186,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         } catch (IOException ex) {
             // ignored
         }
+    }
+
+    private String propertyWithProfile(String name) {
+        return "%" + context.getScenarioContext().getRunningTestClassName() + "." + name;
     }
 
 }

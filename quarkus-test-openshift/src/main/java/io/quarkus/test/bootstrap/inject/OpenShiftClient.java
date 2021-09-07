@@ -329,7 +329,7 @@ public final class OpenShiftClient {
         for (Pod pod : podsInService(service)) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
-                logs.put(podName, client.pods().withName(podName).getLog());
+                logs.put(podName, client.pods().withName(podName).inContainer(service.getName()).getLog());
             }
         }
 

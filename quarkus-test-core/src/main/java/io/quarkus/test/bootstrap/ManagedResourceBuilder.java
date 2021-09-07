@@ -2,6 +2,8 @@ package io.quarkus.test.bootstrap;
 
 import java.lang.annotation.Annotation;
 
+import org.apache.commons.lang3.StringUtils;
+
 public interface ManagedResourceBuilder {
 
     /**
@@ -16,5 +18,12 @@ public interface ManagedResourceBuilder {
      */
     default void init(Annotation annotation) {
 
+    }
+
+    /**
+     * @return computed property that depends on the managed resource builder implementation.
+     */
+    default String getComputedProperty(String property) {
+        return StringUtils.EMPTY;
     }
 }

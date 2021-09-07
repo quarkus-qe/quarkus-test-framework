@@ -124,11 +124,9 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     }
 
     private int getOrAssignPortByProperty(String property) {
-        String port = serviceContext.getOwner().getProperties().get(property);
-        if (StringUtils.isEmpty(port)) {
-            return SocketUtils.findAvailablePort();
-        }
-
-        return Integer.parseInt(port);
+        return serviceContext.getOwner().getProperty(property)
+                .filter(StringUtils::isNotEmpty)
+                .map(Integer::parseInt)
+                .orElseGet(SocketUtils::findAvailablePort);
     }
 }
