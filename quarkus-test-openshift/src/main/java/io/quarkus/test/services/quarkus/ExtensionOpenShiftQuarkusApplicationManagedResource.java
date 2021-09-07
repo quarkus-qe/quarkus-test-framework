@@ -37,6 +37,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
+    private static final String QUARKUS_KNATIVE_ENV_VARS = "quarkus.knative.env.vars.";
+    private static final String QUARKUS_KNATIVE_LABELS = "quarkus.knative.labels.";
+    private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET = "quarkus.kubernetes.deployment-target";
+    private static final String KNATIVE = "knative";
 
     private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
 
@@ -115,12 +119,20 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private String withLabelsForWatching() {
-        return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_TO_WATCH_FOR_LOGS,
-                model.getContext().getOwner().getName());
+        return withLabels(OpenShiftClient.LABEL_TO_WATCH_FOR_LOGS, model.getContext().getOwner().getName());
     }
 
     private String withLabelsForScenarioId() {
-        return withProperty(QUARKUS_OPENSHIFT_LABELS + OpenShiftClient.LABEL_SCENARIO_ID, client.getScenarioId());
+        return withLabels(OpenShiftClient.LABEL_SCENARIO_ID, client.getScenarioId());
+    }
+
+    private String withLabels(String label, String value) {
+        String property = QUARKUS_OPENSHIFT_LABELS;
+        if (isKnativeDeployment()) {
+            property = QUARKUS_KNATIVE_LABELS;
+        }
+
+        return withProperty(property + label, value);
     }
 
     private String withContainerName() {
@@ -140,10 +152,19 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private void withEnvVars(List<String> args, Map<String, String> envVars) {
+        String property = QUARKUS_OPENSHIFT_ENV_VARS;
+        if (isKnativeDeployment()) {
+            property = QUARKUS_KNATIVE_ENV_VARS;
+        }
+
         for (Entry<String, String> envVar : envVars.entrySet()) {
             String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
-            args.add(withProperty(QUARKUS_OPENSHIFT_ENV_VARS + envVarKey, envVar.getValue()));
+            args.add(withProperty(property + envVarKey, envVar.getValue()));
         }
+    }
+
+    private boolean isKnativeDeployment() {
+        return KNATIVE.equals(model.getComputedProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET));
     }
 
     private void cloneProjectToServiceAppFolder() {
