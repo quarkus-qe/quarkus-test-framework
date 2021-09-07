@@ -16,11 +16,6 @@ public class OperatorService<T extends Service> extends BaseService<T> {
         return crds;
     }
 
-    public OperatorService<T> withCrd(String name, String crdFile) {
-        crds.add(new CustomResourceDefinition(name, crdFile));
-        return this;
-    }
-
     public OperatorService<T> withCrd(String name, String crdFile,
             Class<? extends CustomResource<CustomResourceSpec, CustomResourceStatus>> type) {
         crds.add(new CustomResourceDefinition(name, crdFile, type));
