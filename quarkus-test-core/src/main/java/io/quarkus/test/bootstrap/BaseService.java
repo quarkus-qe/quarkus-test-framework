@@ -240,7 +240,7 @@ public class BaseService<T extends Service> implements Service {
         return new LogsVerifier(this);
     }
 
-    protected Path getServiceFolder() {
+    public Path getServiceFolder() {
         return context.getServiceFolder();
     }
 
