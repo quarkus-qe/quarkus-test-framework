@@ -42,6 +42,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.dsl.ExecListener;
 import io.fabric8.kubernetes.client.dsl.ExecWatch;
+import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -312,7 +313,10 @@ public final class OpenShiftClient {
         Map<String, String> logs = new HashMap<>();
         for (Pod pod : client.pods().list().getItems()) {
             String podName = pod.getMetadata().getName();
-            logs.put(podName, client.pods().withName(podName).getLog());
+            PodResource<Pod> resource = client.pods().withName(podName);
+            for (Container container : pod.getSpec().getContainers()) {
+                logs.put(podName + "-" + container.getName(), resource.inContainer(container.getName()).getLog());
+            }
         }
 
         return logs;
@@ -329,7 +333,10 @@ public final class OpenShiftClient {
         for (Pod pod : podsInService(service)) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
-                logs.put(podName, client.pods().withName(podName).inContainer(service.getName()).getLog());
+                PodResource<Pod> resource = client.pods().withName(podName);
+                for (Container container : pod.getSpec().getContainers()) {
+                    logs.put(podName + "-" + container.getName(), resource.inContainer(container.getName()).getLog());
+                }
             }
         }
 
