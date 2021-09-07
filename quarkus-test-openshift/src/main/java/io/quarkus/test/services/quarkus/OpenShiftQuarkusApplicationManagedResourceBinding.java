@@ -1,7 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static org.junit.jupiter.api.Assertions.fail;
-
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 
@@ -17,15 +15,7 @@ public class OpenShiftQuarkusApplicationManagedResourceBinding implements Quarku
         OpenShiftScenario annotation = builder.getContext().getTestContext().getRequiredTestClass()
                 .getAnnotation(OpenShiftScenario.class);
 
-        try {
-            return annotation.deployment().getStrategyClass()
-                    .getDeclaredConstructor(ProdQuarkusApplicationManagedResourceBuilder.class)
-                    .newInstance(builder);
-        } catch (Exception exception) {
-            fail("Failed to load OpenShift strategy. Caused by " + exception.getMessage());
-        }
-
-        return null;
+        return annotation.deployment().getManagedResource(builder);
     }
 
 }

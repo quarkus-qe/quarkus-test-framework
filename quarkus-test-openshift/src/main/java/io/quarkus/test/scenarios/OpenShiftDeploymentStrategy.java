@@ -1,10 +1,13 @@
 package io.quarkus.test.scenarios;
 
+import java.util.function.Function;
+
 import io.quarkus.test.services.quarkus.BuildOpenShiftQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.ContainerRegistryOpenShiftQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.ExtensionOpenShiftQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResource;
+import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
 
 /**
  * OpenShift Deployment strategies.
@@ -13,28 +16,29 @@ public enum OpenShiftDeploymentStrategy {
     /**
      * Will push the artifacts into OpenShift and build the image that will be used to run the pods.
      */
-    Build(BuildOpenShiftQuarkusApplicationManagedResource.class),
+    Build(BuildOpenShiftQuarkusApplicationManagedResource::new),
     /**
      * Will build the Quarkus app image and push it into a Container Registry to be accessed by OpenShift to deploy the app.
      */
-    UsingContainerRegistry(ContainerRegistryOpenShiftQuarkusApplicationManagedResource.class),
+    UsingContainerRegistry(ContainerRegistryOpenShiftQuarkusApplicationManagedResource::new),
     /**
      * Will use the OpenShift Quarkus extension to build and deploy into OpenShift.
      */
-    UsingOpenShiftExtension(ExtensionOpenShiftQuarkusApplicationManagedResource.class),
+    UsingOpenShiftExtension(ExtensionOpenShiftQuarkusApplicationManagedResource::new),
     /**
      * Will use the OpenShift Quarkus extension to build within Docker and then deploy into OpenShift.
      */
     UsingOpenShiftExtensionAndDockerBuildStrategy(
-            ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManagedResource.class);
+            ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManagedResource::new);
 
-    private final Class<? extends OpenShiftQuarkusApplicationManagedResource> strategyClass;
+    private final Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource> supplier;
 
-    OpenShiftDeploymentStrategy(Class<? extends OpenShiftQuarkusApplicationManagedResource> strategyClass) {
-        this.strategyClass = strategyClass;
+    OpenShiftDeploymentStrategy(
+            Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource> supplier) {
+        this.supplier = supplier;
     }
 
-    public Class<? extends OpenShiftQuarkusApplicationManagedResource> getStrategyClass() {
-        return strategyClass;
+    public OpenShiftQuarkusApplicationManagedResource getManagedResource(ProdQuarkusApplicationManagedResourceBuilder builder) {
+        return supplier.apply(builder);
     }
 }
