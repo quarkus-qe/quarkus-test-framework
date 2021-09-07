@@ -1240,6 +1240,7 @@ The supported database services are:
 - DB2 service
 - SQL Server service (we can't set a custom user, password and database)
 - PostgreSQL service
+- Oracle service
 
 All the database services contain the following methods:
 
