@@ -1330,8 +1330,7 @@ and run all your tests in your current namespace.
 
 Full example command: `mvn clean verify -Popenshift -Dts.openshift.ephemeral.namespaces.enabled=false`
 
-Default value: `ts.openshift.ephemeral.namespaces.enabled=true`
-**Note:** this feature doesn't support operators
+**Note:** this feature is not supported for operators
 
 - Partial SSL support
 

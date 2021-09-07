@@ -1,5 +1,6 @@
 package io.quarkus.test.services.operator;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -80,17 +81,16 @@ public class OperatorManagedResource implements ManagedResource {
 
     private void applyCRD(CustomResourceDefinition crd) {
         ServiceContext serviceContext = model.getContext();
+        Path crdFileDefinition = serviceContext.getServiceFolder().resolve(crd.getName());
         String content = FileUtils.loadFile(crd.getFile());
+        FileUtils.copyContentTo(content, crdFileDefinition);
 
-        client.apply(FileUtils.copyContentTo(content, serviceContext.getServiceFolder().resolve(crd.getName())));
-
-        if (crd.getType().isPresent()) {
-            crdsToWatch.add(crd);
-        }
+        client.apply(crdFileDefinition);
+        crdsToWatch.add(crd);
     }
 
     private boolean customResourcesAreReady() {
-        return crdsToWatch.stream().allMatch(crd -> client.isCustomResourceReady(crd.getName(), crd.getType().get()));
+        return crdsToWatch.stream().allMatch(crd -> client.isCustomResourceReady(crd.getName(), crd.getType()));
     }
 
     private void installOperator() {
