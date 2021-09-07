@@ -1241,6 +1241,7 @@ The supported database services are:
 - SQL Server service (we can't set a custom user, password and database)
 - PostgreSQL service
 - Oracle service
+- MongoDB service
 
 All the database services contain the following methods:
 
