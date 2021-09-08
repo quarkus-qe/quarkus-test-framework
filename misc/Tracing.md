@@ -9,7 +9,7 @@ be included as Span tags, so then later you can filter in Jaeger by your custom 
 All errors are going to be tagged as `error` and the error message is going to be attached to your span as an event log.
 
 In order to push your tracing events to your Jaeger you must provide the following system properties:
-- ts.global.tracing.jaeger.endpoint (required):
+- ts.global.tracing.jaeger.endpoint:
         Default Value: `http://localhost:14268/api/traces` 
         Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:14268/api/traces`
         
@@ -45,7 +45,7 @@ jaeger-ui    <JAEGER UI URL>           jaeger-ui    <all>                 None
 After installing Jaeger, then we can run our test suite, for example: 
 
 ```
-mvn clean verify -Dts.buildNumber="475" -Dts.service-name="1.2.1" -Dts.jaeger-http-endpoint="http://<JAEGER API URL>/api/traces" 
+mvn clean verify -Dts.global.build-number="475" -Dts.global.service-name="1.2.1" -Dts.global.tracing.jaeger.endpoint="http://<JAEGER API URL>/api/traces" 
 ```
 
 The spanIds within the test framework must follow the next convention:

@@ -30,6 +30,6 @@ configure the output file using `-Dts.global.metrics.export.file.output=/to/metr
 ## Prometheus Gateway
 
 In order to enable the Prometheus exported, you need to provide the following system properties:
-- ts.global.metrics.export.prometheus.endpoint (required):
+- ts.global.metrics.export.prometheus.endpoint:
         Default Value: `127.0.0.1:9091` 
         Example, `myprometheus.apps.ocp47.dynamic.quarkus:9091`
