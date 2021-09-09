@@ -5,13 +5,15 @@ import java.util.List;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public abstract class QuarkusManagedResource implements ManagedResource {
 
-    private static final String EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED = "features";
+    private static final String EXPECTED_OUTPUT_DEFAULT = "Installed features";
+    private static final PropertyLookup EXPECTED_OUTPUT = new PropertyLookup("quarkus.expected.log", EXPECTED_OUTPUT_DEFAULT);
     private static final List<String> ERRORS = Arrays.asList("Failed to start application",
             "Failed to load config value of type class",
             "Quarkus may already be running or the port is used by another application",
@@ -21,10 +23,12 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     private final ServiceContext serviceContext;
     private final LaunchMode launchMode;
+    private final String expectedOutput;
 
     public QuarkusManagedResource(ServiceContext serviceContext) {
         this.serviceContext = serviceContext;
         this.launchMode = detectLaunchMode(serviceContext);
+        this.expectedOutput = EXPECTED_OUTPUT.get(serviceContext);
     }
 
     @Override
@@ -34,7 +38,7 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     @Override
     public boolean isRunning() {
-        if (getLoggingHandler() != null && getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_SUCCESSFULLY_STARTED)) {
+        if (getLoggingHandler() != null && getLoggingHandler().logsContains(expectedOutput)) {
             getLoggingHandler().flush();
             return true;
         }

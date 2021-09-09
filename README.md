@@ -173,6 +173,12 @@ All the properties can be configured globally by replacing `<YOUR SERVICE NAME>`
 
 The current configuration options are: 
 
+- Quarkus Expected Output:
+
+```
+ts.global.quarkus.expected.log=Installed features
+```
+
 - Enable/Disable logging (enabled by default):
 
 ```
