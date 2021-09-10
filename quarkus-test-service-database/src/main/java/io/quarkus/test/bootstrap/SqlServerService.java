@@ -2,19 +2,19 @@ package io.quarkus.test.bootstrap;
 
 public class SqlServerService extends DatabaseService<SqlServerService> {
 
-    static final String USER = "sa";
-    static final String PASSWORD = "My1337p@ssworD";
-    static final String DATABASE = "mydb";
-    static final String JDBC_NAME = "sqlserver";
+    private static final String USER = "sa";
+    private static final String DEFAULT_PASSWORD = "My1337p@ssworD";
+    private static final String DATABASE = "msdb";
+    private static final String JDBC_NAME = "sqlserver";
+
+    public SqlServerService() {
+        super();
+        withPassword(DEFAULT_PASSWORD);
+    }
 
     @Override
     public String getUser() {
         return USER;
-    }
-
-    @Override
-    public String getPassword() {
-        return PASSWORD;
     }
 
     @Override
@@ -24,26 +24,28 @@ public class SqlServerService extends DatabaseService<SqlServerService> {
 
     @Override
     public String getJdbcUrl() {
-        return getHost().replace("http", "jdbc:" + getJdbcName()) + ":" + getPort() + ";" + getDatabase();
+        return getHost().replace("http", "jdbc:" + getJdbcName()) + ":" + getPort() + ";databaseName=" + getDatabase();
     }
 
     @Override
     public SqlServerService withUser(String user) {
-        throw new UnsupportedOperationException("No supported using SQL Server");
-    }
-
-    @Override
-    public SqlServerService withPassword(String password) {
-        throw new UnsupportedOperationException("No supported using Sql Server");
+        throw new UnsupportedOperationException("You cannot configure a username for SQL Server");
     }
 
     @Override
     public SqlServerService withDatabase(String database) {
-        throw new UnsupportedOperationException("No supported using Sql Server");
+        throw new UnsupportedOperationException("You cannot configure a database for SQL Server");
     }
 
     @Override
     protected String getJdbcName() {
         return JDBC_NAME;
+    }
+
+    @Override
+    public SqlServerService onPreStart(Action action) {
+        withProperty("SA_PASSWORD", getPassword());
+        withProperty("ACCEPT_EULA", "Y");
+        return super.onPreStart(action);
     }
 }
