@@ -484,6 +484,11 @@ public class GreetingResourceIT {
 }
 ```
 
+#### Delete Container Images on Stop
+
+If you want to delete the images after use, you need to provide the property `ts.<YOUR SERVICE NAME>.container.delete.image.on.stop=true` or
+`ts.global.container.delete.image.on.stop=true` to apply this property to all the containers.
+
 #### Privileged Mode
 Some containers require `--privileged` mode to run properly. This mode can be enabled on a per-container basis via property `ts.<YOUR SERVICE NAME>.container.privileged-mode=true` or for all containers via property `ts.global.container.privileged-mode=true`. This property only affects containers which are both: 
 1) Deployed on bare metal, not in Kubernetes/OpenShift.
