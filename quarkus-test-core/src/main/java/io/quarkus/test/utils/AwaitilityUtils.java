@@ -80,7 +80,19 @@ public final class AwaitilityUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T untilIsNotNull(Supplier<T> supplier) {
-        return until(supplier, (Matcher<T>) Matchers.notNullValue());
+        return untilIsNotNull(supplier, AwaitilitySettings.defaults());
+    }
+
+    /**
+     * Wait until supplier returns a not null instance.
+     *
+     * @param supplier method to return the instance.
+     * @param settings Awaitility Settings
+     * @return the non null instance.
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> T untilIsNotNull(Supplier<T> supplier, AwaitilitySettings settings) {
+        return until(supplier, (Matcher<T>) Matchers.<T> notNullValue(), settings);
     }
 
     /**
@@ -109,11 +121,25 @@ public final class AwaitilityUtils {
      * @param assertion custom assertions that the instance must satisfy.
      */
     public static void untilAsserted(ThrowingRunnable assertion) {
-        awaits().untilAsserted(assertion);
+        untilAsserted(assertion, AwaitilitySettings.defaults());
+    }
+
+    /**
+     * Wait until the assertions are satified.
+     *
+     * @param assertion custom assertions that the instance must satisfy.
+     * @param settings Awaitility Settings
+     */
+    public static void untilAsserted(ThrowingRunnable assertion, AwaitilitySettings settings) {
+        awaits(settings).untilAsserted(assertion);
     }
 
     public static <T> T until(Supplier<T> supplier, Matcher<T> matcher) {
-        return awaits().until(get(supplier), matcher);
+        return until(supplier, matcher, AwaitilitySettings.defaults());
+    }
+
+    public static <T> T until(Supplier<T> supplier, Matcher<T> matcher, AwaitilitySettings settings) {
+        return awaits(settings).until(get(supplier), matcher);
     }
 
     private static <T> Callable<T> get(Supplier<T> supplier) {
