@@ -156,6 +156,13 @@
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
                 <version>${jaeger.version}</version>
+                <exclusions>
+                    <!-- CVE-2020-1938 // https://github.com/jaegertracing/jaeger-client-java/issues/800-->
+                    <exclusion>
+                        <groupId>org.apache.tomcat.embed</groupId>
+                        <artifactId>tomcat-embed-core</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>net.sourceforge.htmlunit</groupId>
