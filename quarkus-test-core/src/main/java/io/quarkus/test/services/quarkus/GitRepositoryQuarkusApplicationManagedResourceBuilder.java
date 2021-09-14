@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static java.util.regex.Pattern.quote;
+
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.util.ServiceLoader;
@@ -7,8 +9,11 @@ import java.util.ServiceLoader;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQuarkusApplicationManagedResourceBuilder {
+
+    protected static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
 
     private final ServiceLoader<GitRepositoryQuarkusApplicationManagedResourceBinding> bindings = ServiceLoader
             .load(GitRepositoryQuarkusApplicationManagedResourceBinding.class);
@@ -37,6 +42,10 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
 
     protected boolean isDevMode() {
         return devMode;
+    }
+
+    protected String getMavenArgsWithVersion() {
+        return mavenArgs.replaceAll(quote(QUARKUS_VERSION_PROPERTY), QuarkusProperties.getVersion());
     }
 
     @Override

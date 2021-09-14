@@ -9,6 +9,8 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
+
 public class DisabledOnQuarkusVersionCondition implements ExecutionCondition {
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = ConditionEvaluationResult.enabled(
             "@DisabledOnQuarkusVersion is not present");
@@ -30,7 +32,7 @@ public class DisabledOnQuarkusVersionCondition implements ExecutionCondition {
 
     private boolean isDisabledOnCurrentQuarkusVersion(DisabledOnQuarkusVersion disabledOnQuarkus) {
         Pattern pattern = Pattern.compile(disabledOnQuarkus.version());
-        String quarkusVersion = io.quarkus.builder.Version.getVersion();
+        String quarkusVersion = QuarkusProperties.getVersion();
 
         return pattern.matcher(quarkusVersion).matches();
     }

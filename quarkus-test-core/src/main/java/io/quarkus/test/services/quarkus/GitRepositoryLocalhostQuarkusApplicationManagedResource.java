@@ -38,7 +38,7 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
         }
 
         // Maven build
-        String[] mvnArgs = StringUtils.split(model.getMavenArgs(), " ");
+        String[] mvnArgs = StringUtils.split(model.getMavenArgsWithVersion(), " ");
         List<String> effectiveProperties = getEffectivePropertiesForGitRepository(Arrays.asList(mvnArgs));
         MavenUtils.build(model.getContext(), getApplicationFolder(), effectiveProperties);
     }

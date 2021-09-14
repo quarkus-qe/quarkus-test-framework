@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_VERSION_PROPERTY;
 import static java.util.regex.Pattern.quote;
 
 import java.nio.file.Path;
@@ -7,9 +8,9 @@ import java.nio.file.Path;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 
-import io.quarkus.builder.Version;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 
 public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
@@ -17,7 +18,6 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
 
     private static final String QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME = "/quarkus-s2i-source-build-template.yml";
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
-    private static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
     private static final PropertyLookup QUARKUS_SOURCE_S2I_JVM_BUILDER_IMAGE = new PropertyLookup(
             "s2i.quarkus.jvm.builder.image");
@@ -75,9 +75,9 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     }
 
     protected String replaceDeploymentContent(String content) {
-        String quarkusVersion = Version.getVersion();
+        String quarkusVersion = QuarkusProperties.getVersion();
         String quarkusS2iBaseImage = getQuarkusS2iBaseImage();
-        String mavenArgs = model.getMavenArgs().replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
+        String mavenArgs = model.getMavenArgsWithVersion();
 
         return content.replaceAll(quote("${APP_NAME}"), model.getContext().getOwner().getName())
                 .replaceAll(quote("${QUARKUS_S2I_BUILDER_IMAGE}"), quarkusS2iBaseImage)

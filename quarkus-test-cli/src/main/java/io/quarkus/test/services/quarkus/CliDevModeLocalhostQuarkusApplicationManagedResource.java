@@ -14,6 +14,7 @@ import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
 
@@ -107,7 +108,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     private Map<String, String> getPropertiesForCommand() {
         Map<String, String> runtimeProperties = new HashMap<>(serviceContext.getOwner().getProperties());
         runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + assignedHttpPort);
-        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_VERSION, io.quarkus.builder.Version.getVersion());
+        runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_VERSION, QuarkusProperties.getVersion());
 
         if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()) {
             // In Quarkus Snapshot (999-SNAPSHOT), we can't use the quarkus platform bom as it's not resolved,

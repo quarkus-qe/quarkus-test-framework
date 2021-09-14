@@ -377,7 +377,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldVersionMatchQuarkusVersion() {
         String cliVersion = cliClient.getVersion();
-        assertEquals("Client Version " + Version.getVersion(), cliVersion);
+        assertEquals("Client Version " + QuarkusProperties.getVersion(), cliVersion);
     }
 
     @Test
