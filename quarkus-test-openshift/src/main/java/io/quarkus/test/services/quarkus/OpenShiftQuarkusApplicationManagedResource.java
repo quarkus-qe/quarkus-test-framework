@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsNotNull;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -73,7 +75,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     @Override
     public String getHost(Protocol protocol) {
         validateProtocol(protocol);
-        return client.url(model.getContext().getOwner());
+        return untilIsNotNull(() -> client.url(model.getContext().getOwner()),
+                AwaitilitySettings.defaults().withService(getContext().getOwner()));
     }
 
     @Override

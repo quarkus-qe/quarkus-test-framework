@@ -8,6 +8,8 @@ import java.util.stream.Stream;
 
 import org.apache.maven.shared.utils.StringUtils;
 
+import io.quarkus.test.utils.AwaitilityUtils;
+
 public abstract class LoggingHandler implements Closeable {
 
     private static final long TIMEOUT_IN_MILLIS = 4000;
@@ -48,7 +50,7 @@ public abstract class LoggingHandler implements Closeable {
     }
 
     public void flush() {
-        handle();
+        AwaitilityUtils.untilAsserted(this::handle);
     }
 
     @Override
