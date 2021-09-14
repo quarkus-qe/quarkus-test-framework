@@ -16,12 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
-import io.quarkus.builder.Version;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @Tag("quarkus-cli")
 @QuarkusScenario
@@ -38,10 +38,10 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldVersionMatchQuarkusVersion() {
         // Using option
-        assertEquals("Client Version " + Version.getVersion(), cliClient.run("version").getOutput());
+        assertEquals("Client Version " + QuarkusProperties.getVersion(), cliClient.run("version").getOutput());
 
         // Using shortcut
-        assertEquals("Client Version " + Version.getVersion(), cliClient.run("-v").getOutput());
+        assertEquals("Client Version " + QuarkusProperties.getVersion(), cliClient.run("-v").getOutput());
     }
 
     @Test

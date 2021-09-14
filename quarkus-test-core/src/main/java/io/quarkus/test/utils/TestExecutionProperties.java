@@ -1,7 +1,7 @@
 package io.quarkus.test.utils;
 
-import io.quarkus.builder.Version;
 import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public final class TestExecutionProperties {
 
@@ -19,7 +19,7 @@ public final class TestExecutionProperties {
     private TestExecutionProperties() {
         serviceName = new PropertyLookup("service-name", DEFAULT_SERVICE_NAME).get();
         buildNumber = new PropertyLookup("build.number", DEFAULT_BUILD_NUMBER).get();
-        versionNumber = new PropertyLookup("version-number", Version.getVersion()).get();
+        versionNumber = new PropertyLookup("version-number", QuarkusProperties.getVersion()).get();
         openshift = new PropertyLookup("openshift").getAsBoolean();
         kubernetes = new PropertyLookup("kubernetes").getAsBoolean();
     }

@@ -8,6 +8,8 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
+
 public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
     private static final String QUARKUS_SNAPSHOT_VERSION = "999-SNAPSHOT";
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = ConditionEvaluationResult.enabled(
@@ -29,6 +31,6 @@ public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
     }
 
     public static boolean isQuarkusSnapshotVersion() {
-        return QUARKUS_SNAPSHOT_VERSION.equals(io.quarkus.builder.Version.getVersion());
+        return QUARKUS_SNAPSHOT_VERSION.equals(QuarkusProperties.getVersion());
     }
 }
