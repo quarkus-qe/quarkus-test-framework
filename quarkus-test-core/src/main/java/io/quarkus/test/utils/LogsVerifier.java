@@ -14,6 +14,10 @@ public class LogsVerifier {
         this.service = service;
     }
 
+    public QuarkusLogsVerifier forQuarkus() {
+        return new QuarkusLogsVerifier(service);
+    }
+
     public void assertContains(String expectedLog) {
         AwaitilityUtils.untilAsserted(() -> {
             List<String> actualLogs = service.getLogs();

@@ -7,15 +7,24 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.lang3.StringUtils;
+
+import io.quarkus.bootstrap.model.AppArtifact;
+import io.quarkus.bootstrap.model.AppDependency;
+import io.quarkus.builder.Version;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.services.Dependency;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
@@ -34,9 +43,11 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
+    private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
 
     private Class<?>[] appClasses;
-    private boolean selectedAppClasses = true;
+    private List<AppDependency> forcedDependencies = Collections.emptyList();
+    private boolean requiresCustomBuild = false;
     private ServiceContext context;
     private boolean sslEnabled = false;
     private boolean grpcEnabled = false;
@@ -72,8 +83,12 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return appClasses;
     }
 
-    protected boolean isSelectedAppClasses() {
-        return selectedAppClasses;
+    protected List<AppDependency> getForcedDependencies() {
+        return forcedDependencies;
+    }
+
+    protected boolean requiresCustomBuild() {
+        return requiresCustomBuild;
     }
 
     @Override
@@ -115,10 +130,23 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     }
 
     public void initAppClasses(Class<?>[] classes) {
+        requiresCustomBuild = true;
         appClasses = classes;
         if (appClasses == null || appClasses.length == 0) {
             appClasses = ClassPathUtils.findAllClassesFromSource();
-            selectedAppClasses = false;
+            requiresCustomBuild = false;
+        }
+    }
+
+    public void initForcedDependencies(Dependency[] forcedDependencies) {
+        if (forcedDependencies != null && forcedDependencies.length > 0) {
+            requiresCustomBuild = true;
+            this.forcedDependencies = Stream.of(forcedDependencies).map(d -> {
+                String groupId = StringUtils.defaultIfEmpty(d.groupId(), QuarkusProperties.PLATFORM_GROUP_ID.get());
+                String version = StringUtils.defaultIfEmpty(d.version(), Version.getVersion());
+                AppArtifact artifact = new AppArtifact(groupId, d.artifactId(), version);
+                return new AppDependency(artifact, DEPENDENCY_SCOPE_DEFAULT);
+            }).collect(Collectors.toList());
         }
     }
 
