@@ -82,12 +82,19 @@ public final class DockerUtils {
         Image image = getImage(name, version);
         if (isVersion(image, version)) {
             stopContainersByImage(image.getId());
-
-            String id = image.getId().substring(image.getId().lastIndexOf(":") + 1);
-            dockerClient().removeImageCmd(id).withForce(true).exec();
+            removeImageById(image.getId());
             removed = true;
         }
         return removed;
+    }
+
+    /**
+     * Remove docker image by image id. Example: quay.io/bitnami/consul:1.9.3
+     * 
+     * @param imageId docker image to delete.
+     */
+    public static void removeImageById(String imageId) {
+        dockerClient().removeImageCmd(imageId).withForce(true).exec();
     }
 
     /**

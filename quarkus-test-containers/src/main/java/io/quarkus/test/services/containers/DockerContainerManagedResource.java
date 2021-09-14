@@ -17,9 +17,11 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
+import io.quarkus.test.utils.DockerUtils;
 
 public abstract class DockerContainerManagedResource implements ManagedResource {
 
+    private static final String DELETE_IMAGE_ON_STOP_PROPERTY = "container.delete.image.on.stop";
     private static final String RESOURCE_PREFIX = "resource::";
 
     private final ServiceContext context;
@@ -58,9 +60,15 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             loggingHandler.stopWatching();
         }
 
+        String image = innerContainer.getImage().get();
+
         if (isRunning()) {
             innerContainer.stop();
             innerContainer = null;
+        }
+
+        if (context.getOwner().getConfiguration().isTrue(DELETE_IMAGE_ON_STOP_PROPERTY)) {
+            DockerUtils.removeImageById(image);
         }
     }
 
