@@ -380,6 +380,7 @@
                 <module>examples/pingpong</module>
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>
+                <module>examples/blocking-reactive-model</module>
                 <module>examples/https</module>
                 <module>examples/grpc</module>
                 <module>examples/consul</module>

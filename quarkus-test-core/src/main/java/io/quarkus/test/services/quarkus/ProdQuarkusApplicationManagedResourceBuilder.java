@@ -52,6 +52,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         setSslEnabled(metadata.ssl());
         setGrpcEnabled(metadata.grpc());
         initAppClasses(metadata.classes());
+        initForcedDependencies(metadata.dependencies());
     }
 
     @Override
@@ -92,7 +93,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
 
     private void tryToReuseOrBuildArtifact() {
         Optional<String> artifactLocation = Optional.empty();
-        if (!containsBuildProperties() && !isSelectedAppClasses()) {
+        if (!containsBuildProperties() && !requiresCustomBuild()) {
             if (QuarkusProperties.isNativePackageType(getContext())) {
                 String nativeRunnerExpectedLocation = NATIVE_RUNNER;
                 if (OS.WINDOWS.isCurrentOs()) {
@@ -129,6 +130,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                     .setIsolateDeployment(true)
                     .setProjectRoot(testLocation)
                     .setBaseName(getContext().getName())
+                    .setForcedDependencies(getForcedDependencies())
                     .setTargetDirectory(appFolder);
 
             // The method `setLocalProjectDiscovery` signature changed from `Boolean` to `boolean` and this might make

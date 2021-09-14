@@ -11,6 +11,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 
 public final class QuarkusProperties {
 
+    public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
     public static final String PACKAGE_TYPE_NAME = "quarkus.package.type";
     public static final String MUTABLE_JAR = "mutable-jar";

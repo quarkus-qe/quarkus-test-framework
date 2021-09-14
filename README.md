@@ -85,6 +85,43 @@ public class PingPongResourceIT {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
+### Forced Dependencies
+
+We can also specify dependencies that are not part of the pom.xml by doing:
+
+```java
+@QuarkusScenario
+public class GreetingResourceIT {
+
+    private static final String HELLO = "Hello";
+    private static final String HELLO_PATH = "/hello";
+    private static final String INSTALLED_FEATURES_TEMPLATE = "Installed features: [cdi, %s, smallrye-context-propagation]";
+
+    @QuarkusApplication(dependencies = @Dependency(groupId = "io.quarkus", artifactId = "quarkus-resteasy"))
+    static final RestService blocking = new RestService();
+
+    @QuarkusApplication(dependencies = @Dependency(groupId = "io.quarkus", artifactId = "quarkus-resteasy-reactive"))
+    static final RestService reactive = new RestService();
+
+    @Test
+    public void shouldPickTheForcedDependencies() {
+        // classic
+        blocking.given().get(HELLO_PATH).then().body(is(HELLO));
+        blocking.logs().assertContains(String.format(INSTALLED_FEATURES_TEMPLATE, "resteasy"));
+
+        // reactive
+        reactive.given().get(HELLO_PATH).then().body(is(HELLO));
+        reactive.logs().assertContains(String.format(INSTALLED_FEATURES_TEMPLATE, "resteasy-reactive"));
+    }
+}
+```
+
+If no group ID and version provided, the framework will assume that the dependency is a Quarkus extension, so it will use the `quarkus.platform.groupId` (or `io.quarkus`) and the default Quarkus version.
+
+This also can be used to append other dependencies apart from Quarkus.
+
+| Note that this feature is not available for Dev Mode and Remote Dev scenarios.
+
 ### Services Start Up Order
 
 By default, the services are initialized in Natural Order of presence. For example, having:

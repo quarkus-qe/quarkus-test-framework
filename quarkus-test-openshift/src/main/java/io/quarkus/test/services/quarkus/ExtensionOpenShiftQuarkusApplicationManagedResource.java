@@ -69,8 +69,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     public void validate() {
         super.validate();
 
-        if (model.isSelectedAppClasses()) {
-            fail("Custom source classes as @QuarkusApplication(classes = ...) is not supported by `UsingOpenShiftExtension`");
+        if (model.requiresCustomBuild()) {
+            fail("Custom source classes or forced dependencies is not supported by `UsingOpenShiftExtension`");
         }
     }
 

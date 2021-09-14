@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_GROUP_ID;
+
 import java.io.File;
 import java.util.HashMap;
 import java.util.List;
@@ -21,8 +23,6 @@ import io.quarkus.test.utils.SocketUtils;
 public class CliDevModeLocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
-    private static final String QUARKUS_PLATFORM_GROUP_ID = "quarkus.platform.group-id";
-    private static final String QUARKUS_PLATFORM_GROUP_ID_VALUE = "io.quarkus";
     private static final String QUARKUS_PLATFORM_ARTIFACT_ID = "quarkus.platform.artifact-id";
     private static final String QUARKUS_PLATFORM_ARTIFACT_ID_VALUE = "quarkus-bom";
     private static final String QUARKUS_PLATFORM_VERSION = "quarkus.platform.version";
@@ -113,7 +113,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
         if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()) {
             // In Quarkus Snapshot (999-SNAPSHOT), we can't use the quarkus platform bom as it's not resolved,
             // so we need to overwrite it.
-            runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_GROUP_ID, QUARKUS_PLATFORM_GROUP_ID_VALUE);
+            runtimeProperties.putIfAbsent(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get());
             runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_ARTIFACT_ID, QUARKUS_PLATFORM_ARTIFACT_ID_VALUE);
         }
 
