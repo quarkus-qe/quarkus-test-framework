@@ -31,7 +31,9 @@ jobs:
 
       - uses: actions/setup-java@v1.4.3
         with:
-          java-version: 11
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
 
       - name: Configure Git author
         run: |
