@@ -19,7 +19,9 @@ jobs:
       - name: Install JDK {{ matrix.java }}
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          check-latest: true
       - name: Build with Maven
         run: |
           mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
@@ -43,7 +45,9 @@ jobs:
       - name: Install JDK {{ matrix.java }}
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          check-latest: true
       - name: Build Quarkus main
         run: |
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly
@@ -76,7 +80,9 @@ jobs:
       - name: Install JDK {{ matrix.java }}
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          check-latest: true
       - name: Build in JVM mode
         run: |
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
@@ -117,7 +123,9 @@ jobs:
       - name: Install JDK {{ matrix.java }}
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          check-latest: true
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
@@ -166,7 +174,9 @@ jobs:
       - name: Install JDK {{ matrix.java }}
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
+          distribution: 'temurin'
           java-version: ${{ matrix.java }}
+          check-latest: true
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
