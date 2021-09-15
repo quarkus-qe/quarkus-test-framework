@@ -8,3 +8,7 @@ updates:
     ignore:
       # For Quarkus Maven Plugin, updates are managed by the Quarkus Bom dependency
       - dependency-name: io.quarkus:quarkus-maven-plugin
+      # Exclude Docker Java as it might conflict with Testcontainers and Quarkus
+      - dependency-name: com.github.docker-java:docker-java-core
+      - dependency-name: com.github.docker-java:docker-java-api
+      - dependency-name: com.github.docker-java:docker-java-transport-zerodep
