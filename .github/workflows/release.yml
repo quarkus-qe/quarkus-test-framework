@@ -29,11 +29,11 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - name: Install JDK {{ matrix.java }}
+      - name: Install JDK 11
         uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
           distribution: 'temurin'
-          java-version: ${{ matrix.java }}
+          java-version: 11
           check-latest: true
 
       - name: Configure Git author
