@@ -29,7 +29,8 @@ jobs:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
 
-      - uses: actions/setup-java@v1.4.3
+      - name: Install JDK {{ matrix.java }}
+        uses: joschi/setup-jdk@e87a7cec853d2dd7066adf837fe12bf0f3d45e52
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
