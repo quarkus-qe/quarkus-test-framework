@@ -77,9 +77,9 @@ public class QuarkusScenarioBootstrap
     @Override
     public void afterAll(ExtensionContext context) {
         try {
-            List<Service> servicesToStop = new ArrayList<>(services);
-            Collections.reverse(servicesToStop);
-            servicesToStop.forEach(Service::stop);
+            List<Service> servicesToFinish = new ArrayList<>(services);
+            Collections.reverse(servicesToFinish);
+            servicesToFinish.forEach(Service::close);
         } finally {
             extensions.forEach(ext -> ext.afterAll(scenario));
         }

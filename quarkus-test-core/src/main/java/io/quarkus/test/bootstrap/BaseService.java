@@ -188,16 +188,6 @@ public class BaseService<T extends Service> implements Service {
         Log.info(this, "Service started (%s)", getDisplayName());
     }
 
-    private void doStart() {
-        try {
-            managedResource.start();
-            listeners.forEach(ext -> ext.onServiceStarted(context));
-        } catch (Exception ex) {
-            listeners.forEach(ext -> ext.onServiceError(context, ex));
-            throw ex;
-        }
-    }
-
     /**
      * Stop the Quarkus application.
      */
@@ -212,6 +202,19 @@ public class BaseService<T extends Service> implements Service {
         managedResource.stop();
 
         Log.info(this, "Service stopped (%s)", getDisplayName());
+    }
+
+    /**
+     * Let JUnit close remaining resources.
+     */
+    @Override
+    public void close() {
+        stop();
+        try {
+            FileUtils.deletePath(getServiceFolder());
+        } catch (Exception ex) {
+            Log.warn(this, "Could not delete service folder. Caused by " + ex.getMessage());
+        }
     }
 
     @Override
@@ -250,6 +253,16 @@ public class BaseService<T extends Service> implements Service {
         }
 
         return context.get(key);
+    }
+
+    private void doStart() {
+        try {
+            managedResource.start();
+            listeners.forEach(ext -> ext.onServiceStarted(context));
+        } catch (Exception ex) {
+            listeners.forEach(ext -> ext.onServiceError(context, ex));
+            throw ex;
+        }
     }
 
     private boolean isRunningOrFailed() {
