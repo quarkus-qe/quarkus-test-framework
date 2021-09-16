@@ -19,9 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -40,8 +38,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.dsl.ExecListener;
-import io.fabric8.kubernetes.client.dsl.ExecWatch;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
@@ -62,7 +58,6 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.operator.model.CustomResourceStatus;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
-import okhttp3.Response;
 
 public final class OpenShiftClient {
 
@@ -466,33 +461,15 @@ public final class OpenShiftClient {
     }
 
     public String execOnPod(String namespace, String podName, String containerId, String... input)
-            throws InterruptedException {
+            throws InterruptedException, IOException {
 
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        CountDownLatch execLatch = new CountDownLatch(1);
+        List<String> output = new ArrayList<>();
+        List<String> args = new ArrayList<>();
+        args.addAll(Arrays.asList(OC, "exec", podName, "-c", containerId, "-n", namespace));
+        args.addAll(Arrays.asList(input));
+        new Command(args).outputToLines(output).runAndWait();
 
-        try (ExecWatch execWatch = client.pods().inNamespace(namespace).withName(podName).inContainer(containerId)
-                .writingOutput(out)
-                .usingListener(new ExecListener() {
-                    @Override
-                    public void onOpen(Response response) {
-                        // do nothing
-                    }
-
-                    @Override
-                    public void onFailure(Throwable throwable, Response response) {
-                        execLatch.countDown();
-                    }
-
-                    @Override
-                    public void onClose(int i, String s) {
-                        execLatch.countDown();
-                    }
-                })
-                .exec(input)) {
-            execLatch.await(TIMEOUT_DEFAULT.ZERO.toMinutes(), TimeUnit.MINUTES);
-            return out.toString();
-        }
+        return output.stream().collect(Collectors.joining(System.lineSeparator()));
     }
 
     /**
