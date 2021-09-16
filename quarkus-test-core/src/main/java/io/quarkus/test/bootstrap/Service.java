@@ -38,6 +38,9 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     void stop();
 
+    @Override
+    void close();
+
     boolean isRunning();
 
     LogsVerifier logs();
@@ -50,13 +53,5 @@ public interface Service extends ExtensionContext.Store.CloseableResource {
 
     default void validate(Field field) {
 
-    }
-
-    /**
-     * Let JUnit close remaining resources.
-     */
-    @Override
-    default void close() {
-        stop();
     }
 }
