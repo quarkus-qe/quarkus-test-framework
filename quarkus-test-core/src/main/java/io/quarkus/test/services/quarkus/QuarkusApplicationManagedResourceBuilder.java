@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.PropertiesUtils.resolveProperty;
 import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
@@ -29,6 +30,7 @@ import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
+import io.quarkus.test.utils.ReflectionUtils;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -44,6 +46,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
     private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
+    private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
+    private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
 
     private Class<?>[] appClasses;
     private List<AppDependency> forcedDependencies = Collections.emptyList();
@@ -142,9 +146,16 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         if (forcedDependencies != null && forcedDependencies.length > 0) {
             requiresCustomBuild = true;
             this.forcedDependencies = Stream.of(forcedDependencies).map(d -> {
-                String groupId = StringUtils.defaultIfEmpty(d.groupId(), QuarkusProperties.PLATFORM_GROUP_ID.get());
-                String version = StringUtils.defaultIfEmpty(d.version(), Version.getVersion());
+                String groupId = StringUtils.defaultIfEmpty(resolveProperty(d.groupId()), QUARKUS_GROUP_ID_DEFAULT);
+                String version = StringUtils.defaultIfEmpty(resolveProperty(d.version()), Version.getVersion());
                 AppArtifact artifact = new AppArtifact(groupId, d.artifactId(), version);
+                // Quarkus introduces a breaking change in 2.3:
+                // https://github.com/quarkusio/quarkus/commit/0c85b27c4046c894c181ffea367fca503d1c682c
+                if (isQuarkusVersion2Dot3OrAbove()) {
+                    return ReflectionUtils.createInstance(AppDependency.class,
+                            artifact, DEPENDENCY_SCOPE_DEFAULT, new int[] { DEPENDENCY_DIRECT_FLAG });
+                }
+
                 return new AppDependency(artifact, DEPENDENCY_SCOPE_DEFAULT);
             }).collect(Collectors.toList());
         }
@@ -218,6 +229,14 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     private String propertyWithProfile(String name) {
         return "%" + context.getScenarioContext().getRunningTestClassName() + "." + name;
+    }
+
+    private boolean isQuarkusVersion2Dot3OrAbove() {
+        String quarkusVersion = QuarkusProperties.getVersion();
+        return !quarkusVersion.startsWith("2.2.")
+                && !quarkusVersion.startsWith("2.1.")
+                && !quarkusVersion.startsWith("2.0.")
+                && !quarkusVersion.startsWith("1.");
     }
 
 }

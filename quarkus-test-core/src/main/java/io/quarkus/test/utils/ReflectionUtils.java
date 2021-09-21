@@ -2,6 +2,7 @@ package io.quarkus.test.utils;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -50,6 +51,21 @@ public final class ReflectionUtils {
         fields.addAll(findAllFields(clazz.getSuperclass()));
         fields.addAll(Arrays.asList(clazz.getDeclaredFields()));
         return fields;
+    }
+
+    public static <T> T createInstance(Class<T> clazz, Object... args) {
+        for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
+            if (constructor.getParameterCount() == args.length) {
+                try {
+                    return (T) constructor.newInstance(args);
+                } catch (Exception ex) {
+                    fail("Constructor failed to be called. Caused by " + ex.getMessage());
+                }
+            }
+        }
+
+        fail("Constructor not found for " + clazz);
+        return null;
     }
 
     public static Object invokeMethod(Object instance, String methodName, Object... args) {
