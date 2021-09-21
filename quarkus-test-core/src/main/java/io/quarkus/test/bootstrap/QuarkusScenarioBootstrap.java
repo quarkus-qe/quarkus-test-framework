@@ -55,7 +55,7 @@ public class QuarkusScenarioBootstrap
     public void beforeAll(ExtensionContext context) {
         // Init scenario context
         scenario = new ScenarioContext(context);
-        Log.info("Scenario ID: '%s'", scenario.getId());
+        Log.debug("Scenario ID: '%s'", scenario.getId());
 
         // Init extensions
         extensions = initExtensions();
