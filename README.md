@@ -216,7 +216,23 @@ The current configuration options are:
 ts.global.quarkus.expected.log=Installed features
 ```
 
-- Enable/Disable logging (enabled by default):
+- Logging
+
+In order to set the logging level (INFO by default), use:
+
+```
+# Possible values are: INFO, FINE, WARNING, SEVERE
+ts.global.log.level=INFO 
+```
+
+The same with the formatter log message and the target file:
+
+```
+ts.global.log.format=%d{HH:mm:ss,SSS} %-5p %s%e%n
+ts.global.log.file.output=target/logs/tests.log
+```
+
+Moreover, we can turn on/off (on by default) the logging by services using :
 
 ```
 ts.<YOUR SERVICE NAME>.log.enable=true
