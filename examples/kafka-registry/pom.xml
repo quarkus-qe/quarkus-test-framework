@@ -11,7 +11,7 @@
     <name>Quarkus - Test Framework - Examples - Kafka with Registry</name>
     <properties>
         <apicurio-registry-utils-serde.version>1.3.2.Final</apicurio-registry-utils-serde.version>
-        <confluent.kafka-avro-serializer.version>6.2.0</confluent.kafka-avro-serializer.version>
+        <confluent.kafka-avro-serializer.version>6.2.1</confluent.kafka-avro-serializer.version>
         <quarkiverse.apicurio.registry.client.version>0.0.2</quarkiverse.apicurio.registry.client.version>
     </properties>
 
