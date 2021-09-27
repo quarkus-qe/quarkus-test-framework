@@ -15,6 +15,10 @@
             <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
             <scope>test</scope>
@@ -47,19 +51,6 @@
         </plugins>
     </build>
     <profiles>
-        <profile>
-            <!-- Disable native build on this module -->
-            <id>native</id>
-            <activation>
-                <property>
-                    <name>native</name>
-                </property>
-            </activation>
-            <properties>
-                <!-- To not build the module on Native -->
-                <quarkus.package.type>fast-jar</quarkus.package.type>
-            </properties>
-        </profile>
         <profile>
             <id>deploy-to-openshift-using-extension</id>
             <dependencies>
