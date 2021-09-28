@@ -13,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +42,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_KNATIVE_LABELS = "quarkus.knative.labels.";
     private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET = "quarkus.kubernetes.deployment-target";
     private static final String KNATIVE = "knative";
+    private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources", "application.properties");
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
@@ -87,7 +89,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
         }
 
-        PropertiesUtils.fromMap(buildProperties, applicationPropertiesPath);
+        PropertiesUtils.fromMap(buildProperties, RESOURCES_FOLDER);
         model.createSnapshotOfBuildProperties();
     }
 
