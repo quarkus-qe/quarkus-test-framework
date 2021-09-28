@@ -1,6 +1,11 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.logging.Log.LOG_FILE_OUTPUT;
+import static io.quarkus.test.logging.Log.LOG_SUFFIX;
+
 import java.lang.annotation.Annotation;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Optional;
 
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -13,6 +18,7 @@ public final class ScenarioContext {
     private final String id;
     private final ExtensionContext.Namespace testNamespace;
     private ExtensionContext methodTestContext;
+    private boolean failed;
 
     protected ScenarioContext(ExtensionContext testContext) {
         this.testContext = testContext;
@@ -22,6 +28,10 @@ public final class ScenarioContext {
 
     public String getId() {
         return id;
+    }
+
+    public boolean isFailed() {
+        return failed;
     }
 
     public String getRunningTestClassName() {
@@ -54,6 +64,18 @@ public final class ScenarioContext {
 
     public void setMethodTestContext(ExtensionContext methodTestContext) {
         this.methodTestContext = methodTestContext;
+    }
+
+    public Path getLogFolder() {
+        return Paths.get(LOG_FILE_OUTPUT.get());
+    }
+
+    public Path getLogFile() {
+        return getLogFolder().resolve(getRunningTestClassName() + LOG_SUFFIX);
+    }
+
+    protected void markScenarioAsFailed() {
+        failed = true;
     }
 
     private static String generateScenarioId(ExtensionContext context) {

@@ -253,7 +253,7 @@ The same with the formatter log message and the target file:
 
 ```
 ts.global.log.format=%d{HH:mm:ss,SSS} %-5p %s%e%n
-ts.global.log.file.output=target/logs/tests.log
+ts.global.log.file.output=target/logs
 ```
 
 Moreover, we can turn on/off (on by default) the logging by services using :

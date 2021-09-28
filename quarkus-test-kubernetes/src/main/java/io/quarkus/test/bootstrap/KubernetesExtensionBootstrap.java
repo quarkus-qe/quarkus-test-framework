@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap;
 
+import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -53,7 +54,11 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     public void onError(ScenarioContext context, Throwable throwable) {
         Map<String, String> logs = client.logs();
         for (Entry<String, String> podLog : logs.entrySet()) {
-            FileUtils.copyContentTo(podLog.getValue(), Log.LOG_OUTPUT_DIRECTORY.resolve(podLog.getKey() + Log.LOG_SUFFIX));
+            FileUtils.copyContentTo(podLog.getValue(), logsTestFolder(context).resolve(podLog.getKey() + Log.LOG_SUFFIX));
         }
+    }
+
+    private Path logsTestFolder(ScenarioContext context) {
+        return context.getLogFolder().resolve(context.getRunningTestClassName());
     }
 }

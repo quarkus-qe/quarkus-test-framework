@@ -1,6 +1,7 @@
 package io.quarkus.test.logging;
 
-import java.nio.file.Path;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -8,14 +9,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
+import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 import org.apache.commons.lang3.StringUtils;
+import org.jboss.logmanager.formatters.ColorPatternFormatter;
+import org.jboss.logmanager.formatters.PatternFormatter;
+import org.jboss.logmanager.handlers.ConsoleHandler;
+import org.jboss.logmanager.handlers.FileHandler;
 
+import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
+import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.PropertyLookup;
 
 public final class Log {
-    public static final Path LOG_OUTPUT_DIRECTORY = Path.of("target", "logs");
+    public static final PropertyLookup LOG_LEVEL = new PropertyLookup("log.level");
+    public static final PropertyLookup LOG_FORMAT = new PropertyLookup("log.format");
+    public static final PropertyLookup LOG_FILE_OUTPUT = new PropertyLookup("log.file.output");
     public static final String LOG_SUFFIX = ".log";
 
     private static final Service NO_SERVICE = null;
@@ -71,6 +82,40 @@ public final class Log {
 
     public static void error(String msg, Object... args) {
         log(NO_SERVICE, Level.SEVERE, msg, args);
+    }
+
+    public static void configure(ScenarioContext scenario) {
+        // Configure Log Manager
+        try (InputStream in = QuarkusScenarioBootstrap.class.getResourceAsStream("/logging.properties")) {
+            LogManager.getLogManager().readConfiguration(in);
+        } catch (IOException e) {
+            // ignore
+        }
+
+        String logPattern = LOG_FORMAT.get();
+        Level level = Level.parse(LOG_LEVEL.get());
+
+        // Configure logger handlers
+        Logger logger = LogManager.getLogManager().getLogger("");
+        logger.setLevel(level);
+
+        // - Console
+        ConsoleHandler console = new ConsoleHandler(
+                ConsoleHandler.Target.SYSTEM_OUT,
+                new ColorPatternFormatter(logPattern));
+        console.setLevel(level);
+        logger.addHandler(console);
+
+        // - File
+        try {
+            FileHandler file = new FileHandler(
+                    new PatternFormatter(logPattern),
+                    scenario.getLogFile().toFile());
+            file.setLevel(level);
+            logger.addHandler(file);
+        } catch (Exception ex) {
+            Log.warn("Could not configure file handler. Caused by " + ex);
+        }
     }
 
     private static void log(Service service, Level level, String msg, Object... args) {
