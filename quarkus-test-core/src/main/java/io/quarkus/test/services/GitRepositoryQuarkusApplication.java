@@ -17,4 +17,9 @@ public @interface GitRepositoryQuarkusApplication {
     String mavenArgs() default "-DskipTests=true -DskipITs=true -Dquarkus.platform.version=${QUARKUS_VERSION}";
 
     boolean devMode() default false;
+
+    /**
+     * @return the properties file to use to configure the Quarkus application.
+     */
+    String properties() default "application.properties";
 }

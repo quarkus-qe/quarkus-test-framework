@@ -17,6 +17,11 @@ public @interface QuarkusApplication {
     Class<? extends ManagedResourceBuilder> builder() default ProdQuarkusApplicationManagedResourceBuilder.class;
 
     /**
+     * @return the properties file to use to configure the Quarkus application.
+     */
+    String properties() default "application.properties";
+
+    /**
      * Add forced dependencies.
      */
     Dependency[] dependencies() default {};

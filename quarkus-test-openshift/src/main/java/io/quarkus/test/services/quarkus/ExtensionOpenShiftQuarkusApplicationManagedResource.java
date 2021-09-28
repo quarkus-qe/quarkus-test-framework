@@ -42,8 +42,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET = "quarkus.kubernetes.deployment-target";
     private static final String KNATIVE = "knative";
 
-    private static final String APPLICATION_PROPERTIES_PATH = "src/main/resources/application.properties";
-
     public ExtensionOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
     }
@@ -84,7 +82,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             return;
         }
 
-        Path applicationPropertiesPath = model.getContext().getServiceFolder().resolve(APPLICATION_PROPERTIES_PATH);
+        Path applicationPropertiesPath = model.getComputedApplicationProperties();
         if (Files.exists(applicationPropertiesPath)) {
             buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
         }

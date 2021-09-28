@@ -12,6 +12,11 @@ public @interface DevModeQuarkusApplication {
     Class<?>[] classes() default {};
 
     /**
+     * @return the properties file to use to configure the Quarkus application.
+     */
+    String properties() default "application.properties";
+
+    /**
      * Enable GRPC configuration. This property will map the gPRC service to a random port.
      */
     boolean grpc() default false;

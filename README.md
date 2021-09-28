@@ -85,6 +85,30 @@ public class PingPongResourceIT {
 
 As seen in the above example, everything is bounded to a Service object that will contain everything needed to interact with our resources.
 
+### Application properties
+
+By default, the test framework will use the `application.properties` file at `src/main/resources` folder. The service interface provides multiple methods to add properties at test scope only:
+- `service.withProperties(path)`
+- `service.withProperty(key, value)`
+
+If you want to use a different application properties file for all the tests, you can add the `application.properties` file at `src/test/resources` and the test framework will use this instead.
+
+Moreover, if you want to select a concrete application properties file for a single test scenario, then you can configure your Quarkus application using:
+
+```java
+@QuarkusScenario
+public class PingPongResourceIT {
+
+    // Now, the application will use the file `my-custom-properties.properties` instead of the `application.properties` 
+    @QuarkusApplication(properties = "my-custom-properties.properties")
+    static final RestService pingpong = new RestService();
+}
+```
+
+This option is available also for Dev Mode, Remote Dev mode and remote git applications, and works for JVM, Native, OpenShift and Kubernetes. 
+
+| Note that the test framework does not support the usage of YAML files yet [#240](https://github.com/quarkus-qe/quarkus-test-framework/issues/240)
+
 ### Forced Dependencies
 
 We can also specify dependencies that are not part of the pom.xml by doing:

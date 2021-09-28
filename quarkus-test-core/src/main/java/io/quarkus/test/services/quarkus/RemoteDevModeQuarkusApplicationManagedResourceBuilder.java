@@ -48,6 +48,7 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
     public void init(Annotation annotation) {
         RemoteDevModeQuarkusApplication metadata = (RemoteDevModeQuarkusApplication) annotation;
         liveReloadPassword = metadata.password();
+        setPropertiesFile(metadata.properties());
     }
 
     @Override

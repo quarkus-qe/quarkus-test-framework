@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Properties;
 
@@ -53,7 +54,7 @@ public final class PropertiesUtils {
             fail("Could not load map from system resource. Caused by " + e);
         }
 
-        return null;
+        return Collections.emptyMap();
     }
 
     public static Map<String, String> toMap(Path path) {
@@ -63,7 +64,7 @@ public final class PropertiesUtils {
             fail("Could not load map from path. Caused by " + e);
         }
 
-        return null;
+        return Collections.emptyMap();
     }
 
     public static Map<String, String> toMap(InputStream is) {
