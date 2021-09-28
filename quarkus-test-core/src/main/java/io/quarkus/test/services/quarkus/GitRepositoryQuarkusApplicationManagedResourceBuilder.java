@@ -57,6 +57,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         mavenArgs = metadata.mavenArgs();
         devMode = metadata.devMode();
         initAppClasses(new Class[0]);
+        setPropertiesFile(metadata.properties());
     }
 
     @Override

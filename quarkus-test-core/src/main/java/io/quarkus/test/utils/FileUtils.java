@@ -1,5 +1,6 @@
 package io.quarkus.test.utils;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -53,7 +54,7 @@ public final class FileUtils {
             fail("Could not load file " + file + " . Caused by " + e.getMessage());
         }
 
-        return null;
+        return EMPTY;
     }
 
     public static void recreateDirectory(Path folder) {

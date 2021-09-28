@@ -49,6 +49,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     @Override
     public void init(Annotation annotation) {
         QuarkusApplication metadata = (QuarkusApplication) annotation;
+        setPropertiesFile(metadata.properties());
         setSslEnabled(metadata.ssl());
         setGrpcEnabled(metadata.grpc());
         initAppClasses(metadata.classes());

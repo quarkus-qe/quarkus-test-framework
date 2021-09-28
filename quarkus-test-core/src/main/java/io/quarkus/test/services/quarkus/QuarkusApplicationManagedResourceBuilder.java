@@ -53,6 +53,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private List<AppDependency> forcedDependencies = Collections.emptyList();
     private boolean requiresCustomBuild = false;
     private ServiceContext context;
+    private String propertiesFile = APPLICATION_PROPERTIES;
     private boolean sslEnabled = false;
     private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
@@ -65,6 +66,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void setContext(ServiceContext context) {
         this.context = context;
+    }
+
+    protected void setPropertiesFile(String propertiesFile) {
+        this.propertiesFile = propertiesFile;
     }
 
     protected boolean isSslEnabled() {
@@ -100,7 +105,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         Path applicationProperties = getComputedApplicationProperties();
         if (!Files.exists(applicationProperties)) {
             // computed properties have not been propagated yet, we use the one from src/main/resources
-            applicationProperties = RESOURCES_FOLDER.resolve(APPLICATION_PROPERTIES);
+            applicationProperties = RESOURCES_FOLDER.resolve(propertiesFile);
         }
 
         if (!Files.exists(applicationProperties)) {
@@ -179,22 +184,23 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return getApplicationFolder();
     }
 
-    private Path getComputedApplicationProperties() {
+    protected Path getComputedApplicationProperties() {
         return getResourcesApplicationFolder().resolve(APPLICATION_PROPERTIES);
     }
 
     private void createComputedApplicationProperties() {
-        Path applicationProperties = getComputedApplicationProperties();
+        Path sourceApplicationProperties = getResourcesApplicationFolder().resolve(propertiesFile);
+        Path generatedApplicationProperties = getResourcesApplicationFolder().resolve(APPLICATION_PROPERTIES);
         Map<String, String> map = new HashMap<>();
-        // Put the original application properties
-        if (Files.exists(applicationProperties)) {
-            map.putAll(PropertiesUtils.toMap(applicationProperties));
+        // Add the content of the source application properties into the auto-generated application.properties
+        if (Files.exists(sourceApplicationProperties)) {
+            map.putAll(PropertiesUtils.toMap(sourceApplicationProperties));
         }
 
-        // Then put the build properties
+        // Then add the service properties
         map.putAll(context.getOwner().getProperties());
-        // Then replace the application properties
-        PropertiesUtils.fromMap(map, applicationProperties);
+        // Then overwrite the application properties with the generated application.properties
+        PropertiesUtils.fromMap(map, generatedApplicationProperties);
     }
 
     private boolean isBuildProperty(String name) {

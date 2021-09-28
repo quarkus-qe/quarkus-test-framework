@@ -9,4 +9,9 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface RemoteDevModeQuarkusApplication {
     String password() default "qe";
+
+    /**
+     * @return the properties file to use to configure the Quarkus application.
+     */
+    String properties() default "application.properties";
 }
