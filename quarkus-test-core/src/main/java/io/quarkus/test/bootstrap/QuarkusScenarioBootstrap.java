@@ -2,28 +2,16 @@ package io.quarkus.test.bootstrap;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 import javax.inject.Inject;
 
-import org.jboss.logmanager.formatters.ColorPatternFormatter;
-import org.jboss.logmanager.formatters.PatternFormatter;
-import org.jboss.logmanager.handlers.ConsoleHandler;
-import org.jboss.logmanager.handlers.FileHandler;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -37,7 +25,6 @@ import org.junit.jupiter.api.extension.TestWatcher;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
-import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ReflectionUtils;
 
 public class QuarkusScenarioBootstrap
@@ -46,9 +33,6 @@ public class QuarkusScenarioBootstrap
 
     private static final PropertyLookup CREATE_SERVICE_BY_DEFAULT = new PropertyLookup("generated-service.enabled",
             Boolean.TRUE.toString());
-    private static final PropertyLookup LOG_LEVEL = new PropertyLookup("log.level");
-    private static final PropertyLookup LOG_FORMAT = new PropertyLookup("log.format");
-    private static final PropertyLookup LOG_FILE_OUTPUT = new PropertyLookup("log.file.output");
     private static final String DEFAULT_SERVICE_NAME = "app";
 
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
@@ -58,14 +42,11 @@ public class QuarkusScenarioBootstrap
     private ScenarioContext scenario;
     private List<ExtensionBootstrap> extensions;
 
-    public QuarkusScenarioBootstrap() throws FileNotFoundException {
-        configureLogging();
-    }
-
     @Override
     public void beforeAll(ExtensionContext context) {
         // Init scenario context
         scenario = new ScenarioContext(context);
+        Log.configure(scenario);
         Log.debug("Scenario ID: '%s'", scenario.getId());
 
         // Init extensions
@@ -91,6 +72,7 @@ public class QuarkusScenarioBootstrap
             List<Service> servicesToFinish = new ArrayList<>(services);
             Collections.reverse(servicesToFinish);
             servicesToFinish.forEach(Service::close);
+            deleteLogIfScenarioPassed();
         } finally {
             extensions.forEach(ext -> ext.afterAll(scenario));
         }
@@ -110,7 +92,7 @@ public class QuarkusScenarioBootstrap
     }
 
     @Override
-    public void afterEach(ExtensionContext extensionContext) throws Exception {
+    public void afterEach(ExtensionContext extensionContext) {
         extensions.forEach(ext -> ext.afterEach(scenario));
     }
 
@@ -126,17 +108,17 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void handleAfterAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(throwable);
+        scenarioOnError(throwable);
     }
 
     @Override
     public void handleAfterEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(throwable);
+        scenarioOnError(throwable);
     }
 
     @Override
     public void handleBeforeAllMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(throwable);
+        scenarioOnError(throwable);
     }
 
     @Override
@@ -146,7 +128,7 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void testFailed(ExtensionContext context, Throwable cause) {
-        extensions.forEach(ext -> ext.onError(scenario, cause));
+        scenarioOnError(cause);
     }
 
     @Override
@@ -156,7 +138,7 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void handleBeforeEachMethodExecutionException(ExtensionContext context, Throwable throwable) {
-        notifyExtensionsOnError(throwable);
+        scenarioOnError(throwable);
     }
 
     private void launchService(Service service) {
@@ -170,13 +152,15 @@ public class QuarkusScenarioBootstrap
         try {
             service.start();
         } catch (Error throwable) {
-            notifyExtensionsOnError(throwable);
+            scenarioOnError(throwable);
             throw throwable;
         }
     }
 
-    private void notifyExtensionsOnError(Throwable throwable) {
-        throwable.printStackTrace();
+    private void scenarioOnError(Throwable throwable) {
+        // mark scenario as failed
+        scenario.markScenarioAsFailed();
+        // notify extensions
         extensions.forEach(ext -> ext.onError(scenario, throwable));
     }
 
@@ -191,7 +175,7 @@ public class QuarkusScenarioBootstrap
     }
 
     private void injectDependency(Field field) {
-        Object fieldValue = null;
+        Object fieldValue;
         if (ScenarioContext.class.equals(field.getType())) {
             fieldValue = scenario;
         } else {
@@ -290,40 +274,9 @@ public class QuarkusScenarioBootstrap
         }
     }
 
-    private void configureLogging() throws FileNotFoundException {
-        Locale.setDefault(new Locale("en", "EN"));
-        try {
-            FileUtils.recreateDirectory(Log.LOG_OUTPUT_DIRECTORY);
-        } catch (RuntimeException ex) {
-            // ignore
+    private void deleteLogIfScenarioPassed() {
+        if (!scenario.isFailed()) {
+            scenario.getLogFile().toFile().delete();
         }
-
-        // Configure Log Manager
-        try (InputStream in = QuarkusScenarioBootstrap.class.getResourceAsStream("/logging.properties")) {
-            LogManager.getLogManager().readConfiguration(in);
-        } catch (IOException e) {
-            // ignore
-        }
-
-        String logPattern = LOG_FORMAT.get();
-        Level level = Level.parse(LOG_LEVEL.get());
-
-        // Configure logger handlers
-        Logger logger = LogManager.getLogManager().getLogger("");
-        logger.setLevel(level);
-
-        // - Console
-        ConsoleHandler console = new ConsoleHandler(
-                ConsoleHandler.Target.SYSTEM_OUT,
-                new ColorPatternFormatter(logPattern));
-        console.setLevel(level);
-        logger.addHandler(console);
-
-        // - File
-        FileHandler file = new FileHandler(
-                new PatternFormatter(logPattern),
-                Paths.get(LOG_FILE_OUTPUT.get()).toFile());
-        file.setLevel(level);
-        logger.addHandler(file);
     }
 }

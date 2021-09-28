@@ -81,7 +81,7 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
     }
 
     private Path logsTestFolder(ScenarioContext context) {
-        return Log.LOG_OUTPUT_DIRECTORY.resolve(context.getRunningTestClassName());
+        return context.getLogFolder().resolve(context.getRunningTestClassName());
     }
 
     private void installOperators(ScenarioContext context) {
