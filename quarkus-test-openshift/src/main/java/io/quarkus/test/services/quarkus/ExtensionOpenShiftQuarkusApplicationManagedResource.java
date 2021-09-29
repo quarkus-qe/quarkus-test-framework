@@ -89,7 +89,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
         }
 
-        PropertiesUtils.fromMap(buildProperties, RESOURCES_FOLDER);
+        PropertiesUtils.fromMap(buildProperties, getContext().getServiceFolder().resolve(RESOURCES_FOLDER));
         model.createSnapshotOfBuildProperties();
     }
 
