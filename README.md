@@ -312,6 +312,20 @@ ts.global.port.range.max=49151
 ts.global.port.resolution.strategy=incremental
 ```
 
+- Maven
+
+The framework will use Maven commands for some scenarios like Dev Mode and Remote Dev Mode. We can configure the properties we want to propagate to these internal Maven commands using:
+
+```
+# Propagate Properties strategy to use in all Maven commands: 
+## - all: by default
+## - none
+## - only-quarkus: only properties starting with "quarkus."
+ts.global.maven.propagate-properties-strategy=all
+# When selecting the `all` strategy, the properties that start with any of the next list will be ignored:
+ts.global.maven.propagate-properties-strategy.all.exclude=sun.,awt.,java.,surefire.,user.,os.,jdk.,file.,basedir,line.,path.
+```
+
 ### Native
 
 The `@QuarkusScenario` annotation is also compatible with Native. This means that if we run our tests using Native build:

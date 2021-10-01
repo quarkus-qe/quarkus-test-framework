@@ -1,5 +1,10 @@
 package io.quarkus.test.configuration;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -67,5 +72,14 @@ public class PropertyLookup {
     public Integer getAsInteger() {
         String value = get();
         return Integer.parseInt(value);
+    }
+
+    public List<String> getAsList() {
+        String value = get();
+        if (StringUtils.isEmpty(value)) {
+            return Collections.emptyList();
+        }
+
+        return Stream.of(value.split(",")).collect(Collectors.toList());
     }
 }
