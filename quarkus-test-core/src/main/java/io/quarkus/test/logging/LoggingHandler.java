@@ -13,6 +13,7 @@ import io.quarkus.test.utils.AwaitilityUtils;
 public abstract class LoggingHandler implements Closeable {
 
     private static final long TIMEOUT_IN_MILLIS = 4000;
+    private static final String ANY = ".*";
 
     private Thread innerThread;
     private List<String> logs = new CopyOnWriteArrayList<>();
@@ -46,7 +47,7 @@ public abstract class LoggingHandler implements Closeable {
     }
 
     public boolean logsContains(String expected) {
-        return logs().stream().anyMatch(line -> line.contains(expected));
+        return logs().stream().anyMatch(line -> line.matches(ANY + expected + ANY));
     }
 
     public void flush() {
