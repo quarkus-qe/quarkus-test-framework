@@ -35,6 +35,19 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     }
 
     @Override
+    public void validate() {
+        super.validate();
+        if (model.isDevMode()) {
+            Assertions.fail("DEV mode is not supported when using GIT repositories on OpenShift deployments");
+        }
+
+        if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()
+                && StringUtils.isEmpty(MAVEN_REMOTE_REPOSITORY.get(model.getContext()))) {
+            Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if not Maven repository has been provided");
+        }
+    }
+
+    @Override
     protected String getDefaultTemplate() {
         return QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME;
     }
@@ -59,19 +72,6 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     @Override
     protected boolean needsBuildArtifact() {
         return false;
-    }
-
-    @Override
-    protected void validate() {
-        super.validate();
-        if (model.isDevMode()) {
-            Assertions.fail("DEV mode is not supported when using GIT repositories on OpenShift deployments");
-        }
-
-        if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()
-                && StringUtils.isEmpty(MAVEN_REMOTE_REPOSITORY.get(model.getContext()))) {
-            Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if not Maven repository has been provided");
-        }
     }
 
     protected String replaceDeploymentContent(String content) {

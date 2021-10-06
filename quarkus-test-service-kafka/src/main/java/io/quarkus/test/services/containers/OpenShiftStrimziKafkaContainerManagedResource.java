@@ -5,6 +5,7 @@ import static java.util.regex.Pattern.quote;
 import java.util.List;
 
 import org.apache.commons.lang3.StringUtils;
+import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.bootstrap.DefaultService;
 import io.quarkus.test.bootstrap.KafkaService;
@@ -14,6 +15,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
+import io.quarkus.test.services.containers.model.KafkaProtocol;
 
 public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedResource {
 
@@ -103,6 +105,21 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     public void restart() {
         stop();
         start();
+    }
+
+    @Override
+    public void validate() {
+        if (model.getProtocol() != KafkaProtocol.PLAIN_TEXT) {
+            Assertions.fail("Only PLAIN_TEXT protocol is supported on OpenShift deployments");
+        }
+
+        if (StringUtils.isNotEmpty(model.getServerProperties())) {
+            Assertions.fail("Custom server.properties is not supported on OpenShift deployments");
+        }
+
+        if (model.getKafkaConfigResources().length > 0) {
+            Assertions.fail("Custom kafka config resources is not supported on OpenShift deployments");
+        }
     }
 
     private void createRegistryService() {

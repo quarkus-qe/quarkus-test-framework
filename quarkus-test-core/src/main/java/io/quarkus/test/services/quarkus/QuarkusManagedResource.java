@@ -78,10 +78,6 @@ public abstract class QuarkusManagedResource implements ManagedResource {
         return true;
     }
 
-    protected void validate() {
-
-    }
-
     private static LaunchMode detectLaunchMode(ServiceContext serviceContext) {
         LaunchMode launchMode = LaunchMode.JVM;
         if (QuarkusProperties.isNativePackageType(serviceContext)) {

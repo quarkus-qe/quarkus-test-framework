@@ -3,11 +3,14 @@ package io.quarkus.test.services.containers;
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.utility.MountableFile;
 
 import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
 public abstract class BaseKafkaContainerManagedResource extends DockerContainerManagedResource {
+
+    private static final String SERVER_PROPERTIES = "server.properties";
 
     protected final KafkaContainerManagedResourceBuilder model;
 
@@ -60,6 +63,16 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     protected GenericContainer<?> initContainer() {
         GenericContainer<?> kafkaContainer = initKafkaContainer();
 
+        String kafkaConfigPath = model.getKafkaConfigPath();
+        if (StringUtils.isNotEmpty(getServerProperties())) {
+            kafkaContainer.withCopyFileToContainer(MountableFile.forClasspathResource(getServerProperties()),
+                    kafkaConfigPath + SERVER_PROPERTIES);
+        }
+
+        for (String resource : getKafkaConfigResources()) {
+            kafkaContainer.withCopyFileToContainer(MountableFile.forClasspathResource(resource), kafkaConfigPath + resource);
+        }
+
         if (model.isWithRegistry()) {
             schemaRegistry = initRegistryContainer(kafkaContainer);
             schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext().getOwner(), schemaRegistry);
@@ -76,6 +89,14 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     @Override
     protected int getTargetPort() {
         return model.getVendor().getPort();
+    }
+
+    protected String[] getKafkaConfigResources() {
+        return model.getKafkaConfigResources();
+    }
+
+    protected String getServerProperties() {
+        return model.getServerProperties();
     }
 
     private void startRegistryIfEnabled() {

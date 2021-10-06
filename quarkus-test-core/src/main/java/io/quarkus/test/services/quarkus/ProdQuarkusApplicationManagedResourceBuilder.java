@@ -63,8 +63,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         managedResource = findManagedResource();
         build();
 
-        managedResource.validate();
-
         return managedResource;
     }
 
