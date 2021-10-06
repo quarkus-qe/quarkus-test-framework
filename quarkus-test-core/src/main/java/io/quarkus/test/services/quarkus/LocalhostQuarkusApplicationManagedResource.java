@@ -3,10 +3,13 @@ package io.quarkus.test.services.quarkus;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_GRPC_SERVER_PORT_PROPERTY;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_PORT_PROPERTY;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_SSL_PORT_PROPERTY;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,7 @@ import io.quarkus.test.utils.SocketUtils;
 public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String LOG_OUTPUT_FILE = "out.log";
+    private static final List<String> PREFIXES_TO_REPLACE = Arrays.asList(RESOURCE_PREFIX, SECRET_PREFIX);
 
     private final QuarkusApplicationManagedResourceBuilder model;
 
@@ -166,8 +170,18 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         }
 
         return runtimeProperties.entrySet().stream()
-                .map(e -> "-D" + e.getKey() + "=" + e.getValue())
+                .map(e -> "-D" + e.getKey() + "=" + getComputedValue(e.getValue()))
                 .collect(Collectors.toList());
+    }
+
+    private String getComputedValue(String value) {
+        for (String prefix : PREFIXES_TO_REPLACE) {
+            if (value.startsWith(prefix)) {
+                return StringUtils.removeStart(value, prefix);
+            }
+        }
+
+        return value;
     }
 
     private void validateProtocol(Protocol protocol) {

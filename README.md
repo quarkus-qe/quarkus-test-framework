@@ -1473,6 +1473,8 @@ The test framework will leverage whether an application runner can be reused or 
 
 We can use properties that require external resources using the `resource::` tag. For example: `.withProperty("to.property", "resource::/file.yaml");`. This works either using containers in bare metal or OpenShift/Kubernetes.
 
+The same works for secret resources: using the `secret::` tag. For example: `.withProperty("to.property", "secret::/file.yaml");`. For baremetal, there is no difference, but when deploying on OCP and Kubernetes, one secret will be pushed instead. This only works for file system resources (no classpath).
+
 - File logging
 
 When running a test, the output will be copied into Console and a file placed in `target/logs/tests.out`. 
