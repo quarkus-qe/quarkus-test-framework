@@ -3,6 +3,10 @@ package io.quarkus.test.bootstrap.inject;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsNotNull;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SLASH;
+import static io.quarkus.test.utils.PropertiesUtils.TARGET;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -23,6 +27,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -35,6 +40,8 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -67,14 +74,13 @@ public final class OpenShiftClient {
     private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
     private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
     private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
-    private static final String RESOURCE_PREFIX = "resource::";
-    private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
     private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
     private static final String CUSTOM_RESOURCE_EXPECTED_STATUS = "True";
+    private static final String RESOURCE_MNT_FOLDER = "/resources";
 
     private static final String OC = "oc";
 
@@ -611,43 +617,141 @@ public final class OpenShiftClient {
     }
 
     private Map<String, String> enrichProperties(Map<String, String> properties, DeploymentConfig dc) {
+        // mount path x volume
+        Map<String, Volume> volumes = new HashMap<>();
+
         Map<String, String> output = new HashMap<>();
         for (Entry<String, String> entry : properties.entrySet()) {
             String value = entry.getValue();
             if (isResource(entry.getValue())) {
                 String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
-                String fileName = path.substring(1); // remove first /
-                String configMapName = normalizeConfigMapName(fileName);
-                // Create Config Map with the content of the file
-                client.configMaps().createOrReplace(new ConfigMapBuilder()
-                        .withNewMetadata().withName(configMapName).endMetadata()
-                        .addToData(fileName, FileUtils.loadFile(path)).build());
+                String mountPath = getMountPath(path);
+                String filename = getFileName(path);
+                String configMapName = normalizeName(mountPath);
 
-                // Add the volume to the above config map
-                dc.getSpec().getTemplate().getSpec().getVolumes().add(new VolumeBuilder().withName(configMapName)
-                        .withConfigMap(new ConfigMapVolumeSourceBuilder().withName(configMapName).build()).build());
+                // Update config map
+                createOrUpdateConfigMap(configMapName, filename, getFileContent(path));
 
-                // Configure all the containers to map the volume
-                dc.getSpec().getTemplate().getSpec().getContainers()
-                        .forEach(container -> container.getVolumeMounts()
-                                .add(new VolumeMountBuilder().withName(configMapName).withReadOnly(true)
-                                        .withMountPath(RESOURCE_MNT_FOLDER).build()));
+                // Add the volume
+                if (!volumes.containsKey(mountPath)) {
+                    Volume volume = new VolumeBuilder()
+                            .withName(configMapName)
+                            .withConfigMap(new ConfigMapVolumeSourceBuilder().withName(configMapName).build())
+                            .build();
+                    volumes.put(mountPath, volume);
+                }
 
-                value = RESOURCE_MNT_FOLDER + path;
+                value = mountPath + SLASH + filename;
+            } else if (isSecret(entry.getValue())) {
+                String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
+                String mountPath = getMountPath(path);
+                String filename = getFileName(path);
+                String secretName = normalizeName(path);
+
+                // Push secret file
+                doCreateSecretFromFile(secretName, getFilePath(path));
+
+                // Add the volume
+                Volume volume = new VolumeBuilder()
+                        .withName(secretName)
+                        .withSecret(new SecretVolumeSourceBuilder()
+                                .withSecretName(secretName)
+                                .build())
+                        .build();
+                volumes.put(mountPath, volume);
+
+                value = mountPath + SLASH + filename;
             }
 
             output.put(entry.getKey(), value);
         }
 
+        for (Entry<String, Volume> volume : volumes.entrySet()) {
+            dc.getSpec().getTemplate().getSpec().getVolumes().add(volume.getValue());
+
+            // Configure all the containers to map the volume
+            dc.getSpec().getTemplate().getSpec().getContainers()
+                    .forEach(container -> container.getVolumeMounts()
+                            .add(new VolumeMountBuilder().withName(volume.getValue().getName())
+                                    .withReadOnly(true).withMountPath(volume.getKey()).build()));
+        }
+
         return output;
     }
 
-    private String normalizeConfigMapName(String name) {
-        return name.replaceAll(Pattern.quote("."), "-");
+    private void createOrUpdateConfigMap(String configMapName, String key, String value) {
+        if (client.configMaps().withName(configMapName).get() != null) {
+            // update existing config map by adding new file
+            client.configMaps().withName(configMapName)
+                    .edit(configMap -> {
+                        configMap.getData().put(key, value);
+                        return configMap;
+                    });
+        } else {
+            // create new one
+            client.configMaps().createOrReplace(new ConfigMapBuilder()
+                    .withNewMetadata().withName(configMapName).endMetadata()
+                    .addToData(key, value)
+                    .build());
+        }
+    }
+
+    private String getFileName(String path) {
+        if (!path.contains(SLASH)) {
+            return path;
+        }
+
+        return path.substring(path.lastIndexOf(SLASH) + 1);
+    }
+
+    private String getMountPath(String path) {
+        if (!path.contains(SLASH)) {
+            return RESOURCE_MNT_FOLDER;
+        }
+
+        String mountPath = StringUtils.defaultIfEmpty(path.substring(0, path.lastIndexOf(SLASH)), RESOURCE_MNT_FOLDER);
+        if (!path.startsWith(SLASH)) {
+            mountPath = SLASH + mountPath;
+        }
+
+        return mountPath;
+    }
+
+    private String getFileContent(String path) {
+        String filePath = getFilePath(path);
+        if (Files.exists(Path.of(filePath))) {
+            // from file system
+            return FileUtils.loadFile(Path.of(filePath).toFile());
+        }
+
+        // from classpath
+        return FileUtils.loadFile(filePath);
+    }
+
+    private String getFilePath(String path) {
+        try (Stream<Path> binariesFound = Files
+                .find(TARGET, Integer.MAX_VALUE,
+                        (file, basicFileAttributes) -> file.toString().contains(path))) {
+            return binariesFound.map(Path::toString).findFirst().orElse(path);
+        } catch (IOException ex) {
+            // ignored
+        }
+
+        return path;
+    }
+
+    private String normalizeName(String name) {
+        return StringUtils.removeStart(name, SLASH)
+                .replaceAll(Pattern.quote("."), "-")
+                .replaceAll(SLASH, "-");
     }
 
     private boolean isResource(String key) {
         return key.startsWith(RESOURCE_PREFIX);
+    }
+
+    private boolean isSecret(String key) {
+        return key.startsWith(SECRET_PREFIX);
     }
 
     private boolean hasImageStreamTags(ImageStream is) {
@@ -678,6 +782,16 @@ public final class OpenShiftClient {
         }
 
         return namespace;
+    }
+
+    private void doCreateSecretFromFile(String name, String filePath) {
+        if (client.secrets().withName(name).get() == null) {
+            try {
+                new Command(OC, "create", "secret", "generic", name, "--from-file=" + filePath).runAndWait();
+            } catch (Exception e) {
+                fail("Could not create secret. Caused by " + e.getMessage());
+            }
+        }
     }
 
     private boolean doCreateProject(String projectName) {

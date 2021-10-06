@@ -19,7 +19,6 @@ import org.apache.commons.io.IOUtils;
 public final class FileUtils {
 
     private static final int NO_RECURSIVE = 1;
-    private static final String TARGET = "target";
 
     private FileUtils() {
 
