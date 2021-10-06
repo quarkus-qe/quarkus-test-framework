@@ -662,6 +662,80 @@ We can also use a Confluent kafka container by doing:
 
 Note that this implementation supports also registry, but not Kubernetes and OpenShift scenarios.
 
+- Custom Kafka server configuration
+
+We can customise the Kafka deployment using a custom `server.properties` and external files:
+
+```java
+@KafkaContainer(serverProperties = "strimzi-custom-server-ssl.properties", kafkaConfigResources = { "strimzi-custom-server-ssl-keystore.p12"})
+```
+
+| Note that this only works for Strimzi kafka and on baremetal.
+
+- SSL protocol
+
+```java
+// Truststore must be placed on filesystem: https://github.com/quarkusio/quarkus/issues/8573
+// So, we need to have:
+// - a file "strimzi-server-ssl-truststore.p12" to match the defined in the default server.properties
+// - using "top-secret" for the password to match the defined in the default server.properties
+// - using "PKCS12" for the type to match the defined in the default server.properties
+// If you want another setup, see the scenario `StrimziKafkaWithCustomSslMessagingIT`.
+private static final String TRUSTSTORE_FILE = "strimzi-server-ssl-truststore.p12";
+
+@KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SSL, kafkaConfigResources = TRUSTSTORE_FILE)
+static final KafkaService kafka = new KafkaService();
+
+@QuarkusApplication
+static final RestService app = new RestService()
+        .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl)
+        .withProperty("kafka.security.protocol", "SSL")
+        .withProperty("kafka.ssl.truststore.location", TRUSTSTORE_FILE)
+        .withProperty("kafka.ssl.truststore.password", "top-secret")
+        .withProperty("kafka.ssl.truststore.type", "PKCS12");
+
+@Test
+public void checkUserResourceByNormalUser() {
+    Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        app.given().get("/prices/poll")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+    });
+}
+```
+
+| Note that this only works for Strimzi kafka and on baremetal.
+
+- SASL protocol
+
+```java
+private final static String SASL_USERNAME_VALUE = "client";
+private final static String SASL_PASSWORD_VALUE = "client-secret";
+
+@KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SASL)
+static final KafkaService kafka = new KafkaService();
+
+@QuarkusApplication
+static final RestService app = new RestService()
+        .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl)
+        .withProperty("kafka.security.protocol", "SASL_PLAINTEXT")
+        .withProperty("kafka.sasl.mechanism", "PLAIN")
+        .withProperty("kafka.sasl.jaas.config", "org.apache.kafka.common.security.plain.PlainLoginModule required "
+                + "username=\"" + SASL_USERNAME_VALUE + "\" "
+                + "password=\"" + SASL_PASSWORD_VALUE + "\";");
+
+@Test
+public void checkUserResourceByNormalUser() {
+    Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        app.given().get("/prices/poll")
+                .then()
+                .statusCode(HttpStatus.SC_OK);
+    });
+}
+```
+
+| Note that this only works for Strimzi kafka and on baremetal.
+
 #### AMQ Containers
 
 Similar to Kafka, we have a default implementation of an AMQ container (Artemis vendor):

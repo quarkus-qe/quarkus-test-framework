@@ -58,7 +58,6 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
         managedResource = findManagedResource();
         build();
 
-        managedResource.validate();
         return managedResource;
     }
 

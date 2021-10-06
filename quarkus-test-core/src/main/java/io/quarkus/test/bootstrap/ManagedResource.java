@@ -55,4 +55,8 @@ public interface ManagedResource {
         stop();
         start();
     }
+
+    default void validate() {
+
+    }
 }

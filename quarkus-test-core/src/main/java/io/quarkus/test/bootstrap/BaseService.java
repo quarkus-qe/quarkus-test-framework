@@ -235,6 +235,7 @@ public class BaseService<T extends Service> implements Service {
         FileUtils.recreateDirectory(context.getServiceFolder());
         this.managedResourceBuilder = managedResourceBuilder;
         this.managedResource = managedResourceBuilder.build(context);
+        this.managedResource.validate();
     }
 
     public void restart() {
