@@ -131,10 +131,12 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                     .setBaseName(getContext().getName())
                     .setTargetDirectory(appFolder);
 
-            // The method setForcedDependencies signature changed from `List<AppDependency>` to `List<Dependency>` where
-            // Dependency is an interface of AppDependency, so it should be fine. However, the compiler fails to cast it,
-            // so we need to use reflection to sort it out for the most recent version and older versions.
-            ReflectionUtils.invokeMethod(builder, "setForcedDependencies", getForcedDependencies());
+            if (!getForcedDependencies().isEmpty()) {
+                // The method setForcedDependencies signature changed from `List<AppDependency>` to `List<Dependency>` where
+                // Dependency is an interface of AppDependency, so it should be fine. However, the compiler fails to cast it,
+                // so we need to use reflection to sort it out for the most recent version and older versions.
+                ReflectionUtils.invokeMethod(builder, "setForcedDependencies", getForcedDependencies());
+            }
 
             // The method `setLocalProjectDiscovery` signature changed from `Boolean` to `boolean` and this might make
             // to fail the tests at runtime when using different versions.
