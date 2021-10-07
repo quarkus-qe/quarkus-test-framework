@@ -27,7 +27,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     private static final String REGISTRY_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/registry-deployment-template.yml";
     private static final String REGISTRY_DEPLOYMENT = "registry.yml";
 
-    private static final String EXPECTED_LOG = "started (kafka.server.KafkaServer)";
+    private static final String EXPECTED_LOG = "started \\(kafka.server.KafkaServer\\)";
 
     private static final int HTTP_PORT = 9092;
 
@@ -45,7 +45,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
 
     @Override
     public String getDisplayName() {
-        return model.getImage() + ":" + model.getVersion();
+        return getKafkaImage() + ":" + getKafkaVersion();
     }
 
     @Override
