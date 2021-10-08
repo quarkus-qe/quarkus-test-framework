@@ -153,6 +153,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-service-infinispan</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>io.jaegertracing</groupId>
                 <artifactId>jaeger-client</artifactId>
                 <version>${jaeger.version}</version>
@@ -375,6 +380,7 @@
                 <module>quarkus-test-service-amq</module>
                 <module>quarkus-test-service-jaeger</module>
                 <module>quarkus-test-service-database</module>
+                <module>quarkus-test-service-infinispan</module>
             </modules>
         </profile>
         <profile>
@@ -391,6 +397,7 @@
                 <module>examples/https</module>
                 <module>examples/grpc</module>
                 <module>examples/consul</module>
+                <module>examples/infinispan</module>
                 <module>examples/microprofile</module>
                 <module>examples/keycloak</module>
                 <module>examples/kafka</module>

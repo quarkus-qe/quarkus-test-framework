@@ -1444,6 +1444,65 @@ public class MySqlDatabaseIT {
 }
 ```
 
+#### Infinispan Service
+
+The test framework have some utilities to ease the setup of infinispan containers. In order to use this service, you need to
+add the following dependency into your Maven configuration:
+
+```xml
+<dependency>
+    <groupId>io.quarkus.qe</groupId>
+    <artifactId>quarkus-test-service-infinispan</artifactId>
+    <scope>test</scope>
+</dependency>
+```
+
+Example usage:
+
+```java
+@QuarkusScenario
+public class BasicInfinispanBookCacheIT extends BaseBookCacheIT {
+
+    @Container(image = "infinispan/server:13.0", expectedLog = "Infinispan Server.*started in", port = 11222)
+    static final InfinispanService infinispan = new InfinispanService();
+
+    @QuarkusApplication
+    static final RestService app = new RestService()
+            .withProperty("quarkus.infinispan-client.server-list", infinispan::getInfinispanServerAddress)
+            .withProperty("quarkus.infinispan-client.auth-username", infinispan.getUsername())
+            .withProperty("quarkus.infinispan-client.auth-password", infinispan.getPassword());
+}
+```
+
+For more advanced setup, we can add custom configuration as for example to enable JKS support:
+
+```java
+@QuarkusScenario
+public class UsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
+
+    @Container(image = "infinispan/server:13.0", expectedLog = "Infinispan Server.*started in", port = 11222)
+    static final InfinispanService infinispan = new InfinispanService()
+            .withConfigFile("jks-config.yaml")
+            .withSecretFiles("jks/server.jks");
+
+    @QuarkusApplication
+    static final RestService app = new RestService()
+            .withProperty("quarkus.infinispan-client.server-list", infinispan::getInfinispanServerAddress)
+            .withProperty("quarkus.infinispan-client.auth-username", infinispan.getUsername())
+            .withProperty("quarkus.infinispan-client.auth-password", infinispan.getPassword())
+            .withProperty("quarkus.infinispan-client.trust-store", "secret::/jks/server.jks")
+            .withProperty("quarkus.infinispan-client.trust-store-password", "changeit")
+            .withProperty("quarkus.infinispan-client.trust-store-type", "jks");
+}
+```
+
+For OpenShift/Kubernetes deployments and depending on the used Infinispan images, it might not be possible to communicate with the Infinispan service using the exposed routes, so we need to configure our scenario to use the internal services instead:
+
+```test.properties
+ts.infinispan.openshift.use-internal-service-as-url=true
+ts.infinispan.kubernetes.use-internal-service-as-url=true
+```
+
 ## More Features
 
 - Log verifications
