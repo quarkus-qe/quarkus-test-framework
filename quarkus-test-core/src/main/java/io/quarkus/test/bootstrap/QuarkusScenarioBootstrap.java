@@ -151,7 +151,7 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onServiceLaunch(scenario, service));
         try {
             service.start();
-        } catch (Error throwable) {
+        } catch (Throwable throwable) {
             scenarioOnError(throwable);
             throw throwable;
         }

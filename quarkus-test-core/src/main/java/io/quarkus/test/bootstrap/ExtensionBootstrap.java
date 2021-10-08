@@ -14,15 +14,11 @@ public interface ExtensionBootstrap {
 
     }
 
-    default void onError(ScenarioContext context, Throwable throwable) {
+    default void beforeEach(ScenarioContext context) {
 
     }
 
-    default void updateServiceContext(ServiceContext context) {
-
-    }
-
-    default void onServiceLaunch(ScenarioContext context, Service service) {
+    default void afterEach(ScenarioContext context) {
 
     }
 
@@ -34,11 +30,15 @@ public interface ExtensionBootstrap {
 
     }
 
-    default void beforeEach(ScenarioContext context) {
+    default void onError(ScenarioContext context, Throwable throwable) {
 
     }
 
-    default void afterEach(ScenarioContext context) {
+    default void onServiceLaunch(ScenarioContext context, Service service) {
+
+    }
+
+    default void updateServiceContext(ServiceContext context) {
 
     }
 
