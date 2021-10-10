@@ -429,7 +429,8 @@ public final class KubectlClient {
     private void doCreateSecretFromFile(String name, String filePath) {
         if (client.secrets().withName(name).get() == null) {
             try {
-                new Command(KUBECTL, "create", "secret", "generic", name, "--from-file=" + filePath).runAndWait();
+                new Command(KUBECTL, "create", "secret", "generic", name, "--from-file=" + filePath,
+                        "-n", currentNamespace).runAndWait();
             } catch (Exception e) {
                 fail("Could not create secret. Caused by " + e.getMessage());
             }
