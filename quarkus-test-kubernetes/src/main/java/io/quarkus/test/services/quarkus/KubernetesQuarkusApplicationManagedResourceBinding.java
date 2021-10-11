@@ -12,7 +12,9 @@ public class KubernetesQuarkusApplicationManagedResourceBinding implements Quark
 
     @Override
     public QuarkusManagedResource init(ProdQuarkusApplicationManagedResourceBuilder builder) {
-        return new KubernetesQuarkusApplicationManagedResource(builder);
+        KubernetesScenario annotation = builder.getContext().getTestContext().getRequiredTestClass()
+                .getAnnotation(KubernetesScenario.class);
+        return annotation.deployment().getManagedResource(builder);
     }
 
 }

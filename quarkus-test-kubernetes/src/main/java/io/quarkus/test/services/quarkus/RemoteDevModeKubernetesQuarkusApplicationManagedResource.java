@@ -14,7 +14,8 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.utils.ProcessUtils;
 
-public class RemoteDevModeKubernetesQuarkusApplicationManagedResource extends KubernetesQuarkusApplicationManagedResource {
+public class RemoteDevModeKubernetesQuarkusApplicationManagedResource extends
+        ContainerRegistryKubernetesQuarkusApplicationManagedResource {
 
     private static final String REMOTE_DEV_LOG_OUTPUT_FILE = "remote-dev-out.log";
 
