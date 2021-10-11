@@ -47,7 +47,8 @@ public abstract class LoggingHandler implements Closeable {
     }
 
     public boolean logsContains(String expected) {
-        return logs().stream().anyMatch(line -> line.matches(ANY + expected + ANY));
+        return logs().stream().anyMatch(line -> line.contains(expected) // simple contains
+                || line.matches(ANY + expected + ANY)); // or by regular expression
     }
 
     public void flush() {
