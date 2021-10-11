@@ -1,43 +1,37 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
-import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_PORT_PROPERTY;
-import static java.util.regex.Pattern.quote;
+import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpStatus;
 
 import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
-import io.quarkus.test.utils.DockerUtils;
 
-public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedResource {
+public abstract class KubernetesQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
+        extends QuarkusManagedResource {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "kubernetes.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
-    private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
-    private static final String DEPLOYMENT = "kubernetes.yml";
-
-    private final ArtifactQuarkusApplicationManagedResourceBuilder model;
-    private final KubectlClient client;
+    protected final T model;
+    protected final KubectlClient client;
 
     private LoggingHandler loggingHandler;
     private boolean init;
     private boolean running;
-    private String image;
 
-    public KubernetesQuarkusApplicationManagedResource(ArtifactQuarkusApplicationManagedResourceBuilder model) {
+    public KubernetesQuarkusApplicationManagedResource(T model) {
         super(model.getContext());
         this.model = model;
         this.client = model.getContext().get(KubernetesExtensionBootstrap.CLIENT);
     }
+
+    protected abstract void doInit();
+
+    protected abstract void doUpdate();
 
     @Override
     public void start() {
@@ -46,13 +40,14 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
         }
 
         if (!init) {
-            image = createImageAndPush();
+            doInit();
             init = true;
+        } else {
+            doUpdate();
         }
 
-        loadDeployment();
-
         client.scaleTo(model.getContext().getOwner(), 1);
+
         running = true;
 
         loggingHandler = new KubernetesLoggingHandler(model.getContext());
@@ -61,6 +56,10 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
 
     @Override
     public void stop() {
+        if (!running) {
+            return;
+        }
+
         if (loggingHandler != null) {
             loggingHandler.stopWatching();
         }
@@ -79,6 +78,15 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
     public int getPort(Protocol protocol) {
         validateProtocol(protocol);
         return client.port(model.getContext().getOwner());
+    }
+
+    @Override
+    public boolean isRunning() {
+        if (!running) {
+            return false;
+        }
+
+        return super.isRunning() && routeIsReachable(Protocol.HTTP);
     }
 
     @Override
@@ -102,10 +110,6 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
         return loggingHandler;
     }
 
-    protected Map<String, String> addExtraTemplateProperties() {
-        return Collections.emptyMap();
-    }
-
     private void validateProtocol(Protocol protocol) {
         if (protocol == Protocol.HTTPS) {
             fail("SSL is not supported for Kubernetes tests yet");
@@ -114,32 +118,8 @@ public class KubernetesQuarkusApplicationManagedResource extends QuarkusManagedR
         }
     }
 
-    private String createImageAndPush() {
-        return DockerUtils.createImageAndPush(model.getContext(), getLaunchMode(), model.getArtifact());
+    private boolean routeIsReachable(Protocol protocol) {
+        return given().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol)).get()
+                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
-
-    private void loadDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                QUARKUS_KUBERNETES_TEMPLATE);
-        client.applyServiceProperties(model.getContext().getOwner(), deploymentFile,
-                this::replaceDeploymentContent,
-                addExtraTemplateProperties(),
-                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
-    }
-
-    private String replaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
-        if (StringUtils.isNotEmpty(customServiceName)) {
-            // replace it by the service owner name
-            content = content.replaceAll(quote(customServiceName), model.getContext().getName());
-        }
-
-        return content
-                .replaceAll(quote("${IMAGE}"), image)
-                .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
-                .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
-                .replaceAll(quote("${INTERNAL_PORT}"),
-                        model.getContext().getOwner().getProperty(QUARKUS_HTTP_PORT_PROPERTY, "" + HTTP_PORT_DEFAULT));
-    }
-
 }

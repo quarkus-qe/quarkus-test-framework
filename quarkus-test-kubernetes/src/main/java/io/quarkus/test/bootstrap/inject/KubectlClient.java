@@ -51,14 +51,15 @@ import io.quarkus.test.utils.FileUtils;
 
 public final class KubectlClient {
 
+    public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
+    public static final String LABEL_SCENARIO_ID = "scenarioId";
+
     private static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             "ts.kubernetes.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int NAMESPACE_NAME_SIZE = 10;
     private static final int NAMESPACE_CREATION_RETRIES = 5;
-    private static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
-    private static final String LABEL_SCENARIO_ID = "scenarioId";
 
     private static final String KUBECTL = "kubectl";
     private static final int HTTP_PORT_DEFAULT = 80;
@@ -101,6 +102,23 @@ public final class KubectlClient {
             fail("Failed to apply resource " + file.toAbsolutePath().toString() + " for " + service.getName() + ". Caused by "
                     + e.getMessage());
         }
+    }
+
+    /**
+     * Update the deployment config using the service properties.
+     *
+     * @param service
+     */
+    public void applyServicePropertiesUsingDeploymentConfig(Service service) {
+        Deployment deployment = client.apps().deployments().withName(service.getName()).get();
+        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
+
+        deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
+            enrichProperties.entrySet().forEach(
+                    envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+        });
+
+        client.apps().deployments().createOrReplace(deployment);
     }
 
     /**
@@ -262,7 +280,7 @@ public final class KubectlClient {
         }
     }
 
-    private String getScenarioId() {
+    public String getScenarioId() {
         return scenarioId;
     }
 

@@ -15,4 +15,5 @@ import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 @ExtendWith(QuarkusScenarioBootstrap.class)
 @Inherited
 public @interface KubernetesScenario {
+    KubernetesDeploymentStrategy deployment() default KubernetesDeploymentStrategy.UsingContainerRegistry;
 }

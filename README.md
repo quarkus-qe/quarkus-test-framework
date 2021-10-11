@@ -1250,17 +1250,75 @@ mvn clean verify -Dts.kubernetes.delete.namespace.after.all=false
 
 #### Deployment Strategies
 
-- **(Default) Container Registry** 
-
 Kubernetes needs a container registry where to push and pull images, so we need to provide a property like:
 
 ```
 mvn clean verify -Dts.container.registry-url=quay.io/<your username>
 ```
 
-The container registry must automatically exposed the containers publicly.
+The container registry must automatically expose the containers publicly.
 
 These tests can be disabled if the above system property is not set using the `@DisabledIfNotContainerRegistry` annotation.
+
+The same applies for all the deployment strategies available:
+
+- **(Default) Container Registry**
+
+This strategy will build the image locally and push it to an intermediary container registry (provided by a system property). Then, the image will be pulled from the container registry into Kubernetes.
+
+```java
+@KubernetesScenario(deployment = KubernetesDeploymentStrategy.UsingContainerRegistry)
+public class KubernetesPingPongResourceIT {
+    // ...
+}
+```
+
+- **Kubernetes Extension**
+
+This strategy will delegate the deployment into the Quarkus Kubernetes extension, so it will trigger a Maven command to run it.
+
+Example:
+
+```java
+@KubernetesScenario(deployment = KubernetesDeploymentStrategy.UsingKubernetesExtension)
+public class KubernetesPingPongResourceIT {
+    // ...
+}
+```
+
+In order to use this strategy, you need to add this Maven profile into the pom.xml:
+
+```xml
+<profile>
+    <id>deploy-to-kubernetes-using-extension</id>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-kubernetes</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-container-image-jib</artifactId>
+        </dependency>
+    </dependencies>
+</profile>
+```
+
+| Important note: This strategy does not support custom sources to be selected, this means that the whole Maven module will be deployed. Therefore, if we have:
+
+Take into account that we have used the `quarkus-container-image-jib` dependency to build the Quarkus image, but we can use any from [https://quarkus.io/guides/container-image](https://quarkus.io/guides/container-image).
+
+```java
+@KubernetesScenario(deployment = KubernetesDeploymentStrategy.UsingKubernetesExtension)
+public class KubernetesPingPongResourceIT {
+    @QuarkusApplication(classes = PingResource.class)
+    static final RestService pingPongApp = new RestService();
+    
+    // ...
+}
+```
+
+The test case will fail saying that this is not supported using the Using Kubernetes extension strategy.
 
 #### Interact with the Kubernetes Client directly
 
