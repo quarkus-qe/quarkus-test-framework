@@ -14,6 +14,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
+import io.quarkus.test.services.URILike;
 
 public abstract class OpenShiftQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
         extends QuarkusManagedResource {
@@ -74,20 +75,19 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        validateProtocol(protocol);
-        return untilIsNotNull(() -> client.url(model.getContext().getOwner()),
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTPS && !client.isServerlessService(model.getContext().getName())) {
+            fail("SSL is not supported for OpenShift tests yet");
+        } else if (protocol == Protocol.GRPC) {
+            fail("gRPC is not supported for OpenShift tests yet");
+        }
+        int port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
+        return untilIsNotNull(() -> {
+            return client.url(model.getContext().getOwner()).withPort(port);
+        },
                 AwaitilitySettings.defaults().withService(getContext().getOwner()));
     }
 
-    @Override
-    public int getPort(Protocol protocol) {
-        int port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
-        validateProtocol(protocol);
-        return port;
-    }
-
-    @Override
     public boolean isRunning() {
         if (!running) {
             return false;
@@ -121,16 +121,9 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         return loggingHandler;
     }
 
-    private void validateProtocol(Protocol protocol) {
-        if (protocol == Protocol.HTTPS && !client.isServerlessService(model.getContext().getName())) {
-            fail("SSL is not supported for OpenShift tests yet");
-        } else if (protocol == Protocol.GRPC) {
-            fail("gRPC is not supported for OpenShift tests yet");
-        }
-    }
-
     private boolean routeIsReachable(Protocol protocol) {
-        return given().relaxedHTTPSValidation().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol))
-                .get().getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
+        var url = getURI(protocol);
+        return given().relaxedHTTPSValidation().baseUri(url.getRestAssuredStyleUri()).basePath("/").port(url.getPort()).get()
+                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

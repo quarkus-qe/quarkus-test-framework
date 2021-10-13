@@ -8,6 +8,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.quarkus.test.services.containers.strimzi.ExtendedStrimziKafkaContainer;
@@ -29,15 +30,14 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        String host = super.getHost(protocol);
+    public URILike getURI(Protocol protocol) {
+        var uri = super.getURI(protocol);
         if (model.getProtocol() == KafkaProtocol.SSL) {
-            host = host.replaceAll("http://", "SSL://");
+            uri = uri.withScheme("SSL");
         } else if (model.getProtocol() == KafkaProtocol.SASL) {
-            host = host.replaceAll("http://", "SASL_PLAINTEXT://");
+            uri = uri.withScheme("SASL_PLAINTEXT");
         }
-
-        return host;
+        return uri;
     }
 
     @Override

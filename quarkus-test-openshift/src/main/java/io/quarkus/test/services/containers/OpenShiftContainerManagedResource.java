@@ -12,6 +12,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
+import io.quarkus.test.services.URILike;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
@@ -66,21 +67,11 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public String getHost(Protocol protocol) {
+    public URILike getURI(Protocol protocol) {
         if (useInternalServiceAsUrl()) {
-            return protocol.getValue() + "://" + getInternalServiceName();
+            return createURI("http", getInternalServiceName(), model.getPort());
         }
-
-        return client.url(model.getContext().getOwner());
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        if (useInternalServiceAsUrl()) {
-            return model.getPort();
-        }
-
-        return HTTP_PORT;
+        return client.url(model.getContext().getOwner()).withPort(HTTP_PORT);
     }
 
     @Override

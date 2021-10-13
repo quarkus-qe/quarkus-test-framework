@@ -6,7 +6,7 @@ public class JaegerService extends BaseService<JaegerService> {
     public static final String JAEGER_API_PATH = "/api/traces";
 
     public String getRestUrl() {
-        return getHost() + ":" + getPort() + JAEGER_API_PATH;
+        return getURI(Protocol.HTTP).withPath(JAEGER_API_PATH).toString();
     }
 
     public String getTraceUrl() {

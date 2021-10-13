@@ -2,6 +2,8 @@ package io.quarkus.test.bootstrap;
 
 import java.util.List;
 
+import io.quarkus.test.services.URILike;
+
 public interface ManagedResource {
 
     /**
@@ -24,12 +26,7 @@ public interface ManagedResource {
     /**
      * Get the Host of the running resource.
      */
-    String getHost(Protocol protocol);
-
-    /**
-     * Get the Port of the running resource.
-     */
-    int getPort(Protocol protocol);
+    URILike getURI(Protocol protocol);
 
     /**
      * @return if the resource is running.
@@ -57,6 +54,9 @@ public interface ManagedResource {
     }
 
     default void validate() {
+    }
 
+    default URILike createURI(String scheme, String host, int port) {
+        return new URILike(scheme, host, port, null);
     }
 }
