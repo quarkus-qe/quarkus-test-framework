@@ -51,7 +51,6 @@
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>2.3.0.Final</quarkus.platform.version>
         <com.github.docker-java.version>3.2.11</com.github.docker-java.version>
-        <quarkus-plugin.version>${quarkus.platform.version}</quarkus-plugin.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>

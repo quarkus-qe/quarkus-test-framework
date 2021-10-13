@@ -25,8 +25,7 @@ Main features:
 - Test isolation: for example, in OpenShift or Kubernetes, tests will be executed in an ephemeral namespace 
 
 This framework follows the Quarkus version convention, so we can selectively specify the Quarkus version via the arguments:
-- `-Dquarkus.platform.version=1.13.0.Final`
-- `-Dquarkus-plugin.version=1.13.0.Final`
+- `-Dquarkus.platform.version=2.3.0.Final`
 - `-Dquarkus.platform.group-id=io.quarkus`
 - `-Dquarkus.platform.artifact-id=quarkus-universe-bom`
 
