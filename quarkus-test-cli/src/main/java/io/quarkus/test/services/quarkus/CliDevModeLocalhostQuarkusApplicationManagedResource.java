@@ -15,6 +15,7 @@ import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ProcessUtils;
@@ -70,13 +71,8 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        return "http://localhost";
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        return assignedHttpPort;
+    public URILike getURI(Protocol protocol) {
+        return createURI(protocol.getValue(), "localhost", assignedHttpPort);
     }
 
     @Override

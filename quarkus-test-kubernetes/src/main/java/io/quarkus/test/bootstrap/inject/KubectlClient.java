@@ -216,7 +216,7 @@ public final class KubectlClient {
      * @param service
      * @return
      */
-    public String url(Service service) {
+    public String host(Service service) {
         String serviceName = service.getName();
         io.fabric8.kubernetes.api.model.Service serviceModel = client.services().withName(serviceName).get();
         if (serviceModel == null
@@ -240,7 +240,7 @@ public final class KubectlClient {
             fail("Service " + serviceName + " host not found");
         }
 
-        return "http://" + ip.get();
+        return ip.get();
     }
 
     /**

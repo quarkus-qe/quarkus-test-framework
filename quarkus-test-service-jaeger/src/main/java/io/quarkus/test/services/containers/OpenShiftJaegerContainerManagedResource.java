@@ -38,7 +38,7 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
         // We need to expose an additional endpoint for trace
         String traceServiceName = model.getContext().getName() + TRACE_SUFFIX;
         getClient().expose(traceServiceName, model.getTracePort());
-        model.getContext().put(JAEGER_TRACE_URL_PROPERTY, getClient().url(traceServiceName));
+        model.getContext().put(JAEGER_TRACE_URL_PROPERTY, getClient().url(traceServiceName).toString());
     }
 
     @Override

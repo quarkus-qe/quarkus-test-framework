@@ -23,11 +23,17 @@ public abstract class DatabaseService<T extends Service> extends BaseService<T> 
     }
 
     public String getJdbcUrl() {
-        return getHost().replace("http", "jdbc:" + getJdbcName()) + ":" + getPort() + "/" + getDatabase();
+        return getURI()
+                .withScheme("jdbc:" + getJdbcName())
+                .withPath("/" + getDatabase())
+                .toString();
     }
 
     public String getReactiveUrl() {
-        return getHost().replace("http", getJdbcName()) + ":" + getPort() + "/" + getDatabase();
+        return getURI()
+                .withScheme(getJdbcName())
+                .withPath("/" + getDatabase())
+                .toString();
     }
 
     public T with(String user, String password, String database) {

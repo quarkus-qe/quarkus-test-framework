@@ -16,6 +16,7 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.JaegerContainer;
 import io.quarkus.test.services.QuarkusApplication;
+import io.restassured.response.Response;
 
 @QuarkusScenario
 public class ClientResourceIT {
@@ -37,9 +38,9 @@ public class ClientResourceIT {
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo("I'm a client"));
-
         await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
-            get(jaeger.getTraceUrl() + "?service=" + SERVICE_NAME)
+            Response response = get(jaeger.getTraceUrl() + "?service=" + SERVICE_NAME);
+            response
                     .then()
                     .statusCode(HttpStatus.SC_OK)
                     .body("data", hasSize(1))

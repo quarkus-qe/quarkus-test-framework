@@ -1,5 +1,7 @@
 package io.quarkus.test.bootstrap;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collections;
 
 import org.apache.commons.lang3.StringUtils;
@@ -27,13 +29,25 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public String getRealmUrl() {
-        String url = getHost();
-        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
-        if (getPort() != HTTP_80) {
-            url += ":" + getPort();
-        }
+        var host = getURI(Protocol.HTTP);
 
-        return String.format("%s/auth/realms/%s", url, realm);
+        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
+        int port = host.getPort();
+        if (port == HTTP_80) {
+            port = -1;
+        }
+        try {
+            URI url = new URI(host.getScheme(),
+                    host.getUserInfo(),
+                    host.getHost(),
+                    port,
+                    "/auth/realms/" + realm,
+                    null,
+                    null);
+            return url.toString();
+        } catch (URISyntaxException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {

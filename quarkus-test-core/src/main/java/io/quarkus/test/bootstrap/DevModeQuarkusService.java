@@ -105,7 +105,8 @@ public class DevModeQuarkusService extends RestService {
 
     public HtmlPage webPage(String path) {
         try {
-            return webClient().getPage(getHost() + ":" + getPort() + path);
+            var uri = getURI(Protocol.HTTP).withPath(path);
+            return webClient().getPage(uri.toString());
         } catch (IOException e) {
             Assertions.fail("Page with path " + path + " does not exist");
         }

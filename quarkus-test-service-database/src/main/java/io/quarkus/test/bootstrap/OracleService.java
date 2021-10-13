@@ -21,7 +21,8 @@ public class OracleService extends DatabaseService<OracleService> {
 
     @Override
     public String getJdbcUrl() {
-        return getHost().replace("http://", "jdbc:" + getJdbcName() + ":thin:@") + ":" + getPort() + "/" + getDatabase();
+        var host = getURI();
+        return "jdbc:" + getJdbcName() + ":thin:@" + host.getHost() + ":" + host.getPort() + "/" + getDatabase();
     }
 
     @Override

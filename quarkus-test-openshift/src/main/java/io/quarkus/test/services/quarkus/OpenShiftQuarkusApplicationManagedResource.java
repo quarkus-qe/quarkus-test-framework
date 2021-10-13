@@ -14,6 +14,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
+import io.quarkus.test.services.URILike;
 
 public abstract class OpenShiftQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
         extends QuarkusManagedResource {
@@ -73,16 +74,16 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        validateProtocol(protocol);
-        return untilIsNotNull(() -> client.url(model.getContext().getOwner()),
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTPS) {
+            fail("SSL is not supported for OpenShift tests yet");
+        } else if (protocol == Protocol.GRPC) {
+            fail("gRPC is not supported for OpenShift tests yet");
+        }
+        return untilIsNotNull(() -> {
+            return client.url(model.getContext().getOwner());
+        },
                 AwaitilitySettings.defaults().withService(getContext().getOwner()));
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        validateProtocol(protocol);
-        return EXTERNAL_PORT;
     }
 
     @Override
@@ -128,7 +129,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     }
 
     private boolean routeIsReachable(Protocol protocol) {
-        return given().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol)).get()
+        var url = getURI(protocol);
+        return given().baseUri(url.getRestAssuredStyleUri()).basePath("/").port(url.getPort()).get()
                 .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

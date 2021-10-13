@@ -12,6 +12,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.services.URILike;
 
 public class KubernetesContainerManagedResource implements ManagedResource {
 
@@ -66,21 +67,14 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     @Override
-    public String getHost(Protocol protocol) {
+    public URILike getURI(Protocol protocol) {
         if (useInternalServiceAsUrl()) {
-            return protocol.getValue() + "://" + model.getContext().getName();
+            return createURI(protocol.getValue(), model.getContext().getName(), model.getPort());
         }
 
-        return client.url(model.getContext().getOwner());
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        if (useInternalServiceAsUrl()) {
-            return model.getPort();
-        }
-
-        return client.port(model.getContext().getOwner());
+        return createURI("http",
+                client.host(model.getContext().getOwner()),
+                client.port(model.getContext().getOwner()));
     }
 
     @Override
@@ -116,5 +110,4 @@ public class KubernetesContainerManagedResource implements ManagedResource {
         return Boolean.TRUE.toString()
                 .equals(model.getContext().getOwner().getConfiguration().get(USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
     }
-
 }

@@ -3,7 +3,8 @@ package io.quarkus.test.bootstrap;
 public enum Protocol {
     HTTP("http", 8080),
     HTTPS("https", 8443),
-    GRPC("grpc", 9000);
+    GRPC("grpc", 9000),
+    NONE(null, -1);
 
     private String value;
     private int port;
