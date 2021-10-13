@@ -37,7 +37,7 @@ The build instructions are available in the [contribution guide](CONTRIBUTING.md
 
 ### Using the framework
 
-In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file;
+In order to write Quarkus application in your tests, you first need to add the core dependency in your `pom.xml` file:
 
 ```xml
 <dependency>
@@ -1520,7 +1520,7 @@ Example usage:
 @QuarkusScenario
 public class BasicInfinispanBookCacheIT extends BaseBookCacheIT {
 
-    @Container(image = "infinispan/server:13.0", expectedLog = "Infinispan Server.*started in", port = 11222)
+    @Container(image = "infinispan/server:12.1", expectedLog = "Infinispan Server.*started in", port = 11222)
     static final InfinispanService infinispan = new InfinispanService();
 
     @QuarkusApplication
@@ -1537,7 +1537,7 @@ For more advanced setup, we can add custom configuration as for example to enabl
 @QuarkusScenario
 public class UsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
 
-    @Container(image = "infinispan/server:13.0", expectedLog = "Infinispan Server.*started in", port = 11222)
+    @Container(image = "infinispan/server:12.1", expectedLog = "Infinispan Server.*started in", port = 11222)
     static final InfinispanService infinispan = new InfinispanService()
             .withConfigFile("jks-config.yaml")
             .withSecretFiles("jks/server.jks");
