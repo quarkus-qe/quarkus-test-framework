@@ -1183,20 +1183,6 @@ public class OpenShiftGreetingResourceIT extends GreetingResourceIT {
 
 | Note that the injection is only supported to static fields.
 
-#### Enable/Disable OpenShift tests via system properties
-
-We can selectively disable/enable OpenShift tests via system properties and using the `@EnabledIfOpenShiftScenarioPropertyIsTrue` annotation:
-
-```java
-@OpenShiftScenario
-@EnabledIfOpenShiftScenarioPropertyIsTrue
-public class OpenShiftUsingExtensionPingPongResourceIT {
-    // ...
-}
-```
-
-This test will be executed only if the system property `ts.openshift.scenario.enabled` is `true`.
-
 ### Kubernetes
 
 Requirements:
@@ -1352,20 +1338,6 @@ public class KubernetesGreetingResourceIT extends GreetingResourceIT {
 ```
 
 | Note that the injection is only supported to static fields.
-
-#### Enable/Disable Kubernetes tests via system properties
-
-We can selectively disable/enable OpenShift tests via system properties and using the `@EnabledIfKubernetesScenarioPropertyIsTrue` annotation:
-
-```java
-@KubernetesScenario
-@EnabledIfKubernetesScenarioPropertyIsTrue
-public class KubernetesGreetingResourceIT {
-    // ...
-}
-```
-
-This test will be executed only if the system property `ts.kubernetes.scenario.enabled` is `true`.
 
 ## Services entities
 
