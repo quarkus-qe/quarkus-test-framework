@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
 import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
 import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
 import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
@@ -21,6 +23,7 @@ import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.PropertiesUtils;
@@ -38,6 +41,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
     private static final String QUARKUS_OPENSHIFT_ENV_VARS = "quarkus.openshift.env.vars.";
     private static final String QUARKUS_OPENSHIFT_LABELS = "quarkus.openshift.labels.";
+    private static final String QUARKUS_OPENSHIFT_BASE_JAVA_IMAGE = "quarkus.openshift.base-jvm-image";
+    private static final String QUARKUS_OPENSHIFT_BASE_NATIVE_IMAGE = "quarkus.openshift.base-native-image";
     private static final String QUARKUS_KNATIVE_ENV_VARS = "quarkus.knative.env.vars.";
     private static final String QUARKUS_KNATIVE_LABELS = "quarkus.knative.labels.";
     private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET = "quarkus.kubernetes.deployment-target";
@@ -108,13 +113,31 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
         args.add(withLabelsForScenarioId());
-        withEnvVars(args, model.getContext().getOwner().getProperties());
+        withEnvVars(args);
+        withBaseImageProperties(args);
         withAdditionalArguments(args);
 
         try {
             new Command(args).onDirectory(model.getContext().getServiceFolder()).runAndWait();
         } catch (Exception e) {
             fail("Failed to run maven command. Caused by " + e.getMessage());
+        }
+    }
+
+    private void withBaseImageProperties(List<String> args) {
+        // Resolve s2i property
+        boolean isNativeTest = isNativeTest();
+        PropertyLookup s2iImageProperty = isNativeTest ? QUARKUS_NATIVE_S2I : QUARKUS_JVM_S2I;
+        String baseImage = model.getContext().getOwner().getProperty(s2iImageProperty.getPropertyKey())
+                .orElseGet(() -> s2iImageProperty.get(model.getContext()));
+
+        // Set S2i property
+        args.add(withProperty(s2iImageProperty.getPropertyKey(), baseImage));
+
+        // If S2i is set and the openshift is not, we need to propagate it.
+        String openShiftImageProperty = isNativeTest ? QUARKUS_OPENSHIFT_BASE_NATIVE_IMAGE : QUARKUS_OPENSHIFT_BASE_JAVA_IMAGE;
+        if (model.getContext().getOwner().getProperty(openShiftImageProperty).isEmpty()) {
+            args.add(withProperty(openShiftImageProperty, baseImage));
         }
     }
 
@@ -151,7 +174,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         return withProperty(QUARKUS_KUBERNETES_CLIENT_TRUST_CERTS, Boolean.TRUE.toString());
     }
 
-    private void withEnvVars(List<String> args, Map<String, String> envVars) {
+    private void withEnvVars(List<String> args) {
+        Map<String, String> envVars = model.getContext().getOwner().getProperties();
         String property = QUARKUS_OPENSHIFT_ENV_VARS;
         if (isKnativeDeployment()) {
             property = QUARKUS_KNATIVE_ENV_VARS;

@@ -1,6 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_VERSION_PROPERTY;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static java.util.regex.Pattern.quote;
 
 import java.nio.file.Path;
@@ -19,11 +20,9 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final String QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME = "/quarkus-s2i-source-build-template.yml";
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
-    private static final PropertyLookup QUARKUS_SOURCE_S2I_JVM_BUILDER_IMAGE = new PropertyLookup(
-            "s2i.quarkus.jvm.builder.image");
-    private static final PropertyLookup QUARKUS_SOURCE_S2I_NATIVE_BUILDER_IMAGE = new PropertyLookup(
-            "s2i.quarkus.native.builder.image");
     private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository");
+    private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup("quarkus.s2i.src.base-native-image",
+            "quay.io/quarkus/ubi-quarkus-native-s2i:21.2-java11");
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
@@ -89,12 +88,9 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     }
 
     private String getQuarkusS2iBaseImage() {
-        PropertyLookup s2iBaseImage = QUARKUS_SOURCE_S2I_JVM_BUILDER_IMAGE;
-        if (isNativeTest()) {
-            s2iBaseImage = QUARKUS_SOURCE_S2I_NATIVE_BUILDER_IMAGE;
-        }
-
-        return s2iBaseImage.get(getContext());
+        PropertyLookup s2iImageProperty = isNativeTest() ? QUARKUS_NATIVE_S2I_FROM_SRC : QUARKUS_JVM_S2I;
+        return model.getContext().getOwner().getProperty(s2iImageProperty.getPropertyKey())
+                .orElseGet(() -> s2iImageProperty.get(model.getContext()));
     }
 
     private void createMavenSettings() {

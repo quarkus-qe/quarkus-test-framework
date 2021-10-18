@@ -61,9 +61,6 @@
         <checkstyle.version>9.0.1</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
-        <!-- S2i configuration -->
-        <ts.global.s2i.quarkus.jvm.builder.image>registry.access.redhat.com/ubi8/openjdk-11:latest</ts.global.s2i.quarkus.jvm.builder.image>
-        <ts.global.s2i.quarkus.native.builder.image>quay.io/quarkus/ubi-quarkus-native-s2i:21.2-java11</ts.global.s2i.quarkus.native.builder.image>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -213,16 +210,6 @@
                 <plugin>
                     <artifactId>maven-failsafe-plugin</artifactId>
                     <version>${surefire-plugin.version}</version>
-                    <executions>
-                        <execution>
-                            <configuration>
-                                <systemProperties>
-                                    <ts.global.s2i.quarkus.jvm.builder.image>${ts.global.s2i.quarkus.jvm.builder.image}</ts.global.s2i.quarkus.jvm.builder.image>
-                                    <ts.global.s2i.quarkus.native.builder.image>${ts.global.s2i.quarkus.native.builder.image}</ts.global.s2i.quarkus.native.builder.image>
-                                </systemProperties>
-                            </configuration>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
