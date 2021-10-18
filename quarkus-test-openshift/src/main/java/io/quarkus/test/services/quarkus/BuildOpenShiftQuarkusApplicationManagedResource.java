@@ -1,6 +1,8 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -15,13 +17,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     private static final String S2I_DEFAULT_VERSION = "latest";
 
     private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-build-openshift-template.yml";
-
     private static final String IMAGE_TAG_SEPARATOR = ":";
-
-    private static final PropertyLookup UBI_QUARKUS_JVM_S2I = new PropertyLookup("quarkus.s2i.base-jvm-image",
-            "registry.access.redhat.com/ubi8/openjdk-11:latest");
-    private static final PropertyLookup UBI_QUARKUS_NATIVE_S2I = new PropertyLookup("quarkus.s2i.base-native-image",
-            "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
 
     public BuildOpenShiftQuarkusApplicationManagedResource(ArtifactQuarkusApplicationManagedResourceBuilder model) {
         super(model);
@@ -76,11 +72,8 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     }
 
     private String getS2iImage() {
-        PropertyLookup s2iImageProperty = UBI_QUARKUS_JVM_S2I;
-        if (isNativeTest()) {
-            s2iImageProperty = UBI_QUARKUS_NATIVE_S2I;
-        }
-
-        return s2iImageProperty.get(model.getContext());
+        PropertyLookup s2iImageProperty = isNativeTest() ? QUARKUS_NATIVE_S2I : QUARKUS_JVM_S2I;
+        return model.getContext().getOwner().getProperty(s2iImageProperty.getPropertyKey())
+                .orElseGet(() -> s2iImageProperty.get(model.getContext()));
     }
 }
