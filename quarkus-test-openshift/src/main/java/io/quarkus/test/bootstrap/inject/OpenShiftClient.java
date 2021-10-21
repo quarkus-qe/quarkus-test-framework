@@ -11,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -630,7 +631,7 @@ public final class OpenShiftClient {
                 String configMapName = normalizeName(mountPath);
 
                 // Update config map
-                createOrUpdateConfigMap(configMapName, filename, getFileContent(path));
+                createOrUpdateConfigMap(configMapName, getFileContent(path));
 
                 // Add the volume
                 if (!volumes.containsKey(mountPath)) {
@@ -679,20 +680,24 @@ public final class OpenShiftClient {
         return output;
     }
 
-    private void createOrUpdateConfigMap(String configMapName, String key, String value) {
+    private void createOrUpdateConfigMap(String configMapName, Map<String, String> value) {
         if (client.configMaps().withName(configMapName).get() != null) {
             // update existing config map by adding new file
             client.configMaps().withName(configMapName)
                     .edit(configMap -> {
-                        configMap.getData().put(key, value);
+                        for (Map.Entry<String, String> entry : value.entrySet()) {
+                            configMap.getData().put(entry.getKey(), entry.getValue());
+                        }
                         return configMap;
                     });
         } else {
             // create new one
-            client.configMaps().createOrReplace(new ConfigMapBuilder()
-                    .withNewMetadata().withName(configMapName).endMetadata()
-                    .addToData(key, value)
-                    .build());
+            ConfigMapBuilder config = new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata();
+            for (Map.Entry<String, String> entry : value.entrySet()) {
+                config.addToData(entry.getKey(), entry.getValue());
+            }
+
+            client.configMaps().createOrReplace(config.build());
         }
     }
 
@@ -705,27 +710,41 @@ public final class OpenShiftClient {
     }
 
     private String getMountPath(String path) {
-        if (!path.contains(SLASH)) {
+        if (!path.contains(SLASH) || !path.startsWith(SLASH)) {
             return RESOURCE_MNT_FOLDER;
         }
 
-        String mountPath = StringUtils.defaultIfEmpty(path.substring(0, path.lastIndexOf(SLASH)), RESOURCE_MNT_FOLDER);
-        if (!path.startsWith(SLASH)) {
-            mountPath = SLASH + mountPath;
-        }
-
-        return mountPath;
+        return path;
     }
 
-    private String getFileContent(String path) {
+    private Map<String, String> getFileContent(String path) {
         String filePath = getFilePath(path);
-        if (Files.exists(Path.of(filePath))) {
+        Path resolvedPath = Path.of(filePath);
+        if (Files.exists(resolvedPath)) {
             // from file system
-            return FileUtils.loadFile(Path.of(filePath).toFile());
+            if (Files.isDirectory(resolvedPath)) {
+                return getFolderContent(resolvedPath);
+            } else {
+                return Map.of(path, FileUtils.loadFile(resolvedPath.toFile()));
+            }
         }
 
         // from classpath
-        return FileUtils.loadFile(filePath);
+        return Map.of(path, FileUtils.loadFile(filePath));
+    }
+
+    private Map<String, String> getFolderContent(Path resolvedPath) {
+        Map<String, String> folderContent = new HashMap<>();
+        try {
+            Files.list(resolvedPath).forEach(path -> {
+                File resourceFile = path.toFile();
+                folderContent.put(resourceFile.getName(), FileUtils.loadFile(resourceFile));
+            });
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return folderContent;
     }
 
     private String getFilePath(String path) {
