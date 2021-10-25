@@ -65,7 +65,7 @@ jobs:
     needs: validate-format
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "current"]
+        quarkus-version: ["current"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1

@@ -39,7 +39,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
-        <testcontainers.version>1.16.0</testcontainers.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jaeger.version>1.6.0</jaeger.version>
         <prometheus.simpleclient_pushgateway.version>0.12.0</prometheus.simpleclient_pushgateway.version>
@@ -50,7 +49,6 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
         <quarkus.platform.version>2.3.0.Final</quarkus.platform.version>
-        <com.github.docker-java.version>3.2.11</com.github.docker-java.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -74,13 +72,6 @@
     </distributionManagement>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>org.testcontainers</groupId>
-                <artifactId>testcontainers-bom</artifactId>
-                <version>${testcontainers.version}</version>
-                <type>pom</type>
-                <scope>import</scope>
-            </dependency>
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
@@ -174,21 +165,6 @@
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_pushgateway</artifactId>
                 <version>${prometheus.simpleclient_pushgateway.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.docker-java</groupId>
-                <artifactId>docker-java-core</artifactId>
-                <version>${com.github.docker-java.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.docker-java</groupId>
-                <artifactId>docker-java-api</artifactId>
-                <version>${com.github.docker-java.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>com.github.docker-java</groupId>
-                <artifactId>docker-java-transport-zerodep</artifactId>
-                <version>${com.github.docker-java.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
