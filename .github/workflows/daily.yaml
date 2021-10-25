@@ -42,7 +42,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "current"]
+        quarkus-version: ["current"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
@@ -62,15 +62,17 @@ jobs:
           check-latest: true
       - name: Build
         run: |
+          MAVEN_PROFILES="-Pframework,examples"
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
              EXCLUDE_MODULES="-pl !examples/grpc"
+             MAVEN_PROFILES=$MAVEN_PROFILES
           fi
 
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -fae -s .github/mvn-settings.xml clean install  -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -190,7 +192,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["1.13.7.Final", "current", "999-SNAPSHOT"]
+        quarkus-version: ["current", "999-SNAPSHOT"]
         java: [ 11 ]
     steps:
       - uses: actions/checkout@v1
