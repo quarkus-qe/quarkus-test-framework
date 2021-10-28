@@ -5,7 +5,9 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import javax.inject.Inject;
@@ -31,6 +33,7 @@ public class QuarkusCliClientIT {
     static final String RESTEASY_SPRING_WEB_EXTENSION = "quarkus-spring-web";
     static final String RESTEASY_EXTENSION = "quarkus-resteasy";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";
+    static final int CMD_DELAY_SEC = 3;
 
     @Inject
     static QuarkusCliClient cliClient;
@@ -85,7 +88,7 @@ public class QuarkusCliClientIT {
     }
 
     @Test
-    public void shouldAddAndRemoveExtensions() {
+    public void shouldAddAndRemoveExtensions() throws InterruptedException {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
 
@@ -109,7 +112,7 @@ public class QuarkusCliClientIT {
         assertTrue(result.isSuccessful(), SMALLRYE_HEALTH_EXTENSION + " was not uninstalled. Output: " + result.getOutput());
 
         // The health endpoint should be now gone
-        app.start();
+        startAfter(app, Duration.ofSeconds(CMD_DELAY_SEC));
         untilAsserted(() -> app.given().get("/q/health").then().statusCode(HttpStatus.SC_NOT_FOUND));
     }
 
@@ -117,5 +120,11 @@ public class QuarkusCliClientIT {
         List<String> extensions = app.getInstalledExtensions();
         Stream.of(expectedExtensions).forEach(expectedExtension -> assertTrue(extensions.contains(expectedExtension),
                 expectedExtension + " not found in " + extensions));
+    }
+
+    // https://github.com/quarkusio/quarkus/issues/21070
+    private void startAfter(QuarkusCliRestService app, Duration duration) throws InterruptedException {
+        TimeUnit.SECONDS.sleep(duration.getSeconds());
+        app.start();
     }
 }
