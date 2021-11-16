@@ -1,5 +1,7 @@
 package io.quarkus.test.logging;
 
+import static org.apache.commons.lang3.StringUtils.EMPTY;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -7,12 +9,12 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-import org.apache.commons.lang3.StringUtils;
 import org.jboss.logmanager.formatters.ColorPatternFormatter;
 import org.jboss.logmanager.formatters.PatternFormatter;
 import org.jboss.logmanager.handlers.ConsoleHandler;
@@ -28,6 +30,7 @@ public final class Log {
     public static final PropertyLookup LOG_FORMAT = new PropertyLookup("log.format");
     public static final PropertyLookup LOG_FILE_OUTPUT = new PropertyLookup("log.file.output");
     public static final String LOG_SUFFIX = ".log";
+    public static final String LOG_LEVEL_NAME = "log.level";
 
     private static final Service NO_SERVICE = null;
     private static final String COLOR_RESET = "\u001b[0m";
@@ -119,13 +122,26 @@ public final class Log {
     }
 
     private static void log(Service service, Level level, String msg, Object... args) {
-        String textColor = findColorForText(level, service);
-        String logMessage = msg;
-        if (args != null && args.length > 0) {
-            logMessage = String.format(msg, args);
-        }
+        if (isServiceLogLevelAllowed(service, level)) {
+            String textColor = findColorForText(level, service);
+            String logMessage = msg;
+            if (args != null && args.length > 0) {
+                logMessage = String.format(msg, args);
+            }
 
-        LOG.log(level, textColor + inBrackets(service) + logMessage + COLOR_RESET);
+            LOG.log(level, textColor + inBrackets(service) + logMessage + COLOR_RESET);
+        }
+    }
+
+    private static boolean isServiceLogLevelAllowed(Service service, Level level) {
+        boolean enabled = true;
+        if (Objects.nonNull(service) && Objects.nonNull(service.getConfiguration())) {
+            String serviceLogLevel = service.getConfiguration().getOrDefault(LOG_LEVEL_NAME, EMPTY);
+            if (!serviceLogLevel.isEmpty()) {
+                enabled = Level.parse(serviceLogLevel).intValue() <= level.intValue();
+            }
+        }
+        return enabled;
     }
 
     private static synchronized String findColorForText(Level level, Service service) {
@@ -165,7 +181,7 @@ public final class Log {
 
     private static String inBrackets(Service service) {
         if (service == null) {
-            return StringUtils.EMPTY;
+            return EMPTY;
         }
 
         return String.format("[%s] ", service.getName());
