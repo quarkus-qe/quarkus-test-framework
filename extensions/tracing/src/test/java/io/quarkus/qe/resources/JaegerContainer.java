@@ -11,7 +11,7 @@ public class JaegerContainer extends GenericContainer<JaegerContainer> {
     private static final int STARTUP_TIMEOUT_SECONDS = 30;
 
     public JaegerContainer() {
-        super("jaegertracing/all-in-one:1.21.0");
+        super("quay.io/jaegertracing/all-in-one:1.21.0");
         waitingFor(Wait.forLogMessage(".*server started.*", 1));
         withStartupTimeout(Duration.ofSeconds(STARTUP_TIMEOUT_SECONDS));
         addFixedExposedPort(REST_PORT, REST_PORT);
