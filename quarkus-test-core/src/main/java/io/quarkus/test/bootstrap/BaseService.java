@@ -210,12 +210,14 @@ public class BaseService<T extends Service> implements Service {
      */
     @Override
     public void close() {
-        stop();
-        if (getConfiguration().isTrue(DELETE_FOLDER_ON_EXIT)) {
-            try {
-                FileUtils.deletePath(getServiceFolder());
-            } catch (Exception ex) {
-                Log.warn(this, "Could not delete service folder. Caused by " + ex.getMessage());
+        if (!context.getScenarioContext().isDebug()) {
+            stop();
+            if (getConfiguration().isTrue(DELETE_FOLDER_ON_EXIT)) {
+                try {
+                    FileUtils.deletePath(getServiceFolder());
+                } catch (Exception ex) {
+                    Log.warn(this, "Could not delete service folder. Caused by " + ex.getMessage());
+                }
             }
         }
     }

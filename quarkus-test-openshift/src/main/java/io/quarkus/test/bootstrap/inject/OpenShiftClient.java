@@ -70,6 +70,8 @@ public final class OpenShiftClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
     public static final String LABEL_SCENARIO_ID = "scenarioId";
+    public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
+            "ts.openshift.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
     private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
     private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
@@ -83,9 +85,6 @@ public final class OpenShiftClient {
     private static final String RESOURCE_MNT_FOLDER = "/resources";
 
     private static final String OC = "oc";
-
-    private static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
-            "ts.openshift.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
     private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
