@@ -53,8 +53,7 @@ public final class KubectlClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
     public static final String LABEL_SCENARIO_ID = "scenarioId";
-
-    private static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
+    public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             "ts.kubernetes.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
     private static final String RESOURCE_MNT_FOLDER = "/resource";

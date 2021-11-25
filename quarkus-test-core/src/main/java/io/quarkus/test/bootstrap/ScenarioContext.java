@@ -19,6 +19,7 @@ public final class ScenarioContext {
     private final ExtensionContext.Namespace testNamespace;
     private ExtensionContext methodTestContext;
     private boolean failed;
+    private boolean debug;
 
     protected ScenarioContext(ExtensionContext testContext) {
         this.testContext = testContext;
@@ -32,6 +33,14 @@ public final class ScenarioContext {
 
     public boolean isFailed() {
         return failed;
+    }
+
+    public boolean isDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean debug) {
+        this.debug = debug;
     }
 
     public String getRunningTestClassName() {

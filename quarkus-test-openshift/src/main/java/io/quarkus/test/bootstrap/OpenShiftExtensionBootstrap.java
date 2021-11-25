@@ -1,5 +1,7 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.ENABLED_EPHEMERAL_NAMESPACES;
+
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -25,11 +27,21 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public boolean appliesFor(ScenarioContext context) {
-        return context.isAnnotationPresent(OpenShiftScenario.class);
+        boolean isValidConfig = context.isAnnotationPresent(OpenShiftScenario.class);
+        if (isValidConfig && !DELETE_PROJECT_AFTER.getAsBoolean() && ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            Log.error("-Dts.openshift.delete.project.after.all=false is only supported with"
+                    + " -Dts.openshift.ephemeral.namespaces.enabled=false");
+            isValidConfig = false;
+        }
+
+        return isValidConfig;
     }
 
     @Override
     public void beforeAll(ScenarioContext context) {
+        // if deleteProject and ephemeral namespaces are disabled then we are in debug mode. This mode is going to keep
+        // all scenario resources in order to allow you to debug by yourself
+        context.setDebug(!DELETE_PROJECT_AFTER.getAsBoolean() && !ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean());
         client = OpenShiftClient.create(context.getId());
         installOperators(context);
     }

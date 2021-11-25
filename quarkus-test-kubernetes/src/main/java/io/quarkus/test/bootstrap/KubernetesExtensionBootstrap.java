@@ -1,5 +1,7 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.bootstrap.inject.KubectlClient.ENABLED_EPHEMERAL_NAMESPACES;
+
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -21,11 +23,21 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
 
     @Override
     public boolean appliesFor(ScenarioContext context) {
-        return context.isAnnotationPresent(KubernetesScenario.class);
+        boolean isValidConfig = context.isAnnotationPresent(KubernetesScenario.class);
+        if (isValidConfig && !DELETE_NAMESPACE_AFTER.getAsBoolean() && ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            Log.error("-Dts.kubernetes.delete.project.after.all=false is only supported with"
+                    + " -Dts.kubernetes.ephemeral.namespaces.enabled=false");
+            isValidConfig = false;
+        }
+
+        return isValidConfig;
     }
 
     @Override
     public void beforeAll(ScenarioContext context) {
+        // if deleteNamespace and ephemeral namespaces are disabled then we are in debug mode. This mode is going to keep
+        // all scenario resources in order to allow you to debug by yourself
+        context.setDebug(!DELETE_NAMESPACE_AFTER.getAsBoolean() && !ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean());
         client = KubectlClient.create(context.getId());
     }
 
