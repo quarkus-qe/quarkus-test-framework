@@ -1,5 +1,7 @@
 package io.quarkus.qe.database.mysql;
 
+import static io.quarkus.qe.database.mysql.DevModeMySqlDatabaseIT.MYSQL_PORT;
+
 import io.quarkus.test.bootstrap.MySqlService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
@@ -9,9 +11,7 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class MySqlReusableDatabaseIT extends AbstractSqlDatabaseIT {
 
-    static final int MYSQL_PORT = 3306;
-
-    @Container(image = "quay.io/bitnami/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "ready for connections")
+    @Container(image = "docker.io/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
     static MySqlService database = new MySqlService();
 
     @QuarkusApplication

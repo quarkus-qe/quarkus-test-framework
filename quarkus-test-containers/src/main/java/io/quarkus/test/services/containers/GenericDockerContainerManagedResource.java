@@ -10,6 +10,7 @@ import io.quarkus.test.utils.DockerUtils;
 public class GenericDockerContainerManagedResource extends DockerContainerManagedResource {
 
     private static final String PRIVILEGED_MODE = "container.privileged-mode";
+    private static final String REUSABLE_MODE = "container.reusable";
     private final ContainerManagedResourceBuilder model;
 
     protected GenericDockerContainerManagedResource(ContainerManagedResourceBuilder model) {
@@ -45,9 +46,22 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
         }
 
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
+        if (isReusable()) {
+            Log.info(model.getContext().getOwner(), "Running container on Reusable mode");
+            Log.warn(model.getContext().getOwner(), "Reusable mode expose testcontainers 'withReuse' method that is"
+                    + " tagged as UnstableAPI, so is a subject to change and SHOULD NOT be considered a stable API");
+
+            container.withReuse(true);
+        }
+
         container.withExposedPorts(model.getPort());
 
         return container;
+    }
+
+    protected boolean isReusable() {
+        return model.getContext().getOwner().getConfiguration().isTrue(REUSABLE_MODE);
     }
 
     private boolean isPrivileged() {
