@@ -20,4 +20,6 @@ public @interface Container {
     String[] command() default {};
 
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
+
+    boolean reusable() default false;
 }

@@ -45,6 +45,7 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
 
         container.withExposedPorts(model.getPort());
 
+        container.withReuse(model.isReusable());
         return container;
     }
 

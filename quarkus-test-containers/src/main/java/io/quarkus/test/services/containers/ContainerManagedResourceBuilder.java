@@ -19,6 +19,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String expectedLog;
     private String[] command;
     private Integer port;
+    private boolean reusable;
 
     protected String getImage() {
         return image;
@@ -40,6 +41,10 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return context;
     }
 
+    public boolean isReusable() {
+        return reusable;
+    }
+
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
@@ -47,6 +52,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.command = metadata.command();
         this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.port = metadata.port();
+        this.reusable = metadata.reusable();
     }
 
     @Override
