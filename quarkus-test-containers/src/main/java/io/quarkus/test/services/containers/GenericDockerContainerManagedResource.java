@@ -5,6 +5,7 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.utils.DockerUtils;
 
 public class GenericDockerContainerManagedResource extends DockerContainerManagedResource {
 
@@ -43,6 +44,7 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
             container.setPrivilegedMode(true);
         }
 
+        container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
         container.withExposedPorts(model.getPort());
 
         return container;

@@ -5,6 +5,8 @@ import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.KafkaContainer;
 import org.testcontainers.utility.DockerImageName;
 
+import io.quarkus.test.utils.DockerUtils;
+
 public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
     protected ConfluentKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
@@ -18,7 +20,8 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
 
     @Override
     protected GenericContainer<?> initKafkaContainer() {
-        return new KafkaContainer(DockerImageName.parse(getKafkaImage() + ":" + getKafkaVersion()));
+        return new KafkaContainer(DockerImageName.parse(getKafkaImage() + ":" + getKafkaVersion()))
+                .withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
     }
 
     @Override
@@ -29,6 +32,8 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
         schemaRegistry.withEnv("SCHEMA_REGISTRY_LISTENERS", "http://0.0.0.0:" + getKafkaRegistryPort());
         schemaRegistry.withEnv("SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS",
                 "PLAINTEXT://" + kafka.getNetworkAliases().get(0) + ":9092");
+        schemaRegistry.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
         return schemaRegistry;
     }
 

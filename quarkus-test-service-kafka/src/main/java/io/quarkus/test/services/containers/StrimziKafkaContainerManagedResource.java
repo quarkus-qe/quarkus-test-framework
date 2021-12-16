@@ -11,6 +11,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.quarkus.test.services.containers.strimzi.ExtendedStrimziKafkaContainer;
+import io.quarkus.test.utils.DockerUtils;
 
 public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
@@ -45,6 +46,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
         if (StringUtils.isNotEmpty(getServerProperties())) {
             container.useCustomServerProperties();
         }
+        container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
 
         return container;
     }
@@ -56,6 +58,8 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
         schemaRegistry.withEnv("APPLICATION_ID", "registry_id");
         schemaRegistry.withEnv("APPLICATION_SERVER", "localhost:9000");
         schemaRegistry.withEnv("KAFKA_BOOTSTRAP_SERVERS", "PLAINTEXT://localhost:" + getTargetPort());
+        schemaRegistry.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
         return schemaRegistry;
     }
 
