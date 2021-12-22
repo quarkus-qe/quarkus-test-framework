@@ -41,14 +41,14 @@
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
         <jaeger.version>1.6.0</jaeger.version>
-        <prometheus.simpleclient_pushgateway.version>0.13.0</prometheus.simpleclient_pushgateway.version>
+        <prometheus.simpleclient_pushgateway.version>0.14.1</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.17.1</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.6.2</impsort-maven-plugin.version>
         <htmlunit.version>2.56.0</htmlunit.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>2.3.0.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.6.0.Final</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
