@@ -5,6 +5,7 @@ import static io.quarkus.test.bootstrap.JaegerService.JAEGER_TRACE_URL_PROPERTY;
 import org.testcontainers.containers.GenericContainer;
 
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.utils.DockerUtils;
 
 public class JaegerGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
 
@@ -26,6 +27,8 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
     protected GenericContainer<?> initContainer() {
         GenericContainer<?> container = super.initContainer();
         container.addExposedPort(model.getTracePort());
+        container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
         return container;
     }
 

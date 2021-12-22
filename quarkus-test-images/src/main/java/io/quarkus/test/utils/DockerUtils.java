@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Random;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,10 +26,12 @@ public final class DockerUtils {
 
     public static final String CONTAINER_REGISTRY_URL_PROPERTY = "ts.container.registry-url";
 
+    private static final String CONTAINER_PREFIX = "ts.global.docker-container-prefix";
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
     private static final String DOCKER = "docker";
     private static final Object LOCK = new Object();
+    private static final Random RANDOM = new Random();
 
     private static DockerClient dockerClientInstance;
 
@@ -126,6 +130,16 @@ public final class DockerUtils {
             }
         }
         return result;
+    }
+
+    public static String generateDockerContainerName() {
+        String containerName = "" + (RANDOM.nextInt() & Integer.MAX_VALUE);
+        String dockerContainerPrefix = System.getProperty(CONTAINER_PREFIX);
+        if (Objects.nonNull(dockerContainerPrefix)) {
+            containerName = dockerContainerPrefix + "-" + containerName;
+        }
+
+        return containerName;
     }
 
     private static DockerClient dockerClient() {
