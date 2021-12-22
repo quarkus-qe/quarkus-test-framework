@@ -19,6 +19,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         extends QuarkusManagedResource {
 
     private static final int EXTERNAL_PORT = 80;
+    private static final int EXTERNAL_SSL_PORT = 443;
 
     protected final T model;
     protected final OpenShiftClient client;
@@ -81,8 +82,9 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
 
     @Override
     public int getPort(Protocol protocol) {
+        int port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
         validateProtocol(protocol);
-        return EXTERNAL_PORT;
+        return port;
     }
 
     @Override
@@ -92,7 +94,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         }
 
         if (client.isServerlessService(model.getContext().getName())) {
-            return routeIsReachable(Protocol.HTTP);
+            return routeIsReachable(Protocol.HTTPS);
         }
 
         return super.isRunning() && routeIsReachable(Protocol.HTTP);
@@ -120,7 +122,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     }
 
     private void validateProtocol(Protocol protocol) {
-        if (protocol == Protocol.HTTPS) {
+        if (protocol == Protocol.HTTPS && !client.isServerlessService(model.getContext().getName())) {
             fail("SSL is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.GRPC) {
             fail("gRPC is not supported for OpenShift tests yet");
@@ -128,7 +130,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     }
 
     private boolean routeIsReachable(Protocol protocol) {
-        return given().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol)).get()
-                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return given().relaxedHTTPSValidation().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol))
+                .get().getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

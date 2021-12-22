@@ -13,7 +13,7 @@ public class PingPongResourceIT {
 
     @Test
     public void shouldPingPongWorks() {
-        given().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
-        given().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
+        given().relaxedHTTPSValidation().get("/ping").then().statusCode(HttpStatus.SC_OK).body(is("ping"));
+        given().relaxedHTTPSValidation().get("/pong").then().statusCode(HttpStatus.SC_OK).body(is("pong"));
     }
 }
