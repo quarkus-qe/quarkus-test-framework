@@ -12,6 +12,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.services.URILike;
 
 public abstract class KubernetesQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
         extends QuarkusManagedResource {
@@ -69,15 +70,15 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        validateProtocol(protocol);
-        return client.url(model.getContext().getOwner());
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        validateProtocol(protocol);
-        return client.port(model.getContext().getOwner());
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTPS) {
+            fail("SSL is not supported for Kubernetes tests yet");
+        } else if (protocol == Protocol.GRPC) {
+            fail("gRPC is not supported for Kubernetes tests yet");
+        }
+        return createURI(protocol.getValue(),
+                client.host(model.getContext().getOwner()),
+                client.port(model.getContext().getOwner()));
     }
 
     @Override
@@ -119,7 +120,12 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
     }
 
     private boolean routeIsReachable(Protocol protocol) {
-        return given().baseUri(getHost(protocol)).basePath("/").port(getPort(protocol)).get()
+        var uri = getURI(protocol);
+
+        return given().baseUri(uri.getRestAssuredStyleUri())
+                .basePath("/")
+                .port(uri.getPort())
+                .get()
                 .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }

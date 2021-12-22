@@ -15,6 +15,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 
 public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedResource {
@@ -79,16 +80,11 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     @Override
-    public String getHost(Protocol protocol) {
+    public URILike getURI(Protocol protocol) {
         // Strimzi Kafka only allows to expose Routes using SSL, therefore we'll use internal service routing.
         // TODO: Make it public using the Strimzi Operator:
         // https://developers.redhat.com/blog/2019/06/10/accessing-apache-kafka-in-strimzi-part-3-red-hat-openshift-routes/
-        return model.getContext().getOwner().getName();
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        return HTTP_PORT;
+        return createURI("http", model.getContext().getOwner().getName(), HTTP_PORT);
     }
 
     @Override
@@ -156,7 +152,8 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     private String getKafkaBootstrapUrl() {
-        return getHost(Protocol.HTTP).replace("http://", "") + ":" + getPort(Protocol.HTTP);
+        var host = getURI(Protocol.HTTP);
+        return host.getHost() + ":" + host.getPort();
     }
 
     private String replaceDeploymentContent(String content) {

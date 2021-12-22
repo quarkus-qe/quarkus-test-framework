@@ -24,7 +24,8 @@ public class SqlServerService extends DatabaseService<SqlServerService> {
 
     @Override
     public String getJdbcUrl() {
-        return getHost().replace("http", "jdbc:" + getJdbcName()) + ":" + getPort() + ";databaseName=" + getDatabase();
+        var host = getURI();
+        return "jdbc:" + getJdbcName() + "://" + host.getHost() + ":" + host.getPort() + ";databaseName=" + getDatabase();
     }
 
     @Override

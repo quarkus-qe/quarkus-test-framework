@@ -1,6 +1,8 @@
 package io.quarkus.test.services.operator;
 
 import io.quarkus.test.bootstrap.OperatorService;
+import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.operator.model.KafkaInstanceCustomResource;
 
 public class KafkaInstance extends OperatorService<KafkaInstance> {
@@ -22,16 +24,12 @@ public class KafkaInstance extends OperatorService<KafkaInstance> {
     }
 
     @Override
-    public String getHost() {
-        return String.format(HOST, name);
-    }
-
-    @Override
-    public Integer getPort() {
-        return PORT;
+    public URILike getURI(Protocol protocol) {
+        return new URILike(null, String.format(HOST, name), PORT, null);
     }
 
     public String getBootstrapUrl() {
-        return getHost() + ":" + getPort();
+        var host = getURI(Protocol.NONE);
+        return host.getHost() + ":" + host.getPort();
     }
 }

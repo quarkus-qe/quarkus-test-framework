@@ -22,6 +22,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.DockerUtils;
 
 public abstract class DockerContainerManagedResource implements ManagedResource {
@@ -78,13 +79,8 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     }
 
     @Override
-    public int getPort(Protocol protocol) {
-        return getMappedPort(getTargetPort());
-    }
-
-    @Override
-    public String getHost(Protocol protocol) {
-        return protocol.getValue() + "://" + innerContainer.getHost();
+    public URILike getURI(Protocol protocol) {
+        return createURI(protocol.getValue(), innerContainer.getHost(), getMappedPort(getTargetPort()));
     }
 
     @Override
@@ -109,7 +105,6 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
 
             throw ex;
         }
-
     }
 
     private Map<String, String> resolveProperties() {
@@ -146,5 +141,4 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     private boolean isSecret(String key) {
         return key.startsWith(SECRET_PREFIX);
     }
-
 }

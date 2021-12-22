@@ -33,7 +33,10 @@ public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
             .withProperty("quarkus.datasource.username", MYSQL_USER)
             .withProperty("quarkus.datasource.password", MYSQL_PASSWORD)
             .withProperty("quarkus.datasource.jdbc.url",
-                    () -> database.getHost().replace("http", "jdbc:mysql") + ":" + database.getPort() + "/" + MYSQL_DATABASE);
+                    () -> database.getURI()
+                            .withScheme("jdbc:mysql")
+                            .withPath("/" + MYSQL_DATABASE)
+                            .toString());
 
     @Override
     protected RestService getApp() {

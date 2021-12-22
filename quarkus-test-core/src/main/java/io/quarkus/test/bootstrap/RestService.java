@@ -1,7 +1,5 @@
 package io.quarkus.test.bootstrap;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.ext.web.client.WebClientOptions;
@@ -15,11 +13,20 @@ public class RestService extends BaseService<RestService> {
     private WebClient webClient;
 
     public RequestSpecification given() {
-        return RestAssured.given().baseUri(getHost()).basePath(BASE_PATH).port(getPort());
+        var host = getURI(Protocol.HTTP);
+        return RestAssured.given()
+                .baseUri(host.getRestAssuredStyleUri())
+                .basePath(BASE_PATH)
+                .port(host.getPort());
     }
 
     public RequestSpecification https() {
-        return RestAssured.given().baseUri(getHost(Protocol.HTTPS)).basePath("/").port(getPort(Protocol.HTTPS));
+        Protocol protocol = Protocol.HTTPS;
+        var host = getURI(protocol);
+        return RestAssured.given()
+                .baseUri(host.getRestAssuredStyleUri())
+                .basePath(BASE_PATH)
+                .port(host.getPort());
     }
 
     public WebClient mutiny() {
@@ -28,9 +35,10 @@ public class RestService extends BaseService<RestService> {
 
     public WebClient mutiny(WebClientOptions options) {
         if (webClient == null) {
+            var uri = getURI(Protocol.HTTP);
             webClient = WebClient.create(Vertx.vertx(), options
-                    .setDefaultHost(getHost().replace("http://", StringUtils.EMPTY))
-                    .setDefaultPort(getPort()));
+                    .setDefaultHost(uri.getHost())
+                    .setDefaultPort(uri.getPort()));
         }
 
         return webClient;
@@ -39,9 +47,9 @@ public class RestService extends BaseService<RestService> {
     @Override
     public void start() {
         super.start();
-
-        RestAssured.baseURI = getHost();
+        var host = getURI(Protocol.HTTP);
+        RestAssured.baseURI = host.getRestAssuredStyleUri();
         RestAssured.basePath = BASE_PATH;
-        RestAssured.port = getPort();
+        RestAssured.port = host.getPort();
     }
 }

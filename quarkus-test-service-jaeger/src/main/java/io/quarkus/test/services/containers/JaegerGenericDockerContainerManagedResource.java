@@ -33,7 +33,8 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
     }
 
     private String getJaegerTraceUrl() {
-        return getHost(Protocol.HTTP) + ":" + getMappedPort(model.getTracePort());
+        return getURI(Protocol.HTTP)
+                .withPort(getMappedPort(model.getTracePort()))
+                .toString();
     }
-
 }

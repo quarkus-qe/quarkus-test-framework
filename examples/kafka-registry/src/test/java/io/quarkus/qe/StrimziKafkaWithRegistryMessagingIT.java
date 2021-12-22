@@ -14,6 +14,7 @@ import javax.ws.rs.sse.SseEventSource;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.KafkaService;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.KafkaContainer;
@@ -35,7 +36,7 @@ public class StrimziKafkaWithRegistryMessagingIT {
     @Test
     public void producerConsumesTest() throws InterruptedException {
         Client client = ClientBuilder.newClient();
-        WebTarget target = client.target(app.getHost() + ":" + app.getPort() + "/stock/stream");
+        WebTarget target = client.target(app.getURI(Protocol.HTTP) + "/stock/stream");
 
         final CountDownLatch latch = new CountDownLatch(1);
 

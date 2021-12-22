@@ -1,7 +1,5 @@
 package io.quarkus.test.bootstrap;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.quarkus.test.utils.FileUtils;
 
 public class AmqService extends BaseService<AmqService> {
@@ -23,14 +21,18 @@ public class AmqService extends BaseService<AmqService> {
     }
 
     public String getTcpUrl() {
-        return String.format("%s:%s", getHost().replace("http", "tcp"), getPort());
+        return getURI().withScheme("tcp").toString();
     }
 
     public String getAmqpUrl() {
-        return String.format("%s:%s", getHost().replace("http", "amqp"), getPort());
+        return getURI().withScheme("amqp").toString();
     }
 
     public String getAmqpHost() {
-        return getHost().replace("http://", StringUtils.EMPTY);
+        return getURI().getHost();
+    }
+
+    public int getPort() {
+        return getURI().getPort();
     }
 }

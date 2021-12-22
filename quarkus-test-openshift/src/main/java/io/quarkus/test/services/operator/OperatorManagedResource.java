@@ -11,6 +11,7 @@ import io.quarkus.test.bootstrap.OperatorService;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.operator.model.CustomResourceDefinition;
 import io.quarkus.test.utils.FileUtils;
 
@@ -53,15 +54,8 @@ public class OperatorManagedResource implements ManagedResource {
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        // Operator does not expose services.
-        return null;
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        // Operator does not expose services.
-        return 0;
+    public URILike getURI(Protocol protocol) {
+        throw new UnsupportedOperationException("Operator does not expose services.");
     }
 
     @Override

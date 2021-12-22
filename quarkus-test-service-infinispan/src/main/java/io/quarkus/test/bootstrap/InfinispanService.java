@@ -29,7 +29,8 @@ public class InfinispanService extends BaseService<InfinispanService> {
     }
 
     public String getInfinispanServerAddress() {
-        return getHost().replace("http://", "") + ":" + getPort();
+        var uri = getURI(Protocol.HTTP);
+        return uri.getHost() + ":" + uri.getPort();
     }
 
     public InfinispanService withConfigFile(String configFile) {
