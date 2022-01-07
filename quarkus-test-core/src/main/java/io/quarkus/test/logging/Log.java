@@ -29,6 +29,8 @@ public final class Log {
     public static final PropertyLookup LOG_LEVEL = new PropertyLookup("log.level");
     public static final PropertyLookup LOG_FORMAT = new PropertyLookup("log.format");
     public static final PropertyLookup LOG_FILE_OUTPUT = new PropertyLookup("log.file.output");
+    public static final PropertyLookup LOG_NOCOLOR = new PropertyLookup("log.nocolor", "false");
+
     public static final String LOG_SUFFIX = ".log";
     public static final String LOG_LEVEL_NAME = "log.level";
 
@@ -39,6 +41,7 @@ public final class Log {
     private static final String COLOR_WARNING = "\u001b[93m";
     private static final String COLOR_DEFAULT = "\u001b[32m";
 
+    private static final boolean NOCOLOR = LOG_NOCOLOR.getAsBoolean();
     private static final List<String> ALL_SERVICE_COLORS = Arrays.asList("\u001b[0;34m", // Blue
             "\u001b[0;95m", // Magenta
             "\u001b[0;96m", // Cyan
@@ -128,8 +131,11 @@ public final class Log {
             if (args != null && args.length > 0) {
                 logMessage = String.format(msg, args);
             }
-
-            LOG.log(level, textColor + inBrackets(service) + logMessage + COLOR_RESET);
+            if (NOCOLOR) {
+                LOG.log(level, inBrackets(service) + logMessage);
+            } else {
+                LOG.log(level, textColor + inBrackets(service) + logMessage + COLOR_RESET);
+            }
         }
     }
 
