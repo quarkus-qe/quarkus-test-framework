@@ -30,9 +30,10 @@ public class QuarkusCliRestService extends RestService {
     }
 
     public List<String> getInstalledExtensions() {
-        QuarkusCliClient.Result result = cliClient.run(getServiceFolder(), "extension", "list");
+        QuarkusCliClient.Result result = cliClient.run(getServiceFolder(), "extension", "list", "--id");
         assertTrue(result.isSuccessful(), "Extension list failed");
-        return result.getOutput().lines().map(String::trim).collect(Collectors.toList());
+        return result.getOutput().lines().map(String::trim)
+                .map(line -> line.replace("✬ ", "")).collect(Collectors.toList());
     }
 
 }
