@@ -32,6 +32,7 @@ public class QuarkusCliClientIT {
 
     static final String RESTEASY_SPRING_WEB_EXTENSION = "quarkus-spring-web";
     static final String RESTEASY_EXTENSION = "quarkus-resteasy";
+    static final String RESTEASY_JACKSON_EXTENSION = "quarkus-resteasy-jackson";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";
     static final int CMD_DELAY_SEC = 3;
 
@@ -77,10 +78,11 @@ public class QuarkusCliClientIT {
     public void shouldCreateApplicationWithCodeStarter() {
         // Create application with Resteasy Jackson
         QuarkusCliRestService app = cliClient.createApplication("app",
-                QuarkusCliClient.CreateApplicationRequest.defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION));
+                QuarkusCliClient.CreateApplicationRequest.defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION,
+                        RESTEASY_JACKSON_EXTENSION));
 
         // Verify By default, it installs only "quarkus-resteasy"
-        assertInstalledExtensions(app, RESTEASY_SPRING_WEB_EXTENSION);
+        assertInstalledExtensions(app, RESTEASY_SPRING_WEB_EXTENSION, RESTEASY_JACKSON_EXTENSION);
 
         // Start using DEV mode
         app.start();
