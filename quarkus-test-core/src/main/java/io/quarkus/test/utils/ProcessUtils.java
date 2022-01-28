@@ -17,7 +17,7 @@ public final class ProcessUtils {
     public static void destroy(Process process) {
         try {
             if (process != null) {
-                process.children().forEach(child -> {
+                process.descendants().forEach(child -> {
                     if (child.supportsNormalTermination()) {
                         child.destroyForcibly();
                     }
