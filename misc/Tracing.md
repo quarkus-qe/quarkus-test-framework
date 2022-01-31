@@ -20,7 +20,7 @@ All the metrics will be tagging [the test execution properties](Execution.md).
 - On bare metal:
 
 ```
-docker run -p 16686:16686 -p 14268:14268 quay.io/jaegertracing/all-in-one:1.21.0
+docker run -p 16686:16686 -p 14268:14268 quay.io/jaegertracing/all-in-one:1.30.0
 ```
 
 The JAEGER API URL will be available at `http://localhost:14268`.
