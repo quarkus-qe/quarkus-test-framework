@@ -108,7 +108,7 @@ public final class Log {
         // - Console
         ConsoleHandler console = new ConsoleHandler(
                 ConsoleHandler.Target.SYSTEM_OUT,
-                new ColorPatternFormatter(logPattern));
+                NOCOLOR ? new PatternFormatter(logPattern) : new ColorPatternFormatter(logPattern));
         console.setLevel(level);
         logger.addHandler(console);
 
