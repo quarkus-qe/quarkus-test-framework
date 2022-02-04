@@ -1,5 +1,10 @@
 # Release guide
 
+## Release streams
+
+- main will be used for development for future RHBQ release.
+- There is going to be a minor release stream for every RHBQ release - for example, 1.0.z stream for RHBQ 2.2, and 1.1.z stream for RHBQ 2.7.
+
 ## Preconditions
 
 - The Quarkus QE Test Framework must use a released Quarkus version:
