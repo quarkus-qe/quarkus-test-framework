@@ -15,8 +15,9 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
         extends ProdLocalhostQuarkusApplicationManagedResource {
 
     private static final String QUARKUS_VERSION = "quarkus.version";
-    private static final String QUARKUS_PLUGIN_VERSION = "quarkus-plugin.version";
+    private static final String QUARKUS_PLUGIN_VERSION = "quarkus.plugin.version";
     private static final String QUARKUS_VERSION_VALUE = "${quarkus.platform.version}";
+    private static final String QUARKUS_PLUGIN_VERSION_VALUE = "${quarkus-plugin.version}";
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
@@ -79,7 +80,7 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
         List<String> effectiveProperties = new LinkedList<>(properties);
         // Override quarkus plugin version.
         effectiveProperties.add(MavenUtils.withProperty(QUARKUS_VERSION, QUARKUS_VERSION_VALUE));
-        effectiveProperties.add(MavenUtils.withProperty(QUARKUS_PLUGIN_VERSION, QUARKUS_VERSION_VALUE));
+        effectiveProperties.add(MavenUtils.withProperty(QUARKUS_PLUGIN_VERSION, QUARKUS_PLUGIN_VERSION_VALUE));
 
         return effectiveProperties;
     }
