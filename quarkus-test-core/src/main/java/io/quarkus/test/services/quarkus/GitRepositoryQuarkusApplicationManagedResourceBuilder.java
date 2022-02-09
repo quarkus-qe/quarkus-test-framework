@@ -14,6 +14,7 @@ import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQuarkusApplicationManagedResourceBuilder {
 
     protected static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
+    protected static final String QUARKUS_PLUGIN_VERSION_PROPERTY = "${QUARKUS-PLUGIN_VERSION}";
 
     private final ServiceLoader<GitRepositoryQuarkusApplicationManagedResourceBinding> bindings = ServiceLoader
             .load(GitRepositoryQuarkusApplicationManagedResourceBinding.class);
@@ -45,7 +46,9 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
     }
 
     protected String getMavenArgsWithVersion() {
-        return mavenArgs.replaceAll(quote(QUARKUS_VERSION_PROPERTY), QuarkusProperties.getVersion());
+        return mavenArgs
+                .replaceAll(quote(QUARKUS_PLUGIN_VERSION_PROPERTY), QuarkusProperties.getPluginVersion())
+                .replaceAll(quote(QUARKUS_VERSION_PROPERTY), QuarkusProperties.getVersion());
     }
 
     @Override

@@ -13,6 +13,7 @@ public final class QuarkusProperties {
 
     public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
+    public static final PropertyLookup PLUGIN_VERSION = new PropertyLookup("quarkus-plugin.version");
     public static final String PACKAGE_TYPE_NAME = "quarkus.package.type";
     public static final String MUTABLE_JAR = "mutable-jar";
     public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
@@ -29,12 +30,11 @@ public final class QuarkusProperties {
     }
 
     public static String getVersion() {
-        String version = PLATFORM_VERSION.get();
-        if (StringUtils.isEmpty(version)) {
-            version = Version.getVersion();
-        }
+        return defaultVersionIfEmpty(PLATFORM_VERSION.get());
+    }
 
-        return version;
+    public static String getPluginVersion() {
+        return defaultVersionIfEmpty(PLUGIN_VERSION.get());
     }
 
     public static boolean isNativePackageType() {
@@ -51,5 +51,13 @@ public final class QuarkusProperties {
 
     public static boolean isJvmPackageType(ServiceContext context) {
         return PACKAGE_TYPE_JVM_VALUES.contains(PACKAGE_TYPE.get(context));
+    }
+
+    private static String defaultVersionIfEmpty(String version) {
+        if (StringUtils.isEmpty(version)) {
+            version = Version.getVersion();
+        }
+
+        return version;
     }
 }
