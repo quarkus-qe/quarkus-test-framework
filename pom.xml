@@ -362,9 +362,10 @@
                 <module>examples/infinispan</module>
                 <module>examples/microprofile</module>
                 <module>examples/keycloak</module>
+                <!-- Disable kafka related examples due to changes Quarkus main
                 <module>examples/kafka</module>
                 <module>examples/kafka-registry</module>
-                <module>examples/kafka-streams</module>
+                <module>examples/kafka-streams</module> -->
                 <module>examples/amq-tcp</module>
                 <module>examples/amq-amqp</module>
                 <module>examples/jaeger</module>
