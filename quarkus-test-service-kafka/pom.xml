@@ -10,6 +10,7 @@
     <name>Quarkus - Test Framework - Service - Kafka</name>
     <properties>
         <strimzi.testcontainers.version>0.25.0</strimzi.testcontainers.version>
+        <log4j.version>2.17.1</log4j.version>
     </properties>
     <dependencies>
         <dependency>
@@ -24,6 +25,26 @@
             <groupId>io.strimzi</groupId>
             <artifactId>strimzi-test-container</artifactId>
             <version>${strimzi.testcontainers.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+            <version>${log4j.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-api</artifactId>
+            <version>${log4j.version}</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
