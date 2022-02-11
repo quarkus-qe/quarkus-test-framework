@@ -31,17 +31,17 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManaged
     }
 
     private void copyDockerfileToSources() {
-        Path dockerfileTarget = model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER);
-        if (!Files.exists(dockerfileTarget)) {
-            FileUtils.createDirectory(dockerfileTarget);
+        String dockerfileName = DockerUtils.getDockerfile(getLaunchMode());
+        Path dockerfileTargetFile = model.getApplicationFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName);
+        Path dockerfileTargetFolder = dockerfileTargetFile.getParent();
+        if (!Files.exists(dockerfileTargetFolder)) {
+            FileUtils.createDirectory(dockerfileTargetFolder);
         }
 
-        String dockerfileName = DockerUtils.getDockerfile(getLaunchMode());
-        if (!Files.exists(dockerfileTarget.resolve(dockerfileTarget))) {
+        if (!Files.exists(dockerfileTargetFile)) {
             String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(getLaunchMode()))
                     .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
-            FileUtils.copyContentTo(dockerFileContent,
-                    model.getContext().getServiceFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName));
+            FileUtils.copyContentTo(dockerFileContent, dockerfileTargetFile);
         }
     }
 }

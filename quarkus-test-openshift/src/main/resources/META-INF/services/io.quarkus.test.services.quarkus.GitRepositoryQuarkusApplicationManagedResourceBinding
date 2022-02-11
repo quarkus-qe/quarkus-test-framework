@@ -1,1 +1,1 @@
-io.quarkus.test.services.quarkus.OpenShiftS2iGitRepositoryQuarkusApplicationManagedResourceBinding
+io.quarkus.test.services.quarkus.OpenShiftGitRepositoryQuarkusApplicationManagedResourceBinding

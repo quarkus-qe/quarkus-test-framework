@@ -148,7 +148,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
             AugmentResult result;
             try (CuratedApplication curatedApplication = builder.build().bootstrap()) {
                 AugmentAction action = curatedApplication.createAugmentor();
-
                 result = action.createProductionApplication();
             }
 
