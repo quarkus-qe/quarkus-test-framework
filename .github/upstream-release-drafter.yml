@@ -1,4 +1,4 @@
-name-template: '1.0.z 🌈'
+name-template: '1.1.x 🌈'
 tag-template: 'v$NEXT_PATCH_VERSION'
 exclude-labels:
   - 'skip-changelog'
@@ -22,6 +22,6 @@ categories:
     label: 'chore'
 change-template: '- #$NUMBER: $TITLE (@$AUTHOR)'
 template: |
-  ## 1.0.z Changes
+  ## 1.1.x Changes
   $CHANGES
   All contributors: $CONTRIBUTORS
