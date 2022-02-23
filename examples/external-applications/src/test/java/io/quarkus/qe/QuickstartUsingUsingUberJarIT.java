@@ -15,11 +15,11 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support long file paths")
 public class QuickstartUsingUsingUberJarIT {
 
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", mavenArgs = "-Dquarkus.package.type=uber-jar")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", mavenArgs = "-Dquarkus.package.type=uber-jar -DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_VERSION}")
     static final RestService app = new RestService();
 
     @Test
-    public void test() {
+    public void test() throws InterruptedException {
         app.given()
                 .get("/hello")
                 .then()

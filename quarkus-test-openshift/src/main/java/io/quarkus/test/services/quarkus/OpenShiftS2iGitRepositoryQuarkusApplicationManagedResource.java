@@ -1,6 +1,8 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_PLATFORM_GROUP_ID_PROPERTY;
 import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_VERSION_PROPERTY;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_GROUP_ID;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static java.util.regex.Pattern.quote;
 
@@ -84,6 +86,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
                 .replaceAll(quote("${GIT_REF}"), model.getGitBranch())
                 .replaceAll(quote("${CONTEXT_DIR}"), model.getContextDir())
                 .replaceAll(quote("${GIT_MAVEN_ARGS}"), mavenArgs)
+                .replaceAll(quote(QUARKUS_PLATFORM_GROUP_ID_PROPERTY), PLATFORM_GROUP_ID.get())
                 .replaceAll(quote(QUARKUS_VERSION_PROPERTY), quarkusVersion);
     }
 
