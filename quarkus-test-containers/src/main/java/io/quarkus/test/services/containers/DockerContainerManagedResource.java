@@ -4,7 +4,9 @@ import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT;
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 
+import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -116,31 +118,41 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         Map<String, String> properties = new HashMap<>();
         for (Entry<String, String> entry : context.getOwner().getProperties().entrySet()) {
             String value = entry.getValue();
-            if (isResource(entry.getValue())) {
-                value = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
-                addFileToContainer(value);
-            } else if (isSecret(entry.getValue())) {
-                value = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
-                addFileToContainer(value);
+            if (isResource(value)) {
+                value = value.replace(RESOURCE_PREFIX, StringUtils.EMPTY);
+                String containerPath = isFolder(value) ? SLASH + value : value;
+                copyToContainer(value, containerPath);
+            } else if (isSecret(value)) {
+                value = value.replace(SECRET_PREFIX, StringUtils.EMPTY);
+                copyToContainer(value, value);
             }
-
             properties.put(entry.getKey(), value);
         }
         return properties;
     }
 
-    private void addFileToContainer(String filePath) {
-        if (Files.exists(Path.of(TARGET, filePath))) {
+    private void copyToContainer(String originFilePath, String containerPath) {
+        if (Files.exists(Path.of(TARGET, originFilePath))) {
             // Mount file if it's a file
-            innerContainer.withCopyFileToContainer(MountableFile.forHostPath(Path.of(TARGET, filePath)), filePath);
+            innerContainer.withCopyFileToContainer(MountableFile.forHostPath(Path.of(TARGET, originFilePath)), containerPath);
         } else {
             // then file is in the classpath
-            innerContainer.withClasspathResourceMapping(filePath, filePath, BindMode.READ_ONLY);
+            innerContainer.withClasspathResourceMapping(originFilePath, containerPath, BindMode.READ_ONLY);
         }
     }
 
     private boolean isResource(String key) {
         return key.startsWith(RESOURCE_PREFIX);
+    }
+
+    private boolean isFolder(String key) {
+        if (key.startsWith(SLASH)) {
+            key = key.replaceFirst(SLASH, StringUtils.EMPTY);
+        }
+
+        ClassLoader classLoader = getClass().getClassLoader();
+        File realmsFolder = new File(classLoader.getResource(key).getFile());
+        return realmsFolder.isDirectory();
     }
 
     private boolean isSecret(String key) {

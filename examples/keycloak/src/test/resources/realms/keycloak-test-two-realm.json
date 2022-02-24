@@ -1,0 +1,57 @@
+{
+  "realm": "test-two-realm",
+  "enabled": true,
+  "sslRequired": "none",
+  "accessTokenLifespan": 5,
+  "roles": {
+    "realm": [
+      {
+        "name": "test-user-role"
+      },
+      {
+        "name": "test-admin-role"
+      }
+    ]
+  },
+  "users": [
+    {
+      "username": "test-normal-user",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-normal-user"
+        }
+      ],
+      "realmRoles": [
+        "test-user-role"
+      ]
+    },
+    {
+      "username": "test-admin-user",
+      "enabled": true,
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test-admin-user"
+        }
+      ],
+      "realmRoles": [
+        "test-admin-role",
+        "test-user-role"
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "test-application-client",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": false,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "test-application-client-secret"
+    }
+  ]
+}
