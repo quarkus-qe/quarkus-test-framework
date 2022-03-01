@@ -32,10 +32,8 @@ items:
         type: Source
         sourceStrategy:
           env:
-            - name: ARTIFACT_COPY_ARGS
-              value: -p -r *-runner.jar
             - name: MAVEN_ARGS
-              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.platform.version=${QUARKUS_VERSION} -Dquarkus-plugin.version=${QUARKUS_VERSION} -Dquarkus.package.type=uber-jar
+              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.platform.version=${QUARKUS_VERSION} -Dquarkus-plugin.version=${QUARKUS_VERSION} -Dquarkus.package.uber-jar -Dquarkus.openshift.jar-file-name=quarkus-run
           from:
             kind: DockerImage
             name: ${QUARKUS_S2I_BUILDER_IMAGE}

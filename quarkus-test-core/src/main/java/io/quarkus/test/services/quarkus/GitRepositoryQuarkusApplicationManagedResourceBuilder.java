@@ -15,6 +15,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
 
     protected static final String QUARKUS_VERSION_PROPERTY = "${QUARKUS_VERSION}";
     protected static final String QUARKUS_PLUGIN_VERSION_PROPERTY = "${QUARKUS-PLUGIN_VERSION}";
+    protected static final String QUARKUS_PLATFORM_GROUP_ID_PROPERTY = "${QUARKUS_PLATFORM_GROUP-ID}";
 
     private final ServiceLoader<GitRepositoryQuarkusApplicationManagedResourceBinding> bindings = ServiceLoader
             .load(GitRepositoryQuarkusApplicationManagedResourceBinding.class);
@@ -47,6 +48,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
 
     protected String getMavenArgsWithVersion() {
         return mavenArgs
+                .replaceAll(quote(QUARKUS_PLATFORM_GROUP_ID_PROPERTY), QuarkusProperties.PLATFORM_GROUP_ID.get())
                 .replaceAll(quote(QUARKUS_PLUGIN_VERSION_PROPERTY), QuarkusProperties.getPluginVersion())
                 .replaceAll(quote(QUARKUS_VERSION_PROPERTY), QuarkusProperties.getVersion());
     }
