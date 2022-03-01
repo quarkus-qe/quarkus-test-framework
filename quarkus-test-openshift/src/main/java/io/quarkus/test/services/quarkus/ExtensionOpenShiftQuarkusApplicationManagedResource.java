@@ -118,7 +118,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         withAdditionalArguments(args);
 
         try {
-            new Command(args).onDirectory(model.getContext().getServiceFolder()).runAndWait();
+            new Command(args).onDirectory(model.getApplicationFolder()).runAndWait();
         } catch (Exception e) {
             fail("Failed to run maven command. Caused by " + e.getMessage());
         }
@@ -191,7 +191,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         return KNATIVE.equals(model.getComputedProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET));
     }
 
-    private void cloneProjectToServiceAppFolder() {
+    protected void cloneProjectToServiceAppFolder() {
         FileUtils.copyCurrentDirectoryTo(model.getContext().getServiceFolder());
     }
 
