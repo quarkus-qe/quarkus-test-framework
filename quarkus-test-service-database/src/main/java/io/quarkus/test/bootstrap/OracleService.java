@@ -25,6 +25,11 @@ public class OracleService extends DatabaseService<OracleService> {
     }
 
     @Override
+    public String getReactiveUrl() {
+        return getHost().replace("http://", getJdbcName() + ":thin:@") + ":" + getPort() + ":" + getDatabase();
+    }
+
+    @Override
     public OracleService onPreStart(Action action) {
         withProperty(USER_PROPERTY, getUser());
         withProperty(PASSWORD_PROPERTY, getPassword());
