@@ -94,7 +94,7 @@ public final class DockerUtils {
 
     /**
      * Remove docker image by image id. Example: quay.io/bitnami/consul:1.9.3
-     * 
+     *
      * @param imageId docker image to delete.
      */
     public static void removeImageById(String imageId) {
@@ -103,7 +103,7 @@ public final class DockerUtils {
 
     /**
      * Stop containers using the image ID.
-     * 
+     *
      * @param imageId docker image ID.
      */
     public static void stopContainersByImage(String imageId) {
