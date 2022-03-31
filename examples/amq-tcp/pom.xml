@@ -11,8 +11,9 @@
     <name>Quarkus - Test Framework - Examples - AMQ TCP</name>
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
+            <groupId>io.quarkiverse.artemis</groupId>
             <artifactId>quarkus-artemis-jms</artifactId>
+            <version>1.0.5</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
