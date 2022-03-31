@@ -15,8 +15,9 @@
             <artifactId>quarkus-resteasy</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-consul-config</artifactId>
+            <groupId>io.quarkiverse.config</groupId>
+            <artifactId>quarkus-config-consul</artifactId>
+            <version>1.0.2</version>
         </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
