@@ -39,7 +39,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>2.22.2</surefire-plugin.version>
-        <jacoco-maven-plugin.version>0.8.7</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <jaeger.version>1.8.0</jaeger.version>
         <prometheus.simpleclient_pushgateway.version>0.15.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.1.2</maven-checkstyle-plugin.version>
