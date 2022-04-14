@@ -63,6 +63,7 @@ import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.operator.model.CustomResourceStatus;
+import io.quarkus.test.utils.AwaitilityUtils;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
@@ -255,6 +256,14 @@ public final class OpenShiftClient {
         } catch (Exception e) {
             fail("Service failed to be scaled. Caused by " + e.getMessage());
         }
+    }
+
+    public void scaleToWhenDcReady(Service service, int replicas) {
+        AwaitilityUtils.untilIsTrue(() -> {
+            Log.info("Waiting for dc to be ready");
+            return client.deploymentConfigs().withName(service.getName()).get() != null;
+        });
+        scaleTo(service, replicas);
     }
 
     /**

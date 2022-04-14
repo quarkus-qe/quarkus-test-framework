@@ -48,7 +48,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         applyDeployment();
         exposeService();
 
-        client.scaleTo(model.getContext().getOwner(), 1);
+        client.scaleToWhenDcReady(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
