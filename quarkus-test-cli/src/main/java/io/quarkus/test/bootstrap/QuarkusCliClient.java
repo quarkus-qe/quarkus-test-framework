@@ -106,6 +106,36 @@ public class QuarkusCliClient {
         return service;
     }
 
+    public QuarkusCliDefaultService createExtension(String name) {
+        return createExtension(name, CreateExtensionRequest.defaults());
+    }
+
+    public QuarkusCliDefaultService createExtension(String name, CreateExtensionRequest request) {
+        QuarkusCliDefaultService service = new QuarkusCliDefaultService(this);
+        ServiceContext serviceContext = service.register("quarkus-" + name, context);
+
+        // Generate project
+        List<String> args = new ArrayList<>();
+        args.addAll(Arrays.asList("create", "extension", name));
+        // Platform Bom
+        if (StringUtils.isNotEmpty(request.platformBom)) {
+            args.add("--platform-bom=" + request.platformBom);
+        }
+        // Stream
+        if (StringUtils.isNotEmpty(request.stream)) {
+            args.add("--stream=" + request.stream);
+        }
+        // Extra args
+        if (request.extraArgs != null && request.extraArgs.length > 0) {
+            Stream.of(request.extraArgs).forEach(args::add);
+        }
+
+        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
+        assertTrue(result.isSuccessful(), "The extension was not created. Output: " + result.getOutput());
+
+        return service;
+    }
+
     private Result runCliAndWait(String... args) {
         return runCliAndWait(TARGET, args);
     }
@@ -174,6 +204,31 @@ public class QuarkusCliClient {
 
         public static CreateApplicationRequest defaults() {
             return new CreateApplicationRequest();
+        }
+    }
+
+    public static class CreateExtensionRequest {
+        private String platformBom;
+        private String stream;
+        private String[] extraArgs;
+
+        public CreateExtensionRequest withPlatformBom(String platformBom) {
+            this.platformBom = platformBom;
+            return this;
+        }
+
+        public CreateExtensionRequest withStream(String stream) {
+            this.stream = stream;
+            return this;
+        }
+
+        public CreateExtensionRequest withExtraArgs(String... extraArgs) {
+            this.extraArgs = extraArgs;
+            return this;
+        }
+
+        public static CreateExtensionRequest defaults() {
+            return new CreateExtensionRequest();
         }
     }
 

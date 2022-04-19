@@ -1,4 +1,4 @@
-package io.quarkus.test;
+package io.quarkus.qe;
 
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.QuarkusCliClient;
+import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
@@ -43,6 +44,16 @@ public class QuarkusCliClientIT {
         // Start using DEV mode
         app.start();
         app.given().get().then().statusCode(HttpStatus.SC_OK);
+    }
+
+    @Test
+    public void shouldCreateExtension() {
+        // Create extension
+        QuarkusCliDefaultService app = cliClient.createExtension("extension-abc");
+
+        // Should build on Jvm
+        QuarkusCliClient.Result result = app.buildOnJvm();
+        assertTrue(result.isSuccessful(), "The extension build failed. Output: " + result.getOutput());
     }
 
     @Test
