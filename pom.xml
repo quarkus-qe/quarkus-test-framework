@@ -369,6 +369,7 @@
                 <module>examples/amq-amqp</module>
                 <module>examples/jaeger</module>
                 <module>examples/database-mysql</module>
+                <module>examples/database-postgresql</module>
                 <module>examples/external-applications</module>
             </modules>
         </profile>
