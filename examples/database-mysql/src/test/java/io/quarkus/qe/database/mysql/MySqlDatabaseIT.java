@@ -11,7 +11,7 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class MySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
-    @Container(image = "docker.io/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "ready for connections")
+    @Container(image = "docker.io/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
     static MySqlService database = new MySqlService();
 
     @QuarkusApplication
