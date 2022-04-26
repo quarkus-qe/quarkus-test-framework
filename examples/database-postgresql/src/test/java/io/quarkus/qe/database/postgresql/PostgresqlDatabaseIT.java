@@ -1,18 +1,18 @@
-package io.quarkus.qe.database.mysql;
+package io.quarkus.qe.database.postgresql;
 
-import static io.quarkus.qe.database.mysql.DevModeMySqlDatabaseIT.MYSQL_PORT;
-
-import io.quarkus.test.bootstrap.MySqlService;
+import io.quarkus.test.bootstrap.PostgresqlService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.Container;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class MySqlDatabaseIT extends AbstractSqlDatabaseIT {
+public class PostgresqlDatabaseIT extends AbstractSqlDatabaseIT {
 
-    @Container(image = "docker.io/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
-    static MySqlService database = new MySqlService();
+    private static final int POSTGRESQL_PORT = 5432;
+
+    @Container(image = "docker.io/postgres:13.6", port = POSTGRESQL_PORT, expectedLog = "is ready")
+    static PostgresqlService database = new PostgresqlService();
 
     @QuarkusApplication
     static RestService app = new RestService()

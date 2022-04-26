@@ -19,7 +19,7 @@ public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
     static final String MYSQL_DATABASE = "mydb";
     static final int MYSQL_PORT = 3306;
 
-    @Container(image = "quay.io/bitnami/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "ready for connections")
+    @Container(image = "docker.io/mysql:8.0", port = MYSQL_PORT, expectedLog = "ready for connections")
     static DefaultService database = new DefaultService()
             .withProperty("MYSQL_ROOT_USER", MYSQL_USER)
             .withProperty("MYSQL_ROOT_PASSWORD", MYSQL_PASSWORD)

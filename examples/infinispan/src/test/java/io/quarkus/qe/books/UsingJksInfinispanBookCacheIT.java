@@ -9,7 +9,7 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class UsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
 
-    @Container(image = "infinispan/server:12.1", expectedLog = "Infinispan Server.*started in", port = 11222)
+    @Container(image = "docker.io/infinispan/server:12.1", expectedLog = "Infinispan Server.*started in", port = 11222)
     static final InfinispanService infinispan = new InfinispanService()
             .withConfigFile("jks-config.yaml")
             .withSecretFiles("jks/server.jks");

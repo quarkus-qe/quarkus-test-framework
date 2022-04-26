@@ -93,7 +93,7 @@ public final class DockerUtils {
     }
 
     /**
-     * Remove docker image by image id. Example: quay.io/bitnami/consul:1.9.3
+     * Remove docker image by image id. Example: consul:1.9.17
      *
      * @param imageId docker image to delete.
      */
