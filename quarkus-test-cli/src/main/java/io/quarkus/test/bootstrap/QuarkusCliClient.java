@@ -114,6 +114,9 @@ public class QuarkusCliClient {
         QuarkusCliDefaultService service = new QuarkusCliDefaultService(this);
         ServiceContext serviceContext = service.register("quarkus-" + name, context);
 
+        // We need the service folder parent to exist for cli log file
+        FileUtils.createDirectory(serviceContext.getServiceFolder().getParent());
+
         // Generate project
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList("create", "extension", name));
