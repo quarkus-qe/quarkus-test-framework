@@ -259,6 +259,10 @@ public final class OpenShiftClient {
     }
 
     public void scaleToWhenDcReady(Service service, int replicas) {
+        if (isServerlessService(service.getName())) {
+            return;
+        }
+
         AwaitilityUtils.untilIsTrue(() -> {
             Log.info("Waiting for dc to be ready");
             return client.deploymentConfigs().withName(service.getName()).get() != null;
