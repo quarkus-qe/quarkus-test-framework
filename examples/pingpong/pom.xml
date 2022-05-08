@@ -49,6 +49,11 @@
     <profiles>
         <profile>
             <id>deploy-to-openshift-using-extension</id>
+            <activation>
+                <property>
+                    <name>deploy-to-openshift-using-extension</name>
+                </property>
+            </activation>
             <dependencies>
                 <dependency>
                     <groupId>io.quarkus</groupId>

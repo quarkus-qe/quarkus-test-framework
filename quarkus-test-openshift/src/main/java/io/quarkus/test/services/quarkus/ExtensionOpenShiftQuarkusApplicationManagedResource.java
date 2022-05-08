@@ -31,7 +31,7 @@ import io.quarkus.test.utils.PropertiesUtils;
 public class ExtensionOpenShiftQuarkusApplicationManagedResource
         extends OpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
-    private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
+    private static final String USING_EXTENSION_PROFILE = "-Ddeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
     private static final String QUARKUS_PLUGIN_EXPOSE = "-Dquarkus.openshift.expose=true";
     private static final String QUARKUS_PLUGIN_ROUTE_EXPOSE = "-Dquarkus.openshift.route.expose=true";
