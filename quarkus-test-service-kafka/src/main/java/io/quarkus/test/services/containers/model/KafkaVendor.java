@@ -2,7 +2,7 @@ package io.quarkus.test.services.containers.model;
 
 public enum KafkaVendor {
     CONFLUENT("confluentinc/cp-kafka", "6.1.1", 9093, KafkaRegistry.CONFLUENT),
-    STRIMZI("quay.io/strimzi/kafka", "0.25.0-kafka-2.8.0", 9092, KafkaRegistry.APICURIO);
+    STRIMZI("quay.io/strimzi/kafka", "0.28.0-kafka-3.1.0", 9092, KafkaRegistry.APICURIO);
 
     private final String image;
     private final String defaultVersion;
