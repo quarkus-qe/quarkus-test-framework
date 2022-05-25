@@ -51,6 +51,10 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         return StringUtils.defaultIfBlank(model.getVersion(), model.getVendor().getDefaultVersion());
     }
 
+    protected String getKafkaImageName() {
+        return StringUtils.defaultIfBlank(model.getImage(), model.getVendor().getImage());
+    }
+
     protected String getKafkaRegistryImage() {
         return model.getRegistryImageVersion();
     }

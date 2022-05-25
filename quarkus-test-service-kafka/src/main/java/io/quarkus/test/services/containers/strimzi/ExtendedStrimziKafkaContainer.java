@@ -7,7 +7,7 @@ import org.testcontainers.images.builder.Transferable;
 import com.github.dockerjava.api.command.InspectContainerResponse;
 
 import io.quarkus.test.services.containers.model.KafkaVendor;
-import io.strimzi.StrimziKafkaContainer;
+import io.strimzi.test.container.StrimziKafkaContainer;
 
 /**
  * Extend the functionality of io.strimzi.StrimziKafkaContainer with:
@@ -21,8 +21,8 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
 
     private boolean useCustomServerProperties = false;
 
-    public ExtendedStrimziKafkaContainer(String version) {
-        super(version);
+    public ExtendedStrimziKafkaContainer(String name, String version) {
+        super(String.format("%s:%s", name, version));
     }
 
     public void useCustomServerProperties() {
