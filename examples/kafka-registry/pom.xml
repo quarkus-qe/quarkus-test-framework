@@ -30,7 +30,7 @@
         <!-- with this, you don't have to use avro-maven-plugin -->
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-avro</artifactId>
+            <artifactId>quarkus-confluent-registry-avro</artifactId>
         </dependency>
         <!-- Confluent AVRO libraries -->
         <dependency>

@@ -26,7 +26,7 @@ import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 @DisabledOnQuarkusVersion(version = "1\\..*", reason = "Quarkus CLI has been reworked in 2.x")
 public class QuarkusCliClientIT {
 
-    static final String RESTEASY_EXTENSION = "quarkus-resteasy";
+    static final String RESTEASY_REACTIVE_EXTENSION = "quarkus-resteasy-reactive";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";
     static final int CMD_DELAY_SEC = 3;
 
@@ -64,15 +64,15 @@ public class QuarkusCliClientIT {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
 
-        // By default, it installs only "quarkus-resteasy"
-        assertInstalledExtensions(app, RESTEASY_EXTENSION);
+        // By default, it installs only "quarkus-resteasy-reactive"
+        assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);
 
         // Let's install Quarkus Smallrye Health
         QuarkusCliClient.Result result = app.installExtension(SMALLRYE_HEALTH_EXTENSION);
         assertTrue(result.isSuccessful(), SMALLRYE_HEALTH_EXTENSION + " was not installed. Output: " + result.getOutput());
 
         // Verify both extensions now
-        assertInstalledExtensions(app, RESTEASY_EXTENSION, SMALLRYE_HEALTH_EXTENSION);
+        assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION, SMALLRYE_HEALTH_EXTENSION);
 
         // The health endpoint should be now available
         app.start();
