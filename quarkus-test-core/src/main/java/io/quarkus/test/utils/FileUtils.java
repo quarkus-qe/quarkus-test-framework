@@ -117,6 +117,16 @@ public final class FileUtils {
         }
     }
 
+    public static void deleteFileContent(File file) {
+        if (file.exists()) {
+            try {
+                org.apache.commons.io.FileUtils.write(file, "", StandardCharsets.UTF_8);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public static Optional<String> findTargetFile(Path basePath, String endsWith) {
         try (Stream<Path> binariesFound = Files
                 .find(basePath, NO_RECURSIVE,
