@@ -23,7 +23,8 @@ import io.quarkus.test.utils.ProcessBuilderProvider;
 
 public class QuarkusCliClient {
 
-    public static final String LOG_FILE = "quarkus-cli.out";
+    public static final String COMMAND_LOG_FILE = "quarkus-cli-command.out";
+    public static final String DEV_MODE_LOG_FILE = "quarkus-cli-dev.out";
 
     private static final String BUILD = "build";
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
@@ -58,13 +59,13 @@ public class QuarkusCliClient {
         return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
 
-    public Process runOnDev(Path servicePath, Map<String, String> arguments) {
+    public Process runOnDev(Path servicePath, File logOutput, Map<String, String> arguments) {
         List<String> cmd = new ArrayList<>();
         cmd.add("dev");
         cmd.addAll(arguments.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue())
                 .collect(Collectors.toList()));
-        return runCli(servicePath, cmd.toArray(new String[cmd.size()]));
+        return runCli(servicePath, logOutput, cmd.toArray(new String[cmd.size()]));
     }
 
     public QuarkusCliRestService createApplication(String name) {
@@ -145,11 +146,11 @@ public class QuarkusCliClient {
 
     private Result runCliAndWait(Path workingDirectory, String... args) {
         Result result = new Result();
-        File output = workingDirectory.resolve(LOG_FILE).toFile();
+        File output = workingDirectory.resolve(COMMAND_LOG_FILE).toFile();
 
         try (FileLoggingHandler loggingHandler = new FileLoggingHandler(output)) {
             loggingHandler.startWatching();
-            Process process = runCli(workingDirectory, args);
+            Process process = runCli(workingDirectory, output, args);
             result.exitCode = process.waitFor();
         } catch (Exception e) {
             e.printStackTrace();
@@ -158,11 +159,11 @@ public class QuarkusCliClient {
         }
 
         result.output = FileUtils.loadFile(output).trim();
-
+        FileUtils.deleteFileContent(output);
         return result;
     }
 
-    private Process runCli(Path workingDirectory, String... args) {
+    private Process runCli(Path workingDirectory, File logOutput, String... args) {
         List<String> cmd = new ArrayList<>();
         cmd.addAll(Arrays.asList(COMMAND.get().split(" ")));
         cmd.addAll(Arrays.asList(args));
@@ -171,7 +172,7 @@ public class QuarkusCliClient {
         try {
             return ProcessBuilderProvider.command(cmd)
                     .redirectErrorStream(true)
-                    .redirectOutput(workingDirectory.resolve(LOG_FILE).toFile())
+                    .redirectOutput(logOutput)
                     .directory(workingDirectory.toFile())
                     .start();
         } catch (Exception e) {

@@ -17,6 +17,7 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
+import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
 
@@ -50,9 +51,8 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
 
         try {
             assignPorts();
-            process = client.runOnDev(serviceContext.getServiceFolder(), getPropertiesForCommand());
-
-            File logFile = serviceContext.getServiceFolder().resolve(QuarkusCliClient.LOG_FILE).toFile();
+            File logFile = serviceContext.getServiceFolder().resolve(QuarkusCliClient.DEV_MODE_LOG_FILE).toFile();
+            process = client.runOnDev(serviceContext.getServiceFolder(), logFile, getPropertiesForCommand());
             loggingHandler = new FileServiceLoggingHandler(serviceContext.getOwner(), logFile);
             loggingHandler.startWatching();
         } catch (Exception e) {
@@ -64,6 +64,8 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
     public void stop() {
         if (loggingHandler != null) {
             loggingHandler.stopWatching();
+            File logFile = serviceContext.getServiceFolder().resolve(QuarkusCliClient.DEV_MODE_LOG_FILE).toFile();
+            FileUtils.deleteFileContent(logFile);
         }
 
         ProcessUtils.destroy(process);
