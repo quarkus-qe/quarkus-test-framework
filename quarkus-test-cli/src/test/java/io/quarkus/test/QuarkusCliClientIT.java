@@ -100,7 +100,7 @@ public class QuarkusCliClientIT {
         // By default, it installs only "quarkus-resteasy-reactive"
         assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);
 
-        // Let's install Quarkus Smallrye Health
+        // Let's install Quarkus SmallRye Health
         QuarkusCliClient.Result result = app.installExtension(SMALLRYE_HEALTH_EXTENSION);
         assertTrue(result.isSuccessful(), SMALLRYE_HEALTH_EXTENSION + " was not installed. Output: " + result.getOutput());
 
@@ -112,7 +112,7 @@ public class QuarkusCliClientIT {
         untilAsserted(() -> app.given().get("/q/health").then().statusCode(HttpStatus.SC_OK));
         app.stop();
 
-        // Let's now remove the Smallrye Health extension
+        // Let's now remove the SmallRye Health extension
         result = app.removeExtension(SMALLRYE_HEALTH_EXTENSION);
         assertTrue(result.isSuccessful(), SMALLRYE_HEALTH_EXTENSION + " was not uninstalled. Output: " + result.getOutput());
 
