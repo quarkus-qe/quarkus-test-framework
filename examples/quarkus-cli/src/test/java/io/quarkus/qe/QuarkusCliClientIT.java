@@ -1,6 +1,7 @@
 package io.quarkus.qe;
 
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
+import static io.quarkus.test.utils.PropertiesUtils.resolveProperty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -51,8 +52,11 @@ public class QuarkusCliClientIT {
         // Create extension
         QuarkusCliDefaultService app = cliClient.createExtension("extension-abc");
 
+        // TODO: remove when https://github.com/quarkusio/quarkus/issues/26014 is resolved
+        var setQuarkusVersion = String.format("-Dquarkus.version=%s", resolveProperty("${quarkus.platform.version}"));
+
         // Should build on Jvm
-        QuarkusCliClient.Result result = app.buildOnJvm();
+        QuarkusCliClient.Result result = app.buildOnJvm(setQuarkusVersion);
         assertTrue(result.isSuccessful(), "The extension build failed. Output: " + result.getOutput());
     }
 
