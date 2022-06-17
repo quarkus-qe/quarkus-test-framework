@@ -12,7 +12,7 @@ import io.quarkus.test.services.DevModeQuarkusApplication;
  */
 @DisabledOnNative
 @QuarkusScenario
-public class DevServicesOnDevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
+public class DevModeMySqlDevServicesDatabaseIT extends AbstractSqlDatabaseIT {
 
     @DevModeQuarkusApplication
     static RestService app = new RestService();
@@ -24,6 +24,6 @@ public class DevServicesOnDevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
     @Test
     public void verifyLogsToAssertDevMode() {
-        app.logs().assertContains("Profile DevServicesOnDevModeMySqlDatabaseIT activated. Live Coding activated");
+        app.logs().assertContains("Profile DevModeMySqlDevServicesDatabaseIT activated. Live Coding activated");
     }
 }
