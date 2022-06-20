@@ -370,6 +370,7 @@
                 <module>examples/jaeger</module>
                 <module>examples/database-mysql</module>
                 <module>examples/database-postgresql</module>
+                <module>examples/database-oracle</module>
                 <module>examples/external-applications</module>
             </modules>
         </profile>
