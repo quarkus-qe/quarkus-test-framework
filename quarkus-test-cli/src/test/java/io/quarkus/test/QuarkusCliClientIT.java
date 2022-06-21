@@ -91,6 +91,15 @@ public class QuarkusCliClientIT {
     }
 
     @Test
+    public void shouldCreateApplicationUsingArtifactId() {
+        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app");
+        assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
+
+        QuarkusCliClient.Result result = app.buildOnJvm();
+        assertTrue(result.isSuccessful(), "The application didn't build on JVM. Output: " + result.getOutput());
+    }
+
+    @Test
     @DisabledIfSystemProperty(named = "quarkus.platform.version", matches = "999-SNAPSHOT", disabledReason = "Default upstream version is quarkus-resteasy-reactive")
     // TODO https://github.com/quarkusio/quarkus/issues/25142
     public void shouldAddAndRemoveExtensions() throws InterruptedException {

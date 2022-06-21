@@ -1,6 +1,7 @@
 package io.quarkus.qe;
 
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
@@ -54,6 +55,15 @@ public class QuarkusCliClientIT {
         // Should build on Jvm
         QuarkusCliClient.Result result = app.buildOnJvm();
         assertTrue(result.isSuccessful(), "The extension build failed. Output: " + result.getOutput());
+    }
+
+    @Test
+    public void shouldCreateApplicationUsingArtifactId() {
+        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app");
+        assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
+
+        QuarkusCliClient.Result result = app.buildOnJvm();
+        assertTrue(result.isSuccessful(), "The application didn't build on JVM. Output: " + result.getOutput());
     }
 
     @Test

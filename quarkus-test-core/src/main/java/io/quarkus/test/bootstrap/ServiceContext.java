@@ -16,7 +16,11 @@ public final class ServiceContext {
     protected ServiceContext(Service owner, ScenarioContext scenarioContext) {
         this.owner = owner;
         this.scenarioContext = scenarioContext;
-        this.serviceFolder = Path.of("target", scenarioContext.getRunningTestClassName(), getName());
+        if (getName().contains(":")) {
+            this.serviceFolder = Path.of("target", scenarioContext.getRunningTestClassName(), getArtifactIdFromGav(getName()));
+        } else {
+            this.serviceFolder = Path.of("target", scenarioContext.getRunningTestClassName(), getName());
+        }
     }
 
     public Service getOwner() {
@@ -50,5 +54,19 @@ public final class ServiceContext {
     @SuppressWarnings("unchecked")
     public <T> T get(String key) {
         return (T) store.get(key);
+    }
+
+    private String getArtifactIdFromGav(String gav) {
+        String artifactId = gav;
+        int firstPos = gav.indexOf(":");
+        int lastPos = gav.lastIndexOf(":");
+        if (firstPos > 0) {
+            if (lastPos == firstPos) { // g:a case
+                artifactId = gav.substring(firstPos + 1);
+            } else if (lastPos >= firstPos + 2) { // g:a:v case
+                artifactId = gav.substring(firstPos + 1, lastPos);
+            }
+        }
+        return artifactId;
     }
 }
