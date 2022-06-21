@@ -29,6 +29,7 @@ items:
       spec:
         containers:
         - image: "${IMAGE}"
+          args: [${ARGS}]
           imagePullPolicy: "IfNotPresent"
           name: "${SERVICE_NAME}"
           ports:

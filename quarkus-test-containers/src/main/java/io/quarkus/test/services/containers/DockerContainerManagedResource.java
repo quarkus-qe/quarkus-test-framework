@@ -3,6 +3,9 @@ package io.quarkus.test.services.containers;
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT;
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 
 import java.nio.file.Files;
@@ -119,6 +122,17 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             if (isResource(entry.getValue())) {
                 value = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
                 addFileToContainer(value);
+            } else if (isResourceWithDestinationPath(entry.getValue())) {
+                value = entry.getValue().replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+                if (!value.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
+                    String errorMsg = String.format("Unexpected %s format. Expected destinationPath|fileName but found %s",
+                            RESOURCE_WITH_DESTINATION_PREFIX, value);
+                    throw new RuntimeException(errorMsg);
+                }
+
+                String destinationPath = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
+                String fileName = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
+                addFileToContainer(destinationPath, fileName);
             } else if (isSecret(entry.getValue())) {
                 value = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 addFileToContainer(value);
@@ -137,6 +151,15 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             // then file is in the classpath
             innerContainer.withClasspathResourceMapping(filePath, filePath, BindMode.READ_ONLY);
         }
+    }
+
+    private void addFileToContainer(String destinationPath, String hostFilePath) {
+        String containerFullPath = destinationPath + hostFilePath;
+        innerContainer.withClasspathResourceMapping(hostFilePath, containerFullPath, BindMode.READ_ONLY);
+    }
+
+    private boolean isResourceWithDestinationPath(String key) {
+        return key.startsWith(RESOURCE_WITH_DESTINATION_PREFIX);
     }
 
     private boolean isResource(String key) {
