@@ -17,7 +17,7 @@
         <dependency>
             <groupId>io.quarkiverse.config</groupId>
             <artifactId>quarkus-config-consul</artifactId>
-            <version>1.0.2</version>
+            <version>1.1.0</version>
         </dependency>
         <!-- https://github.com/quarkiverse/quarkus-config-extensions/issues/70 -->
         <dependency>
