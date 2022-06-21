@@ -1,18 +1,13 @@
 package io.quarkus.qe.database.mysql;
 
-import static io.quarkus.qe.database.mysql.DevModeMySqlDatabaseIT.MYSQL_PORT;
+import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.bootstrap.MySqlService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.services.Container;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class MySqlReusableDatabaseIT extends AbstractSqlDatabaseIT {
-
-    @Container(image = "docker.io/mysql:8.0.27", port = MYSQL_PORT, expectedLog = "port: 3306  MySQL Community Server")
-    static MySqlService database = new MySqlService();
+public class MySqlReusableDatabaseIT extends AbstractMysqlReusableInstance {
 
     @QuarkusApplication
     static RestService app = new RestService()
@@ -23,5 +18,12 @@ public class MySqlReusableDatabaseIT extends AbstractSqlDatabaseIT {
     @Override
     protected RestService getApp() {
         return app;
+    }
+
+    @Test
+    public void verifyContainerIsReused() {
+        // Ignored if is the first Mysql instance
+        // This test works in conjunction with MySqlDatabaseIT.verifyContainerIsReused
+        IsContainerReused();
     }
 }

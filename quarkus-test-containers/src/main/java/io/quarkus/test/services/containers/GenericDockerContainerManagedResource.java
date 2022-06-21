@@ -60,6 +60,13 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
         return container;
     }
 
+    @Override
+    public void stop() {
+        if (!isReusable()) {
+            super.stop();
+        }
+    }
+
     protected boolean isReusable() {
         return model.getContext().getOwner().getConfiguration().isTrue(REUSABLE_MODE);
     }
