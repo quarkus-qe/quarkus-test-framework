@@ -15,7 +15,6 @@ import javax.inject.Inject;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledIfSystemProperty;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
 
@@ -100,8 +99,6 @@ public class QuarkusCliClientIT {
     }
 
     @Test
-    @DisabledIfSystemProperty(named = "quarkus.platform.version", matches = "999-SNAPSHOT", disabledReason = "Default upstream version is quarkus-resteasy-reactive")
-    // TODO https://github.com/quarkusio/quarkus/issues/25142
     public void shouldAddAndRemoveExtensions() throws InterruptedException {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
