@@ -72,7 +72,7 @@ jobs:
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -fae -s .github/mvn-settings.xml clean install  -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -B -fae -s .github/mvn-settings.xml clean install  -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -138,11 +138,11 @@ jobs:
           chmod +x ./quarkus-dev-cli
       - name: Build
         run: |
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Generate Jacoco Report
         run: |
           cd coverage-report
-          mvn package
+          mvn -B package
       - name: Generate Jacoco Badge
         id: jacoco
         uses: cicirello/jacoco-badge-generator@v2
@@ -228,7 +228,7 @@ jobs:
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -272,7 +272,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
@@ -334,7 +334,7 @@ jobs:
       - name: Build in Native mode
         shell: bash
         run: |
-          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
@@ -395,7 +395,7 @@ jobs:
 #          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
 #             EXCLUDE_MODULES="-pl !examples/grpc"
 #          fi
-#          mvn -fae -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
+#          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
 #      - name: Zip Artifacts
 #        if: failure()
 #        run: |
