@@ -6,6 +6,7 @@ import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
 public class SecurityResourceIT extends BaseSecurityResourceIT {
+
     @QuarkusApplication
     static final RestService app = new RestService()
             .withProperty("quarkus.oidc.auth-server-url", () -> keycloak.getRealmUrl())

@@ -1,6 +1,7 @@
 package io.quarkus.test.services.containers;
 
 import java.lang.annotation.Annotation;
+import java.util.Optional;
 import java.util.ServiceLoader;
 
 import io.quarkus.test.bootstrap.ManagedResource;
@@ -29,7 +30,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     }
 
     protected String[] getCommand() {
-        return command;
+        return Optional.ofNullable(command).orElse(new String[] {});
     }
 
     protected Integer getPort() {

@@ -1,6 +1,11 @@
 package io.quarkus.test.bootstrap.inject;
 
+import static io.quarkus.test.model.CustomVolume.VolumeType.CONFIG_MAP;
+import static io.quarkus.test.model.CustomVolume.VolumeType.SECRET;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
@@ -26,16 +31,13 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
-import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
-import io.fabric8.kubernetes.api.model.SecretVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.ServicePort;
-import io.fabric8.kubernetes.api.model.Volume;
-import io.fabric8.kubernetes.api.model.VolumeBuilder;
+import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -46,6 +48,7 @@ import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.model.CustomVolume;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
 
@@ -365,65 +368,86 @@ public final class KubectlClient {
 
     private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment) {
         // mount path x volume
-        Map<String, Volume> volumes = new HashMap<>();
+        Map<String, CustomVolume> volumes = new HashMap<>();
 
         Map<String, String> output = new HashMap<>();
         for (Entry<String, String> entry : properties.entrySet()) {
-            String value = entry.getValue();
+            String propertyValue = entry.getValue();
             if (isResource(entry.getValue())) {
                 String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String configMapName = normalizeName(mountPath);
+                String configMapName = normalizeConfigMapName(mountPath);
 
                 // Update config map
                 createOrUpdateConfigMap(configMapName, filename, getFileContent(path));
 
                 // Add the volume
                 if (!volumes.containsKey(mountPath)) {
-                    Volume volume = new VolumeBuilder()
-                            .withName(configMapName)
-                            .withConfigMap(new ConfigMapVolumeSourceBuilder().withName(configMapName).build())
-                            .build();
-                    volumes.put(mountPath, volume);
+                    volumes.put(mountPath, new CustomVolume(configMapName, "", CONFIG_MAP));
                 }
 
-                value = mountPath + SLASH + filename;
+                propertyValue = mountPath + SLASH + filename;
+            } else if (isResourceWithDestinationPath(propertyValue)) {
+                String path = propertyValue.replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+                if (!propertyValue.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
+                    String errorMsg = String.format("Unexpected %s format. Expected destinationPath|fileName but found %s",
+                            RESOURCE_WITH_DESTINATION_PREFIX, propertyValue);
+                    throw new RuntimeException(errorMsg);
+                }
+
+                String mountPath = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
+                String fileName = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
+                String fileNameNormalized = getFileName(fileName);
+                String configMapName = normalizeConfigMapName(mountPath);
+
+                // Update config map
+                createOrUpdateConfigMap(configMapName, fileNameNormalized, getFileContent(fileName));
+                propertyValue = mountPath + SLASH + fileNameNormalized;
+                // Add the volume
+                if (!volumes.containsKey(mountPath)) {
+                    volumes.put(propertyValue, new CustomVolume(configMapName, fileNameNormalized, CONFIG_MAP));
+                }
             } else if (isSecret(entry.getValue())) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String secretName = normalizeName(path);
+                String secretName = normalizeConfigMapName(path);
 
                 // Push secret file
                 doCreateSecretFromFile(secretName, getFilePath(path));
-
-                // Add the volume
-                Volume volume = new VolumeBuilder()
-                        .withName(secretName)
-                        .withSecret(new SecretVolumeSourceBuilder()
-                                .withSecretName(secretName)
-                                .build())
-                        .build();
-                volumes.put(mountPath, volume);
-
-                value = mountPath + SLASH + filename;
+                volumes.put(mountPath, volumes.put(mountPath, new CustomVolume(secretName, "", SECRET)));
+                propertyValue = mountPath + SLASH + filename;
             }
 
-            output.put(entry.getKey(), value);
+            output.put(entry.getKey(), propertyValue);
         }
 
-        for (Entry<String, Volume> volume : volumes.entrySet()) {
-            deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume.getValue());
+        for (Entry<String, CustomVolume> volume : volumes.entrySet()) {
+            deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume.getValue().getVolume());
 
             // Configure all the containers to map the volume
             deployment.getSpec().getTemplate().getSpec().getContainers()
                     .forEach(container -> container.getVolumeMounts()
-                            .add(new VolumeMountBuilder().withName(volume.getValue().getName())
-                                    .withReadOnly(true).withMountPath(volume.getKey()).build()));
+                            .add(createVolumeMount(volume)));
         }
 
         return output;
+    }
+
+    private VolumeMount createVolumeMount(Entry<String, CustomVolume> volume) {
+        VolumeMountBuilder volumeMountBuilder = new VolumeMountBuilder().withName(volume.getValue().getName())
+                .withReadOnly(true).withMountPath(volume.getKey());
+
+        if (!volume.getValue().getSubFolderRegExp().isEmpty()) {
+            volumeMountBuilder.withSubPathExpr(volume.getValue().getSubFolderRegExp());
+        }
+
+        return volumeMountBuilder.build();
+    }
+
+    private boolean isResourceWithDestinationPath(String key) {
+        return key.startsWith(RESOURCE_WITH_DESTINATION_PREFIX);
     }
 
     private void createOrUpdateConfigMap(String configMapName, String key, String value) {
@@ -498,7 +522,7 @@ public final class KubectlClient {
         return path;
     }
 
-    private String normalizeName(String name) {
+    private String normalizeConfigMapName(String name) {
         return StringUtils.removeStart(name, SLASH)
                 .replaceAll(Pattern.quote("."), "-")
                 .replaceAll(SLASH, "-");

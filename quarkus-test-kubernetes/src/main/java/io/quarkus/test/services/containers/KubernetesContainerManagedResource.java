@@ -109,7 +109,8 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
-                .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort());
+                .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
+                .replaceAll(quote("${ARGS}"), String.join(" ", model.getCommand()));
     }
 
     private boolean useInternalServiceAsUrl() {
