@@ -10,7 +10,9 @@
     <artifactId>examples-kafka-registry</artifactId>
     <name>Quarkus - Test Framework - Examples - Kafka with Registry</name>
     <properties>
-        <confluent.kafka-avro-serializer.version>7.1.2</confluent.kafka-avro-serializer.version>
+        <!-- confluent AVRO serializer 7.1.2 is not supported by native mode -->
+        <!-- TODO https://github.com/quarkusio/quarkus/issues/26428 -->
+        <confluent.kafka-avro-serializer.version>7.0.3</confluent.kafka-avro-serializer.version>
     </properties>
 
     <dependencies>
