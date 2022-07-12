@@ -358,7 +358,6 @@
             </activation>
             <modules>
                 <module>examples/quarkus-cli</module>
-                <module>examples/quarkus-helm</module>
                 <module>examples/pingpong</module>
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>
@@ -562,7 +561,7 @@
                 </property>
             </activation>
             <properties>
-                <exclude.tests.with.tags />
+                <exclude.tests.with.tags>quarkus-helm</exclude.tests.with.tags>
             </properties>
         </profile>
         <profile>
@@ -573,7 +572,21 @@
                 </property>
             </activation>
             <properties>
-                <exclude.tests.with.tags />
+                <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
+            </properties>
+            <modules>
+                <module>examples/quarkus-helm</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>run-all-tags-tests</id>
+            <activation>
+                <property>
+                    <name>run-all-tags-tests</name>
+                </property>
+            </activation>
+            <properties>
+                <exclude.tests.with.tags/>
             </properties>
         </profile>
     </profiles>

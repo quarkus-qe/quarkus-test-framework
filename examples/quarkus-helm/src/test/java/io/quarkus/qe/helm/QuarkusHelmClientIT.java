@@ -12,11 +12,14 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.QuarkusHelmClient;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 
 @Tag("quarkus-helm")
 @QuarkusScenario
 @DisabledOnQuarkusVersion(version = "1\\..*", reason = "Quarkus Helm not supported")
+// TODO https://github.com/quarkiverse/quarkus-helm/issues/29
+@DisabledOnQuarkusSnapshot(reason = "unsupported quarkus-helm/dekorate version")
 public class QuarkusHelmClientIT {
 
     private final static String EXPECTED_HELM_VERSION_REGEXP = ".*[v]{1}\\d{1,2}\\.\\d{1,2}\\.\\d{1,3}.*";

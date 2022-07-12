@@ -107,10 +107,6 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
         id: install
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
@@ -143,7 +139,7 @@ jobs:
           chmod +x ./quarkus-dev-cli
       - name: Build
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Drun-helm-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Generate Jacoco Report
         run: |
           cd coverage-report
