@@ -22,7 +22,7 @@ import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 @DisabledOnQuarkusSnapshot(reason = "unsupported quarkus-helm/dekorate version")
 public class QuarkusHelmClientIT {
 
-    private final static String EXPECTED_HELM_VERSION_REGEXP = ".*[v]{1}\\d{1,2}\\.\\d{1,2}\\.\\d{1,3}.*";
+    private final static String EXPECTED_HELM_VERSION_REGEXP = ".*\\d{1,2}\\.\\d{1,2}\\.\\d{1,3}.*";
     private final static String EXPECTED_HOST = "examples-quarkus-helm.apps.ocp4-10.dynamic.quarkus";
 
     @Inject

@@ -4,21 +4,21 @@ import javax.inject.Inject;
 
 import org.junit.jupiter.api.Tag;
 
-import io.quarkus.test.bootstrap.QuarkusHelmClient;
-import io.quarkus.test.scenarios.OpenShiftScenario;
+import io.quarkus.test.bootstrap.QuarkusHelmFileClient;
+import io.quarkus.test.scenarios.KubernetesScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 
 @Tag("quarkus-helm")
-@OpenShiftScenario
+@KubernetesScenario
 // TODO https://github.com/quarkiverse/quarkus-helm/issues/29
 @DisabledOnQuarkusSnapshot(reason = "unsupported quarkus-helm/dekorate version")
-public class OpenShiftQuarkusHelmClientIT extends CommonHelmScenarios {
+public class KubernetesQuarkusHelmFileClientIT extends CommonHelmFileScenarios {
 
     @Inject
-    static QuarkusHelmClient helmClient;
+    static QuarkusHelmFileClient helmFileClient;
 
     @Override
-    protected QuarkusHelmClient getHelmClient() {
-        return helmClient;
+    protected QuarkusHelmFileClient getHelmFileClient() {
+        return helmFileClient;
     }
 }

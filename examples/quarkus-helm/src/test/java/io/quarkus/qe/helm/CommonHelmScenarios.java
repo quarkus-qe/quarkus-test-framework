@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.QuarkusHelmClient;
 
-public abstract class CommonScenarios {
+public abstract class CommonHelmScenarios {
 
     protected abstract QuarkusHelmClient getHelmClient();
 

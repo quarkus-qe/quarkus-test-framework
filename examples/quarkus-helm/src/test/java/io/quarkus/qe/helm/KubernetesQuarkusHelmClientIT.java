@@ -12,7 +12,7 @@ import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 @KubernetesScenario
 // TODO https://github.com/quarkiverse/quarkus-helm/issues/29
 @DisabledOnQuarkusSnapshot(reason = "unsupported quarkus-helm/dekorate version")
-public class KubernetesQuarkusHelmClientIT extends CommonScenarios {
+public class KubernetesQuarkusHelmClientIT extends CommonHelmScenarios {
 
     @Inject
     static QuarkusHelmClient helmClient;

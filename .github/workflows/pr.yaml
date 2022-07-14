@@ -88,6 +88,11 @@ jobs:
         with:
           version: v3.9.0
         id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Build in JVM mode
         run: |
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then

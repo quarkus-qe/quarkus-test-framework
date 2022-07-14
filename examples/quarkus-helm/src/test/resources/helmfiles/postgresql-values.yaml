@@ -1,0 +1,9 @@
+global:
+  postgresql:
+    auth:
+      postgresPassword: "secret"
+      username: "test"
+      password: "test"
+      database: "mydb"
+containerPorts:
+  postgresql: 5432
