@@ -27,6 +27,23 @@ public final class ScenarioContext {
         this.testNamespace = ExtensionContext.Namespace.create(ScenarioContext.class);
     }
 
+    private ScenarioContext(ExtensionContext testContext, String id, ExtensionContext.Namespace testNamespace,
+            ExtensionContext methodTestContext, boolean failed, boolean debug) {
+        this.testContext = testContext;
+        this.id = id;
+        this.testNamespace = testNamespace;
+        this.methodTestContext = methodTestContext;
+        this.failed = failed;
+        this.debug = debug;
+    }
+
+    /**
+     * Creates a shallow copy without {@link ScenarioContext#methodTestContext}.
+     */
+    public ScenarioContext toClassScenarioContext() {
+        return new ScenarioContext(testContext, id, testNamespace, null, failed, debug);
+    }
+
     public String getId() {
         return id;
     }

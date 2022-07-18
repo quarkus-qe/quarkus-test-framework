@@ -75,9 +75,11 @@ items:
             app: 'jaeger'
         spec:
           containers:
-            - image: 'quay.io/jaegertracing/all-in-one:1.30.0'
+            - image: 'quay.io/jaegertracing/all-in-one:1.36'
               name: 'jaeger'
-#              env:
+              env:
+                - name: COLLECTOR_OTLP_ENABLED
+                  value: "true"
 #                - name: SPAN_STORAGE_TYPE
 #                  value: "elasticsearch"
 #                - name: ES_SERVER_URLS
@@ -91,7 +93,7 @@ items:
                   protocol: UDP
                 - containerPort: 5778
                   protocol: TCP
-                - containerPort: 14268
+                - containerPort: 4317
                   protocol: TCP
                 - containerPort: 16686
                   protocol: TCP
@@ -108,9 +110,9 @@ items:
     spec:
       ports:
         - name: jaeger-api
-          port: 14268
+          port: 4317
           protocol: TCP
-          targetPort: 14268
+          targetPort: 4317
       selector:
         app: 'jaeger'
   - apiVersion: v1

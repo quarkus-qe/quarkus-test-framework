@@ -11,13 +11,24 @@ public class TracingServiceListener implements ServiceListener {
     @Override
     public void onServiceStarted(ServiceContext service) {
         getTracer(service.getScenarioContext())
-                .ifPresent(tracer -> tracer.updateWithTag(service.getScenarioContext(), service.getName()));
+                .ifPresent(tracer -> tracer.updateWithAttribute(service.getScenarioContext(), service.getName()));
     }
 
     @Override
     public void onServiceError(ServiceContext service, Throwable throwable) {
         getTracer(service.getScenarioContext())
                 .ifPresent(tracer -> tracer.finishWithError(service.getScenarioContext(), throwable, service.getName()));
+    }
+
+    @Override
+    public void onServiceStopped(ServiceContext service) {
+        getTracer(service.getScenarioContext())
+                .ifPresent(tracer -> tracer.finishWithSuccess(toClassScenarioContext(service)));
+    }
+
+    private ScenarioContext toClassScenarioContext(ServiceContext service) {
+        // remove method test context as we want to end the class span
+        return service.getScenarioContext().toClassScenarioContext();
     }
 
     private Optional<QuarkusScenarioTracer> getTracer(ScenarioContext scenario) {
