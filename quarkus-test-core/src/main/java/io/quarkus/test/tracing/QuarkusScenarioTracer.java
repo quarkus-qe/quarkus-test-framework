@@ -1,79 +1,66 @@
 package io.quarkus.test.tracing;
 
-import static io.quarkus.test.tracing.QuarkusScenarioTags.ERROR;
-import static io.quarkus.test.tracing.QuarkusScenarioTags.SUCCESS;
+import static io.quarkus.test.tracing.QuarkusScenarioAttributes.SUCCESS;
 
-import java.util.Collections;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Stream;
 
-import org.apache.thrift.transport.TTransportException;
-
-import io.jaegertracing.internal.JaegerTracer;
-import io.jaegertracing.internal.reporters.RemoteReporter;
-import io.jaegertracing.internal.samplers.ConstSampler;
-import io.jaegertracing.thrift.internal.senders.HttpSender;
-import io.opentracing.Span;
-import io.opentracing.Tracer;
-import io.opentracing.log.Fields;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.sdk.resources.Resource;
+import io.opentelemetry.sdk.trace.SdkTracerProvider;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.samplers.Sampler;
 import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.utils.TestExecutionProperties;
 
 public class QuarkusScenarioTracer {
 
-    private final Tracer tracer;
+    private static final String SERVICE_NAME = "service.name";
     private final QuarkusScenarioSpan quarkusScenarioSpan;
-    private final QuarkusScenarioTags quarkusScenarioTags;
+    private final SdkTracerProvider tracerProvider;
 
-    public QuarkusScenarioTracer(String jaegerHttpEndpoint) throws TTransportException {
-        tracer = new JaegerTracer.Builder(TestExecutionProperties.getServiceName())
-                .withReporter(new RemoteReporter.Builder()
-                        .withSender(new HttpSender.Builder(jaegerHttpEndpoint).build()).build())
-                .withSampler(new ConstSampler(true))
+    public QuarkusScenarioTracer(String jaegerHttpEndpoint) {
+
+        final var serviceName = TestExecutionProperties.getServiceName();
+        tracerProvider = SdkTracerProvider
+                .builder()
+                .setResource(Resource.getDefault().toBuilder().put(SERVICE_NAME, serviceName).build())
+                .addSpanProcessor(BatchSpanProcessor
+                        .builder(OtlpGrpcSpanExporter.builder().setEndpoint(jaegerHttpEndpoint).build())
+                        .build())
+                .setSampler(Sampler.alwaysOn())
                 .build();
-
-        this.quarkusScenarioTags = new QuarkusScenarioTags();
-        this.quarkusScenarioSpan = new QuarkusScenarioSpan(tracer, quarkusScenarioTags);
+        quarkusScenarioSpan = new QuarkusScenarioSpan(tracerProvider.get(serviceName), new QuarkusScenarioAttributes());
     }
 
-    public void updateWithTag(ScenarioContext context, String tag) {
-        quarkusScenarioSpan.save(Collections.emptyMap(), newHashSet(tag), context);
+    public void updateWithAttribute(ScenarioContext context, String attribute) {
+        quarkusScenarioSpan.save(attributeToTrue(attribute), context, null);
     }
 
     public void finishWithSuccess(ScenarioContext context) {
         finishWithSuccess(context, SUCCESS);
     }
 
-    public void finishWithSuccess(ScenarioContext context, String tag) {
-        quarkusScenarioSpan.save(Collections.emptyMap(), newHashSet(tag), context).finish();
+    public void finishWithSuccess(ScenarioContext context, String attribute) {
+        quarkusScenarioSpan.save(attributeToTrue(attribute), context, null).end();
     }
 
     public void finishWithError(ScenarioContext context, Throwable cause) {
-        finishWithError(context, cause, ERROR);
+        quarkusScenarioSpan.save(Map.of(SUCCESS, false), context, cause).end();
     }
 
-    public void finishWithError(ScenarioContext context, Throwable cause, String tag) {
-        Map<String, ?> err = Map.of(Fields.EVENT, "error", Fields.ERROR_OBJECT, cause, Fields.MESSAGE, cause.getMessage());
-        quarkusScenarioSpan.save(err, newHashSet(tag), context).finish();
+    public void finishWithError(ScenarioContext context, Throwable cause, String attribute) {
+        quarkusScenarioSpan.save(Map.of(SUCCESS, false, attribute, true), context, cause).end();
     }
 
-    public Span createSpanContext(ScenarioContext context) {
-        return quarkusScenarioSpan.getOrCreate(context);
+    public void createSpanContext(ScenarioContext context) {
+        quarkusScenarioSpan.getOrCreate(context);
     }
 
-    public Tracer getTracer() {
-        return tracer;
+    public void onShutdown() {
+        tracerProvider.close();
     }
 
-    public QuarkusScenarioTags getTestFrameworkTags() {
-        return quarkusScenarioTags;
-    }
-
-    private static Set<String> newHashSet(String... values) {
-        Set<String> set = new HashSet<>();
-        Stream.of(values).forEach(set::add);
-        return set;
+    private static Map<String, Boolean> attributeToTrue(String attribute) {
+        return Map.of(attribute, true);
     }
 }

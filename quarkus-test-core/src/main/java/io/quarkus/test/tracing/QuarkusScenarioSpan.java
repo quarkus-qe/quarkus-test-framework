@@ -5,18 +5,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import io.opentracing.Span;
-import io.opentracing.Tracer;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
 import io.quarkus.test.bootstrap.ScenarioContext;
 
 public class QuarkusScenarioSpan {
 
-    private final Tracer tracer;
-    private final QuarkusScenarioTags quarkusScenarioTags;
+    private final QuarkusScenarioAttributes quarkusScenarioAttributes;
     private final Map<String, Span> spanBucket = new ConcurrentHashMap<>();
 
-    public QuarkusScenarioSpan(Tracer tracer, QuarkusScenarioTags quarkusScenarioTags) {
-        this.quarkusScenarioTags = quarkusScenarioTags;
+    private final Tracer tracer;
+
+    public QuarkusScenarioSpan(Tracer tracer, QuarkusScenarioAttributes quarkusScenarioAttributes) {
+        this.quarkusScenarioAttributes = quarkusScenarioAttributes;
         this.tracer = tracer;
     }
 
@@ -29,11 +32,15 @@ public class QuarkusScenarioSpan {
         return spanBucket.get(operationName);
     }
 
-    public Span save(Map<String, ?> logs, Set<String> tags, ScenarioContext scenarioContext) {
-        String operationName = getOperationName(scenarioContext);
-        Span span = spanBucket.get(operationName);
-        span.log(logs);
-        tags.forEach(tag -> span.setTag(tag, true));
+    public Span save(Map<String, Boolean> attributes, ScenarioContext scenarioContext, Throwable throwable) {
+        final Span span = spanBucket.get(getOperationName(scenarioContext));
+        attributes.forEach(span::setAttribute);
+        if (throwable == null) {
+            span.setStatus(StatusCode.OK);
+        } else {
+            span.setStatus(StatusCode.ERROR);
+            span.recordException(throwable);
+        }
         return span;
     }
 
@@ -47,9 +54,9 @@ public class QuarkusScenarioSpan {
         return operationName;
     }
 
-    private Span buildNewSpan(String operationName, Set<String> tags) {
-        Span span = tracer.buildSpan(operationName).start();
-        quarkusScenarioTags.initializedTags(span, tags);
+    private Span buildNewSpan(String operationName, Set<String> attributes) {
+        Span span = tracer.spanBuilder(operationName).setSpanKind(SpanKind.INTERNAL).startSpan();
+        quarkusScenarioAttributes.initializedAttributes(span, attributes);
         spanBucket.put(operationName, span);
         return span;
     }
