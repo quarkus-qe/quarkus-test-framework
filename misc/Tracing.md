@@ -10,8 +10,8 @@ All errors are going to be tagged as `error` and the error message is going to b
 
 In order to push your tracing events to your Jaeger you must provide the following system properties:
 - ts.global.tracing.jaeger.endpoint:
-        Default Value: `http://localhost:14268/api/traces` 
-        Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:14268/api/traces`
+        Default Value: `http://localhost:4317` 
+        Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:4317`
         
 All the metrics will be tagging [the test execution properties](Execution.md).
 
@@ -20,10 +20,10 @@ All the metrics will be tagging [the test execution properties](Execution.md).
 - On bare metal:
 
 ```
-docker run -p 16686:16686 -p 14268:14268 quay.io/jaegertracing/all-in-one:1.30.0
+docker run --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 16686:16686 -p 4317:4317 quay.io/jaegertracing/all-in-one:1.36
 ```
 
-The JAEGER API URL will be available at `http://localhost:14268`.
+The JAEGER API URL will be available at `http://localhost:4317`.
 The JAEGER UI URL is `http://localhost:16686`.
 
 - On OpenShift:
@@ -45,7 +45,7 @@ jaeger-ui    <JAEGER UI URL>           jaeger-ui    <all>                 None
 After installing Jaeger, then we can run our test suite, for example: 
 
 ```
-mvn clean verify -Dts.global.build-number="475" -Dts.global.service-name="1.2.1" -Dts.global.tracing.jaeger.endpoint="http://<JAEGER API URL>/api/traces" 
+mvn clean verify -Dts.global.build-number="475" -Dts.global.service-name="1.2.1" -Dts.global.tracing.jaeger.endpoint="<JAEGER API URL>"
 ```
 
 The spanIds within the test framework must follow the next convention:
