@@ -1,0 +1,18 @@
+# Doc: https://docs.docker.com/engine/api/
+# Deploy this instance in any server that acts as a remote docker-engine
+# This Dockerfile is already on QuarkusQE docker registry
+# https://quay.io/repository/quarkusqeteam/docker-remote-api?tab=info
+# example:
+# build -> docker build -f Dockerfile.remote-api -t remote-api .
+# run ->   docker run -d -p 2375:2375 -v /var/run/docker.sock:/var/run/docker.sock remote-api
+#
+# Redirect all your local docker request to port 2375
+# export DOCKER_HOST=tcp://<REMOTE_IP>:2375
+
+FROM alpine
+
+RUN apk update && apk add socat
+
+EXPOSE 2375
+
+CMD socat TCP-LISTEN:2375,reuseaddr,fork UNIX-CLIENT:/var/run/docker.sock
