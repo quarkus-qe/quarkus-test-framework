@@ -487,7 +487,11 @@ public final class OpenShiftClient {
         List<String> output = new ArrayList<>();
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList(OC, "exec", podName, "-c", containerId, "-n", namespace));
-        args.addAll(Arrays.asList(input));
+        List<String> command = Arrays.asList(input);
+        if (!command.isEmpty()) {
+            args.add("--");
+            args.addAll(command);
+        }
         new Command(args).outputToLines(output).runAndWait();
 
         return output.stream().collect(Collectors.joining(System.lineSeparator()));
