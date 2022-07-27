@@ -685,7 +685,7 @@ public final class OpenShiftClient {
 
                 // Push secret file
                 doCreateSecretFromFile(secretName, getFilePath(path));
-                volumes.put(mountPath, volumes.put(mountPath, new CustomVolume(secretName, "", SECRET)));
+                volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
 
                 propertyValue = mountPath + SLASH + filename;
             }
