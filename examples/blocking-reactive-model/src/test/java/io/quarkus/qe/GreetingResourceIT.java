@@ -1,6 +1,8 @@
 package io.quarkus.qe;
 
 import static org.hamcrest.Matchers.is;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -27,10 +29,12 @@ public class GreetingResourceIT {
     public void shouldPickTheForcedDependencies() {
         // classic
         blocking.given().get(HELLO_PATH).then().body(is(HELLO));
-        blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_CLASSIC);
+        assertTrue(blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_CLASSIC));
+        // necessary 'resteasy' is also prefix of the 'resteasy-reactive'
+        assertFalse(blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_REACTIVE));
 
         // reactive
         reactive.given().get(HELLO_PATH).then().body(is(HELLO));
-        blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_REACTIVE);
+        assertTrue(reactive.logs().forQuarkus().installedFeatures().contains(RESTEASY_REACTIVE));
     }
 }
