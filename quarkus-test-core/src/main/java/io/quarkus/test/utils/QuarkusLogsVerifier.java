@@ -25,6 +25,7 @@ public class QuarkusLogsVerifier {
         return service.getLogs().stream()
                 .filter(log -> log.contains(INSTALLED_FEATURES))
                 .flatMap(log -> Stream.of(StringUtils.substringBetween(log, OPEN_TAG, CLOSE_TAG).split(COMMA)))
+                .map(String::trim)
                 .collect(Collectors.toList());
     }
 }
