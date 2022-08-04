@@ -10,8 +10,8 @@ All errors are going to be tagged as `error` and the error message is going to b
 
 In order to push your tracing events to your Jaeger you must provide the following system properties:
 - ts.global.tracing.jaeger.endpoint:
-        Default Value: `http://localhost:4317` 
-        Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:4317`
+        Default Value: `http://localhost:4318/v1/traces`
+        Example, `https://myjaeger.apps.ocp47.dynamic.quarkus:4318/v1/traces`
         
 All the metrics will be tagging [the test execution properties](Execution.md).
 
@@ -20,10 +20,10 @@ All the metrics will be tagging [the test execution properties](Execution.md).
 - On bare metal:
 
 ```
-docker run --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 16686:16686 -p 4317:4317 quay.io/jaegertracing/all-in-one:1.36
+docker run --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 16686:16686 -p 4318:4318 quay.io/jaegertracing/all-in-one:1.37
 ```
 
-The JAEGER API URL will be available at `http://localhost:4317`.
+The JAEGER API URL will be available at `http://localhost:4318/v1/traces`.
 The JAEGER UI URL is `http://localhost:16686`.
 
 - On OpenShift:
