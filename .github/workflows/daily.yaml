@@ -60,6 +60,16 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Build
         run: |
           MAVEN_PROFILES="-Pframework,examples"
@@ -107,6 +117,17 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+        id: install
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
@@ -210,6 +231,16 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
@@ -261,6 +292,17 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - uses: MinoruSekine/setup-scoop@main
+        with:
+          add_extras_bucket: 'true'
+      - name: Install helmfile through windows scoop
+        shell: bash
+        run: scoop install helmfile
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
@@ -308,6 +350,17 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - uses: MinoruSekine/setup-scoop@main
+        with:
+          add_extras_bucket: 'true'
+      - name: Install helmfile through windows scoop
+        shell: bash
+        run: scoop install helmfile
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:

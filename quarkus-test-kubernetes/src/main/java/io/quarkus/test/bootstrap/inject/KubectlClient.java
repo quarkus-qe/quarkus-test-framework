@@ -78,6 +78,7 @@ public final class KubectlClient {
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
+        setCurrentSessionNamespace(currentNamespace);
     }
 
     public static KubectlClient create(String scenarioName) {
@@ -574,6 +575,19 @@ public final class KubectlClient {
         return ThreadLocalRandom.current().ints(NAMESPACE_NAME_SIZE, 'a', 'z' + 1)
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+    }
+
+    private boolean setCurrentSessionNamespace(String namespaceName) {
+        boolean done = false;
+        try {
+            new Command(KUBECTL, "config", "set-context", "--current", "--namespace=" + namespaceName).runAndWait();
+            done = true;
+        } catch (Exception e) {
+            Log.warn("Namespace " + namespaceName
+                    + " failed to be set as current session namespace. Caused by: " + e.getMessage() + ". Trying again.");
+        }
+
+        return done;
     }
 
     private void printServiceInfo(Service service) {

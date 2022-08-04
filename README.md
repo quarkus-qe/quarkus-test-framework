@@ -27,6 +27,9 @@ Main features:
 - JDK 11+
 - Maven 3+
 - Docker
+- Helm
+- Helmfiles
+- OCP/K8s client
 
 # Getting Started
 
