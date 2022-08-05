@@ -62,7 +62,7 @@
         </profile>
         <!-- Skipped on Windows in a native mode due to https://github.com/quarkusio/quarkus/issues/27061 -->
         <profile>
-            <id>skip-tests-on-windows</id>
+            <id>skip-tests-on-windows-in-native</id>
             <activation>
                 <os>
                     <family>windows</family>
