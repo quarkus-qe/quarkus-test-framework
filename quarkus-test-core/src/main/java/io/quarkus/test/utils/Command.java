@@ -62,10 +62,12 @@ public class Command {
         Process process = ProcessBuilderProvider.command(command).redirectErrorStream(true)
                 .directory(new File(directory).getAbsoluteFile()).start();
 
-        new Thread(() -> outputConsumer.accept(description, process.getInputStream()),
-                "stdout consumer for command " + description).start();
+        Thread consumer = new Thread(() -> outputConsumer.accept(description, process.getInputStream()),
+                "stdout consumer for command " + description);
+        consumer.start();
 
         int result = process.waitFor();
+        consumer.join();
         if (result != 0) {
             throw new RuntimeException(description + " failed (executed " + command + ", return code " + result + ")");
         }
