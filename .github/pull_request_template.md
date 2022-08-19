@@ -13,5 +13,6 @@ Please check the relevant options
 
 ### Checklist:
 - [ ] Example scenarios has been updated / added
+- [ ] Quarkus version bump, core or OpenShift extension changes have passed OCP verification Jobs
 - [ ] Methods and classes used in PR scenarios are meaningful
 - [ ] Commits are well encapsulated and follow [the best practices](https://cbea.ms/git-commit/)
