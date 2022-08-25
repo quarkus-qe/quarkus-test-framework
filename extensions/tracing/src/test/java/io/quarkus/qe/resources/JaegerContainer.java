@@ -7,7 +7,7 @@ import org.testcontainers.containers.wait.strategy.Wait;
 
 public class JaegerContainer extends GenericContainer<JaegerContainer> {
     public static final int REST_PORT = 16686;
-    private static final int TRACE_PORT = 4317;
+    private static final int TRACE_PORT = 4318;
     private static final int STARTUP_TIMEOUT_SECONDS = 30;
 
     public JaegerContainer() {
