@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.test.bootstrap.ExtensionBootstrap;
 import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.logging.Log;
 
 public class TracingExtensionBootstrap implements ExtensionBootstrap {
 
@@ -18,6 +19,9 @@ public class TracingExtensionBootstrap implements ExtensionBootstrap {
         String jaegerHttpEndpoint = JAEGER_HTTP_ENDPOINT_SYSTEM_PROPERTY.get();
         if (StringUtils.isNotEmpty(jaegerHttpEndpoint)) {
             quarkusScenarioTracer = new QuarkusScenarioTracer(jaegerHttpEndpoint);
+            Log.info("Sending traces to %s", jaegerHttpEndpoint);
+        } else {
+            Log.info("Tracing is disabled");
         }
     }
 

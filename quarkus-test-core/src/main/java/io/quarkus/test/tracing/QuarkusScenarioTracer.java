@@ -4,7 +4,7 @@ import static io.quarkus.test.tracing.QuarkusScenarioAttributes.SUCCESS;
 
 import java.util.Map;
 
-import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.http.trace.OtlpHttpSpanExporter;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
@@ -25,7 +25,7 @@ public class QuarkusScenarioTracer {
                 .builder()
                 .setResource(Resource.getDefault().toBuilder().put(SERVICE_NAME, serviceName).build())
                 .addSpanProcessor(BatchSpanProcessor
-                        .builder(OtlpGrpcSpanExporter.builder().setEndpoint(jaegerHttpEndpoint).build())
+                        .builder(OtlpHttpSpanExporter.builder().setEndpoint(jaegerHttpEndpoint).build())
                         .build())
                 .setSampler(Sampler.alwaysOn())
                 .build();
