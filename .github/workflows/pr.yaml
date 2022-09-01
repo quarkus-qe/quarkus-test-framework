@@ -1,4 +1,4 @@
-name: "Pull Request Build"
+name: "PR"
 on:
   - pull_request
 jobs:
@@ -60,7 +60,7 @@ jobs:
           name: maven-repo
           path: maven-repo.tgz
   linux-build-jvm-released:
-    name: PR - Linux - JVM build - Released Versions
+    name: Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -103,7 +103,7 @@ jobs:
           name: ci-artifacts
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
   linux-build-jvm-latest:
-    name: PR - Linux - JVM build - Latest Version
+    name: Linux - JVM build - Latest Version
     runs-on: ubuntu-latest
     needs: quarkus-main-build
     strategy:
@@ -156,7 +156,7 @@ jobs:
           name: ci-artifacts
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
   windows-build-jvm-latest:
-    name: PR - Windows - JVM build - Latest Version
+    name: Windows - JVM build - Latest Version
     runs-on: windows-latest
     needs: quarkus-main-build
     strategy:
