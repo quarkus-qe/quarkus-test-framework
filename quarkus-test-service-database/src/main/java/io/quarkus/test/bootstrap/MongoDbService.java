@@ -10,7 +10,9 @@ public class MongoDbService extends DatabaseService<MongoDbService> {
 
     @Override
     public String getJdbcUrl() {
-        return getHost().replace("http", getJdbcName()) + ":" + getPort();
+        return getURI()
+                .withScheme(JDBC_NAME)
+                .toString();
     }
 
     @Override

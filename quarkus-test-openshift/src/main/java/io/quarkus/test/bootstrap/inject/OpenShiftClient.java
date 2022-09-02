@@ -65,6 +65,7 @@ import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.model.CustomVolume;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.operator.model.CustomResourceStatus;
 import io.quarkus.test.utils.AwaitilityUtils;
 import io.quarkus.test.utils.Command;
@@ -365,7 +366,7 @@ public final class OpenShiftClient {
      * @param service
      * @return
      */
-    public String url(Service service) {
+    public URILike url(Service service) {
         return url(service.getName());
     }
 
@@ -375,10 +376,10 @@ public final class OpenShiftClient {
      * @param serviceName
      * @return
      */
-    public String url(String serviceName) {
+    public URILike url(String serviceName) {
         if (isServerlessService(serviceName)) {
             io.fabric8.knative.serving.v1.Route knRoute = kn.routes().withName(serviceName).get();
-            return knRoute.getStatus().getUrl();
+            return URILike.parse(knRoute.getStatus().getUrl());
         }
 
         Route route = client.routes().withName(serviceName).get();
@@ -388,7 +389,10 @@ public final class OpenShiftClient {
 
         String protocol = route.getSpec().getTls() == null ? "http" : "https";
         String path = route.getSpec().getPath() == null ? "" : route.getSpec().getPath();
-        return String.format("%s://%s%s", protocol, route.getSpec().getHost(), path);
+        return new URILike(protocol,
+                route.getSpec().getHost(),
+                -1,
+                path);
     }
 
     /**

@@ -32,7 +32,7 @@ public class DevModeOracleDatabaseIT extends AbstractSqlDatabaseIT {
             .withProperty("quarkus.datasource.username", ORACLE_USER)
             .withProperty("quarkus.datasource.password", ORACLE_PASSWORD)
             .withProperty("quarkus.datasource.jdbc.url",
-                    () -> "jdbc:oracle:thin:@:" + database.getPort() + "/" + ORACLE_DATABASE);
+                    () -> "jdbc:oracle:thin:@:" + database.getURI().getPort() + "/" + ORACLE_DATABASE);
 
     @Override
     protected RestService getApp() {

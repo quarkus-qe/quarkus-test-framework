@@ -38,6 +38,7 @@ public class ConsulService extends BaseService<ConsulService> {
     }
 
     public String getConsulEndpoint() {
-        return getHost().replace("http://", "") + ":" + getPort();
+        var host = getURI();
+        return host.getHost() + ":" + host.getPort();
     }
 }

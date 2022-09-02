@@ -2,7 +2,7 @@ package io.quarkus.qe.database.mysql;
 
 import java.util.Objects;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.bootstrap.MySqlService;
 import io.quarkus.test.services.Container;
@@ -24,7 +24,7 @@ public abstract class AbstractMysqlReusableInstance extends AbstractSqlDatabaseI
             setContainerPort();
         }
 
-        Assert.assertEquals(containerPort, database.getPort());
+        Assertions.assertEquals(containerPort.intValue(), database.getURI().getPort());
     }
 
     private boolean isFirstInstance() {
@@ -32,6 +32,7 @@ public abstract class AbstractMysqlReusableInstance extends AbstractSqlDatabaseI
     }
 
     private void setContainerPort() {
-        containerPort = database.getPort();
+        containerPort = database.getURI().getPort();
+        ;
     }
 }

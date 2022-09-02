@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.LogsVerifier;
 import io.quarkus.test.utils.PropertiesUtils;
@@ -128,20 +129,32 @@ public class BaseService<T extends Service> implements Service {
         return managedResource.isRunning();
     }
 
+    public URILike getURI(Protocol protocol) {
+        return managedResource.getURI(protocol);
+    }
+
+    public URILike getURI() {
+        return managedResource.getURI(Protocol.NONE);
+    }
+
+    @Deprecated
     public String getHost() {
         return getHost(Protocol.HTTP);
     }
 
+    @Deprecated
     public String getHost(Protocol protocol) {
-        return managedResource.getHost(protocol);
+        return getURI(protocol).getRestAssuredStyleUri();
     }
 
+    @Deprecated
     public Integer getPort() {
         return getPort(Protocol.HTTP);
     }
 
+    @Deprecated
     public Integer getPort(Protocol protocol) {
-        return managedResource.getPort(protocol);
+        return getURI(protocol).getPort();
     }
 
     @Override

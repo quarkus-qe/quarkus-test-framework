@@ -21,6 +21,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.ProcessBuilderProvider;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.SocketUtils;
@@ -70,7 +71,6 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
             loggingHandler = new FileServiceLoggingHandler(model.getContext().getOwner(), logOutputFile);
             loggingHandler.startWatching();
-
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -86,21 +86,25 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     }
 
     @Override
-    public String getHost(Protocol protocol) {
-        validateProtocol(protocol);
-        return protocol.getValue() + "://localhost";
-    }
-
-    @Override
-    public int getPort(Protocol protocol) {
-        validateProtocol(protocol);
-        if (protocol == Protocol.HTTPS) {
-            return assignedHttpsPort;
-        } else if (protocol == Protocol.GRPC) {
-            return assignedGrpcPort;
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTPS && !model.isSslEnabled()) {
+            fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
+        } else if (protocol == Protocol.GRPC && !model.isGrpcEnabled()) {
+            fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
+        }
+        int port;
+        switch (protocol) {
+            case HTTPS:
+                port = assignedHttpsPort;
+                break;
+            case GRPC:
+                port = assignedGrpcPort;
+                break;
+            default:
+                port = assignedHttpPort;
         }
 
-        return assignedHttpPort;
+        return createURI(protocol.getValue(), "localhost", port);
     }
 
     @Override
@@ -191,5 +195,4 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
         }
     }
-
 }
