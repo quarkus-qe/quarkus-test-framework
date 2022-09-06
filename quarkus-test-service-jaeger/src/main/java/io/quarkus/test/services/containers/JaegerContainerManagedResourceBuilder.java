@@ -14,9 +14,14 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
 
     private ServiceContext context;
     private String image;
-    private int restPort;
+    /**
+     * Port used to collect traces. Depending on the {@link JaegerContainer#useOtlpCollector()}, value is either
+     * {@link JaegerContainer#otlpPort()} or {@link JaegerContainer#restPort()}.
+     */
+    private int port;
     private int tracePort;
     private String expectedLog;
+    private boolean useOtlpCollector;
 
     @Override
     protected String getImage() {
@@ -25,7 +30,7 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
 
     @Override
     protected Integer getPort() {
-        return restPort;
+        return port;
     }
 
     @Override
@@ -42,13 +47,18 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         return tracePort;
     }
 
+    protected boolean shouldUseOtlpCollector() {
+        return useOtlpCollector;
+    }
+
     @Override
     public void init(Annotation annotation) {
         JaegerContainer metadata = (JaegerContainer) annotation;
         this.image = metadata.image();
-        this.restPort = metadata.restPort();
+        this.port = metadata.useOtlpCollector() ? metadata.otlpPort() : metadata.restPort();
         this.tracePort = metadata.tracePort();
         this.expectedLog = metadata.expectedLog();
+        this.useOtlpCollector = metadata.useOtlpCollector();
     }
 
     @Override
