@@ -8,7 +8,7 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/jaeger-deployment-template.yml";
 
     private static final String TRACE_SUFFIX = "-query";
-    private static final String REST_SUFFIX = "-rest";
+    private static final String COLLECTOR_SUFFIX = "-collector";
 
     private final JaegerContainerManagedResourceBuilder model;
 
@@ -29,7 +29,7 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
 
     @Override
     protected String getInternalServiceName() {
-        return model.getContext().getName() + REST_SUFFIX;
+        return model.getContext().getName() + COLLECTOR_SUFFIX;
     }
 
     @Override
@@ -44,7 +44,8 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
     @Override
     protected String replaceDeploymentContent(String content) {
         return super.replaceDeploymentContent(content)
-                .replaceAll(quote("${TRACE_PORT}"), "" + model.getTracePort());
+                .replaceAll(quote("${TRACE_PORT}"), "" + model.getTracePort())
+                .replaceAll(quote("${COLLECTOR_OTLP_ENABLED}"), Boolean.toString(model.shouldUseOtlpCollector()));
     }
 
 }

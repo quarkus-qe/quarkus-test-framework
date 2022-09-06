@@ -9,6 +9,7 @@ import io.quarkus.test.utils.DockerUtils;
 
 public class JaegerGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
 
+    private static final String COLLECTOR_OTLP_ENABLED = "COLLECTOR_OTLP_ENABLED";
     private final JaegerContainerManagedResourceBuilder model;
 
     protected JaegerGenericDockerContainerManagedResource(JaegerContainerManagedResourceBuilder model) {
@@ -28,6 +29,10 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
         GenericContainer<?> container = super.initContainer();
         container.addExposedPort(model.getTracePort());
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
+        if (model.shouldUseOtlpCollector()) {
+            container.addEnv(COLLECTOR_OTLP_ENABLED, "true");
+        }
 
         return container;
     }

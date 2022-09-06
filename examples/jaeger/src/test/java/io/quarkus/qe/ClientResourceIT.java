@@ -1,6 +1,6 @@
 package io.quarkus.qe;
 
-import static io.restassured.RestAssured.get;
+import static io.restassured.RestAssured.given;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
@@ -20,34 +20,33 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class ClientResourceIT {
 
-    static final String SERVICE_NAME = "test-traced-service";
+    private static final String SERVICE_NAME = "test-traced-service";
+    private static final String CLIENT_ENDPOINT = "/client";
 
-    @JaegerContainer
+    @JaegerContainer(useOtlpCollector = true)
     static JaegerService jaeger = new JaegerService();
 
     @QuarkusApplication
     static RestService app = new RestService()
-            .withProperty("quarkus.jaeger.service-name", SERVICE_NAME)
-            .withProperty("quarkus.jaeger.endpoint", jaeger::getRestUrl);
+            .withProperty("quarkus.opentelemetry.tracer.exporter.otlp.endpoint", jaeger::getCollectorUrl);
 
     @Test
     public void shouldUpdateJaegerAsTracer() {
         app.given()
-                .get("/client")
+                .get(CLIENT_ENDPOINT)
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo("I'm a client"));
 
-        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> {
-            get(jaeger.getTraceUrl() + "?service=" + SERVICE_NAME)
-                    .then()
-                    .statusCode(HttpStatus.SC_OK)
-                    .body("data", hasSize(1))
-                    .body("data[0].spans", hasSize(1))
-                    .body("data[0].spans.operationName", hasItems(
-                            "GET:io.quarkus.qe.ClientResource.get"))
-                    .body("data[0].spans.logs.fields.value.flatten()", hasItems(
-                            "ClientResource called"));
-        });
+        await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> given()
+                .queryParam("service", SERVICE_NAME)
+                .queryParam("operation", CLIENT_ENDPOINT)
+                .get(jaeger.getTraceUrl())
+                .then()
+                .statusCode(HttpStatus.SC_OK)
+                .body("data", hasSize(1))
+                .body("data[0].spans", hasSize(1))
+                .body("data[0].spans.operationName", hasItems(CLIENT_ENDPOINT))
+                .body("data[0].spans.logs.fields.value.flatten()", hasItems("ClientResource called")));
     }
 }

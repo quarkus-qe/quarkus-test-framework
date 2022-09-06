@@ -18,6 +18,9 @@ items:
           containers:
             - image: '${IMAGE}'
               name: '${SERVICE_NAME}'
+              env:
+                - name: COLLECTOR_OTLP_ENABLED
+                  value: ${COLLECTOR_OTLP_ENABLED}
               ports:
                 - containerPort: 5775
                   protocol: UDP
@@ -52,12 +55,12 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: '${SERVICE_NAME}-rest'
+      name: '${SERVICE_NAME}-collector'
       labels:
         app: '${SERVICE_NAME}'
     spec:
       ports:
-        - name: '${SERVICE_NAME}-rest'
+        - name: '${SERVICE_NAME}-collector'
           port: ${INTERNAL_PORT}
           protocol: TCP
           targetPort: ${INTERNAL_PORT}
