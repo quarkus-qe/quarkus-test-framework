@@ -83,6 +83,16 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Build in JVM mode
         run: |
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
@@ -92,7 +102,6 @@ jobs:
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
-
           mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         run: |
@@ -126,6 +135,16 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - name: Setup helmfile
+        uses: mamezou-tech/setup-helmfile@v1.0.0
+        with:
+          helmfile-version: "v0.145.2"
+          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
@@ -177,6 +196,17 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install Helm client
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.9.0
+        id: install
+      - uses: MinoruSekine/setup-scoop@main
+        with:
+          add_extras_bucket: 'true'
+      - name: Install helmfile
+        shell: bash
+        run: scoop install helmfile
       - name: Download Maven Repo
         uses: actions/download-artifact@v1
         with:
