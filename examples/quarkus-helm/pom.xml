@@ -10,7 +10,7 @@
     <artifactId>examples-quarkus-helm</artifactId>
     <name>Quarkus - Test Framework - Examples - Quarkus HELM</name>
     <properties>
-        <quarkus-helm.version>0.0.5</quarkus-helm.version>
+        <quarkus-helm.version>0.0.6</quarkus-helm.version>
     </properties>
 
     <dependencies>
@@ -151,6 +151,19 @@
                     </plugin>
                 </plugins>
             </build>
+        </profile>
+        <profile>
+            <!-- Disable native build on this module -->
+            <!-- Helm is concerned just about image name, Native compilation is not relevant -->
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <quarkus.build.skip>true</quarkus.build.skip>
+            </properties>
         </profile>
     </profiles>
 </project>
