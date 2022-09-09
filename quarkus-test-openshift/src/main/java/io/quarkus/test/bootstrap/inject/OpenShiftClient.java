@@ -47,6 +47,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
@@ -330,9 +331,10 @@ public final class OpenShiftClient {
         Map<String, String> logs = new HashMap<>();
         for (Pod pod : client.pods().list().getItems()) {
             String podName = pod.getMetadata().getName();
-            PodResource<Pod> resource = client.pods().withName(podName);
+            PodResource resource = client.pods().withName(podName);
             for (Container container : pod.getSpec().getContainers()) {
-                logs.put(podName + "-" + container.getName(), resource.inContainer(container.getName()).getLog());
+                logs.put(podName + "-" + container.getName(),
+                        ((ContainerResource) resource.inContainer(container.getName())).getLog());
             }
         }
 
@@ -350,9 +352,10 @@ public final class OpenShiftClient {
         for (Pod pod : podsInService(service)) {
             if (isPodRunning(pod)) {
                 String podName = pod.getMetadata().getName();
-                PodResource<Pod> resource = client.pods().withName(podName);
+                PodResource resource = client.pods().withName(podName);
                 for (Container container : pod.getSpec().getContainers()) {
-                    logs.put(podName + "-" + container.getName(), resource.inContainer(container.getName()).getLog());
+                    logs.put(podName + "-" + container.getName(),
+                            ((ContainerResource) resource.inContainer(container.getName())).getLog());
                 }
             }
         }
@@ -473,7 +476,7 @@ public final class OpenShiftClient {
      */
     public boolean isCustomResourceReady(String name,
             Class<? extends CustomResource<?, ? extends CustomResourceStatus>> crdType) {
-        CustomResource<?, ? extends CustomResourceStatus> customResource = client.customResources(crdType).withName(name).get();
+        CustomResource<?, ? extends CustomResourceStatus> customResource = client.resources(crdType).withName(name).get();
         if (customResource == null
                 || customResource.getStatus() == null
                 || customResource.getStatus().getConditions() == null) {
