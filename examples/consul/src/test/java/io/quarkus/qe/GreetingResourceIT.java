@@ -12,6 +12,6 @@ public class GreetingResourceIT extends BaseGreetingResourceIT {
      * and as it does not exist, it will use the default image.
      */
     // TODO use official image when/if this fixed https://github.com/hashicorp/docker-consul/issues/184
-    @Container(image = "${property.do.not.exist:docker.io/bitnami/consul:1.12.0}", expectedLog = "Synced node info", port = 8500)
+    @Container(image = "${property.do.not.exist:docker.io/bitnami/consul:1.13.1}", expectedLog = "Synced node info", port = 8500)
     static ConsulService consul = new ConsulService().onPostStart(BaseGreetingResourceIT::onLoadConfigureConsul);
 }

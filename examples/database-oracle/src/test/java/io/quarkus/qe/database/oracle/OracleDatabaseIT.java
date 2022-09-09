@@ -11,7 +11,7 @@ import io.quarkus.test.services.QuarkusApplication;
 @QuarkusScenario
 public class OracleDatabaseIT extends AbstractSqlDatabaseIT {
 
-    @Container(image = "docker.io/gvenzl/oracle-xe:21-slim", port = ORACLE_PORT, expectedLog = "DATABASE IS READY TO USE!")
+    @Container(image = "docker.io/gvenzl/oracle-xe:21-slim-faststart", port = ORACLE_PORT, expectedLog = "DATABASE IS READY TO USE!")
     static OracleService database = new OracleService();
 
     @QuarkusApplication

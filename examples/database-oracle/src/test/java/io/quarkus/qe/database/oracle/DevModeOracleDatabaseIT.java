@@ -19,7 +19,7 @@ public class DevModeOracleDatabaseIT extends AbstractSqlDatabaseIT {
     static final String ORACLE_DATABASE = "mydb";
     static final int ORACLE_PORT = 1521;
 
-    @Container(image = "docker.io/gvenzl/oracle-xe:21-slim", port = ORACLE_PORT, expectedLog = "DATABASE IS READY TO USE!")
+    @Container(image = "docker.io/gvenzl/oracle-xe:21-slim-faststart", port = ORACLE_PORT, expectedLog = "DATABASE IS READY TO USE!")
     static DefaultService database = new DefaultService()
             .withProperty("APP_USER", ORACLE_USER)
             .withProperty("APP_USER_PASSWORD", ORACLE_PASSWORD)
