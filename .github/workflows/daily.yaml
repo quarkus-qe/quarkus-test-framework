@@ -64,7 +64,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
-        id: install
+        id: install-helm
       - name: Setup helmfile
         uses: mamezou-tech/setup-helmfile@v1.0.0
         with:
@@ -117,12 +117,12 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-        id: install
+        id: install-jdk
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
-        id: install
+        id: install-helm
       - name: Setup helmfile
         uses: mamezou-tech/setup-helmfile@v1.0.0
         with:
@@ -235,7 +235,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
-        id: install
+        id: install-helm
       - name: Setup helmfile
         uses: mamezou-tech/setup-helmfile@v1.0.0
         with:
@@ -296,7 +296,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
-        id: install
+        id: install-helm
       - uses: MinoruSekine/setup-scoop@main
         with:
           add_extras_bucket: 'true'
@@ -354,7 +354,7 @@ jobs:
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
-        id: install
+        id: install-helm
       - uses: MinoruSekine/setup-scoop@main
         with:
           add_extras_bucket: 'true'
