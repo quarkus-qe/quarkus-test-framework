@@ -47,6 +47,8 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClient;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -58,8 +60,6 @@ import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroupSpec;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.ClusterServiceVersion;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
-import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
@@ -93,18 +93,23 @@ public final class OpenShiftClient {
     private static final String OC = "oc";
 
     private final String currentNamespace;
-    private final DefaultOpenShiftClient masterClient;
-    private final NamespacedOpenShiftClient client;
+    private final KubernetesClient masterClient;
+    private final io.fabric8.openshift.client.OpenShiftClient client;
     private final KnativeClient kn;
     private final String scenarioId;
 
     private OpenShiftClient(String scenarioId) {
         this.scenarioId = scenarioId;
-        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
+        final String activeNamespace;
+        try (var client = new KubernetesClientBuilder().build()) {
+            activeNamespace = client.getNamespace();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create OpenShiftClient: ", e);
+        }
         currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createProject() : activeNamespace;
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-        masterClient = new DefaultOpenShiftClient(config);
-        client = masterClient.inNamespace(currentNamespace);
+        masterClient = new KubernetesClientBuilder().withConfig(config).build();
+        client = masterClient.adapt(io.fabric8.openshift.client.OpenShiftClient.class);
         kn = client.adapt(KnativeClient.class);
     }
 
@@ -803,7 +808,7 @@ public final class OpenShiftClient {
     }
 
     private boolean hasImageStreamTags(ImageStream is) {
-        return !masterClient.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
+        return !client.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
     }
 
     private boolean isPodRunning(Pod pod) {
