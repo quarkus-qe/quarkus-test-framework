@@ -40,10 +40,9 @@ import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.openshift.client.OpenShiftClient;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
@@ -68,22 +67,17 @@ public final class KubectlClient {
     private static final int HTTP_PORT_DEFAULT = 80;
 
     private final String currentNamespace;
-    private final KubernetesClient masterClient;
-    private final OpenShiftClient client;
+    private final DefaultOpenShiftClient masterClient;
+    private final NamespacedOpenShiftClient client;
     private final String scenarioId;
 
     private KubectlClient(String scenarioUniqueName) {
         this.scenarioId = scenarioUniqueName;
-        final String activeNamespace;
-        try (var client = new KubernetesClientBuilder().build()) {
-            activeNamespace = client.getNamespace();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create KubectlClient: ", e);
-        }
+        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
         currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createNamespace() : activeNamespace;
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-        masterClient = new KubernetesClientBuilder().withConfig(config).build();
-        client = masterClient.adapt(OpenShiftClient.class);
+        masterClient = new DefaultOpenShiftClient(config);
+        client = masterClient.inNamespace(currentNamespace);
         setCurrentSessionNamespace(currentNamespace);
     }
 
