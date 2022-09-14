@@ -17,6 +17,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -47,8 +48,6 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
-import io.fabric8.kubernetes.client.KubernetesClient;
-import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -60,6 +59,8 @@ import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroupSpec;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.ClusterServiceVersion;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
+import io.fabric8.openshift.client.DefaultOpenShiftClient;
+import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.quarkus.test.bootstrap.Service;
@@ -93,24 +94,26 @@ public final class OpenShiftClient {
     private static final String OC = "oc";
 
     private final String currentNamespace;
-    private final KubernetesClient masterClient;
-    private final io.fabric8.openshift.client.OpenShiftClient client;
+    private final DefaultOpenShiftClient masterClient;
+    private final NamespacedOpenShiftClient client;
     private final KnativeClient kn;
     private final String scenarioId;
 
     private OpenShiftClient(String scenarioId) {
         this.scenarioId = scenarioId;
-        final String activeNamespace;
-        try (var client = new KubernetesClientBuilder().build()) {
-            activeNamespace = client.getNamespace();
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create OpenShiftClient: ", e);
-        }
+        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
         currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createProject() : activeNamespace;
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-        masterClient = new KubernetesClientBuilder().withConfig(config).build();
-        client = masterClient.adapt(io.fabric8.openshift.client.OpenShiftClient.class);
-        kn = client.adapt(KnativeClient.class);
+        masterClient = new DefaultOpenShiftClient(config);
+        client = masterClient.inNamespace(currentNamespace);
+        try {
+            // TODO: call "adapt" directly once we migrate to Quarkus 2.14
+            // here we invoke it via reflection to avoid conflict between kubernetes-client 6.1.1 and 5.12.3
+            // as the signature changed between versions
+            kn = (KnativeClient) client.getClass().getMethod("adapt", Class.class).invoke(client, KnativeClient.class);
+        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+            throw new RuntimeException("Failed to adapt NamespacedOpenShiftClient to KnativeClient: ", e);
+        }
     }
 
     public static OpenShiftClient create(String scenarioId) {
@@ -808,7 +811,7 @@ public final class OpenShiftClient {
     }
 
     private boolean hasImageStreamTags(ImageStream is) {
-        return !client.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
+        return !masterClient.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
     }
 
     private boolean isPodRunning(Pod pod) {
