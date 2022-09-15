@@ -43,7 +43,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["current"]
-        java: [ 11 ]
+        java: [ 11, 17 ]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
@@ -100,7 +100,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["999-SNAPSHOT"]
-        java: [ 11 ]
+        java: [ 11, 17 ]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
@@ -214,7 +214,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["current", "999-SNAPSHOT"]
-        java: [ 11 ]
+        java: [ 17 ]
     steps:
       - uses: actions/checkout@v1
       - uses: actions/cache@v1
@@ -276,7 +276,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 11, 17 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v1
@@ -333,7 +333,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 17 ]
         quarkus-version: ["999-SNAPSHOT"]
         graalvm-version: [ "22.2.java17"]
     steps:
