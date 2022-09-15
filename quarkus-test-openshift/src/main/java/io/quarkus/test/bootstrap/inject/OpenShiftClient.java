@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -28,8 +29,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -38,6 +42,7 @@ import java.util.stream.Stream;
 import org.apache.commons.lang3.StringUtils;
 
 import io.fabric8.knative.client.KnativeClient;
+import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -93,6 +98,12 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
+    /**
+     * Method must have at least one parameter of type "HasMetadata".
+     */
+    private static final Predicate<Method> HAS_METADATA_PARAM_TYPE = m -> Arrays.stream(m.getParameterTypes())
+            .anyMatch(p -> p.getName().contains("HasMetadata"));
+
     private final String currentNamespace;
     private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
@@ -106,14 +117,9 @@ public final class OpenShiftClient {
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
-        try {
-            // TODO: call "adapt" directly once we migrate to Quarkus 2.14
-            // here we invoke it via reflection to avoid conflict between kubernetes-client 6.1.1 and 5.12.3
-            // as the signature changed between versions
-            kn = (KnativeClient) client.getClass().getMethod("adapt", Class.class).invoke(client, KnativeClient.class);
-        } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
-            throw new RuntimeException("Failed to adapt NamespacedOpenShiftClient to KnativeClient: ", e);
-        }
+        // TODO: call directly once we migrate to Quarkus 2.14
+        kn = (KnativeClient) invokeMethod(client, "adapt", KnativeClient.class,
+                "adapt NamespacedOpenShiftClient to KnativeClient", null, null);
     }
 
     public static OpenShiftClient create(String scenarioId) {
@@ -206,7 +212,9 @@ public final class OpenShiftClient {
                     envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
         });
 
-        client.deploymentConfigs().createOrReplace(dc);
+        // TODO: call directly once we migrate to Quarkus 2.14
+        invokeMethod(client.deploymentConfigs(), "createOrReplace", dc, "update the deployment config",
+                null, deploymentConfig -> new DeploymentConfig[] { deploymentConfig });
     }
 
     /**
@@ -442,7 +450,15 @@ public final class OpenShiftClient {
         groupModel.getMetadata().setName(service.getName());
         groupModel.setSpec(new OperatorGroupSpec());
         groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
-        client.resource(groupModel).createOrReplace();
+        // call createOrReplace
+        // TODO: call directly once we migrate to Quarkus 2.14
+        invokeMethod(
+                // call resource(groupModel)
+                invokeMethod(client, "resource", groupModel, " get resource ", HAS_METADATA_PARAM_TYPE,
+                        gm -> new OperatorGroup[] { gm }),
+                "createOrReplace", null, "create resource",
+                // filter: use method with no formal parameters and returns Object
+                m -> m.getParameterCount() == 0 && m.getReturnType().getName().contains("Object"), null);
 
         // Install the subscription
         Subscription subscriptionModel = new Subscription();
@@ -457,7 +473,11 @@ public final class OpenShiftClient {
         subscriptionModel.getSpec().setSourceNamespace(sourceNamespace);
 
         Log.info("Installing operator... %s", service.getName());
-        client.operatorHub().subscriptions().create(subscriptionModel);
+        // TODO: call directly once we migrate to Quarkus 2.14
+        invokeMethod(client.operatorHub().subscriptions(), "create", subscriptionModel, "create operator subscription",
+                // filter: use method with "Object" parameter type that is not array
+                m -> Arrays.stream(m.getParameterTypes()).anyMatch(p -> p.getName().contains("Object") && !p.isArray()),
+                sm -> new Subscription[] { sm });
 
         // Wait for the operator to be installed
         untilIsTrue(() -> {
@@ -732,19 +752,69 @@ public final class OpenShiftClient {
     }
 
     private void createOrUpdateConfigMap(String configMapName, String key, String value) {
-        if (client.configMaps().withName(configMapName).get() != null) {
+        final var configMaps = client.configMaps();
+        if (configMaps.withName(configMapName).get() != null) {
             // update existing config map by adding new file
-            client.configMaps().withName(configMapName)
+            configMaps.withName(configMapName)
                     .edit(configMap -> {
                         configMap.getData().put(key, value);
                         return configMap;
                     });
         } else {
             // create new one
-            client.configMaps().createOrReplace(new ConfigMapBuilder()
-                    .withNewMetadata().withName(configMapName).endMetadata()
-                    .addToData(key, value)
-                    .build());
+            // TODO: call directly once we migrate to Quarkus 2.14
+            invokeMethod(configMaps, "createOrReplace", new ConfigMapBuilder().withNewMetadata()
+                    .withName(configMapName).endMetadata().addToData(key, value).build(), "create new ConfigMap",
+                    HAS_METADATA_PARAM_TYPE, cm -> new ConfigMap[] { cm });
+        }
+    }
+
+    /**
+     * Invokes method dynamically using reflection.
+     *
+     * @param object
+     * @param methodName
+     * @param methodParameter
+     * @param action
+     * @param methodFilter only one method may pass through the filter; if null and {@code object} has more than one method
+     *        called {@code methodName}, an exception is thrown
+     * @return
+     * @param <T>
+     */
+    private static <T> Object invokeMethod(Object object, String methodName, T methodParameter, String action,
+            Predicate<Method> methodFilter, Function<T, T[]> paramToArrayConverter) {
+        // TODO: invoked by reflection as signatures differs between kubernetes-client 6.1.1 and 5.12.3;
+        //  please remove it once we migrate to Quarkus 2.14
+        if (methodFilter == null) {
+            methodFilter = m -> true;
+        }
+        final var methods = Arrays
+                // find method without specifying formal parameters (as they are different between versions)
+                .stream(object.getClass().getMethods())
+                .filter(m -> m.getName().equals(methodName))
+                .filter(methodFilter)
+                .collect(Collectors.toList());
+        if (methods.size() != 1) {
+            throw new RuntimeException(
+                    String.format(
+                            "Failed to %s as class '%s' is expected to have exactly one method called '%s', found '%d': %s",
+                            action, object.getClass().getName(), methodName, methods.size(),
+                            Arrays.toString(methods.toArray())));
+        }
+        final Method method = methods.get(0);
+        try {
+            if (methodParameter == null) {
+                return method.invoke(object);
+            } else {
+                // if method accepts varargs, we need to convert parameter to array
+                if (Arrays.stream(method.getParameterTypes()).anyMatch(Class::isArray)) {
+                    Objects.requireNonNull(paramToArrayConverter);
+                    return method.invoke(object, (Object) paramToArrayConverter.apply(methodParameter));
+                }
+                return method.invoke(object, methodParameter);
+            }
+        } catch (IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(String.format("Failed to %s: ", action), e);
         }
     }
 
