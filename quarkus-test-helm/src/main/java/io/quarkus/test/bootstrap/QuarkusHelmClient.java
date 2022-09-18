@@ -109,6 +109,22 @@ public class QuarkusHelmClient {
         return chartList;
     }
 
+    public List<String> getChartsNames(String chartName) {
+        List<QuarkusHelmClient.ChartListResult> charts = getCharts();
+        return charts.stream()
+                .map(QuarkusHelmClient.ChartListResult::getName)
+                .map(String::trim)
+                .collect(Collectors.toList());
+    }
+
+    public Result chartDependencyUpdate(String chartFullPath) {
+        return runCliAndWait("dependency", "update", chartFullPath);
+    }
+
+    public Result chartDependencyBuild(String chartFullPath) {
+        return runCliAndWait("dependency", "build", chartFullPath);
+    }
+
     public Map<String, Object> getChartValues(String chartFolderPath) throws FileNotFoundException {
         return getRawYaml("values.yaml", chartFolderPath);
     }

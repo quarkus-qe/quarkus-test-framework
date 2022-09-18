@@ -42,13 +42,12 @@ public abstract class CommonHelmScenarios {
                 .then().statusCode(200)
                 .body(is("Hello World!"));
 
-        List<QuarkusHelmClient.ChartListResult> charts = helmClient.getCharts();
-        assertTrue(charts.size() > 0, "Chart " + chartName + " not found. Installation fail");
-        List<String> chartNames = charts.stream()
-                .map(QuarkusHelmClient.ChartListResult::getName)
-                .map(String::trim)
-                .collect(Collectors.toList());
+        List<String> chartNames = helmClient.getChartsNames(chartName);
+        assertTrue(chartNames.size() > 0, "Chart " + chartName + " not found. Installation fail");
         assertThat(chartNames.toArray(), hasItemInArray(chartName));
+
+        assertTrue(helmClient.chartDependencyUpdate(chartFolderName).isSuccessful());
+        assertTrue(helmClient.chartDependencyBuild(chartFolderName).isSuccessful());
     }
 
     @Test
