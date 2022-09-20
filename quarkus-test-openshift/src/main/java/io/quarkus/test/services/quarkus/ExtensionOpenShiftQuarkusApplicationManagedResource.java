@@ -113,6 +113,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withContainerImageGroup(namespace));
         args.add(withLabelsForWatching());
         args.add(withLabelsForScenarioId());
+
+        // TODO: remove once https://github.com/quarkusio/quarkus/issues/28108 is fixed
+        args.add(withJarFileName());
+
         withEnvVars(args);
         withBaseImageProperties(args);
         withAdditionalArguments(args);
@@ -160,6 +164,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
 
     private String withContainerName() {
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
+    }
+
+    private String withJarFileName() {
+        return withProperty("quarkus.openshift.jar-file-name", "quarkus-run.jar");
     }
 
     private String withContainerImageGroup(String namespace) {
