@@ -1,9 +1,13 @@
 package io.quarkus.test.bootstrap;
 
+import static org.awaitility.Awaitility.await;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -13,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.Assertions;
 import org.yaml.snakeyaml.Yaml;
 
 import io.quarkus.test.configuration.PropertyLookup;
@@ -58,26 +63,8 @@ public class QuarkusHelmClient {
         return runCliAndWait("install", chartName, chartFolderPath);
     }
 
-    public Result installChart(String chartName, String chartFolderPath, Duration timeoutSec, String readinessPath) {
-        return runCliAndWait("install",
-                chartName,
-                chartFolderPath,
-                "--wait",
-                "--timeout ", timeoutSec.getSeconds() + "s",
-                "--set", "readinessPath=" + readinessPath);
-    }
-
     public Result updateChart(String chartName, String chartFolderPath) {
         return runCliAndWait("update", chartName, chartFolderPath);
-    }
-
-    public Result updateChart(String chartName, String chartFolderPath, Duration timeoutSec, String readinessPath) {
-        return runCliAndWait("update",
-                chartName,
-                chartFolderPath,
-                "--wait",
-                "--timeout ", timeoutSec.getSeconds() + "s",
-                "--set", "readinessPath=" + readinessPath);
     }
 
     public Result uninstallChart(String chartName) {
@@ -132,6 +119,21 @@ public class QuarkusHelmClient {
     public Map<String, Object> getRawYaml(String yamlNameExtension, String chartFolderPath) throws FileNotFoundException {
         InputStream inputStream = new FileInputStream(chartFolderPath + "/" + yamlNameExtension);
         return yaml.load(inputStream);
+    }
+
+    public void waitToReadiness(String fullReadinessPath, Duration atMost) {
+        await().ignoreExceptions().atMost(atMost)
+                .untilAsserted(() -> {
+                    URL url = new URL(fullReadinessPath);
+                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                    try {
+                        con.setRequestMethod("GET");
+                        con.connect();
+                        Assertions.assertTrue(con.getResponseCode() == HttpURLConnection.HTTP_OK);
+                    } finally {
+                        con.disconnect();
+                    }
+                });
     }
 
     private Result runCliAndWait(String... args) {

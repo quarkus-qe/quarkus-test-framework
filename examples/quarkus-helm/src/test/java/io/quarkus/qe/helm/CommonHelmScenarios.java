@@ -1,11 +1,13 @@
 package io.quarkus.qe.helm;
 
+import static java.net.HttpURLConnection.HTTP_OK;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasItemInArray;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,6 +23,8 @@ import io.restassured.RestAssured;
 public abstract class CommonHelmScenarios {
 
     protected abstract QuarkusHelmClient getHelmClient();
+
+    private static int TIMEOUT = 1;
 
     @Inject
     static OpenShiftClient ocpClient;
@@ -38,8 +42,10 @@ public abstract class CommonHelmScenarios {
         thenSucceed(chartResultCmd);
 
         String appURL = ocpClient.url(chartName).getRestAssuredStyleUri();
+        helmClient.waitToReadiness(appURL + "/greeting", Duration.ofMinutes(TIMEOUT));
+
         RestAssured.given().baseUri(appURL).get("/greeting")
-                .then().statusCode(200)
+                .then().statusCode(HTTP_OK)
                 .body(is("Hello World!"));
 
         List<String> chartNames = helmClient.getChartsNames(chartName);
