@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
 import static java.util.regex.Pattern.quote;
 
 import io.quarkus.test.utils.DockerUtils;
@@ -32,10 +31,6 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
     protected String replaceDeploymentContent(String content) {
         return content.replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString());
-    }
-
-    private void exposeServices() {
-        client.expose(model.getContext().getOwner(), HTTP_PORT_DEFAULT);
     }
 
     private String createImageAndPush() {
