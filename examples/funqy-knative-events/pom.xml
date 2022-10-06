@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.quarkus.qe</groupId>
+        <artifactId>quarkus-test-parent</artifactId>
+        <version>1.2.1.Beta12-SNAPSHOT</version>
+        <relativePath>../../</relativePath>
+    </parent>
+    <artifactId>examples-funqy-knative-events</artifactId>
+    <packaging>jar</packaging>
+    <name>Quarkus - Test Framework - Examples - Funqy - Knative Events</name>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-funqy-knative-events</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-openshift</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-rest-client-reactive-jackson</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-knative-events-spi</artifactId>
+        </dependency>
+        <!--  FIXME: drop 'openshift-client' and 'knative-client' deps once we migrate to Quarkus 2.14  -->
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>openshift-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>knative-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-knative-events</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -111,6 +111,21 @@
             </dependency>
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-knative-events</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-knative-events-spi</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-knative-events-parent</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-kubernetes</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -347,6 +362,7 @@
                 <module>quarkus-test-images</module>
                 <module>quarkus-test-kubernetes</module>
                 <module>quarkus-test-openshift</module>
+                <module>quarkus-test-knative-events</module>
                 <module>quarkus-test-service-consul</module>
                 <module>quarkus-test-service-keycloak</module>
                 <module>quarkus-test-service-kafka</module>
@@ -385,6 +401,7 @@
                 <module>examples/database-postgresql</module>
                 <module>examples/database-oracle</module>
                 <module>examples/external-applications</module>
+                <module>examples/funqy-knative-events</module>
             </modules>
         </profile>
         <profile>
