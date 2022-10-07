@@ -1,5 +1,6 @@
 package io.quarkus.test.services.knative.eventing;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.invokeMethod;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -56,18 +57,12 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
 
     private void deleteBroker() {
         // FIXME: check delete result once we migrate to Quarkus 2.14 (see below)
-        getKnClient().brokers().delete(broker);
+        getKnClient().brokers().delete();
     }
 
     private void deleteTriggers() {
-        if (triggers != null && triggers.length > 0) {
-            for (Trigger trigger : triggers) {
-                getKnClient().triggers().delete(trigger);
-                // FIXME: for compatibility reasons between Kubernetes-client 6.1.1 (used by 999-SNAPSHOT)
-                //  and 5.12.3 (used by latest final 2.13) we don't check delete result;
-                //  we should do that once we migrate to 2.14
-            }
-        }
+        // FIXME: check delete result once we migrate to Quarkus 2.14 (see below)
+        getKnClient().triggers().delete();
     }
 
     private KnativeClient getKnClient() {
@@ -122,7 +117,9 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                     getKnClient().getNamespace(), broker.getMetadata().getName()));
 
             // create broker
-            broker = getKnClient().brokers().create(broker);
+            // TODO: call directly once we migrate to Quarkus 2.14
+            broker = (Broker) invokeMethod(getKnClient().brokers(), "create", broker, "create broker",
+                    broker -> new Broker[] { broker });
             // wait until the broker is ready
             final AtomicBoolean isBrokerReady = new AtomicBoolean(false);
             // access events as long as the broker is not ready, or we run out of time
@@ -144,7 +141,9 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
 
             for (int i = 0; i < triggers.length; i++) {
                 // create trigger
-                triggers[i] = getKnClient().triggers().create(triggers[i]);
+                // TODO: call directly once we migrate to Quarkus 2.14
+                triggers[i] = (Trigger) invokeMethod(getKnClient().triggers(), "create", triggers[i], "create trigger",
+                        trigger -> new Trigger[] { trigger });
                 // wait until the trigger is ready
                 final AtomicBoolean isTriggerReady = new AtomicBoolean(false);
                 // access events as long as the trigger is not ready, or we run out of time
@@ -156,75 +155,79 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
     }
 
     private Watch watchBrokerEventsTillItsReady(String brokerName, AtomicBoolean isBrokerReady) {
-        return getKnClient()
-                .brokers()
-                .watch(new Watcher<>() {
-                    @Override
-                    public void eventReceived(Action action, Broker broker1) {
-                        if (isOurBroker(broker1) && hasStatus(broker1)) {
-                            isBrokerReady.set(isBrokerReady(broker1));
-                        }
-                    }
+        final var watcher = new Watcher<Broker>() {
+            @Override
+            public void eventReceived(Action action, Broker broker1) {
+                if (isOurBroker(broker1) && hasStatus(broker1)) {
+                    isBrokerReady.set(isBrokerReady(broker1));
+                }
+            }
 
-                    private boolean isBrokerReady(Broker broker) {
-                        return broker
-                                .getStatus()
-                                .getConditions()
-                                .stream()
-                                .anyMatch(condition -> READY.equals(condition.getType())
-                                        && Boolean.parseBoolean(condition.getStatus()));
-                    }
+            private boolean isBrokerReady(Broker broker) {
+                return broker
+                        .getStatus()
+                        .getConditions()
+                        .stream()
+                        .anyMatch(condition -> READY.equals(condition.getType())
+                                && Boolean.parseBoolean(condition.getStatus()));
+            }
 
-                    private boolean hasStatus(Broker broker) {
-                        return broker.getStatus() != null && broker.getStatus().getConditions() != null
-                                && !broker.getStatus().getConditions().isEmpty();
-                    }
+            private boolean hasStatus(Broker broker) {
+                return broker.getStatus() != null && broker.getStatus().getConditions() != null
+                        && !broker.getStatus().getConditions().isEmpty();
+            }
 
-                    private boolean isOurBroker(Broker broker) {
-                        return broker != null && brokerName.equals(broker.getMetadata().getName());
-                    }
+            private boolean isOurBroker(Broker broker) {
+                return broker != null && brokerName.equals(broker.getMetadata().getName());
+            }
 
-                    @Override
-                    public void onClose(WatcherException e) {
-                        fail("Broker '%s' state can't be retrieved.", e);
-                    }
-                });
+            @Override
+            public void onClose(WatcherException e) {
+                fail("Broker '%s' state can't be retrieved.", e);
+            }
+        };
+        // TODO: call directly once we migrate to Quarkus 2.14
+        return (Watch) invokeMethod(getKnClient().brokers(), "watch", watcher, "check broker status", w -> {
+            throw new IllegalStateException("We don't support generic array conversion for watcher yet.");
+        });
     }
 
     private Watch watchTriggerEventsTillItsReady(String triggerName, AtomicBoolean isTriggerReady) {
-        return getKnClient()
-                .triggers()
-                .watch(new Watcher<>() {
-                    @Override
-                    public void eventReceived(Action action, Trigger trigger) {
-                        if (isOurTrigger(trigger) && hasStatus(trigger)) {
-                            isTriggerReady.set(isTriggerReady(trigger));
-                        }
-                    }
+        final var watcher = new Watcher<Trigger>() {
+            @Override
+            public void eventReceived(Action action, Trigger trigger) {
+                if (isOurTrigger(trigger) && hasStatus(trigger)) {
+                    isTriggerReady.set(isTriggerReady(trigger));
+                }
+            }
 
-                    private boolean isTriggerReady(Trigger trigger) {
-                        return trigger
-                                .getStatus()
-                                .getConditions()
-                                .stream()
-                                .anyMatch(condition -> READY.equals(condition.getType())
-                                        && Boolean.parseBoolean(condition.getStatus()));
-                    }
+            private boolean isTriggerReady(Trigger trigger) {
+                return trigger
+                        .getStatus()
+                        .getConditions()
+                        .stream()
+                        .anyMatch(condition -> READY.equals(condition.getType())
+                                && Boolean.parseBoolean(condition.getStatus()));
+            }
 
-                    private boolean hasStatus(Trigger trigger) {
-                        return trigger.getStatus() != null && trigger.getStatus().getConditions() != null
-                                && !trigger.getStatus().getConditions().isEmpty();
-                    }
+            private boolean hasStatus(Trigger trigger) {
+                return trigger.getStatus() != null && trigger.getStatus().getConditions() != null
+                        && !trigger.getStatus().getConditions().isEmpty();
+            }
 
-                    private boolean isOurTrigger(Trigger trigger) {
-                        return trigger != null && triggerName.equals(trigger.getMetadata().getName());
-                    }
+            private boolean isOurTrigger(Trigger trigger) {
+                return trigger != null && triggerName.equals(trigger.getMetadata().getName());
+            }
 
-                    @Override
-                    public void onClose(WatcherException e) {
-                        fail("Trigger '%s' state can't be retrieved.", e);
-                    }
-                });
+            @Override
+            public void onClose(WatcherException e) {
+                fail("Trigger '%s' state can't be retrieved.", e);
+            }
+        };
+        // TODO: call directly once we migrate to Quarkus 2.14
+        return (Watch) invokeMethod(getKnClient().triggers(), "watch", watcher, "check trigger status", w -> {
+            throw new IllegalStateException("We don't support generic array conversion for watcher yet.");
+        });
     }
 
     /**

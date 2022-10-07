@@ -779,7 +779,7 @@ public final class OpenShiftClient {
      * @return
      * @param <T>
      */
-    private static <T> Object invokeMethod(Object object, String methodName, T methodParameter, String action,
+    public static <T> Object invokeMethod(Object object, String methodName, T methodParameter, String action,
             Function<T, T[]> paramToArrayConverter) {
 
         // TODO: invoked by reflection as signatures differs between kubernetes-client 6.1.1 and 5.12.3;
