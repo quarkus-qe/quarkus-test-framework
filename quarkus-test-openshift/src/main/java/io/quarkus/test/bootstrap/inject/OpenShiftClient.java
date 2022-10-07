@@ -593,6 +593,10 @@ public final class OpenShiftClient {
         return scenarioId;
     }
 
+    public KnativeClient getKnClient() {
+        return kn;
+    }
+
     /**
      * Delete test resources.
      */

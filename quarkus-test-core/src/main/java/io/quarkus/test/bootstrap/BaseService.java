@@ -34,8 +34,8 @@ public class BaseService<T extends Service> implements Service {
     private static final String SERVICE_STARTUP_CHECK_POLL_INTERVAL = "startup.check-poll-interval";
     private static final Duration SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT = Duration.ofSeconds(2);
 
+    protected ServiceContext context;
     private final ServiceLoader<ServiceListener> listeners = ServiceLoader.load(ServiceListener.class);
-
     private final List<Action> onPreStartActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
     private final Map<String, String> properties = new HashMap<>();
@@ -45,7 +45,6 @@ public class BaseService<T extends Service> implements Service {
     private ManagedResource managedResource;
     private String serviceName;
     private Configuration configuration;
-    private ServiceContext context;
     private boolean autoStart = true;
 
     @Override
