@@ -21,29 +21,6 @@
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-openshift</artifactId>
-            <!--  FIXME: drop exclusions once we migrate to Quarkus 2.14  -->
-            <exclusions>
-                <exclusion>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>openshift-client</artifactId>
-                </exclusion>
-                <exclusion>
-                    <groupId>io.fabric8</groupId>
-                    <artifactId>knative-client</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <!--  this works around conflict between 2.13 and 999-SNAPSHOT  -->
-        <!--  FIXME drop section below once we migrate to Quarkus 2.14  -->
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>openshift-client</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>knative-client</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

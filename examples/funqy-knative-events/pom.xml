@@ -27,15 +27,6 @@
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-knative-events-spi</artifactId>
         </dependency>
-        <!--  FIXME: drop 'openshift-client' and 'knative-client' deps once we migrate to Quarkus 2.14  -->
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>openshift-client</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.fabric8</groupId>
-            <artifactId>knative-client</artifactId>
-        </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-knative-events</artifactId>
