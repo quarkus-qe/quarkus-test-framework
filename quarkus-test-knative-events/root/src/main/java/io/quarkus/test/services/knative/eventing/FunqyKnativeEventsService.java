@@ -48,21 +48,6 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
         super();
         createBrokerAndBuildTriggersOnPreStart();
         createTriggersOnPostStart();
-        // delete brokers and triggers on shutdown
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            deleteTriggers();
-            deleteBroker();
-        }));
-    }
-
-    private void deleteBroker() {
-        // FIXME: check delete result once we migrate to Quarkus 2.14 (see below)
-        getKnClient().brokers().delete();
-    }
-
-    private void deleteTriggers() {
-        // FIXME: check delete result once we migrate to Quarkus 2.14 (see below)
-        getKnClient().triggers().delete();
     }
 
     private KnativeClient getKnClient() {
