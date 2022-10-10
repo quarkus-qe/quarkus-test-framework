@@ -30,7 +30,7 @@ public class QuarkusHelmClient {
 
     public static final String COMMAND_LOG_FILE = "quarkus-helm-command.out";
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.helm.cmd", "helm");
-    private static final Path TARGET = Paths.get("target");
+    private static final Path TARGET = Paths.get("target").toAbsolutePath();
     private static final int NAME_POS = 0;
     private static final int NAMESPACE_POS = 1;
     private static final int REVISION_POS = 2;
