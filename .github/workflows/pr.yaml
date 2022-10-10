@@ -50,7 +50,7 @@ jobs:
           check-latest: true
       - name: Build Quarkus 2.13
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 2.13 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && git checkout 2.13 && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
