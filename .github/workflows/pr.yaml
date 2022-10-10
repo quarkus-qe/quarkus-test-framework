@@ -26,7 +26,7 @@ jobs:
         run: |
           mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
   quarkus-main-build:
-    name: Quarkus main build
+    name: Quarkus 2.13 build
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -48,9 +48,9 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - name: Build Quarkus main
+      - name: Build Quarkus 2.13
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 2.13 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -155,7 +155,7 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 2.13 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
