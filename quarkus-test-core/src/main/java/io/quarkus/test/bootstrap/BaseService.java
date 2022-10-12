@@ -41,6 +41,9 @@ public class BaseService<T extends Service> implements Service {
     private final Map<String, String> properties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
 
+    //TODO workaround for https://github.com/fabric8io/kubernetes-client/issues/4491
+    private volatile boolean isStopped = false;
+
     private ManagedResourceBuilder managedResourceBuilder;
     private ManagedResource managedResource;
     private String serviceName;
@@ -117,7 +120,10 @@ public class BaseService<T extends Service> implements Service {
     }
 
     @Override
-    public boolean isRunning() {
+    public synchronized boolean isRunning() {
+        if (isStopped) {
+            return false;
+        }
         Log.debug(this, "Checking if resource is running");
         if (managedResource == null) {
             Log.debug(this, "Resource is not running");
@@ -205,7 +211,7 @@ public class BaseService<T extends Service> implements Service {
      * Stop the Quarkus application.
      */
     @Override
-    public void stop() {
+    public synchronized void stop() {
         if (!isRunning()) {
             return;
         }
@@ -215,6 +221,7 @@ public class BaseService<T extends Service> implements Service {
         managedResource.stop();
 
         Log.info(this, "Service stopped (%s)", getDisplayName());
+        isStopped = true;
     }
 
     /**
