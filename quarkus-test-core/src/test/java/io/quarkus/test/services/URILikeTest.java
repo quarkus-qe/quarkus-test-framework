@@ -41,6 +41,8 @@ class URILikeTest {
     void badSchemeParse() {
         URILike uriLike = URILike.parse("SASL_PLAINTEXT://0.0.0.0:9092");
         Assertions.assertEquals("SASL_PLAINTEXT", uriLike.getScheme());
+        URILike updated = uriLike.withPort(9093);
+        Assertions.assertEquals("SASL_PLAINTEXT://0.0.0.0:9093", updated.toString());
 
         Exception thrown = null;
         try {
@@ -59,18 +61,21 @@ class URILikeTest {
         Assertions.assertEquals("https", web.getScheme());
         Assertions.assertEquals("quarkus.io", web.getHost());
         Assertions.assertEquals(-1, web.getPort());
+        Assertions.assertEquals("/guides/mutiny-primer", web.getPath());
         Assertions.assertEquals("https://quarkus.io/guides/mutiny-primer", web.toString());
 
         URILike full = URILike.parse("http://localhost:8087/auth/admin/master/console/");
         Assertions.assertEquals("http", full.getScheme());
         Assertions.assertEquals("localhost", full.getHost());
         Assertions.assertEquals(8087, full.getPort());
+        Assertions.assertEquals("/auth/admin/master/console/", full.getPath());
         Assertions.assertEquals("http://localhost:8087/auth/admin/master/console/", full.toString());
 
         URILike deploy = URILike.parse("localhost:5000");
         Assertions.assertNull(deploy.getScheme());
         Assertions.assertEquals("localhost", deploy.getHost());
         Assertions.assertEquals(5000, deploy.getPort());
+        Assertions.assertEquals("", deploy.getPath());
         Assertions.assertEquals("localhost:5000", deploy.toString());
 
         URILike bad = URILike.parse("SASL_PLAINTEXT://0.0.0.0:9092");
@@ -78,5 +83,19 @@ class URILikeTest {
         Assertions.assertEquals("0.0.0.0", bad.getHost());
         Assertions.assertEquals(9092, bad.getPort());
         Assertions.assertEquals("SASL_PLAINTEXT://0.0.0.0:9092", bad.toString());
+    }
+
+    @Test
+    void path() {
+        final String serialised = "http://localhost:8087";
+        final URILike ours = URILike.parse(serialised);
+        final URI uri = URI.create(serialised);
+        Assertions.assertEquals("", ours.getPath());
+        Assertions.assertEquals("", uri.getPath());
+
+        final URILike emptyPath = new URILike("http", "localhost", 8087, "");
+        final URILike nullPath = new URILike("http", "localhost", 8087, null);
+        Assertions.assertEquals(serialised, emptyPath.toString());
+        Assertions.assertEquals(serialised, nullPath.toString());
     }
 }
