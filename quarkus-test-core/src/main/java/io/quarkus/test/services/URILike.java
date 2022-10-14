@@ -110,6 +110,10 @@ public class URILike {
         return wrapped.getUserInfo();
     }
 
+    public String getPath() {
+        return wrapped.getPath();
+    }
+
     public static URILike parse(String uri) {
         final String[] schemeAndTheRest = uri.split("://");
         final boolean hasScheme = schemeAndTheRest.length == 2; //  [0]: scheme + :// + [1]: rest\
