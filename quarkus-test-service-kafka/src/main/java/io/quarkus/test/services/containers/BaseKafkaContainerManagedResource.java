@@ -3,6 +3,7 @@ package io.quarkus.test.services.containers;
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
+import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import io.quarkus.test.bootstrap.KafkaService;
@@ -11,6 +12,7 @@ import io.quarkus.test.logging.TestContainersLoggingHandler;
 public abstract class BaseKafkaContainerManagedResource extends DockerContainerManagedResource {
 
     private static final String SERVER_PROPERTIES = "server.properties";
+    private static final String EXPECTED_LOG = ".*started \\(kafka.server.KafkaServer\\).*";
 
     protected final KafkaContainerManagedResourceBuilder model;
 
@@ -66,6 +68,8 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
     @Override
     protected GenericContainer<?> initContainer() {
         GenericContainer<?> kafkaContainer = initKafkaContainer();
+
+        kafkaContainer.waitingFor(Wait.forLogMessage(EXPECTED_LOG, 1));
 
         String kafkaConfigPath = model.getKafkaConfigPath();
         if (StringUtils.isNotEmpty(getServerProperties())) {
