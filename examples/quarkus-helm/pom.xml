@@ -10,7 +10,7 @@
     <artifactId>examples-quarkus-helm</artifactId>
     <name>Quarkus - Test Framework - Examples - Quarkus HELM</name>
     <properties>
-        <quarkus-helm.version>0.0.7</quarkus-helm.version>
+        <quarkus-helm.version>0.1.1</quarkus-helm.version>
     </properties>
 
     <dependencies>
