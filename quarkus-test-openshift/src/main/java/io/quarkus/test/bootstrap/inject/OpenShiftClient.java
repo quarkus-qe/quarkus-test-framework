@@ -110,6 +110,7 @@ public final class OpenShiftClient {
     private final NamespacedOpenShiftClient client;
     private final KnativeClient kn;
     private final String scenarioId;
+    private boolean isClientReady;
 
     private OpenShiftClient(String scenarioId) {
         this.scenarioId = scenarioId;
@@ -118,6 +119,7 @@ public final class OpenShiftClient {
         OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
         masterClient = new DefaultOpenShiftClient(config);
         client = masterClient.inNamespace(currentNamespace);
+        isClientReady = true;
         // TODO: call directly once we migrate to Quarkus 2.14
         kn = (KnativeClient) invokeMethod(client, "adapt", KnativeClient.class,
                 "adapt NamespacedOpenShiftClient to KnativeClient", null);
@@ -500,6 +502,9 @@ public final class OpenShiftClient {
      */
     public boolean isCustomResourceReady(String name,
             Class<? extends CustomResource<?, ? extends CustomResourceStatus>> crdType) {
+        if (!isClientReady) {
+            return false;
+        }
         CustomResource<?, ? extends CustomResourceStatus> customResource = client.resources(crdType).withName(name).get();
         if (customResource == null
                 || customResource.getStatus() == null
@@ -583,6 +588,7 @@ public final class OpenShiftClient {
                 fail("Project failed to be deleted. Caused by " + e.getMessage());
             } finally {
                 masterClient.close();
+                isClientReady = false;
             }
         } else {
             deleteResourcesByLabel(LABEL_SCENARIO_ID, getScenarioId());
@@ -608,6 +614,7 @@ public final class OpenShiftClient {
             fail("Project failed to be deleted. Caused by " + e.getMessage());
         } finally {
             masterClient.close();
+            isClientReady = false;
         }
     }
 
