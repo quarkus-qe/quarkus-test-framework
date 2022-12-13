@@ -7,6 +7,7 @@ import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PR
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -149,7 +150,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     }
 
     private void addFileToContainer(String destinationPath, String hostFilePath) {
-        String containerFullPath = destinationPath + hostFilePath;
+        String containerFullPath = destinationPath + SLASH + hostFilePath;
         innerContainer.withClasspathResourceMapping(hostFilePath, containerFullPath, BindMode.READ_ONLY);
     }
 

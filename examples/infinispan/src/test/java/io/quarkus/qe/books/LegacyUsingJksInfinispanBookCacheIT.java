@@ -7,19 +7,19 @@ import io.quarkus.test.services.Container;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class UsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
+public class LegacyUsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
 
-    @Container(image = "docker.io/infinispan/server:14.0", expectedLog = "Infinispan Server.*started in", port = 11222)
+    @Container(image = "docker.io/infinispan/server:13.0", expectedLog = "Infinispan Server.*started in", port = 11222)
     static final InfinispanService infinispan = new InfinispanService()
-            .withConfigFile("infinispan.xml")
-            .withSecretFiles("jks/keystore.jks");
+            .withConfigFile("jks-config.yaml")
+            .withSecretFiles("jks/server.jks");
 
     @QuarkusApplication
     static final RestService app = new RestService()
             .withProperty("quarkus.infinispan-client.server-list", infinispan::getInfinispanServerAddress)
             .withProperty("quarkus.infinispan-client.auth-username", infinispan.getUsername())
             .withProperty("quarkus.infinispan-client.auth-password", infinispan.getPassword())
-            .withProperty("quarkus.infinispan-client.trust-store", "secret::/jks/truststore.jks")
-            .withProperty("quarkus.infinispan-client.trust-store-password", "password")
+            .withProperty("quarkus.infinispan-client.trust-store", "secret::/jks/server.jks")
+            .withProperty("quarkus.infinispan-client.trust-store-password", "changeit")
             .withProperty("quarkus.infinispan-client.trust-store-type", "jks");
 }
