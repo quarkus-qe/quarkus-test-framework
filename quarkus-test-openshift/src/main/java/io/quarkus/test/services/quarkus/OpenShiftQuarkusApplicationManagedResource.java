@@ -28,6 +28,9 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     private boolean init;
     private boolean running;
 
+    private String host;
+    private int port = -1;
+
     public OpenShiftQuarkusApplicationManagedResource(T model) {
         super(model.getContext());
         this.model = model;
@@ -76,15 +79,20 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     @Override
     public String getHost(Protocol protocol) {
         validateProtocol(protocol);
-        return untilIsNotNull(() -> client.url(model.getContext().getOwner()),
-                AwaitilitySettings.defaults().withService(getContext().getOwner()));
+        if (this.host == null) {
+            this.host = untilIsNotNull(() -> client.url(model.getContext().getOwner()),
+                    AwaitilitySettings.defaults().withService(getContext().getOwner()));
+        }
+        return this.host;
     }
 
     @Override
     public int getPort(Protocol protocol) {
-        int port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
         validateProtocol(protocol);
-        return port;
+        if (this.port == -1) {
+            this.port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
+        }
+        return this.port;
     }
 
     @Override
