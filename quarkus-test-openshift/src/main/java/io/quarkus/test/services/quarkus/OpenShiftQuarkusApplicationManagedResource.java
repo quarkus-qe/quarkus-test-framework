@@ -11,6 +11,7 @@ import org.apache.http.HttpStatus;
 
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
@@ -28,6 +29,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     private LoggingHandler loggingHandler;
     private boolean init;
     private boolean running;
+
+    private URILike uri;
 
     public OpenShiftQuarkusApplicationManagedResource(T model) {
         super(model.getContext());
@@ -76,16 +79,20 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
 
     @Override
     public URILike getURI(Protocol protocol) {
-        if (protocol == Protocol.HTTPS && !client.isServerlessService(model.getContext().getName())) {
+        final ServiceContext context = model.getContext();
+        final boolean isServerless = client.isServerlessService(context.getName());
+        if (protocol == Protocol.HTTPS && !isServerless) {
             fail("SSL is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.GRPC) {
             fail("gRPC is not supported for OpenShift tests yet");
         }
-        int port = client.isServerlessService(model.getContext().getName()) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
-        return untilIsNotNull(() -> {
-            return client.url(model.getContext().getOwner()).withPort(port);
-        },
-                AwaitilitySettings.defaults().withService(getContext().getOwner()));
+        if (this.uri == null) {
+            final int port = isServerless ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
+            this.uri = untilIsNotNull(
+                    () -> client.url(context.getOwner()).withPort(port),
+                    AwaitilitySettings.defaults().withService(getContext().getOwner()));
+        }
+        return uri;
     }
 
     public boolean isRunning() {
