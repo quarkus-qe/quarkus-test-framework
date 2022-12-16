@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkus.qe</groupId>
     <artifactId>quarkus-test-parent</artifactId>
-    <version>1.2.1.Beta13-SNAPSHOT</version>
+    <version>1.2.1.Beta16-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
     <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
@@ -43,12 +43,12 @@
         <jaeger.version>1.8.1</jaeger.version>
         <prometheus.simpleclient_pushgateway.version>0.16.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.2.0</maven-checkstyle-plugin.version>
-        <formatter-maven-plugin.version>2.20.0</formatter-maven-plugin.version>
-        <impsort-maven-plugin.version>1.7.0</impsort-maven-plugin.version>
-        <htmlunit.version>2.65.1</htmlunit.version>
+        <formatter-maven-plugin.version>2.21.0</formatter-maven-plugin.version>
+        <impsort-maven-plugin.version>1.8.0</impsort-maven-plugin.version>
+        <htmlunit.version>2.67.0</htmlunit.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>2.13.0.Final</quarkus.platform.version>
+        <quarkus.platform.version>2.13.4.Final</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -56,7 +56,7 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
-        <checkstyle.version>10.3.4</checkstyle.version>
+        <checkstyle.version>10.5.0</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
     </properties>
@@ -380,7 +380,8 @@
             </activation>
             <modules>
                 <module>examples/quarkus-cli</module>
-                <module>examples/quarkus-helm</module>
+                <!-- TODO: https://github.com/quarkiverse/quarkus-helm/issues/114-->
+                <!-- <module>examples/quarkus-helm</module>-->
                 <module>examples/pingpong</module>
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>

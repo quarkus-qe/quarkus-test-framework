@@ -114,9 +114,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withLabelsForWatching());
         args.add(withLabelsForScenarioId());
 
-        // TODO: remove once https://github.com/quarkusio/quarkus/issues/28108 is fixed
-        args.add(withJarFileName());
-
         withEnvVars(args);
         withBaseImageProperties(args);
         withAdditionalArguments(args);

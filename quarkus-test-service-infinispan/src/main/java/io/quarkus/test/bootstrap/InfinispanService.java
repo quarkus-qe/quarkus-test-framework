@@ -64,7 +64,10 @@ public class InfinispanService extends BaseService<InfinispanService> {
         withProperty("PASS", getPassword());
 
         if (StringUtils.isNotEmpty(configFile)) {
+            // legacy -> Infinispan previous to version 14
             withProperty("CONFIG_PATH", RESOURCE_PREFIX + SLASH + configFile);
+            // Infinispan 14+ configuration setup
+            withProperty("INFINISPAN_CONFIG_PATH", "resource_with_destination::/opt/infinispan/server/conf|" + configFile);
         }
 
         if (userConfigFiles != null) {

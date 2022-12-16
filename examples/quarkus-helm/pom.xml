@@ -4,13 +4,13 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.2.1.Beta13-SNAPSHOT</version>
+        <version>1.2.1.Beta14-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
     <artifactId>examples-quarkus-helm</artifactId>
     <name>Quarkus - Test Framework - Examples - Quarkus HELM</name>
     <properties>
-        <quarkus-helm.version>0.0.7</quarkus-helm.version>
+        <quarkus-helm.version>0.1.1</quarkus-helm.version>
     </properties>
 
     <dependencies>

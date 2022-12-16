@@ -4,13 +4,13 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.2.1.Beta13-SNAPSHOT</version>
+        <version>1.2.1.Beta16-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
     <artifactId>examples-kafka-registry</artifactId>
     <name>Quarkus - Test Framework - Examples - Kafka with Registry</name>
     <properties>
-        <confluent.kafka-avro-serializer.version>7.2.2</confluent.kafka-avro-serializer.version>
+        <confluent.kafka-avro-serializer.version>7.3.0</confluent.kafka-avro-serializer.version>
     </properties>
 
     <dependencies>
