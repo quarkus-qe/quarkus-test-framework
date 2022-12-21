@@ -46,7 +46,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String QUARKUS_KNATIVE_ENV_VARS = "quarkus.knative.env.vars.";
     private static final String QUARKUS_KNATIVE_LABELS = "quarkus.knative.labels.";
     private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET = "quarkus.kubernetes.deployment-target";
+    private static final String OPENSHIFT = "openshift";
     private static final String KNATIVE = "knative";
+    private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET_OPENSHIFT = String.format("-D%s=%s",
+            QUARKUS_KUBERNETES_DEPLOYMENT_TARGET, OPENSHIFT);
     private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources", "application.properties");
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
@@ -114,6 +117,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         args.add(withLabelsForWatching());
         args.add(withLabelsForScenarioId());
 
+        withDeploymentTarget(args);
         withEnvVars(args);
         withBaseImageProperties(args);
         withAdditionalArguments(args);
@@ -122,6 +126,13 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             new Command(args).onDirectory(model.getApplicationFolder()).runAndWait();
         } catch (Exception e) {
             fail("Failed to run maven command. Caused by " + e.getMessage());
+        }
+    }
+
+    private void withDeploymentTarget(List<String> args) {
+        final String deploymentTarget = model.getComputedProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET);
+        if (deploymentTarget == null || deploymentTarget.isBlank()) {
+            args.add(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET_OPENSHIFT);
         }
     }
 
