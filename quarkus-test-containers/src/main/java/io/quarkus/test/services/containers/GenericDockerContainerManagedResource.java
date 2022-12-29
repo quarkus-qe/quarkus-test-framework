@@ -1,7 +1,10 @@
 package io.quarkus.test.services.containers;
 
+import java.util.Objects;
+
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
 import io.quarkus.test.logging.Log;
@@ -53,6 +56,18 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
                     + " tagged as UnstableAPI, so is a subject to change and SHOULD NOT be considered a stable API");
 
             container.withReuse(true);
+        }
+
+        if (Objects.nonNull(model.getNetworkId())) {
+            Network network = DockerContainersNetwork
+                    .getInstance()
+                    .getNetworkByID(model.getNetworkId(), model.getNetworkType());
+
+            container.withNetwork(network);
+        }
+
+        if (model.getNetworkAlias().length > 0) {
+            container.withNetworkAliases(model.getNetworkAlias());
         }
 
         container.withExposedPorts(model.getPort());
