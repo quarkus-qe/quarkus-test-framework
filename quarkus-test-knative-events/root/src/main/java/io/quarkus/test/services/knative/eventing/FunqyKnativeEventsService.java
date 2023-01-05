@@ -1,6 +1,5 @@
 package io.quarkus.test.services.knative.eventing;
 
-import static io.quarkus.test.bootstrap.inject.OpenShiftClient.invokeMethod;
 import static java.util.Objects.requireNonNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -102,9 +101,7 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                     getKnClient().getNamespace(), broker.getMetadata().getName()));
 
             // create broker
-            // TODO: call directly once we migrate to Quarkus 2.14
-            broker = (Broker) invokeMethod(getKnClient().brokers(), "create", broker, "create broker",
-                    broker -> new Broker[] { broker });
+            broker = getKnClient().brokers().resource(broker).create();
             // wait until the broker is ready
             final AtomicBoolean isBrokerReady = new AtomicBoolean(false);
             // access events as long as the broker is not ready, or we run out of time
@@ -124,15 +121,13 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                 fail(FunqyKnativeEventsService.class.getName() + " - You must configure at least one trigger.");
             }
 
-            for (int i = 0; i < triggers.length; i++) {
+            for (Trigger trigger : triggers) {
                 // create trigger
-                // TODO: call directly once we migrate to Quarkus 2.14
-                triggers[i] = (Trigger) invokeMethod(getKnClient().triggers(), "create", triggers[i], "create trigger",
-                        trigger -> new Trigger[] { trigger });
+                getKnClient().triggers().resource(trigger).create();
                 // wait until the trigger is ready
                 final AtomicBoolean isTriggerReady = new AtomicBoolean(false);
                 // access events as long as the trigger is not ready, or we run out of time
-                try (var ignored = watchTriggerEventsTillItsReady(triggers[i].getMetadata().getName(), isTriggerReady)) {
+                try (var ignored = watchTriggerEventsTillItsReady(trigger.getMetadata().getName(), isTriggerReady)) {
                     AwaitilityUtils.untilIsTrue(isTriggerReady::get);
                 }
             }
@@ -171,10 +166,7 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                 fail("Broker '%s' state can't be retrieved.", e);
             }
         };
-        // TODO: call directly once we migrate to Quarkus 2.14
-        return (Watch) invokeMethod(getKnClient().brokers(), "watch", watcher, "check broker status", w -> {
-            throw new IllegalStateException("We don't support generic array conversion for watcher yet.");
-        });
+        return getKnClient().brokers().watch(watcher);
     }
 
     private Watch watchTriggerEventsTillItsReady(String triggerName, AtomicBoolean isTriggerReady) {
@@ -209,10 +201,7 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                 fail("Trigger '%s' state can't be retrieved.", e);
             }
         };
-        // TODO: call directly once we migrate to Quarkus 2.14
-        return (Watch) invokeMethod(getKnClient().triggers(), "watch", watcher, "check trigger status", w -> {
-            throw new IllegalStateException("We don't support generic array conversion for watcher yet.");
-        });
+        return getKnClient().triggers().watch(watcher);
     }
 
     /**
