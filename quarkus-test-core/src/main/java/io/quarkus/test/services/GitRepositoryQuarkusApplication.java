@@ -21,6 +21,8 @@ public @interface GitRepositoryQuarkusApplication {
 
     boolean devMode() default false;
 
+    String artifact() default "";
+
     /**
      * @return the properties file to use to configure the Quarkus application.
      */
