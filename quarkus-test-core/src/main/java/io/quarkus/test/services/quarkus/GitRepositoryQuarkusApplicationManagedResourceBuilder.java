@@ -61,6 +61,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         contextDir = metadata.contextDir();
         mavenArgs = metadata.mavenArgs();
         devMode = metadata.devMode();
+        setArtifactSuffix(metadata.artifact());
         initAppClasses(new Class[0]);
         setPropertiesFile(metadata.properties());
     }

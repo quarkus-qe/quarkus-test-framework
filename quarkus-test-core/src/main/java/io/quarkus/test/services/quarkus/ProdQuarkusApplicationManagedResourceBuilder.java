@@ -40,10 +40,19 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
 
     private Path artifact;
     private QuarkusManagedResource managedResource;
+    private String artifactSuffix;
 
     @Override
     protected Path getArtifact() {
         return artifact;
+    }
+
+    protected void setArtifactSuffix(String suffix) {
+        if (suffix == null || suffix.isEmpty() || suffix.isBlank()) {
+            this.artifactSuffix = null;
+        } else {
+            this.artifactSuffix = suffix;
+        }
     }
 
     @Override
@@ -70,7 +79,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         managedResource.onPreBuild();
         copyResourcesToAppFolder();
         if (managedResource.needsBuildArtifact()) {
-            tryToReuseOrBuildArtifact();
+            this.artifact = tryToReuseOrBuildArtifact();
         }
 
         managedResource.onPostBuild();
@@ -90,8 +99,16 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         return Paths.get(TARGET);
     }
 
-    private void tryToReuseOrBuildArtifact() {
+    private Path tryToReuseOrBuildArtifact() {
         Optional<String> artifactLocation = Optional.empty();
+        final Path targetFolder = getTargetFolderForLocalArtifacts();
+        if (artifactSuffix != null) {
+            return findTargetFile(targetFolder, artifactSuffix)
+                    .map(Path::of)
+                    .orElseThrow(() -> new IllegalStateException(String.format("Folder %s doesn't contain '%s'",
+                            targetFolder,
+                            artifactSuffix)));
+        }
         if (!containsBuildProperties() && !requiresCustomBuild()) {
             if (QuarkusProperties.isNativePackageType(getContext())) {
                 String nativeRunnerExpectedLocation = NATIVE_RUNNER;
@@ -99,18 +116,17 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                     nativeRunnerExpectedLocation += EXE;
                 }
 
-                artifactLocation = findTargetFile(getTargetFolderForLocalArtifacts(), nativeRunnerExpectedLocation);
-
+                artifactLocation = findTargetFile(targetFolder, nativeRunnerExpectedLocation);
             } else {
-                artifactLocation = findTargetFile(getTargetFolderForLocalArtifacts(), JVM_RUNNER)
-                        .or(() -> findTargetFile(getTargetFolderForLocalArtifacts().resolve(QUARKUS_APP), QUARKUS_RUN));
+                artifactLocation = findTargetFile(targetFolder, JVM_RUNNER)
+                        .or(() -> findTargetFile(targetFolder.resolve(QUARKUS_APP), QUARKUS_RUN));
             }
         }
 
         if (artifactLocation.isEmpty()) {
-            this.artifact = buildArtifact();
+            return buildArtifact();
         } else {
-            this.artifact = Path.of(artifactLocation.get());
+            return Path.of(artifactLocation.get());
         }
     }
 
