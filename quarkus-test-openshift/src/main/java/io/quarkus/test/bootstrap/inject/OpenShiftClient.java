@@ -17,8 +17,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -29,21 +27,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
-import org.jetbrains.annotations.NotNull;
 
 import io.fabric8.knative.client.KnativeClient;
-import io.fabric8.kubernetes.api.model.ConfigMap;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
@@ -65,10 +58,10 @@ import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroupSpec;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.ClusterServiceVersion;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.Subscription;
 import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
-import io.fabric8.openshift.client.DefaultOpenShiftClient;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
+import io.fabric8.openshift.client.impl.OpenShiftClientImpl;
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
@@ -99,14 +92,7 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
-    /**
-     * Method must have at least one parameter of type "HasMetadata".
-     */
-    private static final Predicate<Method> HAS_METADATA_PARAM_TYPE = m -> Arrays.stream(m.getParameterTypes())
-            .anyMatch(p -> p.getName().contains("HasMetadata"));
-
     private final String currentNamespace;
-    private final DefaultOpenShiftClient masterClient;
     private final NamespacedOpenShiftClient client;
     private final KnativeClient kn;
     private final String scenarioId;
@@ -114,15 +100,17 @@ public final class OpenShiftClient {
 
     private OpenShiftClient(String scenarioId) {
         this.scenarioId = scenarioId;
-        String activeNamespace = new DefaultOpenShiftClient().getNamespace();
-        currentNamespace = ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean() ? createProject() : activeNamespace;
-        OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-        masterClient = new DefaultOpenShiftClient(config);
-        client = masterClient.inNamespace(currentNamespace);
+        if (ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
+            currentNamespace = createProject();
+            OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
+            client = new OpenShiftClientImpl(config);
+        } else {
+            OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).build();
+            client = new OpenShiftClientImpl(config);
+            currentNamespace = client.getNamespace();
+        }
         isClientReady = true;
-        // TODO: call directly once we migrate to Quarkus 2.14
-        kn = (KnativeClient) invokeMethod(client, "adapt", KnativeClient.class,
-                "adapt NamespacedOpenShiftClient to KnativeClient", null);
+        kn = client.adapt(KnativeClient.class);
     }
 
     public static OpenShiftClient create(String scenarioId) {
@@ -215,9 +203,7 @@ public final class OpenShiftClient {
                     envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
         });
 
-        // TODO: call directly once we migrate to Quarkus 2.14
-        invokeMethod(client.deploymentConfigs(), "createOrReplace", dc, "update the deployment config",
-                deploymentConfig -> new DeploymentConfig[] { deploymentConfig });
+        client.deploymentConfigs().resource(dc).createOrReplace();
     }
 
     /**
@@ -454,11 +440,7 @@ public final class OpenShiftClient {
         groupModel.setSpec(new OperatorGroupSpec());
         groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
         // call createOrReplace
-        // TODO: call directly once we migrate to Quarkus 2.14
-        invokeMethod(
-                // call resource(groupModel)
-                invokeMethod(client, "resource", groupModel, " get resource ", gm -> new OperatorGroup[] { gm }),
-                "createOrReplace", null, "create resource", null);
+        client.resource(groupModel).createOrReplace();
 
         // Install the subscription
         Subscription subscriptionModel = new Subscription();
@@ -473,9 +455,7 @@ public final class OpenShiftClient {
         subscriptionModel.getSpec().setSourceNamespace(sourceNamespace);
 
         Log.info("Installing operator... %s", service.getName());
-        // TODO: call directly once we migrate to Quarkus 2.14
-        invokeMethod(client.operatorHub().subscriptions(), "create", subscriptionModel, "create operator subscription",
-                sm -> new Subscription[] { sm });
+        client.operatorHub().subscriptions().resource(subscriptionModel).create();
 
         // Wait for the operator to be installed
         untilIsTrue(() -> {
@@ -587,7 +567,7 @@ public final class OpenShiftClient {
             } catch (Exception e) {
                 fail("Project failed to be deleted. Caused by " + e.getMessage());
             } finally {
-                masterClient.close();
+                client.close();
                 isClientReady = false;
             }
         } else {
@@ -613,7 +593,7 @@ public final class OpenShiftClient {
         } catch (Exception e) {
             fail("Project failed to be deleted. Caused by " + e.getMessage());
         } finally {
-            masterClient.close();
+            client.close();
             isClientReady = false;
         }
     }
@@ -769,76 +749,9 @@ public final class OpenShiftClient {
                     });
         } else {
             // create new one
-            // TODO: call directly once we migrate to Quarkus 2.14
-            invokeMethod(configMaps, "createOrReplace", new ConfigMapBuilder().withNewMetadata()
-                    .withName(configMapName).endMetadata().addToData(key, value).build(), "create new ConfigMap",
-                    cm -> new ConfigMap[] { cm });
+            configMaps.resource(new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
+                    .addToData(key, value).build()).createOrReplace();
         }
-    }
-
-    /**
-     * Invokes method dynamically using reflection.
-     *
-     * @param object
-     * @param methodName
-     * @param methodParameter
-     * @param action
-     * @return
-     * @param <T>
-     */
-    public static <T> Object invokeMethod(Object object, String methodName, T methodParameter, String action,
-            Function<T, T[]> paramToArrayConverter) {
-
-        // TODO: invoked by reflection as signatures differs between kubernetes-client 6.1.1 and 5.12.3;
-        //  please remove it once we migrate to Quarkus 2.14
-        final var method = findObjectMethod(object, methodName,
-                // first try to match method based on formal parameter assignability
-                // this filter should be always successful when running with 6.1.1
-                m -> {
-                    if (methodParameter == null) {
-                        return m.getParameterCount() == 0;
-                    } else if (m.getParameterCount() == 1) {
-                        return m.getParameterTypes()[0]
-                                .isAssignableFrom(methodParameter.getClass());
-                    }
-                    return false;
-                })
-                // if no such method was found, just take first method that matches correct number of params,
-                // prefer `Object` as it's less specific
-                // this part is exclusively used when running with 5.12.3
-                .orElseGet(() -> findObjectMethod(object, methodName,
-                        m -> {
-                            // take into consideration only methods with exactly one parameter
-                            // as method without parameter has already been found (see above)
-                            return m.getParameterCount() == 1;
-                        })
-                        .orElseThrow(() -> new RuntimeException(
-                                String.format("Could not find matching method '%s' on class '%s'.", methodName,
-                                        object.getClass()))));
-        try {
-            if (methodParameter == null) {
-                return method.invoke(object);
-            } else {
-                // if method accepts varargs, we need to convert parameter to array
-                if (Arrays.stream(method.getParameterTypes()).anyMatch(Class::isArray)) {
-                    Objects.requireNonNull(paramToArrayConverter);
-                    return method.invoke(object, (Object) paramToArrayConverter.apply(methodParameter));
-                }
-                return method.invoke(object, methodParameter);
-            }
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            throw new RuntimeException(String.format("Failed to %s: ", action), e);
-        }
-    }
-
-    @NotNull
-    private static <T> Optional<Method> findObjectMethod(Object object, String methodName, Predicate<Method> methodFilter) {
-        return Arrays
-                // find method without specifying formal parameters (as they are different between versions)
-                .stream(object.getClass().getMethods())
-                .filter(m -> m.getName().equals(methodName))
-                .filter(methodFilter)
-                .findFirst();
     }
 
     private String getFileName(String path) {
@@ -904,7 +817,7 @@ public final class OpenShiftClient {
     }
 
     private boolean hasImageStreamTags(ImageStream is) {
-        return !masterClient.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
+        return !client.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
     }
 
     private boolean isPodRunning(Pod pod) {
