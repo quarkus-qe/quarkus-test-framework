@@ -29,6 +29,10 @@ public class RestService extends BaseService<RestService> {
                 .port(host.getPort());
     }
 
+    public RequestSpecification relaxedHttps() {
+        return this.https().relaxedHTTPSValidation();
+    }
+
     public WebClient mutiny() {
         return mutiny(new WebClientOptions());
     }

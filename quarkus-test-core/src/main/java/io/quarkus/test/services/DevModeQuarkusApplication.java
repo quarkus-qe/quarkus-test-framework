@@ -20,4 +20,10 @@ public @interface DevModeQuarkusApplication {
      * Enable GRPC configuration. This property will map the gPRC service to a random port.
      */
     boolean grpc() default false;
+
+    /**
+     * Enable SSL configuration. This property needs `quarkus.http.ssl.certificate.key-store-file` and
+     * `quarkus.http.ssl.certificate.key-store-password` to be set.
+     */
+    boolean ssl() default false;
 }
