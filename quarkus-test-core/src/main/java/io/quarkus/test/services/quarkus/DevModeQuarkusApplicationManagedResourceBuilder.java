@@ -18,6 +18,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
         initAppClasses(metadata.classes());
         setPropertiesFile(metadata.properties());
         setGrpcEnabled(metadata.grpc());
+        setSslEnabled(metadata.ssl());
     }
 
     @Override
