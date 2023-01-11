@@ -33,7 +33,7 @@ items:
         sourceStrategy:
           env:
             - name: MAVEN_ARGS
-              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.version=${QUARKUS_VERSION} -Dquarkus.platform.version=${QUARKUS_VERSION} -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus-plugin.version=${QUARKUS_VERSION}
+              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus-plugin.version=${QUARKUS_PLATFORM_VERSION}
           from:
             kind: DockerImage
             name: ${QUARKUS_S2I_BUILDER_IMAGE}

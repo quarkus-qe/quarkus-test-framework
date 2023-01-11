@@ -1,7 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.cloneRepository;
-import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.getEffectivePropertiesForGitRepository;
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.mavenBuild;
 
 import java.nio.file.Path;
@@ -44,15 +43,13 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
 
     @Override
     protected List<String> prepareCommand(List<String> systemProperties) {
-        List<String> effectiveProperties = getEffectivePropertiesForGitRepository(systemProperties);
-
         // Dev mode
         if (model.isDevMode()) {
-            return MavenUtils.devModeMavenCommand(model.getContext(), effectiveProperties);
+            return MavenUtils.devModeMavenCommand(model.getContext(), systemProperties);
         }
 
         // JVM or Native
-        return super.prepareCommand(effectiveProperties);
+        return super.prepareCommand(systemProperties);
     }
 
     @Override
