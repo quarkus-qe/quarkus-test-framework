@@ -75,7 +75,7 @@ items:
             app: 'jaeger'
         spec:
           containers:
-            - image: 'quay.io/jaegertracing/all-in-one:1.37'
+            - image: 'quay.io/jaegertracing/all-in-one:1.41'
               name: 'jaeger'
               env:
                 - name: COLLECTOR_OTLP_ENABLED

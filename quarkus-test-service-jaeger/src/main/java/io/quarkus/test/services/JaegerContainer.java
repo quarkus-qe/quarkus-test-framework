@@ -11,7 +11,7 @@ import io.quarkus.test.services.containers.JaegerContainerManagedResourceBuilder
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JaegerContainer {
-    String image() default "quay.io/jaegertracing/all-in-one:1.37.0";
+    String image() default "quay.io/jaegertracing/all-in-one:1.41.0";
 
     int tracePort() default 16686;
 
