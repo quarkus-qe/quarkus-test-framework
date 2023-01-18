@@ -27,9 +27,10 @@ public @interface JaegerContainer {
     int otlpPort() default 4317;
 
     /**
-     * Switches between {@link #restPort()} and {@link #otlpPort()}. If set to true, the OTLP collector is used.
+     * Switches between {@link #restPort()} and {@link #otlpPort()}.
+     * If set to true, the OTLP collector is used. If set to false, the Jaeger collector is used.
      */
-    boolean useOtlpCollector() default false;
+    boolean useOtlpCollector() default true;
 
     String expectedLog() default "server started";
 

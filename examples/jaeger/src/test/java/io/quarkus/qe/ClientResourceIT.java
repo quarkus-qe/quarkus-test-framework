@@ -23,7 +23,7 @@ public class ClientResourceIT {
     private static final String SERVICE_NAME = "test-traced-service";
     private static final String CLIENT_ENDPOINT = "/client";
 
-    @JaegerContainer(useOtlpCollector = true)
+    @JaegerContainer()
     static JaegerService jaeger = new JaegerService();
 
     @QuarkusApplication
