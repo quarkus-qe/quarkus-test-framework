@@ -11,7 +11,7 @@ public class JaegerContainer extends GenericContainer<JaegerContainer> {
     private static final int STARTUP_TIMEOUT_SECONDS = 30;
 
     public JaegerContainer() {
-        super("quay.io/jaegertracing/all-in-one:1.37");
+        super("quay.io/jaegertracing/all-in-one:1.41");
         addEnv("COLLECTOR_OTLP_ENABLED", "true");
         waitingFor(Wait.forLogMessage(".*server started.*", 1));
         withStartupTimeout(Duration.ofSeconds(STARTUP_TIMEOUT_SECONDS));
