@@ -15,7 +15,7 @@ public @interface GitRepositoryQuarkusApplication {
     String contextDir() default "";
 
     String mavenArgs() default "-DskipTests=true -DskipITs=true "
-            + "-Dquarkus.platform.version=${QUARKUS_VERSION} "
+            + "-Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} "
             + "-Dquarkus-plugin.version=${QUARKUS-PLUGIN_VERSION} "
             + "-Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID}";
 
