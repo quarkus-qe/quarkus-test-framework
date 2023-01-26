@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.2.2.Final</version>
+        <version>1.2.3.Final-SNAPSHOT</version>
         <relativePath>../../</relativePath>
     </parent>
     <artifactId>examples-funqy-knative-events</artifactId>
