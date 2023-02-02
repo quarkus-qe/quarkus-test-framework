@@ -73,6 +73,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         }
 
         client.scaleTo(model.getContext().getOwner(), 0);
+        host = null;
+        port = -1;
         running = false;
     }
 
