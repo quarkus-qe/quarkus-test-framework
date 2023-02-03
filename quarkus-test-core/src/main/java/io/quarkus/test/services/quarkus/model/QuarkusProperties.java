@@ -23,7 +23,7 @@ public final class QuarkusProperties {
     public static final PropertyLookup QUARKUS_JVM_S2I = new PropertyLookup("quarkus.s2i.base-jvm-image",
             "registry.access.redhat.com/ubi8/openjdk-17:latest");
     public static final PropertyLookup QUARKUS_NATIVE_S2I = new PropertyLookup("quarkus.s2i.base-native-image",
-            "quay.io/quarkus/ubi-quarkus-native-binary-s2i:1.0");
+            "quay.io/quarkus/ubi-quarkus-native-binary-s2i:2.0");
 
     private QuarkusProperties() {
 
