@@ -155,7 +155,7 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli

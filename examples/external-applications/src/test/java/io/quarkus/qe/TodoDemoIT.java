@@ -1,6 +1,7 @@
 package io.quarkus.qe;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
@@ -8,6 +9,8 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
+// TODO: enable when Quarkus QuickStarts migrates to Quarkus 3
+@Disabled("Disabled until Quarkus 3 is released and TODO application migrates to it")
 @DisabledOnNative(reason = "This scenario is using uber-jar, so it's incompatible with Native")
 @QuarkusScenario
 public class TodoDemoIT {

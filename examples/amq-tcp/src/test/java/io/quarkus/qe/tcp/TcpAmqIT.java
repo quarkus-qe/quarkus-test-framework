@@ -9,6 +9,7 @@ import static org.hamcrest.Matchers.lessThan;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.AmqService;
@@ -19,6 +20,8 @@ import io.quarkus.test.services.AmqContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.AmqProtocol;
 
+// TODO: enable with next Quarkus Artemis bump
+@Disabled("Disabled until Quarkus Artemis using Jakarta is released")
 @QuarkusScenario
 public class TcpAmqIT {
 

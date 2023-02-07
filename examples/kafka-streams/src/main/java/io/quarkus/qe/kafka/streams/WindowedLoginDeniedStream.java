@@ -1,12 +1,9 @@
 package io.quarkus.qe.kafka.streams;
 
-import static javax.ws.rs.core.Response.Status.FORBIDDEN;
-import static javax.ws.rs.core.Response.Status.UNAUTHORIZED;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 import java.time.Duration;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.inject.Produces;
 
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
@@ -24,6 +21,8 @@ import io.quarkus.kafka.client.serialization.JsonbSerde;
 import io.quarkus.qe.kafka.model.LoginAggregation;
 import io.quarkus.qe.kafka.model.LoginAttempt;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
 
 @ApplicationScoped
 public class WindowedLoginDeniedStream {

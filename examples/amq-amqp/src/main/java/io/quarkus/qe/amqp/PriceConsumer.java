@@ -3,10 +3,10 @@ package io.quarkus.qe.amqp;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.jboss.logging.Logger;
+
+import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class PriceConsumer {

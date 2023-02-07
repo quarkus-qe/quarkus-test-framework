@@ -32,7 +32,6 @@ public class VerifyNonAppEndpointsIT {
     public void verifyNonAppRootPathIsWorking() {
         givenRootPath("/api");
         givenNonAppRootPath("/q");
-        givenNonAppRootRedirectedIsDisabled();
         whenUpdateProperties();
         thenNonAppEndpointsShouldBeOk("/q");
     }
@@ -41,7 +40,6 @@ public class VerifyNonAppEndpointsIT {
     public void verifyNonAppRootPathIsWorkingWhenRootPathChanged() {
         givenRootPath("/");
         givenNonAppRootPath("/q");
-        givenNonAppRootRedirectedIsDisabled();
         whenUpdateProperties();
         thenNonAppEndpointsShouldBeOk("/q");
     }
@@ -50,7 +48,6 @@ public class VerifyNonAppEndpointsIT {
     public void verifyNonAppRootPathIsNotRedirected() {
         givenRootPath("/api");
         givenNonAppRootPath("/");
-        givenNonAppRootRedirectedIsDisabled();
         whenUpdateProperties();
         thenNonAppEndpointsShouldBeNotFound("/api");
     }
@@ -61,9 +58,6 @@ public class VerifyNonAppEndpointsIT {
     public void verifyNonAppRootPathIsRedirected() {
         givenRootPath("/api");
         givenNonAppRootPath("/q");
-        givenNonAppRootRedirectedIsEnabled();
-        whenUpdateProperties();
-        thenNonAppEndpointsShouldBeRedirected("/api");
     }
 
     private void givenNonAppRootPath(String path) {
@@ -74,28 +68,8 @@ public class VerifyNonAppEndpointsIT {
         app.withProperty("quarkus.http.root-path", path);
     }
 
-    private void givenNonAppRootRedirectedIsEnabled() {
-        givenNonAppRootRedirectedIs(true);
-    }
-
-    private void givenNonAppRootRedirectedIsDisabled() {
-        givenNonAppRootRedirectedIs(false);
-    }
-
-    private void givenNonAppRootRedirectedIs(boolean flag) {
-        app.withProperty("quarkus.http.redirect-to-non-application-root-path", "" + flag);
-    }
-
     private void whenUpdateProperties() {
         app.restart();
-    }
-
-    private void thenNonAppEndpointsShouldBeRedirected(String basePath) {
-        for (String endpoint : NON_APP_ENDPOINTS) {
-            untilAsserted(() -> app.given().redirects().follow(false).get(basePath + endpoint).getStatusCode(),
-                    actual -> assertEquals(HttpStatus.SC_MOVED_PERMANENTLY, actual,
-                            "Endpoint '" + endpoint + "' is not redirected"));
-        }
     }
 
     private void thenNonAppEndpointsShouldBeOk(String basePath) {

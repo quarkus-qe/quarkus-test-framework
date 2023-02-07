@@ -1,11 +1,10 @@
 package io.quarkus.qe;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.eclipse.microprofile.reactive.messaging.Incoming;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import io.smallrye.reactive.messaging.annotations.Broadcast;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * A bean consuming data from the "prices" Kafka topic and applying some conversion.

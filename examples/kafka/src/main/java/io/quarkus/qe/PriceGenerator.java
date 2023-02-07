@@ -3,11 +3,10 @@ package io.quarkus.qe;
 import java.time.Duration;
 import java.util.Random;
 
-import javax.enterprise.context.ApplicationScoped;
-
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
 import io.smallrye.mutiny.Multi;
+import jakarta.enterprise.context.ApplicationScoped;
 
 /**
  * A bean producing random prices every 1 seconds.
