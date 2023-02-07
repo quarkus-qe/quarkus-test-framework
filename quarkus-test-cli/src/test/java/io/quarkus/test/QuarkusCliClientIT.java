@@ -1,5 +1,6 @@
 package io.quarkus.test;
 
+import static io.quarkus.test.bootstrap.QuarkusCliClient.CreateApplicationRequest.defaults;
 import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
 import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,6 +36,8 @@ public class QuarkusCliClientIT {
     static final String RESTEASY_REACTIVE_JACKSON_EXTENSION = "quarkus-resteasy-reactive-jackson";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";
     static final int CMD_DELAY_SEC = 3;
+    // TODO: we only specify stream till first Quarkus 3 final is released to avoid javax/jakarta conflicts
+    private static final String STREAM_VERSION = "3.0";
 
     @Inject
     static QuarkusCliClient cliClient;
@@ -51,7 +54,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldCreateApplicationOnJvm() {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app");
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream(STREAM_VERSION));
 
         // Should build on Jvm
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -67,7 +70,7 @@ public class QuarkusCliClientIT {
     @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support Linux containers yet")
     public void shouldBuildApplicationOnNativeUsingDocker() {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app");
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream(STREAM_VERSION));
 
         // Should build on Native
         QuarkusCliClient.Result result = app.buildOnNative();
@@ -78,8 +81,8 @@ public class QuarkusCliClientIT {
     public void shouldCreateApplicationWithCodeStarter() {
         // Create application with Resteasy Jackson
         QuarkusCliRestService app = cliClient.createApplication("app",
-                QuarkusCliClient.CreateApplicationRequest.defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION,
-                        RESTEASY_REACTIVE_JACKSON_EXTENSION));
+                defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION,
+                        RESTEASY_REACTIVE_JACKSON_EXTENSION).withStream(STREAM_VERSION));
 
         // Verify By default, it installs only "quarkus-resteasy"
         assertInstalledExtensions(app, RESTEASY_SPRING_WEB_EXTENSION, RESTEASY_REACTIVE_JACKSON_EXTENSION);
@@ -91,7 +94,7 @@ public class QuarkusCliClientIT {
 
     @Test
     public void shouldCreateApplicationUsingArtifactId() {
-        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app");
+        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app", defaults().withStream(STREAM_VERSION));
         assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
 
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -101,7 +104,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldAddAndRemoveExtensions() throws InterruptedException {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app");
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream(STREAM_VERSION));
 
         // By default, it installs only "quarkus-resteasy-reactive"
         assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);

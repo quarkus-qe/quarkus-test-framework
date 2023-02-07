@@ -1,12 +1,13 @@
 package io.quarkus.qe.tcp;
 
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 import javax.jms.ConnectionFactory;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.Message;
 import javax.jms.Session;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 
 /**
  * A bean consuming prices from the JMS queue.
