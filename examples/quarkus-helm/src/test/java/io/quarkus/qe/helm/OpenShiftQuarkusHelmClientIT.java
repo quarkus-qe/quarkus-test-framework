@@ -1,6 +1,6 @@
 package io.quarkus.qe.helm;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import io.quarkus.test.bootstrap.QuarkusHelmClient;
 import io.quarkus.test.scenarios.OpenShiftScenario;

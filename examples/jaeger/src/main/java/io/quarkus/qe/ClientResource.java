@@ -1,10 +1,11 @@
 package io.quarkus.qe;
 
-import io.opentelemetry.api.trace.Span;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+
+import io.opentelemetry.api.trace.Span;
 
 @Path("/client")
 public class ClientResource {

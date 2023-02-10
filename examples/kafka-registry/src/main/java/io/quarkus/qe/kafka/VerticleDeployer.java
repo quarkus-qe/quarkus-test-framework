@@ -1,14 +1,15 @@
 package io.quarkus.qe.kafka;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.inject.Instance;
+import jakarta.inject.Inject;
+
 import io.quarkus.qe.kafka.config.VertxKProducerConfig;
 import io.quarkus.qe.kafka.producers.StockPriceProducer;
 import io.quarkus.runtime.StartupEvent;
 import io.smallrye.mutiny.vertx.core.AbstractVerticle;
 import io.vertx.mutiny.core.Vertx;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.event.Observes;
-import jakarta.enterprise.inject.Instance;
-import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class VerticleDeployer {

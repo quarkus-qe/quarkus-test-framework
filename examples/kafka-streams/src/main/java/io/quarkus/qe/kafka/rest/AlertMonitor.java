@@ -1,15 +1,16 @@
 package io.quarkus.qe.kafka.rest;
 
-import org.eclipse.microprofile.reactive.messaging.Channel;
-import org.jboss.resteasy.annotations.SseElementType;
-import org.reactivestreams.Publisher;
-
-import io.quarkus.qe.kafka.streams.WindowedLoginDeniedStream;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.jboss.resteasy.annotations.SseElementType;
+import org.reactivestreams.Publisher;
+
+import io.quarkus.qe.kafka.streams.WindowedLoginDeniedStream;
 
 @Path("/monitor")
 public class AlertMonitor {

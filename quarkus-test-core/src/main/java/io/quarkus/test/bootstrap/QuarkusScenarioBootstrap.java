@@ -10,7 +10,7 @@ import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;

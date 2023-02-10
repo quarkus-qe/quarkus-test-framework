@@ -5,6 +5,9 @@ import static jakarta.ws.rs.core.Response.Status.UNAUTHORIZED;
 
 import java.time.Duration;
 
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Produces;
+
 import org.apache.kafka.common.serialization.Serdes;
 import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.streams.StreamsBuilder;
@@ -21,8 +24,6 @@ import io.quarkus.kafka.client.serialization.JsonbSerde;
 import io.quarkus.qe.kafka.model.LoginAggregation;
 import io.quarkus.qe.kafka.model.LoginAttempt;
 import io.smallrye.reactive.messaging.annotations.Broadcast;
-import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.enterprise.inject.Produces;
 
 @ApplicationScoped
 public class WindowedLoginDeniedStream {

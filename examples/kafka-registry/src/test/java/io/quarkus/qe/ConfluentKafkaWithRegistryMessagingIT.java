@@ -5,6 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.WebTarget;
+import jakarta.ws.rs.sse.SseEventSource;
+
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.KafkaService;
@@ -14,10 +19,6 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.KafkaVendor;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.client.WebTarget;
-import jakarta.ws.rs.sse.SseEventSource;
 
 @QuarkusScenario
 public class ConfluentKafkaWithRegistryMessagingIT {

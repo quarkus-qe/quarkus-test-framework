@@ -1,14 +1,15 @@
 package io.quarkus.qe;
 
-import org.eclipse.microprofile.jwt.JsonWebToken;
-
-import io.quarkus.security.identity.SecurityIdentity;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+
+import org.eclipse.microprofile.jwt.JsonWebToken;
+
+import io.quarkus.security.identity.SecurityIdentity;
 
 @Path("/admin")
 @RolesAllowed("test-admin-role")
