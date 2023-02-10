@@ -1,8 +1,5 @@
 package io.quarkus.qe.books;
 
-import org.infinispan.client.hotrod.RemoteCache;
-
-import io.quarkus.infinispan.client.Remote;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -12,6 +9,10 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+
+import org.infinispan.client.hotrod.RemoteCache;
+
+import io.quarkus.infinispan.client.Remote;
 
 @Path("/book")
 public class BookResource {

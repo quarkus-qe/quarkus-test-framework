@@ -9,10 +9,11 @@ import javax.jms.ConnectionFactory;
 import javax.jms.JMSContext;
 import javax.jms.Session;
 
-import io.quarkus.runtime.ShutdownEvent;
-import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
+
+import io.quarkus.runtime.ShutdownEvent;
+import io.quarkus.runtime.StartupEvent;
 
 /**
  * A bean producing random prices every 5 seconds and sending them to the prices JMS queue.

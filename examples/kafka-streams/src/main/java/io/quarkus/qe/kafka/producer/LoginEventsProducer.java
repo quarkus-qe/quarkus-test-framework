@@ -5,6 +5,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Random;
 
+import jakarta.enterprise.context.ApplicationScoped;
+
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.reactive.messaging.Outgoing;
 
@@ -13,7 +15,6 @@ import io.quarkus.qe.kafka.streams.WindowedLoginDeniedStream;
 import io.smallrye.mutiny.Multi;
 import io.smallrye.reactive.messaging.kafka.Record;
 import io.vertx.core.json.Json;
-import jakarta.enterprise.context.ApplicationScoped;
 
 @ApplicationScoped
 public class LoginEventsProducer {

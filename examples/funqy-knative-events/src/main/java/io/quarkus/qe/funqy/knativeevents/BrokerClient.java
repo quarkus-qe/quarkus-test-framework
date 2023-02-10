@@ -2,11 +2,6 @@ package io.quarkus.qe.funqy.knativeevents;
 
 import java.util.UUID;
 
-import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
-import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
-import org.eclipse.microprofile.rest.client.ext.ClientHeadersFactory;
-import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
-
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.HeaderParam;
@@ -15,6 +10,11 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MultivaluedHashMap;
 import jakarta.ws.rs.core.MultivaluedMap;
+
+import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
+import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
+import org.eclipse.microprofile.rest.client.ext.ClientHeadersFactory;
+import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 /**
  * BrokerClient enables sending of events to the broker.

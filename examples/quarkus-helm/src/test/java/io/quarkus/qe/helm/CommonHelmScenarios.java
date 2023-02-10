@@ -11,7 +11,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;

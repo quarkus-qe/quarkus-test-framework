@@ -2,10 +2,10 @@ package io.quarkus.qe.books;
 
 import java.util.Objects;
 
+import jakarta.validation.constraints.NotBlank;
+
 import org.infinispan.protostream.annotations.ProtoFactory;
 import org.infinispan.protostream.annotations.ProtoField;
-
-import jakarta.validation.constraints.NotBlank;
 
 public class Book {
 

@@ -2,7 +2,6 @@ package io.quarkus.qe.database.mysql;
 
 import java.util.List;
 
-import io.quarkus.panache.common.Sort;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.ClientErrorException;
@@ -17,6 +16,8 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+
+import io.quarkus.panache.common.Sort;
 
 @Path("/book")
 @Produces(MediaType.APPLICATION_JSON)
