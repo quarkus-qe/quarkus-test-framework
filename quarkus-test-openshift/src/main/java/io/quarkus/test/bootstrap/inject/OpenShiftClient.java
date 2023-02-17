@@ -870,7 +870,7 @@ public final class OpenShiftClient {
     }
 
     private List<HasMetadata> loadYaml(String template) {
-        return client.load(new ByteArrayInputStream(template.getBytes())).get();
+        return client.load(new ByteArrayInputStream(template.getBytes())).items();
     }
 
     private String generateRandomProjectName() {
