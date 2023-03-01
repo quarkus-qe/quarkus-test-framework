@@ -1,5 +1,10 @@
 package io.quarkus.qe.database.postgresql;
 
+import static io.quarkus.qe.database.postgresql.PostgresqlDatabaseIT.POSTGRES_IMG;
+
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+
 import io.quarkus.test.bootstrap.PostgresqlService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
@@ -7,10 +12,9 @@ import io.quarkus.test.services.Container;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class PostgresqlDatabaseIT extends AbstractSqlDatabaseIT {
+public class DuplicatedPostgresqlDatabaseIT {
 
     private static final int POSTGRESQL_PORT = 5432;
-    public static final String POSTGRES_IMG = "docker.io/postgres:13.8";
 
     @Container(image = POSTGRES_IMG, port = POSTGRESQL_PORT, expectedLog = "is ready")
     static PostgresqlService database = new PostgresqlService();
@@ -21,8 +25,11 @@ public class PostgresqlDatabaseIT extends AbstractSqlDatabaseIT {
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
-    @Override
-    protected RestService getApp() {
-        return app;
+    //motivation: https://github.com/quarkus-qe/quarkus-test-framework/issues/641
+    @Test
+    public void verifyGlobalPropertyContainerDeleteImageOnStop() {
+        // If test starts means that the run condition between two postgresql scenarios with the same version and
+        // global property 'ts.database.container.delete.image.on.stop=true' has been fixed
+        Assertions.assertTrue(true);
     }
 }

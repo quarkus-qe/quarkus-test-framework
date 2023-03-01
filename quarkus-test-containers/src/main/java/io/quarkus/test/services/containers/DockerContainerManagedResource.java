@@ -52,6 +52,12 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         }
 
         innerContainer = initContainer();
+
+        if (isDockerImageDeletedOnStop()) {
+            String image = innerContainer.getImage().get();
+            DockerUtils.pullImageById(image);
+        }
+
         innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
         innerContainer.withEnv(resolveProperties());
@@ -60,6 +66,10 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         loggingHandler.startWatching();
 
         doStart();
+    }
+
+    private boolean isDockerImageDeletedOnStop() {
+        return context.getOwner().getConfiguration().isTrue(DELETE_IMAGE_ON_STOP_PROPERTY);
     }
 
     protected abstract GenericContainer<?> initContainer();
@@ -77,7 +87,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             innerContainer = null;
         }
 
-        if (context.getOwner().getConfiguration().isTrue(DELETE_IMAGE_ON_STOP_PROPERTY)) {
+        if (isDockerImageDeletedOnStop()) {
             DockerUtils.removeImageById(image);
         }
     }
