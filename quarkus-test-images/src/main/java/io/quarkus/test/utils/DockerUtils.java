@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
 
 import com.github.dockerjava.api.DockerClient;
+import com.github.dockerjava.api.command.PullImageResultCallback;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -29,6 +31,7 @@ public final class DockerUtils {
     private static final String CONTAINER_PREFIX = "ts.global.docker-container-prefix";
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
+    private static final Integer DOCKER_PULL_TIMEOUT_SEC = 120;
     private static final String DOCKER = "docker";
     private static final Object LOCK = new Object();
     private static final Random RANDOM = new Random();
@@ -99,6 +102,17 @@ public final class DockerUtils {
      */
     public static void removeImageById(String imageId) {
         dockerClient().removeImageCmd(imageId).withForce(true).exec();
+    }
+
+    public static void pullImageById(String imageId) {
+        try {
+            dockerClient()
+                    .pullImageCmd(imageId)
+                    .exec(new PullImageResultCallback()).awaitCompletion(DOCKER_PULL_TIMEOUT_SEC, TimeUnit.SECONDS);
+
+        } catch (InterruptedException e) {
+            fail("Failed to pull image " + imageId + " . Caused by " + e.getMessage());
+        }
     }
 
     /**
