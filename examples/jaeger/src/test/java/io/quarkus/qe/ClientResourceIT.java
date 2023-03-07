@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.JaegerService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.JaegerContainer;
 import io.quarkus.test.services.QuarkusApplication;
 
@@ -22,6 +23,7 @@ public class ClientResourceIT {
 
     private static final String SERVICE_NAME = "test-traced-service";
     private static final String CLIENT_ENDPOINT = "/client";
+    private static final String OPERATION = "GET " + CLIENT_ENDPOINT;
 
     @JaegerContainer()
     static JaegerService jaeger = new JaegerService();
@@ -31,6 +33,7 @@ public class ClientResourceIT {
             .withProperty("quarkus.opentelemetry.tracer.exporter.otlp.endpoint", jaeger::getCollectorUrl);
 
     @Test
+    @DisabledOnQuarkusVersion(version = "3.0.0.Alpha4", reason = "https://github.com/quarkusio/quarkus/pull/31356") //todo remove after 3.0.0.Alpha5 release
     public void shouldUpdateJaegerAsTracer() {
         app.given()
                 .get(CLIENT_ENDPOINT)
@@ -40,13 +43,13 @@ public class ClientResourceIT {
 
         await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> given()
                 .queryParam("service", SERVICE_NAME)
-                .queryParam("operation", CLIENT_ENDPOINT)
+                .queryParam("operation", OPERATION)
                 .get(jaeger.getTraceUrl())
                 .then()
                 .statusCode(HttpStatus.SC_OK)
                 .body("data", hasSize(1))
                 .body("data[0].spans", hasSize(1))
-                .body("data[0].spans.operationName", hasItems(CLIENT_ENDPOINT))
+                .body("data[0].spans.operationName", hasItems(OPERATION))
                 .body("data[0].spans.logs.fields.value.flatten()", hasItems("ClientResource called")));
     }
 }
