@@ -14,10 +14,13 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.JaegerService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 import io.quarkus.test.services.JaegerContainer;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
+//TODO https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.0#opentelemetry
+@DisabledOnQuarkusSnapshot(reason = "HTTP span names are now \"{http.method} {http.route}\" instead of just \"{http.route}\"")
 public class ClientResourceIT {
 
     private static final String SERVICE_NAME = "test-traced-service";
