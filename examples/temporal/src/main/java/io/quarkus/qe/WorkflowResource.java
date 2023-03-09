@@ -4,13 +4,13 @@ import static io.quarkus.qe.producers.TemporalCommons.HELLO_WORLD_TASK_QUEUE;
 import static io.quarkus.qe.producers.TemporalWorker.WORKER_SUFFIX;
 import static io.quarkus.qe.producers.TemporalWorkflow.WORKFLOW_SUFFIX;
 
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
-import javax.inject.Named;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
+import jakarta.enterprise.event.Observes;
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
 
 import org.jboss.resteasy.reactive.RestPath;
 

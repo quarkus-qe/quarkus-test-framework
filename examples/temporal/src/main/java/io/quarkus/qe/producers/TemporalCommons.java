@@ -2,7 +2,7 @@ package io.quarkus.qe.producers;
 
 import java.util.Objects;
 
-import javax.inject.Inject;
+import jakarta.inject.Inject;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
