@@ -14,7 +14,6 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.JaegerService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.JaegerContainer;
 import io.quarkus.test.services.QuarkusApplication;
 
@@ -33,7 +32,6 @@ public class ClientResourceIT {
             .withProperty("quarkus.opentelemetry.tracer.exporter.otlp.endpoint", jaeger::getCollectorUrl);
 
     @Test
-    @DisabledOnQuarkusVersion(version = "3.0.0.Alpha4", reason = "https://github.com/quarkusio/quarkus/pull/31356") //todo remove after 3.0.0.Alpha5 release
     public void shouldUpdateJaegerAsTracer() {
         app.given()
                 .get(CLIENT_ENDPOINT)
