@@ -403,6 +403,7 @@
                 <module>examples/database-oracle</module>
                 <module>examples/external-applications</module>
                 <module>examples/funqy-knative-events</module>
+                <module>examples/picocli</module>
             </modules>
         </profile>
         <profile>
