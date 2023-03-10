@@ -1,5 +1,7 @@
 package io.quarkus.test.services;
 
+import static io.quarkus.test.services.containers.DockerContainersNetwork.NetworkType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -11,6 +13,7 @@ import io.quarkus.test.services.containers.ContainerManagedResourceBuilder;
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface Container {
+
     String image();
 
     int port();
@@ -18,6 +21,10 @@ public @interface Container {
     String expectedLog() default "";
 
     String[] command() default {};
+
+    String[] networkAlias() default {};
+
+    NetworkType networkType() default NetworkType.NEW;
 
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
 }

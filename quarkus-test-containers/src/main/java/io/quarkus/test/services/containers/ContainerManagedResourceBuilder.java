@@ -20,6 +20,8 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String expectedLog;
     private String[] command;
     private Integer port;
+    private String[] networkAlias;
+    private DockerContainersNetwork.NetworkType networkType;
 
     protected String getImage() {
         return image;
@@ -41,6 +43,14 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return context;
     }
 
+    public String[] getNetworkAlias() {
+        return networkAlias;
+    }
+
+    public DockerContainersNetwork.NetworkType getNetworkType() {
+        return networkType;
+    }
+
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
@@ -48,6 +58,8 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.command = metadata.command();
         this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.port = metadata.port();
+        this.networkAlias = metadata.networkAlias();
+        this.networkType = metadata.networkType();
     }
 
     @Override
