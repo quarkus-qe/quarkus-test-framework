@@ -21,17 +21,18 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
 
     protected List<String> prepareCommand(List<String> systemProperties) {
         List<String> command = new LinkedList<>();
+        // extract 'quarkus.args' and remove the args from system properties
         String[] cmdArgs = extractQuarkusArgs(systemProperties);
         if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
             command.add(JAVA);
             command.addAll(systemProperties);
             command.add("-jar");
             command.add(model.getArtifact().toAbsolutePath().toString());
-            command.addAll(Arrays.asList(cmdArgs));
         } else {
             command.add(model.getArtifact().toAbsolutePath().toString());
             command.addAll(systemProperties);
         }
+        command.addAll(Arrays.asList(cmdArgs));
 
         return command;
     }
