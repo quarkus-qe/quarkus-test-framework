@@ -38,7 +38,7 @@
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <surefire-plugin.version>2.22.2</surefire-plugin.version>
+        <surefire-plugin.version>3.0.0</surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.8</jacoco-maven-plugin.version>
         <jaeger.version>1.8.1</jaeger.version>
         <prometheus.simpleclient_pushgateway.version>0.16.0</prometheus.simpleclient_pushgateway.version>
