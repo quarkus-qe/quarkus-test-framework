@@ -47,6 +47,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
 
     private void exposeServices() {
         client.expose(model.getContext().getOwner(), HTTP_PORT_DEFAULT);
+        client.expose(model.getContext().getOwner().getName() + "-management", model.getManagementPort());
     }
 
     private void startBuild() {

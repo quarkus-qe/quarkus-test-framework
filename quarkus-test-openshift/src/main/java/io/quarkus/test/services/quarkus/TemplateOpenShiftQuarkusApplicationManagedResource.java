@@ -69,7 +69,8 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
         }
 
         content = content.replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
-                .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort());
+                .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort())
+                .replace("${MANAGEMENT_PORT}", "" + model.getManagementPort());
 
         return replaceDeploymentContent(content);
     }

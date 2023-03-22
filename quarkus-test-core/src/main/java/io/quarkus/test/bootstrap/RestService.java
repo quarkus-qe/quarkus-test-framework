@@ -29,6 +29,17 @@ public class RestService extends BaseService<RestService> {
                 .port(host.getPort());
     }
 
+    public RequestSpecification management() {
+        var host = getURI(Protocol.MANAGEMENT);
+        if (host.getScheme().equals(Protocol.MANAGEMENT.getValue())) {
+            throw new IllegalArgumentException("Can not find URL to the management interface");
+        }
+        return RestAssured.given()
+                .baseUri(host.getRestAssuredStyleUri())
+                .basePath(BASE_PATH)
+                .port(host.getPort());
+    }
+
     public RequestSpecification relaxedHttps() {
         return this.https().relaxedHTTPSValidation();
     }

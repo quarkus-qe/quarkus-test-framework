@@ -4,6 +4,7 @@ public enum Protocol {
     HTTP("http", 8080),
     HTTPS("https", 8443),
     GRPC("grpc", 9000),
+    MANAGEMENT("management", 9000), //can be either http or https
     NONE(null, -1);
 
     private String value;

@@ -86,6 +86,11 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
             fail("SSL is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.GRPC) {
             fail("gRPC is not supported for OpenShift tests yet");
+        } else if (protocol == Protocol.MANAGEMENT && model.useSeparateManagementInterface()) {
+            if (model.useManagementSsl()) {
+                fail("SSL is not supported for OpenShift tests yet");
+            }
+            return client.url(context.getOwner().getName() + "-management").withPort(EXTERNAL_PORT);
         }
         if (this.uri == null) {
             final int port = isServerless ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
