@@ -3,14 +3,12 @@ package io.quarkus.qe.database.oracle;
 import io.quarkus.test.bootstrap.DefaultService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.Container;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 /**
  * This test verifies that resources in test can be used in DevMode.
  */
-@DisabledOnNative
 @QuarkusScenario
 public class DevModeOracleDatabaseIT extends AbstractSqlDatabaseIT {
 
