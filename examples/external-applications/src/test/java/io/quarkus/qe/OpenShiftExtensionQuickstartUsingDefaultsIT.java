@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
 import io.quarkus.test.scenarios.OpenShiftScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
+@DisabledOnQuarkusSnapshot(reason = "'io.quarkus:quarkus-camel-bom:pom:999-SNAPSHOT' is not available in the Maven repositories")
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
 public class OpenShiftExtensionQuickstartUsingDefaultsIT {
 
