@@ -404,6 +404,7 @@
                 <module>examples/external-applications</module>
                 <module>examples/funqy-knative-events</module>
                 <module>examples/picocli</module>
+                <module>examples/management</module>
             </modules>
         </profile>
         <profile>

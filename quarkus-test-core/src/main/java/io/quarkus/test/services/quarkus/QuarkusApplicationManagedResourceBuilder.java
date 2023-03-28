@@ -48,6 +48,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
     private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
+    private static final int DEFAULT_MANAGEMENT_PORT = 9000;
 
     private Class<?>[] appClasses;
     private List<AppDependency> forcedDependencies = Collections.emptyList();
@@ -245,4 +246,29 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 && !quarkusVersion.startsWith("1.");
     }
 
+    public boolean useSeparateManagementInterface() {
+        return getContext().getOwner().getProperty("quarkus.management.enabled")
+                .map("true"::equals)
+                .orElse(false);
+    }
+
+    public int getManagementPort() {
+        if (useSeparateManagementInterface()) {
+            return getPort("quarkus.management.port").orElse(DEFAULT_MANAGEMENT_PORT);
+        }
+        return getHttpPort();
+    }
+
+    public boolean useManagementSsl() {
+        return getContext().getOwner().getProperty("quarkus.management.ssl.certificate.key-store-file").isPresent();
+    }
+
+    public int getHttpPort() {
+        return getPort(QUARKUS_HTTP_PORT_PROPERTY).orElse(HTTP_PORT_DEFAULT);
+    }
+
+    private Optional<Integer> getPort(String property) {
+        return getContext().getOwner().getProperty(property)
+                .map(Integer::parseInt);
+    }
 }

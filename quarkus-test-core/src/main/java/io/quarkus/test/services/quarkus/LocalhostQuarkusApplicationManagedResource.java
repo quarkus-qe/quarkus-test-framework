@@ -103,7 +103,11 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             default:
                 port = assignedHttpPort;
         }
-
+        if (protocol == Protocol.MANAGEMENT && model.useSeparateManagementInterface()) {
+            return createURI(model.useManagementSsl() ? "https" : "http",
+                    "localhost",
+                    model.getManagementPort());
+        }
         return createURI(protocol.getValue(), "localhost", port);
     }
 
@@ -186,13 +190,5 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         }
 
         return value;
-    }
-
-    private void validateProtocol(Protocol protocol) {
-        if (protocol == Protocol.HTTPS && !model.isSslEnabled()) {
-            fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
-        } else if (protocol == Protocol.GRPC && !model.isGrpcEnabled()) {
-            fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
-        }
     }
 }

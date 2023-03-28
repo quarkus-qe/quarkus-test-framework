@@ -17,6 +17,21 @@ items:
       selector:
         app.kubernetes.io/name: "${SERVICE_NAME}"
       type: "ClusterIP"
+  - apiVersion: "v1"
+    kind: "Service"
+    metadata:
+      name: "${SERVICE_NAME}-management"
+      labels:
+        app.openshift.io/runtime: "quarkus"
+        app.kubernetes.io/name: "${SERVICE_NAME}"
+    spec:
+      ports:
+        - name: "http"
+          port: 9000
+          targetPort: ${MANAGEMENT_PORT}
+      selector:
+        app.kubernetes.io/name: "${SERVICE_NAME}"
+      type: "ClusterIP"
   - apiVersion: "image.openshift.io/v1"
     kind: "ImageStream"
     metadata:
@@ -95,4 +110,3 @@ items:
               kind: "ImageStreamTag"
               name: "${SERVICE_NAME}:0.0.1-SNAPSHOT"
           type: "ImageChange"
-      

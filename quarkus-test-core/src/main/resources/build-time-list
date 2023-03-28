@@ -48,6 +48,7 @@ quarkus.kafka.snappy.enabled
 quarkus.keycloak.devservices.enabled
 quarkus.kubernetes-config.secrets.enabled
 quarkus.kubernetes.
+quarkus.management.enabled
 quarkus.micrometer.binder.http-client.enabled
 quarkus.micrometer.binder.http-server.enabled
 quarkus.micrometer.binder.kafka.enabled
