@@ -19,8 +19,10 @@ import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 
+@DisabledOnQuarkusSnapshot(reason = "https://github.com/quarkusio/quarkus/issues/32219")
 @Tag("quarkus-cli")
 @QuarkusScenario
 @DisabledOnQuarkusVersion(version = "1\\..*", reason = "Quarkus CLI has been reworked in 2.x")
