@@ -22,12 +22,10 @@ import org.junit.jupiter.api.condition.OS;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
-@DisabledOnQuarkusSnapshot(reason = "https://github.com/quarkusio/quarkus/issues/32219")
 @Tag("quarkus-cli")
 @QuarkusScenario
 @DisabledOnQuarkusVersion(version = "1\\..*", reason = "Quarkus CLI has been reworked in 2.x")
