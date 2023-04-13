@@ -26,6 +26,7 @@ public final class MavenUtils {
     public static final String PACKAGE_GOAL = "package";
     public static final String INSTALL_GOAL = "install";
     public static final String MVN_REPOSITORY_LOCAL = "maven.repo.local";
+    public static final String ENSURE_QUARKUS_BUILD = "-Dquarkus.build.skip=false";
     public static final String SKIP_TESTS = "-DskipTests=true";
     public static final String SKIP_ITS = "-DskipITs=true";
     public static final String DISPLAY_ERRORS = "-e";

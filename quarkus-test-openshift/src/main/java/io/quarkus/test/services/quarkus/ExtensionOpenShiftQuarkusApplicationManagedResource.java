@@ -4,6 +4,7 @@ import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_J
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
 import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
 import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
+import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
 import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
 import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
 import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
@@ -109,7 +110,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         List<String> args = mvnCommand(model.getContext());
         args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
                 QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_EXPOSE, QUARKUS_PLUGIN_ROUTE_EXPOSE,
-                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE));
+                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD));
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());

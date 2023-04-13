@@ -1,6 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
+import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
 import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
 import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
 import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
@@ -69,7 +70,7 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
 
             // Create mutable jar
             installParentPomsIfNeeded();
-            MavenUtils.build(getContext(), Arrays.asList(SKIP_ITS, SKIP_TESTS, SKIP_CHECKSTYLE,
+            MavenUtils.build(getContext(), Arrays.asList(SKIP_ITS, SKIP_TESTS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD,
                     withProperty(QuarkusProperties.PACKAGE_TYPE_NAME, QuarkusProperties.MUTABLE_JAR)));
 
             // Move artifact to an isolated location
