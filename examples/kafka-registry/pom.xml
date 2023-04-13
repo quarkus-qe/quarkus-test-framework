@@ -13,6 +13,7 @@
         <confluent.kafka-avro-serializer.version>7.3.3</confluent.kafka-avro-serializer.version>
     </properties>
 
+
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
