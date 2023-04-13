@@ -38,8 +38,8 @@
             <type>pom</type>
         </dependency>
         <dependency>
-            <groupId>net.sourceforge.htmlunit</groupId>
-            <artifactId>htmlunit</artifactId>
+            <groupId>com.microsoft.playwright</groupId>
+            <artifactId>playwright</artifactId>
         </dependency>
         <dependency>
             <groupId>io.opentelemetry</groupId>

@@ -4,8 +4,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-
-import org.apache.commons.io.IOUtils;
+import java.util.Objects;
 
 import com.google.common.net.HostAndPort;
 import com.orbitz.consul.Consul;
@@ -21,9 +20,11 @@ public class ConsulService extends BaseService<ConsulService> {
     public void loadPropertiesFromFile(String key, String file) {
         KeyValueClient kvClient = consulClient().keyValueClient();
         try {
-            String properties = IOUtils.toString(
-                    ConsulService.class.getClassLoader().getResourceAsStream(file),
-                    StandardCharsets.UTF_8);
+            String properties;
+            try (var is = ConsulService.class.getClassLoader().getResourceAsStream(file)) {
+                Objects.requireNonNull(is, "Failed to find file " + file);
+                properties = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+            }
             kvClient.putValue(key, properties);
         } catch (IOException e) {
             fail("Failed to load properties. Caused by " + e.getMessage());

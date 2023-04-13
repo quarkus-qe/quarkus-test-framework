@@ -1,6 +1,7 @@
 package io.quarkus.test.services.knative.eventing;
 
 import static java.util.Objects.requireNonNull;
+import static org.apache.http.HttpStatus.SC_NOT_FOUND;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -9,7 +10,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.eclipse.jetty.http.HttpStatus;
 import org.hamcrest.Matcher;
 
 import io.fabric8.knative.client.KnativeClient;
@@ -289,7 +289,7 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
         }
 
         private ForwardResponseValidator<T> validate(Response response) {
-            if (response.statusCode() == HttpStatus.NOT_FOUND_404) {
+            if (response.statusCode() == SC_NOT_FOUND) {
                 // We need Funqy function that forward cloud events to the broker. Brokers are internal by design.
                 // We need a way to send events to the broker. We could expose another service, or use 'DomainMapping', but
                 // that's less efficient than using existing app. 'clusterEndpoint' is a Funqy function that we call directly.

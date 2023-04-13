@@ -7,8 +7,6 @@ import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import java.util.Arrays;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class InfinispanService extends BaseService<InfinispanService> {
 
     public static final String USERNAME_DEFAULT = "my_username";
@@ -63,7 +61,7 @@ public class InfinispanService extends BaseService<InfinispanService> {
         withProperty("USER", getUsername());
         withProperty("PASS", getPassword());
 
-        if (StringUtils.isNotEmpty(configFile)) {
+        if (configFile != null && !configFile.isEmpty()) {
             // legacy -> Infinispan previous to version 14
             withProperty("CONFIG_PATH", RESOURCE_PREFIX + SLASH + configFile);
             // Infinispan 14+ configuration setup

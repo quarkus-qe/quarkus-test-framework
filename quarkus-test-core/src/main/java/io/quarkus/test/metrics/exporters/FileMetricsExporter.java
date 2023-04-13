@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.text.TextStringBuilder;
-
 import io.quarkus.test.configuration.PropertyLookup;
 
 public class FileMetricsExporter implements MetricsExporter {
@@ -34,11 +32,13 @@ public class FileMetricsExporter implements MetricsExporter {
         allMetrics.putAll(labels);
         allMetrics.putAll(metrics);
 
-        TextStringBuilder sw = new TextStringBuilder();
+        StringBuilder sb = new StringBuilder();
         allMetrics.keySet().stream()
                 .sorted()
-                .forEach(metricId -> sw.appendln(String.format("%s=%s", metricId, allMetrics.get(metricId))));
+                .forEach(metricId -> sb
+                        .append(String.format("%s=%s", metricId, allMetrics.get(metricId)))
+                        .append(System.lineSeparator()));
 
-        Files.write(Path.of(METRICS_EXPORT_FILE_OUTPUT.get()), sw.toString().getBytes());
+        Files.write(Path.of(METRICS_EXPORT_FILE_OUTPUT.get()), sb.toString().getBytes());
     }
 }
