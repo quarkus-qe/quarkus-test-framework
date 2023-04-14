@@ -62,6 +62,18 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         cloneProjectToServiceAppFolder();
         copyBuildPropertiesIntoAppFolder();
         deployProjectUsingMavenCommand();
+        exposeManagementRoute();
+    }
+
+    /*
+     * management routes are not exposed by extension,
+     * see: https://github.com/quarkusio/quarkus/issues/32269
+     */
+    private void exposeManagementRoute() {
+        if (model.useSeparateManagementInterface()) {
+            String app = model.getContext().getOwner().getName();
+            client.expose(app, app + "-management", model.getManagementPort());
+        }
     }
 
     @Override
@@ -197,11 +209,18 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         if (isKnativeDeployment()) {
             property = QUARKUS_KNATIVE_ENV_VARS;
         }
-
         for (Entry<String, String> envVar : envVars.entrySet()) {
-            String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
-            args.add(withProperty(property + envVarKey, envVar.getValue()));
+            if (requiredByExtension(envVar.getKey())) {
+                args.add(withProperty(envVar.getKey(), envVar.getValue()));
+            } else {
+                String envVarKey = envVar.getKey().replaceAll(Pattern.quote("."), "-");
+                args.add(withProperty(property + envVarKey, envVar.getValue()));
+            }
         }
+    }
+
+    private static boolean requiredByExtension(String parameter) {
+        return parameter.startsWith("quarkus.management.");
     }
 
     private boolean isKnativeDeployment() {
@@ -211,5 +230,4 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     protected void cloneProjectToServiceAppFolder() {
         FileUtils.copyCurrentDirectoryTo(model.getContext().getServiceFolder());
     }
-
 }

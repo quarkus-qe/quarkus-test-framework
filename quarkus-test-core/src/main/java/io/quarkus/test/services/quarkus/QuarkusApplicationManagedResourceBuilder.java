@@ -38,6 +38,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final String QUARKUS_GRPC_SERVER_PORT_PROPERTY = "quarkus.grpc.server.port";
     public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     public static final int HTTP_PORT_DEFAULT = 8080;
+    public static final int MANAGEMENT_PORT_DEFAULT = 9000;
 
     protected static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
 
@@ -48,7 +49,6 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
     private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
-    private static final int DEFAULT_MANAGEMENT_PORT = 9000;
 
     private Class<?>[] appClasses;
     private List<AppDependency> forcedDependencies = Collections.emptyList();
@@ -254,7 +254,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     public int getManagementPort() {
         if (useSeparateManagementInterface()) {
-            return getPort("quarkus.management.port").orElse(DEFAULT_MANAGEMENT_PORT);
+            return getPort("quarkus.management.port").orElse(MANAGEMENT_PORT_DEFAULT);
         }
         return getHttpPort();
     }

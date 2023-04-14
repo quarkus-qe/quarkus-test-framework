@@ -184,6 +184,7 @@ public final class OpenShiftClient {
      */
     public void applyServicePropertiesUsingTemplate(Service service, String file, UnaryOperator<String> update,
             Map<String, String> extraTemplateProperties, Path target) {
+        Log.info("Enriching template %s to create a deployment file %s ", file, target);
         String content = FileUtils.loadFile(file);
         content = enrichTemplate(service, update.apply(content), extraTemplateProperties);
         apply(FileUtils.copyContentTo(content, target));
@@ -244,6 +245,31 @@ public final class OpenShiftClient {
 
         try {
             new Command(OC, "expose", "svc/" + serviceName, "--port=" + port, "-n", currentNamespace,
+                    "-l" + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
+        } catch (Exception e) {
+            fail("Service failed to be exposed. Caused by " + e.getMessage());
+        }
+    }
+
+    /**
+     * Expose the service and port on a named route.
+     *
+     * @param serviceName name of the service to expose
+     * @param routeName name of route to access the service
+     * @param port port on the service (there can be several of them)
+     */
+    public void expose(String serviceName, String routeName, int port) {
+        Route route = client.routes().withName(routeName).get();
+        if (route != null) {
+            // already exposed.
+            return;
+        }
+
+        try {
+            new Command(OC, "expose", "svc/" + serviceName,
+                    "--port=" + port,
+                    "--name=" + routeName,
+                    "-n", currentNamespace,
                     "-l" + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
