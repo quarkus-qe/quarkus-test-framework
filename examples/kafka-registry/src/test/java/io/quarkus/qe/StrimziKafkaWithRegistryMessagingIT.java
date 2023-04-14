@@ -17,10 +17,12 @@ import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
+@DisabledOnQuarkusVersion(version = "(3\\.[0]\\..*)", reason = "Breaking change in Quarkus 3.1 - Apicurio Rest Client is not compatible with Apicurio Registry 2.2.5.Final")
 @QuarkusScenario
 public class StrimziKafkaWithRegistryMessagingIT {
 
