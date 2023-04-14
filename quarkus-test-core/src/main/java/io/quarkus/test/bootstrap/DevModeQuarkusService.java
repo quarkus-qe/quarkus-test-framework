@@ -1,43 +1,105 @@
 package io.quarkus.test.bootstrap;
 
-import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static io.quarkus.test.utils.AwaitilityUtils.untilAsserted;
+import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings.usingTimeout;
+import static java.time.Duration.ofSeconds;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
 
 import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.Assertions;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
-import com.gargoylesoftware.htmlunit.NicelyResynchronizingAjaxController;
-import com.gargoylesoftware.htmlunit.SilentCssErrorHandler;
-import com.gargoylesoftware.htmlunit.WebClient;
-import com.gargoylesoftware.htmlunit.html.HtmlElement;
-import com.gargoylesoftware.htmlunit.html.HtmlPage;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
 
 public class DevModeQuarkusService extends RestService {
-    public static final String DEV_UI_PATH = "/q/dev";
 
-    private static final int JAVASCRIPT_WAIT_TIMEOUT_MILLIS = 10000;
-    private static final String XPATH_BTN_CLASS = "contains(@class, 'btn')";
-    private static final String XPATH_BTN_ON_OFF_CLASS = "contains(@class, 'btnPowerOnOffButton')";
-    private static final String CONTINUOUS_TESTING_BTN = "//a[" + XPATH_BTN_CLASS + " and " + XPATH_BTN_ON_OFF_CLASS + "]";
-    private static final String CONTINUOUS_TESTING_LABEL_DISABLED = "Tests not running";
+    private static final int WAITING_TIMEOUT_SEC = 15;
+    private static final String DEV_UI_CONTINUOUS_TESTING_PATH = "/q/dev-ui/continuous-testing";
+    private static final String START_CONTINUOUS_TESTING_BTN_CSS_ID = "#start-cnt-testing-btn";
+    private static final String NO_TESTS_FOUND = "No tests found";
+    private static final String TESTS_PAUSED = "Tests paused";
+    private static final String TESTS_ARE_PASSING = "tests are passing";
+    private static final String TESTS_IS_PASSING = "test is passing";
+    private static final String RUNNING_TESTS_FOR_1ST_TIME = "Running tests for the first time";
+    /**
+     * Following hooks are currently logged by {@link io.quarkus.deployment.dev.testing.TestConsoleHandler}.
+     * They should only be present if {@link #RUNNING_TESTS_FOR_1ST_TIME} is also logged, but testing for all of them
+     * make detection of the state of the continuous testing less error-prone.
+     */
+    private static final Set<String> CONTINUOUS_TESTING_ENABLED_HOOKS = Set.of("Starting tests",
+            "Starting test run", NO_TESTS_FOUND, TESTS_IS_PASSING, TESTS_ARE_PASSING,
+            "All tests are now passing");
 
+    /**
+     * Enables continuous testing if and only if it wasn't enabled already (no matter what the current state is)
+     * and there are no tests to run or all tests are passing. Logic required for second re-enabling of continuous
+     * testing is more robust, and we don't really need it. Same goes for scenario when testing is enabled and tests fail.
+     *
+     * @return DevModeQuarkusService
+     */
     public DevModeQuarkusService enableContinuousTesting() {
-        HtmlPage webDevUi = webDevUiPage();
 
-        // If the "enable continuous testing" btn is not found, we assume it's already enabled it.
-        if (isContinuousTestingBtnDisabled(webDevUi)) {
-            clickOnElement(getContinuousTestingBtn(webDevUi));
+        // check if continuous testing is disabled
+        if (testsArePaused()) {
+
+            // go to 'continuous-testing' page and click on 'Start' button which enables continuous testing
+            try (Playwright playwright = Playwright.create()) {
+                try (Browser browser = playwright.chromium().launch()) {
+                    Page page = browser.newContext().newPage();
+                    page.navigate(getContinuousTestingPath());
+                    page.locator(START_CONTINUOUS_TESTING_BTN_CSS_ID).click();
+
+                    // wait till enabling of continuous testing is finished
+                    untilAsserted(() -> logs().assertContains(NO_TESTS_FOUND, TESTS_IS_PASSING, TESTS_ARE_PASSING),
+                            usingTimeout(ofSeconds(WAITING_TIMEOUT_SEC)));
+                }
+            }
         }
 
         return this;
+    }
+
+    private String getContinuousTestingPath() {
+        return getURI(Protocol.HTTP).withPath(DEV_UI_CONTINUOUS_TESTING_PATH).toString();
+    }
+
+    private boolean testsArePaused() {
+        boolean testsArePaused = false;
+        for (String entry : getLogs()) {
+            if (entry.contains(TESTS_PAUSED)) {
+                testsArePaused = true;
+                // we intentionally continue looking as we need to be sure testing wasn't enabled in past
+                continue;
+            }
+
+            if (entry.contains(RUNNING_TESTS_FOR_1ST_TIME)) {
+                // continuous testing is already enabled
+                return false;
+            }
+
+            if (CONTINUOUS_TESTING_ENABLED_HOOKS.stream().anyMatch(entry::contains)) {
+                throw new IllegalStateException(String.format(
+                        "Implementation of continuous testing in Quarkus application has changed as we detected "
+                                + "'%s' log message, but message '%s' wasn't logged",
+                        entry, RUNNING_TESTS_FOR_1ST_TIME));
+            }
+        }
+
+        if (testsArePaused) {
+            // continuous testing disabled
+            return true;
+        }
+
+        // we only get here if implementation has changed (e.g. hooks are different now),
+        // or there is a bug in continuous testing
+        throw new IllegalStateException("State of continuous testing couldn't be recognized");
     }
 
     public void modifyFile(String file, Function<String, String> modifier) {
@@ -59,81 +121,12 @@ public class DevModeQuarkusService extends RestService {
             FileUtils.deleteQuietly(targetPath);
 
             FileUtils.copyFile(sourcePath.toFile(), targetPath);
-            targetPath.setLastModified(System.currentTimeMillis());
+            if (!targetPath.setLastModified(System.currentTimeMillis())) {
+                throw new IllegalStateException("Failed to set the last-modified time of the file: " + targetPath.getPath());
+            }
         } catch (IOException e) {
             Assertions.fail("Error copying file. Caused by " + e.getMessage());
         }
     }
 
-    public HtmlElement getContinuousTestingBtn(HtmlPage page) {
-        List<HtmlElement> btn = getElementsByXPath(page, CONTINUOUS_TESTING_BTN);
-        assertEquals(1, btn.size(), "Should be only one button to enable continuous testing");
-        return btn.get(0);
-    }
-
-    public boolean isContinuousTestingBtnDisabled(HtmlPage page) {
-        HtmlElement btn = getContinuousTestingBtn(page);
-        return btn.getTextContent().trim().equals(CONTINUOUS_TESTING_LABEL_DISABLED);
-    }
-
-    public HtmlPage clickOnElement(HtmlElement elem) {
-        try {
-            return elem.click();
-        } catch (IOException e) {
-            Assertions.fail("Can't click on element. Caused by: " + e.getMessage());
-        }
-
-        return null;
-    }
-
-    public List<HtmlElement> getElementsByXPath(HtmlPage htmlPage, String path) {
-        return htmlPage.getByXPath(path).stream()
-                .filter(elem -> elem instanceof HtmlElement)
-                .map(elem -> (HtmlElement) elem)
-                .collect(toList());
-    }
-
-    public HtmlPage webDevUiPage() {
-        try {
-            HtmlPage page = (HtmlPage) webPage(DEV_UI_PATH).refresh();
-            waitUntilLoaded(page);
-            return page;
-        } catch (IOException e) {
-            return null;
-        }
-    }
-
-    public HtmlPage webPage(String path) {
-        try {
-            var uri = getURI(Protocol.HTTP).withPath(path);
-            return webClient().getPage(uri.toString());
-        } catch (IOException e) {
-            Assertions.fail("Page with path " + path + " does not exist");
-        }
-
-        return null;
-    }
-
-    public WebClient webClient() {
-        WebClient webClient = new WebClient(BrowserVersion.CHROME);
-        webClient.getCookieManager().clearCookies();
-        webClient.getCache().clear();
-        webClient.getCache().setMaxSize(0);
-        webClient.setCssErrorHandler(new SilentCssErrorHandler());
-        // re-synchronize asynchronous XHR.
-        webClient.setAjaxController(new NicelyResynchronizingAjaxController());
-        webClient.getOptions().setUseInsecureSSL(true);
-        webClient.getOptions().setDownloadImages(false);
-        webClient.getOptions().setGeolocationEnabled(false);
-        webClient.getOptions().setAppletEnabled(false);
-        webClient.getOptions().setCssEnabled(false);
-        webClient.getOptions().setThrowExceptionOnScriptError(false);
-        webClient.getOptions().setThrowExceptionOnFailingStatusCode(false);
-        webClient.getOptions().setRedirectEnabled(true);
-        return webClient;
-    }
-
-    private void waitUntilLoaded(HtmlPage page) {
-        page.getEnclosingWindow().getJobManager().waitForJobs(JAVASCRIPT_WAIT_TIMEOUT_MILLIS);
-    }
 }

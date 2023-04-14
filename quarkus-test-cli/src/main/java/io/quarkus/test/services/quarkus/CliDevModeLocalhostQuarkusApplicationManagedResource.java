@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -124,7 +122,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
 
     private int getOrAssignPortByProperty(String property) {
         return serviceContext.getOwner().getProperty(property)
-                .filter(StringUtils::isNotEmpty)
+                .filter(str -> !str.isEmpty())
                 .map(Integer::parseInt)
                 .orElseGet(SocketUtils::findAvailablePort);
     }

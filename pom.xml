@@ -59,6 +59,7 @@
         <checkstyle.version>10.9.2</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
+        <playwright.version>1.32.0</playwright.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -190,6 +191,12 @@
                 <groupId>io.prometheus</groupId>
                 <artifactId>simpleclient_pushgateway</artifactId>
                 <version>${prometheus.simpleclient_pushgateway.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.microsoft.playwright</groupId>
+                <artifactId>playwright</artifactId>
+                <!-- TODO: upstream is also considering using of 'playwright', use managed version if that happens -->
+                <version>${playwright.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

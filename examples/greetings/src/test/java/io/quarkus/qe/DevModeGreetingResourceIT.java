@@ -3,7 +3,6 @@ package io.quarkus.qe;
 import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -16,11 +15,9 @@ import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
 
-// TODO: mvavrik enable and adapt to new continuous testing page
-@Disabled("Disabled as DEV UI continuous testing is currently re-worked")
 @QuarkusScenario
 @DisabledOnNative
-@DisabledOnQuarkusVersion(version = "1\\..*", reason = "Continuous Testing was entered in 2.x")
+@DisabledOnQuarkusVersion(version = "3.0.0.CR2", reason = "Continuous Testing page was added to DEV UI in Quarkus 3.0.0.Final")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DevModeGreetingResourceIT {
 

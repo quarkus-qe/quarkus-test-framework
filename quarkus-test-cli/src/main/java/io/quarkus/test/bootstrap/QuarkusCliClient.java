@@ -12,8 +12,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.apache.commons.lang3.StringUtils;
-
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
 import io.quarkus.test.logging.Log;
@@ -85,11 +83,11 @@ public class QuarkusCliClient {
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList("create", "app", name));
         // Platform Bom
-        if (StringUtils.isNotEmpty(request.platformBom)) {
+        if (isNotEmpty(request.platformBom)) {
             args.add("--platform-bom=" + request.platformBom);
         }
         // Stream
-        if (StringUtils.isNotEmpty(request.stream)) {
+        if (isNotEmpty(request.stream)) {
             args.add("--stream=" + request.stream);
         }
         // Extensions
@@ -107,6 +105,10 @@ public class QuarkusCliClient {
         return service;
     }
 
+    private static boolean isNotEmpty(String str) {
+        return str != null && !str.isEmpty();
+    }
+
     public QuarkusCliDefaultService createExtension(String name) {
         return createExtension(name, CreateExtensionRequest.defaults());
     }
@@ -122,11 +124,11 @@ public class QuarkusCliClient {
         List<String> args = new ArrayList<>();
         args.addAll(Arrays.asList("create", "extension", name));
         // Platform Bom
-        if (StringUtils.isNotEmpty(request.platformBom)) {
+        if (isNotEmpty(request.platformBom)) {
             args.add("--platform-bom=" + request.platformBom);
         }
         // Stream
-        if (StringUtils.isNotEmpty(request.stream)) {
+        if (isNotEmpty(request.stream)) {
             args.add("--stream=" + request.stream);
         }
         // Extra args
