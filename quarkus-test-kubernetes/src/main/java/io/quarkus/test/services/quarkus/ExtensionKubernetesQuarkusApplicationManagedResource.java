@@ -3,6 +3,7 @@ package io.quarkus.test.services.quarkus;
 import static io.quarkus.test.utils.DockerUtils.CONTAINER_REGISTRY_URL_PROPERTY;
 import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
 import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
+import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
 import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
 import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
 import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
@@ -100,7 +101,7 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
         List<String> args = mvnCommand(model.getContext());
         args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
                 QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_INGRESS_EXPOSE,
-                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE));
+                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD));
         propagateContainerRegistryIfSet(args);
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
