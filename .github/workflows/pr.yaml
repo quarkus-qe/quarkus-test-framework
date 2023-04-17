@@ -126,7 +126,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -183,7 +183,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
