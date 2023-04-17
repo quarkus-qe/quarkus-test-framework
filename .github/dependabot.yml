@@ -8,3 +8,8 @@ updates:
     ignore:
       # For Quarkus Maven Plugin, updates are managed by the Quarkus Bom dependency
       - dependency-name: io.quarkus:quarkus-maven-plugin
+  # Maintain dependencies for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"

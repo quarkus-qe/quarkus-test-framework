@@ -11,13 +11,7 @@ jobs:
       matrix:
         java: [ 11 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -26,6 +20,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Build Quarkus main
         run: |
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
@@ -45,13 +40,7 @@ jobs:
         quarkus-version: ["current"]
         java: [ 11, 17 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -60,6 +49,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
@@ -102,13 +92,7 @@ jobs:
         quarkus-version: ["999-SNAPSHOT"]
         java: [ 11, 17 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -117,6 +101,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
         id: install-jdk
       - name: Install Helm client
         uses: azure/setup-helm@v3
@@ -175,9 +160,9 @@ jobs:
         run: |
           echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
           if [[ `git status | grep .svg | wc -l` > 0 ]]; then
-            echo ::set-output name=needs-commit-badge::true
+            echo "needs-commit-badge=true" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=needs-commit-badge::false
+            echo "needs-commit-badge=false" >> $GITHUB_OUTPUT
           fi
       - name: Commit the badge (if it changed)
         if: steps.coverage.outputs.needs-commit-badge == 'true'
@@ -216,13 +201,7 @@ jobs:
         quarkus-version: ["current", "999-SNAPSHOT"]
         java: [ 17 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -231,6 +210,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
@@ -279,19 +259,14 @@ jobs:
         java: [ 11, 17 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Install JDK {{ matrix.java }}
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
@@ -337,19 +312,14 @@ jobs:
         quarkus-version: ["999-SNAPSHOT"]
         graalvm-version: [ "22.3.0.java17"]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Install JDK {{ matrix.java }}
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
@@ -409,13 +379,7 @@ jobs:
 #        quarkus-version: ["999-SNAPSHOT"]
 #        java: [ 11 ]
 #    steps:
-#      - uses: actions/checkout@v1
-#      - uses: actions/cache@v1
-#        with:
-#          path: ~/.m2/repository
-#          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-#          restore-keys: |
-#            ${{ runner.os }}-maven-
+#      - uses: actions/checkout@v3
 #      - name: Reclaim Disk Space
 #        run: .github/ci-prerequisites.sh
 #      - name: Install JDK {{ matrix.java }}
@@ -424,6 +388,7 @@ jobs:
 #          distribution: 'temurin'
 #          java-version: ${{ matrix.java }}
 #          check-latest: true
+#          cache: 'maven'
 #      - uses: engineerd/setup-kind@v0.5.0
 #        with:
 #          version: "v0.11.1"
