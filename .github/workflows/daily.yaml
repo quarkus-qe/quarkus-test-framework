@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: maven-repo
           path: maven-repo.tgz
@@ -56,7 +56,7 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.0.0
+        uses: mamezou-tech/setup-helmfile@v1.2.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
@@ -79,7 +79,7 @@ jobs:
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
@@ -109,12 +109,12 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.0.0
+        uses: mamezou-tech/setup-helmfile@v1.2.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -183,12 +183,12 @@ jobs:
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
       - name: Archive Coverage Report
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-coverage
           path: coverage-report/target/site/jacoco
@@ -217,12 +217,12 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.0.0
+        uses: mamezou-tech/setup-helmfile@v1.2.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -246,7 +246,7 @@ jobs:
           zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -279,7 +279,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -298,7 +298,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
@@ -332,7 +332,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -353,7 +353,7 @@ jobs:
       - name: Configure Pagefile
         # Increased the page-file size due to memory-consumption of native-image command
         # For details see https://github.com/actions/virtual-environments/issues/785
-        uses: al-cheb/configure-pagefile-action@v1.2
+        uses: al-cheb/configure-pagefile-action@v1.3
       - name: Build in Native mode
         shell: bash
         run: |
@@ -366,7 +366,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-native${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-native${{ matrix.java }}.tar
@@ -401,7 +401,7 @@ jobs:
 #          username: ${{ secrets.CI_REGISTRY_USERNAME }}
 #          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
 #      - name: Download Maven Repo
-#        uses: actions/download-artifact@v1
+#        uses: actions/download-artifact@v3
 #        with:
 #          name: maven-repo
 #          path: .
@@ -420,7 +420,7 @@ jobs:
 #          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
 #      - name: Archive artifacts
 #        if: failure()
-#        uses: actions/upload-artifact@v1
+#        uses: actions/upload-artifact@v3
 #        with:
 #          name: ci-artifacts
 #          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
