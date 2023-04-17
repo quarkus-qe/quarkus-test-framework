@@ -160,9 +160,9 @@ jobs:
         run: |
           echo "coverage = ${{ steps.jacoco.outputs.coverage }}"
           if [[ `git status | grep .svg | wc -l` > 0 ]]; then
-            echo ::set-output name=needs-commit-badge::true
+            echo "needs-commit-badge=true" >> $GITHUB_OUTPUT
           else
-            echo ::set-output name=needs-commit-badge::false
+            echo "needs-commit-badge=false" >> $GITHUB_OUTPUT
           fi
       - name: Commit the badge (if it changed)
         if: steps.coverage.outputs.needs-commit-badge == 'true'
