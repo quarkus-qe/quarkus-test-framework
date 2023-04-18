@@ -32,6 +32,7 @@ jobs:
         with:
           name: maven-repo
           path: maven-repo.tgz
+          retention-days: 1
   linux-build-jvm-released:
     name: Daily - Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
@@ -192,6 +193,7 @@ jobs:
         with:
           name: ci-coverage
           path: coverage-report/target/site/jacoco
+          retention-days: 1
   linux-build-native:
     name: Daily - Linux - Native build
     runs-on: ubuntu-latest

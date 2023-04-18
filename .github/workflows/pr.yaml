@@ -49,6 +49,7 @@ jobs:
         with:
           name: maven-repo
           path: maven-repo.tgz
+          retention-days: 1
   linux-build-jvm-released:
     name: Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
