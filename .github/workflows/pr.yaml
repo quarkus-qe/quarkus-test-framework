@@ -9,19 +9,14 @@ jobs:
       matrix:
         java: [ 11 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Install JDK {{ matrix.java }}
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Build with Maven
         run: |
           mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
@@ -33,13 +28,7 @@ jobs:
       matrix:
         java: [ 11 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -48,6 +37,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Build Quarkus main
         run: |
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
@@ -55,10 +45,11 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: maven-repo
           path: maven-repo.tgz
+          retention-days: 1
   linux-build-jvm-released:
     name: Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
@@ -68,13 +59,7 @@ jobs:
         quarkus-version: ["current"]
         java: [ 17 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -83,13 +68,14 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
         id: install
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.0.0
+        uses: mamezou-tech/setup-helmfile@v1.2.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
@@ -107,7 +93,7 @@ jobs:
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
@@ -120,13 +106,7 @@ jobs:
         quarkus-version: ["999-SNAPSHOT"]
         java: [ 17 ]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
@@ -135,18 +115,19 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
           version: v3.9.0
         id: install
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.0.0
+        uses: mamezou-tech/setup-helmfile@v1.2.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -170,7 +151,7 @@ jobs:
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
@@ -183,19 +164,14 @@ jobs:
         java: [ 11 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
-      - uses: actions/checkout@v1
-      - uses: actions/cache@v1
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
+      - uses: actions/checkout@v3
       - name: Install JDK {{ matrix.java }}
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+          cache: 'maven'
       - name: Install Helm client
         uses: azure/setup-helm@v3
         with:
@@ -208,7 +184,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v3
         with:
           name: maven-repo
           path: .
@@ -227,7 +203,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar

@@ -14,6 +14,18 @@ items:
     selector:
       app.kubernetes.io/name: "${SERVICE_NAME}"
     type: "ClusterIP"
+- apiVersion: "v1"
+  kind: "Service"
+  metadata:
+    name: "${SERVICE_NAME}-management"
+  spec:
+    ports:
+      - name: "management"
+        port: 9000
+        targetPort: ${MANAGEMENT_PORT}
+    selector:
+      app.kubernetes.io/name: "${SERVICE_NAME}"
+    type: "ClusterIP"
 - apiVersion: "apps.openshift.io/v1"
   kind: "DeploymentConfig"
   metadata:
@@ -40,7 +52,10 @@ items:
           image: "${IMAGE}"
           name: "${SERVICE_NAME}"
           ports:
-          - containerPort: ${INTERNAL_PORT}
-            name: "http"
-            protocol: "TCP"
-      
+            - containerPort: ${INTERNAL_PORT}
+              name: "http"
+              protocol: "TCP"
+              ports:
+            - containerPort: ${MANAGEMENT_PORT}
+              name: "management"
+              protocol: "TCP"
