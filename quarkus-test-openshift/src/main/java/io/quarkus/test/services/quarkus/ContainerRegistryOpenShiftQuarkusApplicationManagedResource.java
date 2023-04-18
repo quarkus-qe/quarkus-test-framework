@@ -3,6 +3,7 @@ package io.quarkus.test.services.quarkus;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
 import static java.util.regex.Pattern.quote;
 
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.utils.DockerUtils;
 
 public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
@@ -35,7 +36,11 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
     }
 
     private void exposeServices() {
-        client.expose(model.getContext().getOwner(), HTTP_PORT_DEFAULT);
+        Service service = model.getContext().getOwner();
+        client.expose(service, HTTP_PORT_DEFAULT);
+        if (model.useSeparateManagementInterface()) {
+            client.expose(model.getContext().getOwner().getName() + "-management", model.getManagementPort());
+        }
     }
 
     private String createImageAndPush() {

@@ -97,10 +97,6 @@ items:
               image: "${SERVICE_NAME}:0.0.1-SNAPSHOT"
               imagePullPolicy: "IfNotPresent"
               name: "${SERVICE_NAME}"
-              ports:
-                - containerPort: ${INTERNAL_PORT}
-                  name: "http"
-                  protocol: "TCP"
       triggers:
         - imageChangeParams:
             automatic: true

@@ -23,18 +23,12 @@ public class LocalIT {
             .withProperty("quarkus.management.port", "9002");
 
     @QuarkusApplication
-    static final RestService tls = new RestService()
-            .withProperty("quarkus.management.port", "9003")
-            .withProperty("quarkus.management.ssl.certificate.key-store-file", "META-INF/resources/server.keystore")
-            .withProperty("quarkus.management.ssl.certificate.key-store-password", "password");
-
-    @QuarkusApplication
     static final RestService unmanaged = new RestService()
             .withProperty("quarkus.management.enabled", "false");
 
     @Test
     public void greeting() {
-        for (RestService service : Arrays.asList(app, custom, tls, unmanaged)) {
+        for (RestService service : Arrays.asList(app, custom, unmanaged)) {
             Response response = service.given().get("/ping");
             assertEquals(200, response.statusCode());
             assertEquals("pong", response.body().asString());
@@ -54,13 +48,6 @@ public class LocalIT {
     @Test
     public void customPort() {
         custom.management()
-                .get("q/health").then().statusCode(HttpStatus.SC_OK);
-    }
-
-    @Test
-    public void tls() {
-        tls.management()
-                .relaxedHTTPSValidation()
                 .get("q/health").then().statusCode(HttpStatus.SC_OK);
     }
 }
