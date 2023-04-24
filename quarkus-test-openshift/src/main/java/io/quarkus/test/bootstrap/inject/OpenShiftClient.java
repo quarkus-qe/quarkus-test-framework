@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
@@ -35,6 +36,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.Matchers;
+import org.jboss.logging.Logger;
+import org.opentest4j.AssertionFailedError;
 
 import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
@@ -79,6 +83,7 @@ public final class OpenShiftClient {
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             "ts.openshift.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
+    private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
     private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
     private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
     private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
@@ -589,9 +594,58 @@ public final class OpenShiftClient {
     public void deleteProject() {
         if (ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
             try {
-                new Command(OC, "delete", "project", currentNamespace).runAndWait();
-            } catch (Exception e) {
+                var projectResource = client.projects().withName(currentNamespace);
+                var project = projectResource.get();
+                if (project == null) {
+                    LOG.infof("Skipping delete operation on project '%s' as project does not exists", currentNamespace);
+                    return;
+                }
+
+                if (project.isMarkedForDeletion()) {
+                    // seems like some other process already tries to delete project
+                    LOG.infof("Skipping delete operation on project '%s' as project is already marked "
+                            + "for deletion", currentNamespace);
+                    return;
+                }
+
+                LOG.infof("Deleting project '%s'", currentNamespace);
+                if (projectResource.delete().stream().allMatch(Objects::isNull)) {
+                    LOG.infof("Project '%s' deleted", currentNamespace);
+                    return;
+                }
+
+                // something went wrong or the client behavior changed, and it doesn't return null for deleted project
+                project = projectResource.update();
+                if (project == null) {
+                    // project has been deleted after all
+                    LOG.warnf("Deleted project '%s', but behavior of 'io.fabric8.kubernetes.client.dsl."
+                            + "Deletable.delete' has changed, we need to refactor this operation", currentNamespace);
+                    return;
+                }
+
+                if (!project.isMarkedForDeletion()) {
+                    fail("Illegal state - project '" + currentNamespace + "' should be marked for deletion, "
+                            + "please delete project manually");
+                }
+
+                var finalizers = project.getFinalizers();
+                if (finalizers != null && !finalizers.isEmpty()) {
+                    LOG.infof("Attempting to delete finalizers '%s' of project '%s' as the project wasn't cleaned"
+                            + " up within default timeout", Arrays.toString(finalizers.toArray()), currentNamespace);
+                    finalizers.forEach(project::removeFinalizer);
+                    projectResource.patch(project);
+
+                    // let's wait and see
+                    AwaitilityUtils.until(projectResource::get, Matchers.nullValue());
+                }
+
+                fail("Failed to delete project within default timeout, project is marked for deletion, but we might "
+                        + "need too raise waiting period");
+            } catch (AssertionFailedError e) {
                 fail("Project failed to be deleted. Caused by " + e.getMessage());
+            } catch (Exception e) {
+                LOG.errorf("Failed to delete project %s", currentNamespace, e);
+                fail("Failed to delete OpenShit project");
             } finally {
                 client.close();
                 isClientReady = false;
