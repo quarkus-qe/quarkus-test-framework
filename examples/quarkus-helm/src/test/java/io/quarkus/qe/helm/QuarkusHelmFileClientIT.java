@@ -16,10 +16,8 @@ import org.junit.jupiter.api.condition.OS;
 import io.quarkus.test.bootstrap.QuarkusHelmFileClient;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 
 @QuarkusScenario
-@DisabledOnQuarkusVersion(version = "1\\..*", reason = "Quarkus Helm not supported")
 @DisabledOnOs(OS.WINDOWS)
 @DisabledOnNative // Helm is concerned just about image name, Native compilation is not relevant
 public class QuarkusHelmFileClientIT {
