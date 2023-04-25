@@ -389,8 +389,7 @@
             </activation>
             <modules>
                 <module>examples/quarkus-cli</module>
-                <!-- TODO: https://github.com/quarkiverse/quarkus-helm/issues/114-->
-                <!-- <module>examples/quarkus-helm</module>-->
+                <module>examples/quarkus-helm</module>
                 <module>examples/pingpong</module>
                 <module>examples/restclient</module>
                 <module>examples/greetings</module>
