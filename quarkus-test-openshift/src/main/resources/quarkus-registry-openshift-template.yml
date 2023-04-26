@@ -55,7 +55,6 @@ items:
             - containerPort: ${INTERNAL_PORT}
               name: "http"
               protocol: "TCP"
-              ports:
             - containerPort: ${MANAGEMENT_PORT}
               name: "management"
               protocol: "TCP"
