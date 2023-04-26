@@ -71,6 +71,18 @@ public class URILike {
         return new URILike(this.scheme, withPath);
     }
 
+    public URILike withQuery(String query) {
+        URI wrapped = this.wrapped;
+        var withPath = createURI(wrapped.getScheme(),
+                wrapped.getUserInfo(),
+                wrapped.getHost(),
+                wrapped.getPort(),
+                wrapped.getPath(),
+                query,
+                wrapped.getFragment());
+        return new URILike(this.scheme, withPath);
+    }
+
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
