@@ -8,6 +8,7 @@ import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -128,6 +129,13 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
     @Override
     public boolean isRunning() {
+        if (process != null && process.isAlive()) {
+            try {
+                process.getOutputStream().flush();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return process != null && process.isAlive() && super.isRunning();
     }
 
