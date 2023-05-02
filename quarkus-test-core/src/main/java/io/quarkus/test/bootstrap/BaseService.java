@@ -301,6 +301,6 @@ public class BaseService<T extends Service> implements Service {
                 .using(startupCheckInterval, startupTimeout)
                 .doNotIgnoreExceptions()
                 .withService(this)
-                .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
+                .timeoutMessage("Service didn't start in %s minutes: %s", startupTimeout, managedResource.logs()));
     }
 }
