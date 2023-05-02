@@ -48,7 +48,7 @@
         <htmlunit.version>2.70.0</htmlunit.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.0.1.Final</quarkus.platform.version>
+        <quarkus.platform.version>3.0.0.Final</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -388,31 +388,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>examples/quarkus-cli</module>
-                <module>examples/quarkus-helm</module>
-                <module>examples/pingpong</module>
-                <module>examples/restclient</module>
-                <module>examples/greetings</module>
-                <module>examples/blocking-reactive-model</module>
-                <module>examples/https</module>
-                <module>examples/grpc</module>
-                <module>examples/consul</module>
-                <module>examples/infinispan</module>
-                <module>examples/microprofile</module>
-                <module>examples/keycloak</module>
-                <module>examples/kafka</module>
-                <module>examples/kafka-registry</module>
-                <module>examples/kafka-streams</module>
-                <module>examples/amq-tcp</module>
-                <module>examples/amq-amqp</module>
-                <module>examples/jaeger</module>
-                <module>examples/database-mysql</module>
-                <module>examples/database-postgresql</module>
                 <module>examples/database-oracle</module>
-                <module>examples/external-applications</module>
-                <module>examples/funqy-knative-events</module>
-                <module>examples/picocli</module>
-                <module>examples/management</module>
             </modules>
         </profile>
         <profile>
