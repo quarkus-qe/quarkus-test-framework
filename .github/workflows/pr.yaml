@@ -2,19 +2,48 @@ name: "PR"
 on:
   - pull_request
 jobs:
-  linux-build-jvm-released:
-    name: Linux - JVM build - Released Versions
+  quarkus-main-build:
+    name: Quarkus main build
     runs-on: ubuntu-latest
+    needs: validate-format
     strategy:
       matrix:
-        quarkus-version: ["current"]
+        java: [ 11 ]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'maven'
+      - name: Build Quarkus main
+        run: |
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Tar Maven Repo
+        shell: bash
+        run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
+      - name: Persist Maven Repo
+        uses: actions/upload-artifact@v3
+        with:
+          name: maven-repo
+          path: maven-repo.tgz
+          retention-days: 1
+  linux-build-jvm-latest:
+    name: Linux - JVM build - Latest Version
+    runs-on: ubuntu-latest
+    needs: quarkus-main-build
+    strategy:
+      matrix:
+        quarkus-version: [ "999-SNAPSHOT" ]
         java: [ 17 ]
     steps:
       - uses: actions/checkout@v3
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
-      - name: Pull Docker images
-        run: docker pull docker.io/gvenzl/oracle-free:23-slim-faststart
       - name: Install JDK {{ matrix.java }}
         uses: actions/setup-java@v3
         with:
@@ -32,21 +61,38 @@ jobs:
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
-      - name: Build in JVM mode
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v3
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
+      - name: Build Quarkus CLI
         run: |
-          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
-             EXCLUDE_MODULES="-pl !examples/grpc"
-          fi
-
-          if [[ "${{ matrix.quarkus-version }}" != current ]]; then
-             QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
-          fi
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples $QUARKUS_VERSION $EXCLUDE_MODULES
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Install Quarkus CLI
+        run: |
+          cat <<EOF > ./quarkus-dev-cli
+          #!/bin/bash
+          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          EOF
+          chmod +x ./quarkus-dev-cli
+      - name: Create app
+        run: |
+          ./quarkus-dev-cli create app --extension jdbc-oracle,resteasy-reactive,hibernate-orm
+      - name: Go into created app
+        run: |
+          cd code-with-quarkus/
+      - name: Run app
+        run: |
+          ./quarkus-dev-cli dev
       - name: Zip Artifacts
         run: |
-          zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
+          zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: ci-artifacts
-          path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
+          path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
