@@ -286,7 +286,7 @@ public class BaseService<T extends Service> implements Service {
     private boolean isRunningOrFailed() {
         if (managedResource != null && managedResource.isFailed()) {
             managedResource.stop();
-            fail("Resource failed to start");
+            fail("Resource failed to start " + managedResource.logs());
         }
 
         return isRunning();
