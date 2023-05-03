@@ -130,11 +130,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     @Override
     public boolean isRunning() {
         if (process != null && process.isAlive()) {
-            try {
-                process.getOutputStream().flush();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            System.out.println("IS RUNIIIIIIIIIIIIIIING " + process.toString());
         }
         return process != null && process.isAlive() && super.isRunning();
     }

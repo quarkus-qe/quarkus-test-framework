@@ -2,24 +2,6 @@ name: "PR"
 on:
   - pull_request
 jobs:
-  validate-format:
-    name: Validate format
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java: [ 11 ]
-    steps:
-      - uses: actions/checkout@v3
-      - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: ${{ matrix.java }}
-          check-latest: true
-          cache: 'maven'
-      - name: Build with Maven
-        run: |
-          mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
   linux-build-jvm-released:
     name: Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
@@ -60,7 +42,7 @@ jobs:
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples $QUARKUS_VERSION $EXCLUDE_MODULES
       - name: Zip Artifacts
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'

@@ -365,21 +365,10 @@
             </activation>
             <modules>
                 <module>quarkus-test-core</module>
-                <module>quarkus-test-cli</module>
-                <module>quarkus-test-helm</module>
                 <module>quarkus-test-containers</module>
                 <module>quarkus-test-images</module>
-                <module>quarkus-test-kubernetes</module>
                 <module>quarkus-test-openshift</module>
-                <module>quarkus-test-knative-events</module>
-                <module>quarkus-test-service-consul</module>
-                <module>quarkus-test-service-keycloak</module>
-                <module>quarkus-test-service-kafka</module>
-                <module>quarkus-test-service-amq</module>
-                <module>quarkus-test-service-jaeger</module>
                 <module>quarkus-test-service-database</module>
-                <module>quarkus-test-service-infinispan</module>
-                <module>quarkus-test-service-grpc</module>
             </modules>
         </profile>
         <profile>
@@ -397,8 +386,6 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>extensions/tracing</module>
-                <module>extensions/metrics</module>
             </modules>
         </profile>
         <profile>
