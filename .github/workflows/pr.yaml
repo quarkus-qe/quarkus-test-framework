@@ -71,10 +71,8 @@ jobs:
       - name: Create app
         run: |
           ./quarkus-dev-cli create app --extension jdbc-oracle,resteasy-reactive,hibernate-orm
-      - name: Go into created app
-        run: |
-          cd code-with-quarkus/
       - name: Run app
+        working-directory: ./code-with-quarkus
         run: |
           ./../quarkus-dev-cli dev
       - name: Zip Artifacts
