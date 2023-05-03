@@ -51,16 +51,6 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
-        id: install
-      - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.2.0
-        with:
-          helmfile-version: "v0.145.2"
-          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v3
         with:
