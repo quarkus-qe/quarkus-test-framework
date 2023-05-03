@@ -8,7 +8,6 @@ import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -71,8 +70,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             process = pb.start();
 
             loggingHandler = new FileServiceLoggingHandler(model.getContext().getOwner(), logOutputFile);
+            System.out.println("started watching");
             loggingHandler.startWatching();
         } catch (Exception e) {
+            System.out.println("eroooooooor " + e);
             throw new RuntimeException(e);
         }
     }
