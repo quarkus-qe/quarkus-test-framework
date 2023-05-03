@@ -76,7 +76,7 @@ jobs:
           cd code-with-quarkus/
       - name: Run app
         run: |
-          ./quarkus-dev-cli dev
+          ./../quarkus-dev-cli dev
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
