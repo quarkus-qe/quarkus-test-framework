@@ -220,7 +220,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private static boolean requiredByExtension(String parameter) {
-        return parameter.startsWith("quarkus.management.");
+        return parameter.startsWith("quarkus.management.") || parameter.endsWith(".grpc-action");
     }
 
     private boolean isKnativeDeployment() {
