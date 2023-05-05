@@ -59,7 +59,7 @@
         <checkstyle.version>10.10.0</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
-        <playwright.version>1.32.0</playwright.version>
+        <playwright.version>1.33.0</playwright.version>
         <!-- Faster build when using -DskipTests -->
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
     </properties>
