@@ -20,11 +20,7 @@ public class ConfluentKafkaContainerManagedResource extends BaseKafkaContainerMa
 
     @Override
     protected GenericContainer<?> initKafkaContainer() {
-        DockerImageName imageName = DockerImageName
-                .parse(getKafkaImage() + ":" + getKafkaVersion())
-                // todo https://github.com/testcontainers/testcontainers-java/issues/5612
-                .asCompatibleSubstituteFor("confluentinc/cp-kafka");
-        return new KafkaContainer(imageName)
+        return new KafkaContainer(DockerImageName.parse(getKafkaImage() + ":" + getKafkaVersion()))
                 .withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
     }
 
