@@ -1,7 +1,7 @@
 package io.quarkus.test.services.containers.model;
 
 public enum KafkaVendor {
-    CONFLUENT("docker.io/confluentinc/cp-kafka", "7.3.3", 9093, KafkaRegistry.CONFLUENT),
+    CONFLUENT("confluentinc/cp-kafka", "7.3.3", 9093, KafkaRegistry.CONFLUENT),
     STRIMZI("quay.io/strimzi/kafka", "0.34.0-kafka-3.4.0", 9092, KafkaRegistry.APICURIO);
 
     private final String image;
