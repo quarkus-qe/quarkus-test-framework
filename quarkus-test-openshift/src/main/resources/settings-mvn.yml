@@ -33,7 +33,7 @@ data:
                         <id>internal.s2i.maven.remote.repository</id>
                         <url>${internal.s2i.maven.remote.repository}</url>
                         <snapshots>
-                            <enabled>false</enabled>
+                            <enabled>true</enabled>
                         </snapshots>
                     </repository>
                 </repositories>
@@ -42,7 +42,7 @@ data:
                         <id>internal.s2i.maven.remote.repository</id>
                         <url>${internal.s2i.maven.remote.repository}</url>
                         <snapshots>
-                            <enabled>false</enabled>
+                            <enabled>true</enabled>
                         </snapshots>
                     </pluginRepository>
                 </pluginRepositories>
