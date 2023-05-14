@@ -44,7 +44,7 @@
         <prometheus.simpleclient_pushgateway.version>0.16.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.22.0</formatter-maven-plugin.version>
-        <impsort-maven-plugin.version>1.8.0</impsort-maven-plugin.version>
+        <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
         <htmlunit.version>2.70.0</htmlunit.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
