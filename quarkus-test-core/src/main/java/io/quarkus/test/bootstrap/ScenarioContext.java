@@ -8,40 +8,33 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
+import io.quarkus.test.bootstrap.TestContext.TestContextImpl;
+import io.quarkus.test.bootstrap.TestContext.TestStore;
 
 public final class ScenarioContext {
 
     private static final int SCENARIO_ID_MAX_SIZE = 60;
 
-    private final ExtensionContext testContext;
     private final String id;
-    private final ExtensionContext.Namespace testNamespace;
-    private ExtensionContext methodTestContext;
+    private TestContext testContext;
     private boolean failed;
     private boolean debug;
 
-    protected ScenarioContext(ExtensionContext testContext) {
+    ScenarioContext(TestContext testContext) {
         this.testContext = testContext;
         this.id = generateScenarioId(testContext);
-        this.testNamespace = ExtensionContext.Namespace.create(ScenarioContext.class);
     }
 
-    private ScenarioContext(ExtensionContext testContext, String id, ExtensionContext.Namespace testNamespace,
-            ExtensionContext methodTestContext, boolean failed, boolean debug) {
+    private ScenarioContext(TestContext testContext, String id, boolean failed, boolean debug) {
         this.testContext = testContext;
         this.id = id;
-        this.testNamespace = testNamespace;
-        this.methodTestContext = methodTestContext;
         this.failed = failed;
         this.debug = debug;
     }
 
-    /**
-     * Creates a shallow copy without {@link ScenarioContext#methodTestContext}.
-     */
     public ScenarioContext toClassScenarioContext() {
-        return new ScenarioContext(testContext, id, testNamespace, null, failed, debug);
+        // drop test method name
+        return new ScenarioContext(new TestContextImpl(testContext, null), id, failed, debug);
     }
 
     public String getId() {
@@ -65,19 +58,15 @@ public final class ScenarioContext {
     }
 
     public Optional<String> getRunningTestMethodName() {
-        if (methodTestContext == null) {
-            return Optional.empty();
-        }
-
-        return Optional.of(methodTestContext.getRequiredTestMethod().getName());
+        return getTestContext().getRunningTestMethodName();
     }
 
-    public ExtensionContext.Store getTestStore() {
-        return getTestContext().getStore(this.testNamespace);
+    public TestStore getTestStore() {
+        return getTestContext().getTestStore();
     }
 
-    public ExtensionContext getTestContext() {
-        return Optional.ofNullable(methodTestContext).orElse(testContext);
+    public TestContext getTestContext() {
+        return testContext;
     }
 
     public boolean isAnnotationPresent(Class<? extends Annotation> annotationClass) {
@@ -88,8 +77,8 @@ public final class ScenarioContext {
         return getTestContext().getRequiredTestClass().getAnnotation(annotationClass);
     }
 
-    public void setMethodTestContext(ExtensionContext methodTestContext) {
-        this.methodTestContext = methodTestContext;
+    public void setMethodTestContext(TestContext methodTestContext, String testMethodName) {
+        this.testContext = new TestContextImpl(methodTestContext, testMethodName);
     }
 
     public Path getLogFolder() {
@@ -100,11 +89,11 @@ public final class ScenarioContext {
         return getLogFolder().resolve(getRunningTestClassName() + LOG_SUFFIX);
     }
 
-    protected void markScenarioAsFailed() {
+    void markScenarioAsFailed() {
         failed = true;
     }
 
-    private static String generateScenarioId(ExtensionContext context) {
+    private static String generateScenarioId(TestContext context) {
         String fullId = context.getRequiredTestClass().getSimpleName() + "-" + System.currentTimeMillis();
         return fullId.substring(0, Math.min(SCENARIO_ID_MAX_SIZE, fullId.length()));
     }

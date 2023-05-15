@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestWatcher;
 
+import io.quarkus.test.bootstrap.TestContext.TestContextImpl;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
@@ -38,12 +39,16 @@ public class QuarkusScenarioBootstrap
     private final ServiceLoader<AnnotationBinding> bindingsRegistry = ServiceLoader.load(AnnotationBinding.class);
     private final ServiceLoader<ExtensionBootstrap> extensionsRegistry = ServiceLoader.load(ExtensionBootstrap.class);
 
-    private List<Service> services = new ArrayList<>();
+    private final List<Service> services = new ArrayList<>();
     private ScenarioContext scenario;
     private List<ExtensionBootstrap> extensions;
 
     @Override
-    public void beforeAll(ExtensionContext context) {
+    public void beforeAll(ExtensionContext ctx) {
+        beforeAll(toTestContext(ctx));
+    }
+
+    public void beforeAll(TestContext context) {
         // Init scenario context
         scenario = new ScenarioContext(context);
         Log.configure(scenario);
@@ -63,11 +68,15 @@ public class QuarkusScenarioBootstrap
         }
 
         // Launch services
-        services.forEach(service -> launchService(service));
+        services.forEach(this::launchService);
     }
 
     @Override
     public void afterAll(ExtensionContext context) {
+        afterAll();
+    }
+
+    public void afterAll() {
         try {
             List<Service> servicesToFinish = new ArrayList<>(services);
             Collections.reverse(servicesToFinish);
@@ -82,7 +91,11 @@ public class QuarkusScenarioBootstrap
     public void beforeEach(ExtensionContext context) {
         Log.info("## Running test " + context.getParent().map(ctx -> ctx.getDisplayName() + ".").orElse("") + context
                 .getDisplayName());
-        scenario.setMethodTestContext(context);
+        beforeEach(toTestContext(context), context.getRequiredTestMethod().getName());
+    }
+
+    public void beforeEach(TestContext testContext, String testMethodName) {
+        scenario.setMethodTestContext(testContext, testMethodName);
         extensions.forEach(ext -> ext.beforeEach(scenario));
         services.forEach(service -> {
             if (service.isAutoStart()) {
@@ -93,6 +106,10 @@ public class QuarkusScenarioBootstrap
 
     @Override
     public void afterEach(ExtensionContext extensionContext) {
+        afterEach();
+    }
+
+    public void afterEach() {
         extensions.forEach(ext -> ext.afterEach(scenario));
     }
 
@@ -164,11 +181,11 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onError(scenario, throwable));
     }
 
-    private void initResourceFromField(ExtensionContext context, Field field) {
+    private void initResourceFromField(TestContext context, Field field) {
         if (field.isAnnotationPresent(LookupService.class)) {
             initLookupService(context, field);
         } else if (Service.class.isAssignableFrom(field.getType())) {
-            initService(context, field);
+            initService(field);
         } else if (field.isAnnotationPresent(Inject.class)) {
             injectDependency(field);
         }
@@ -185,7 +202,7 @@ public class QuarkusScenarioBootstrap
         ReflectionUtils.setStaticFieldValue(field, fieldValue);
     }
 
-    private Service initService(ExtensionContext context, Field field) {
+    private Service initService(Field field) {
         // Get Service from field
         Service service = ReflectionUtils.getStaticFieldValue(field);
         if (service.isRunning()) {
@@ -219,7 +236,7 @@ public class QuarkusScenarioBootstrap
         return null;
     }
 
-    private void initLookupService(ExtensionContext context, Field fieldToInject) {
+    private void initLookupService(TestContext context, Field fieldToInject) {
         Optional<Field> fieldService = ReflectionUtils.findAllFields(context.getRequiredTestClass())
                 .stream()
                 .filter(field -> field.getName().equals(fieldToInject.getName())
@@ -229,7 +246,7 @@ public class QuarkusScenarioBootstrap
             fail("Could not lookup service with name " + fieldToInject.getName());
         }
 
-        Service service = initService(context, fieldService.get());
+        Service service = initService(fieldService.get());
         ReflectionUtils.setStaticFieldValue(fieldToInject, service);
     }
 
@@ -278,5 +295,10 @@ public class QuarkusScenarioBootstrap
         if (!scenario.isFailed()) {
             scenario.getLogFile().toFile().delete();
         }
+    }
+
+    private static TestContextImpl toTestContext(ExtensionContext ctx) {
+        var testNamespace = ExtensionContext.Namespace.create(ScenarioContext.class);
+        return new TestContextImpl(ctx.getRequiredTestClass(), ctx.getTags(), ctx.getStore(testNamespace));
     }
 }
