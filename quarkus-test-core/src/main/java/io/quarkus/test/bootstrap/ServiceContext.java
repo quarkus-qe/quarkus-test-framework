@@ -4,8 +4,6 @@ import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 public final class ServiceContext {
 
     private final Service owner;
@@ -13,7 +11,7 @@ public final class ServiceContext {
     private final Path serviceFolder;
     private final Map<String, Object> store = new HashMap<>();
 
-    protected ServiceContext(Service owner, ScenarioContext scenarioContext) {
+    ServiceContext(Service owner, ScenarioContext scenarioContext) {
         this.owner = owner;
         this.scenarioContext = scenarioContext;
         if (getName().contains(":")) {
@@ -39,7 +37,7 @@ public final class ServiceContext {
         return scenarioContext;
     }
 
-    public ExtensionContext getTestContext() {
+    public TestContext getTestContext() {
         return scenarioContext.getTestContext();
     }
 
