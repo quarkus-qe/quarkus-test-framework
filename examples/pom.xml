@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.quarkus.qe</groupId>
+        <artifactId>quarkus-test-parent</artifactId>
+        <version>1.3.1.Beta16-SNAPSHOT</version>
+        <relativePath>../</relativePath>
+    </parent>
+    <artifactId>quarkus-examples-parent</artifactId>
+    <name>Quarkus - Test Framework - Examples</name>
+    <packaging>pom</packaging>
+    <modules>
+        <module>quarkus-cli</module>
+        <module>quarkus-helm</module>
+        <module>pingpong</module>
+        <module>restclient</module>
+        <module>greetings</module>
+        <module>blocking-reactive-model</module>
+        <module>https</module>
+        <module>grpc</module>
+        <module>consul</module>
+        <module>infinispan</module>
+        <module>microprofile</module>
+        <module>keycloak</module>
+        <module>kafka</module>
+        <module>kafka-registry</module>
+        <module>kafka-streams</module>
+        <module>amq-tcp</module>
+        <module>amq-amqp</module>
+        <module>jaeger</module>
+        <module>database-mysql</module>
+        <module>database-postgresql</module>
+        <module>database-oracle</module>
+        <module>external-applications</module>
+        <module>funqy-knative-events</module>
+        <module>picocli</module>
+        <module>management</module>
+        <module>debug</module>
+    </modules>
+    <profiles>
+        <profile>
+            <!-- makes it possible to start and keep alive app, containers, OCP namespace as long as you need -->
+            <id>ts.debug</id>
+            <activation>
+                <property>
+                    <!-- 'debug' property is used by Quarkus DEV mode, so we don't want to propagate it -->
+                    <name>ts.debug</name>
+                </property>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <dependencies>
+                            <dependency>
+                                <groupId>io.quarkus.qe</groupId>
+                                <artifactId>quarkus-test-core</artifactId>
+                                <version>${project.version}</version>
+                            </dependency>
+                        </dependencies>
+                        <configuration>
+                            <!--don't time out, wait for termination signal from user that debugging is over -->
+                            <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
+                            <!--our ForkNode factory helps us to propagate termination signal down to JUnit provider -->
+                            <forkNode implementation="io.quarkus.test.debug.SureFireDebugForkNodeFactory"/>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>

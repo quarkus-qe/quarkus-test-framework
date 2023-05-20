@@ -181,6 +181,21 @@
                 <!-- TODO: upstream is also considering using of 'playwright', use managed version if that happens -->
                 <version>${playwright.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.apache.maven.surefire</groupId>
+                <artifactId>maven-surefire-common</artifactId>
+                <version>${surefire-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.apache.maven.surefire</groupId>
+                <artifactId>surefire-api</artifactId>
+                <version>${surefire-plugin.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-test-maven</artifactId>
+                <version>${quarkus.platform.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -373,31 +388,7 @@
                 <activeByDefault>true</activeByDefault>
             </activation>
             <modules>
-                <module>examples/quarkus-cli</module>
-                <module>examples/quarkus-helm</module>
-                <module>examples/pingpong</module>
-                <module>examples/restclient</module>
-                <module>examples/greetings</module>
-                <module>examples/blocking-reactive-model</module>
-                <module>examples/https</module>
-                <module>examples/grpc</module>
-                <module>examples/consul</module>
-                <module>examples/infinispan</module>
-                <module>examples/microprofile</module>
-                <module>examples/keycloak</module>
-                <module>examples/kafka</module>
-                <module>examples/kafka-registry</module>
-                <module>examples/kafka-streams</module>
-                <module>examples/amq-tcp</module>
-                <module>examples/amq-amqp</module>
-                <module>examples/jaeger</module>
-                <module>examples/database-mysql</module>
-                <module>examples/database-postgresql</module>
-                <module>examples/database-oracle</module>
-                <module>examples/external-applications</module>
-                <module>examples/funqy-knative-events</module>
-                <module>examples/picocli</module>
-                <module>examples/management</module>
+                <module>examples</module>
             </modules>
         </profile>
         <profile>
