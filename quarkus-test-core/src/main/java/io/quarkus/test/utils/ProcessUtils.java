@@ -1,5 +1,9 @@
 package io.quarkus.test.utils;
 
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsFalse;
+import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings.usingTimeout;
+import static java.time.Duration.ofMinutes;
+
 import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.condition.OS;
@@ -19,12 +23,17 @@ public final class ProcessUtils {
             if (process != null) {
                 process.descendants().forEach(child -> {
                     if (child.supportsNormalTermination()) {
+                        child.destroy();
+                        untilIsFalse(process::isAlive, usingTimeout(ofMinutes(PROCESS_KILL_TIMEOUT_MINUTES)));
+                    }
+
+                    if (child.isAlive()) {
                         child.destroyForcibly();
                     }
 
                     pidKiller(child.pid());
 
-                    AwaitilityUtils.untilIsFalse(child::isAlive);
+                    untilIsFalse(child::isAlive);
                 });
 
                 if (process.supportsNormalTermination()) {
@@ -33,7 +42,7 @@ public final class ProcessUtils {
                 }
 
                 pidKiller(process.pid());
-                AwaitilityUtils.untilIsFalse(process::isAlive);
+                untilIsFalse(process::isAlive);
             }
         } catch (Exception e) {
             Log.warn("Error trying to stop process. Caused by " + e.getMessage());
