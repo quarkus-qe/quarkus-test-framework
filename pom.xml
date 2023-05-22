@@ -41,7 +41,7 @@
         <surefire-plugin.version>3.1.0</surefire-plugin.version>
         <jacoco-maven-plugin.version>0.8.10</jacoco-maven-plugin.version>
         <prometheus.simpleclient_pushgateway.version>0.16.0</prometheus.simpleclient_pushgateway.version>
-        <maven-checkstyle-plugin.version>3.2.1</maven-checkstyle-plugin.version>
+        <maven-checkstyle-plugin.version>3.3.0</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.22.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
