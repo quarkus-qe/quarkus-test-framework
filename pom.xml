@@ -30,7 +30,7 @@
     <url>https://github.com/quarkus-qe/quarkus-test-framework/</url>
     <properties>
         <compiler-plugin.version>3.11.0</compiler-plugin.version>
-        <source-plugin.version>3.2.1</source-plugin.version>
+        <source-plugin.version>3.3.0</source-plugin.version>
         <javadoc-plugin.version>3.5.0</javadoc-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.source>11</maven.compiler.source>
