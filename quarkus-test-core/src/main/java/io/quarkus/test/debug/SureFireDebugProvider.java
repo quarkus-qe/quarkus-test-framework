@@ -1,7 +1,9 @@
 package io.quarkus.test.debug;
 
+import static io.quarkus.test.configuration.Configuration.Property.RUN_TESTS;
+import static io.quarkus.test.configuration.Configuration.Property.SKIP_BEFORE_AND_AFTER;
+import static io.quarkus.test.configuration.Configuration.Property.SUSPEND;
 import static io.quarkus.test.debug.SureFireCommunicationHelper.startReceiverCommunication;
-import static java.lang.Boolean.parseBoolean;
 import static org.apache.maven.surefire.api.suite.RunResult.noTestsRun;
 
 import java.lang.annotation.Annotation;
@@ -26,13 +28,13 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 import io.quarkus.test.bootstrap.TestContext;
+import io.quarkus.test.configuration.PropertyLookup;
 
 public class SureFireDebugProvider extends AbstractProvider {
 
     public static final String APP_IS_READ_PRESS_ENTER_TO_EXIT = "Application is ready for debugging. Press enter to exit:";
     public static final String TEST_RUN_SUCCESS = "Run all tests without failure";
-    public static final String RUN_TESTS = "ts.debug.run-tests";
-    public static final String SUSPEND = "ts.debug.suspend";
+
     private static final Logger LOG = Logger.getLogger(SureFireDebugProvider.class);
     private static final int SLEEP_TIMEOUT = 500;
     private final ProviderParameters parameters;
@@ -42,14 +44,9 @@ public class SureFireDebugProvider extends AbstractProvider {
 
     public SureFireDebugProvider(ProviderParameters parameters) {
         this.parameters = parameters;
-        String waitingStrategyProp = System.getProperty(RUN_TESTS);
-        if (waitingStrategyProp == null || waitingStrategyProp.isBlank()) {
-            runTests = false;
-        } else {
-            runTests = Boolean.parseBoolean(waitingStrategyProp);
-        }
-        this.suspend = Boolean.getBoolean(SUSPEND);
-        skipBeforeAndAfterTestClassMethods = parseBoolean(System.getProperty("ts.debug.skip-before-and-after-methods"));
+        this.runTests = new PropertyLookup(RUN_TESTS.getName()).getAsBoolean();
+        this.suspend = new PropertyLookup(SUSPEND.getName()).getAsBoolean();
+        skipBeforeAndAfterTestClassMethods = new PropertyLookup(SKIP_BEFORE_AND_AFTER.getName()).getAsBoolean();
     }
 
     @Override

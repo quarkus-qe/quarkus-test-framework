@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.configuration.Configuration.Property.CLI_CMD;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.createDisableBuildAnalyticsProperty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -30,7 +31,7 @@ public class QuarkusCliClient {
     private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final String DEV = "dev";
-    private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
+    private static final PropertyLookup COMMAND = new PropertyLookup(CLI_CMD.getName(), "quarkus");
     private static final Path TARGET = Paths.get("target");
 
     private final ScenarioContext context;

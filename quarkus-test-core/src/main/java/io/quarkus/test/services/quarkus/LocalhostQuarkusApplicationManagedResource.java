@@ -176,8 +176,10 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         if (model.isGrpcEnabled()) {
             runtimeProperties.putIfAbsent(QUARKUS_GRPC_SERVER_PORT_PROPERTY, "" + assignedGrpcPort);
         }
-
         return runtimeProperties.entrySet().stream()
+                .peek(e -> {
+                    System.out.println(e.getKey() + " " + e.getValue());
+                })
                 .map(e -> PropertiesUtils.toMvnSystemProperty(e.getKey(), getComputedValue(e.getValue())))
                 .collect(Collectors.toList());
     }

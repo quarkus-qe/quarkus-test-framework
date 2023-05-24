@@ -10,13 +10,12 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 
 public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
         extends OpenShiftQuarkusApplicationManagedResource<T> {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "openshift.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "openshift.template";
     private static final String DEPLOYMENT = "openshift.yml";
 
     private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
@@ -62,13 +61,12 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
     }
 
     protected final String getTemplate() {
-        return model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                getDefaultTemplate());
+        return model.getContext().getOwner().getConfiguration()
+                .getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY, getDefaultTemplate());
     }
 
     private void applyTemplate() {
         String deploymentFile = getTemplate();
-
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::internalReplaceDeploymentContent,
                 addExtraTemplateProperties(),
@@ -76,7 +74,9 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
     }
 
     private String internalReplaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        String customServiceName = model.getContext().getOwner()
+                .getConfiguration()
+                .get(Configuration.Property.OPENSHIFT_DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());

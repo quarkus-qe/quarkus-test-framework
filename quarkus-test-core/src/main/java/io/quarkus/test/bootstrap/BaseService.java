@@ -33,11 +33,7 @@ import io.quarkus.test.utils.TestExecutionProperties;
 
 public class BaseService<T extends Service> implements Service {
 
-    public static final String SERVICE_STARTUP_TIMEOUT = "startup.timeout";
     public static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(5);
-    public static final String DELETE_FOLDER_ON_EXIT = "delete.folder.on.exit";
-
-    private static final String SERVICE_STARTUP_CHECK_POLL_INTERVAL = "startup.check-poll-interval";
     private static final Duration SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT = Duration.ofSeconds(2);
 
     protected ServiceContext context;
@@ -272,7 +268,7 @@ public class BaseService<T extends Service> implements Service {
     public void close() {
         if (!context.getScenarioContext().isDebug()) {
             stop();
-            if (getConfiguration().isTrue(DELETE_FOLDER_ON_EXIT)) {
+            if (getConfiguration().isTrue(Configuration.Property.DELETE_FOLDER_ON_EXIT)) {
                 try {
                     FileUtils.deletePath(getServiceFolder());
                 } catch (Exception ex) {
@@ -376,9 +372,10 @@ public class BaseService<T extends Service> implements Service {
         }
         try {
             Duration startupCheckInterval = getConfiguration()
-                    .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
+                    .getAsDuration(Configuration.Property.SERVICE_STARTUP_CHECK_POLL_INTERVAL,
+                            SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
             Duration startupTimeout = getConfiguration()
-                    .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
+                    .getAsDuration(Configuration.Property.SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
             untilIsTrue(this::isRunningOrFailed, AwaitilitySettings
                     .using(startupCheckInterval, startupTimeout)
                     .doNotIgnoreExceptions()

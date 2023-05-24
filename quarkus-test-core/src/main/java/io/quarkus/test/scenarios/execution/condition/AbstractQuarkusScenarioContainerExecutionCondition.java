@@ -1,5 +1,6 @@
 package io.quarkus.test.scenarios.execution.condition;
 
+import static io.quarkus.test.configuration.Configuration.Property.DOCKER_DETECTION;
 import static java.lang.Boolean.FALSE;
 import static java.lang.Boolean.TRUE;
 import static java.lang.String.format;
@@ -33,7 +34,7 @@ public abstract class AbstractQuarkusScenarioContainerExecutionCondition impleme
     private static final String LINUX_CONTAINER_OS_TYPE = "linux";
     private static final String PODMAN = "podman";
     private static final String DOCKER_HOST = "DOCKER_HOST";
-    private static final PropertyLookup DOCKER_DETECTION_ENABLED = new PropertyLookup("ts.docker-detection-enabled", "true");
+    private static final PropertyLookup DOCKER_DETECTION_ENABLED = new PropertyLookup(DOCKER_DETECTION.getName(), "true");
     private static Boolean areLinuxContainersSupported = null;
 
     @Override

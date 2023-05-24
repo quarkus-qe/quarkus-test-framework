@@ -1,6 +1,7 @@
 package io.quarkus.test.bootstrap;
 
 import static io.quarkus.test.bootstrap.inject.KubectlClient.ENABLED_EPHEMERAL_NAMESPACES;
+import static io.quarkus.test.configuration.Configuration.Property.KUBERNETES_DELETE_AFTERWARDS;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -16,7 +17,7 @@ import io.quarkus.test.utils.FileUtils;
 public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     public static final String CLIENT = "kubectl-client";
 
-    private static final PropertyLookup DELETE_NAMESPACE_AFTER = new PropertyLookup("ts.kubernetes.delete.namespace.after.all",
+    private static final PropertyLookup DELETE_NAMESPACE_AFTER = new PropertyLookup(KUBERNETES_DELETE_AFTERWARDS.getName(),
             Boolean.TRUE.toString());
 
     private KubectlClient client;

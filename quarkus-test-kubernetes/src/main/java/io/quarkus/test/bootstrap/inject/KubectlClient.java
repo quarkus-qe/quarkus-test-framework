@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap.inject;
 
+import static io.quarkus.test.configuration.Configuration.Property.KUBERNETES_EPHEMERAL_NAMESPACES;
 import static io.quarkus.test.model.CustomVolume.VolumeType.CONFIG_MAP;
 import static io.quarkus.test.model.CustomVolume.VolumeType.SECRET;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
@@ -61,7 +62,8 @@ public final class KubectlClient {
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
     public static final String LABEL_SCENARIO_ID = "scenarioId";
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
-            "ts.kubernetes.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
+            KUBERNETES_EPHEMERAL_NAMESPACES.getName(),
+            Boolean.TRUE.toString());
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int NAMESPACE_NAME_SIZE = 10;
     private static final int NAMESPACE_CREATION_RETRIES = 5;
