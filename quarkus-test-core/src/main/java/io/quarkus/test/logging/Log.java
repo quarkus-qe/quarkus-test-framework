@@ -25,6 +25,7 @@ import io.quarkus.bootstrap.logging.QuarkusDelayedHandler;
 import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.configuration.PropertyLookup;
 
 public final class Log {
@@ -34,7 +35,6 @@ public final class Log {
     public static final PropertyLookup LOG_NOCOLOR = new PropertyLookup("log.nocolor", "false");
 
     public static final String LOG_SUFFIX = ".log";
-    public static final String LOG_LEVEL_NAME = "log.level";
 
     private static final Service NO_SERVICE = null;
     private static final String COLOR_RESET = "\u001b[0m";
@@ -156,7 +156,7 @@ public final class Log {
     private static boolean isServiceLogLevelAllowed(Service service, Level level) {
         boolean enabled = true;
         if (Objects.nonNull(service) && Objects.nonNull(service.getConfiguration())) {
-            String serviceLogLevel = service.getConfiguration().getOrDefault(LOG_LEVEL_NAME, EMPTY);
+            String serviceLogLevel = service.getConfiguration().getOrDefault(Configuration.Property.LOG_LEVEL_NAME, EMPTY);
             if (!serviceLogLevel.isEmpty()) {
                 enabled = Level.parse(serviceLogLevel).intValue() <= level.intValue();
             }

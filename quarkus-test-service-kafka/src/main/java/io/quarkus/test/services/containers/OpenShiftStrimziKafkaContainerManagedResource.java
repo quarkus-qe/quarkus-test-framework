@@ -1,5 +1,6 @@
 package io.quarkus.test.services.containers;
 
+import static io.quarkus.test.configuration.Configuration.Property.KAFKA_REGISTRY_URL_PROPERTY;
 import static java.util.regex.Pattern.quote;
 
 import java.util.List;
@@ -8,11 +9,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.bootstrap.DefaultService;
-import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 import io.quarkus.test.services.URILike;
@@ -20,8 +21,6 @@ import io.quarkus.test.services.containers.model.KafkaProtocol;
 
 public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedResource {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "openshift.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "openshift.template";
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/strimzi-deployment-template.yml";
     private static final String DEPLOYMENT = "kafka.yml";
 
@@ -124,8 +123,9 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
     }
 
     private void applyDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+        String deploymentFile = getConfiguration()
+                .getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
+                        DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
@@ -143,7 +143,7 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
         client.expose(registry, registryPort);
         client.scaleTo(registry, 1);
 
-        model.getContext().put(KafkaService.KAFKA_REGISTRY_URL_PROPERTY, getSchemaRegistryUrl());
+        model.getContext().put(KAFKA_REGISTRY_URL_PROPERTY.getName(), getSchemaRegistryUrl());
     }
 
     private String getSchemaRegistryUrl() {
@@ -156,8 +156,12 @@ public class OpenShiftStrimziKafkaContainerManagedResource implements ManagedRes
         return host.getHost() + ":" + host.getPort();
     }
 
+    private Configuration getConfiguration() {
+        return model.getContext().getOwner().getConfiguration();
+    }
+
     private String replaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        String customServiceName = getConfiguration().get(Configuration.Property.OPENSHIFT_DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());

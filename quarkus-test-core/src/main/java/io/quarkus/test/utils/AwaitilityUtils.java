@@ -17,6 +17,7 @@ import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 
 /**
@@ -24,7 +25,6 @@ import io.quarkus.test.logging.Log;
  */
 public final class AwaitilityUtils {
 
-    private static final String TIMEOUT_FACTOR_PROPERTY = "factor.timeout";
     private static final int POLL_SECONDS = 1;
     private static final int TIMEOUT_SECONDS = 30;
 
@@ -174,7 +174,8 @@ public final class AwaitilityUtils {
     private static long timeoutInSeconds(AwaitilitySettings settings) {
         double timeoutFactor = 1.0;
         if (settings.service != null) {
-            timeoutFactor = settings.service.getConfiguration().getAsDouble(TIMEOUT_FACTOR_PROPERTY, timeoutFactor);
+            timeoutFactor = settings.service.getConfiguration()
+                    .getAsDouble(Configuration.Property.TIMEOUT_FACTOR_PROPERTY, timeoutFactor);
         }
 
         return Math.round(settings.timeout.toSeconds() * timeoutFactor);

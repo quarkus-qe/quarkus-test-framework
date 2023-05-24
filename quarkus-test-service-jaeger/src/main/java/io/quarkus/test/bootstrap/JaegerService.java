@@ -1,8 +1,9 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.configuration.Configuration.Property.JAEGER_TRACE_URL_PROPERTY;
+
 public class JaegerService extends BaseService<JaegerService> {
 
-    public static final String JAEGER_TRACE_URL_PROPERTY = "ts.jaeger.trace.url";
     public static final String JAEGER_API_PATH = "/api/traces";
 
     /**
@@ -22,6 +23,6 @@ public class JaegerService extends BaseService<JaegerService> {
     }
 
     public String getTraceUrl() {
-        return getPropertyFromContext(JAEGER_TRACE_URL_PROPERTY) + JAEGER_API_PATH;
+        return getPropertyFromContext(JAEGER_TRACE_URL_PROPERTY.getName()) + JAEGER_API_PATH;
     }
 }

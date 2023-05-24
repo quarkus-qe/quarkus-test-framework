@@ -1,6 +1,8 @@
 package io.quarkus.test.bootstrap;
 
 import static io.quarkus.test.bootstrap.inject.OpenShiftClient.ENABLED_EPHEMERAL_NAMESPACES;
+import static io.quarkus.test.configuration.Configuration.Property.OPENSHIFT_DELETE_AFTERWARDS;
+import static io.quarkus.test.configuration.Configuration.Property.OPENSHIFT_PRINT_ON_ERROR;
 
 import java.nio.file.Path;
 import java.util.Map;
@@ -18,9 +20,9 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
 
     public static final String CLIENT = "openshift-client";
 
-    private static final PropertyLookup PRINT_INFO_ON_ERROR = new PropertyLookup("ts.openshift.print.info.on.error",
+    private static final PropertyLookup PRINT_INFO_ON_ERROR = new PropertyLookup(OPENSHIFT_PRINT_ON_ERROR.getName(),
             Boolean.TRUE.toString());
-    private static final PropertyLookup DELETE_PROJECT_AFTER = new PropertyLookup("ts.openshift.delete.project.after.all",
+    private static final PropertyLookup DELETE_PROJECT_AFTER = new PropertyLookup(OPENSHIFT_DELETE_AFTERWARDS.getName(),
             Boolean.TRUE.toString());
 
     private OpenShiftClient client;

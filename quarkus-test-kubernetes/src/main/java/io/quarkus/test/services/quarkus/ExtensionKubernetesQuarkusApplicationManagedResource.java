@@ -1,6 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.utils.DockerUtils.CONTAINER_REGISTRY_URL_PROPERTY;
+import static io.quarkus.test.configuration.Configuration.Property.CONTAINER_REGISTRY_URL;
 import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
 import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
 import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
@@ -119,7 +119,7 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
     }
 
     private void propagateContainerRegistryIfSet(List<String> args) {
-        String containerRegistry = System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY);
+        String containerRegistry = this.model.getContext().getOwner().getConfiguration().get(CONTAINER_REGISTRY_URL);
         if (StringUtils.isNotEmpty(containerRegistry)) {
             int lastSlash = containerRegistry.lastIndexOf("/");
             String registryHost = containerRegistry.substring(0, lastSlash);

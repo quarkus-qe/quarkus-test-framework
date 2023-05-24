@@ -1,5 +1,7 @@
 package io.quarkus.test.services.containers;
 
+import static io.quarkus.test.configuration.Configuration.Property.KAFKA_REGISTRY_URL_PROPERTY;
+
 import java.io.File;
 
 import org.apache.commons.lang3.StringUtils;
@@ -8,7 +10,6 @@ import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
-import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
@@ -130,8 +131,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
             if (!isRegistryRunning()) {
                 schemaRegistry.start();
             }
-
-            model.getContext().put(KafkaService.KAFKA_REGISTRY_URL_PROPERTY, getSchemaRegistryUrl());
+            model.getContext().put(KAFKA_REGISTRY_URL_PROPERTY.getName(), getSchemaRegistryUrl());
         }
     }
 

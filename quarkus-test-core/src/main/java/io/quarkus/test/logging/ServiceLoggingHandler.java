@@ -1,6 +1,7 @@
 package io.quarkus.test.logging;
 
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.Configuration;
 
 public abstract class ServiceLoggingHandler extends LoggingHandler {
 
@@ -17,7 +18,7 @@ public abstract class ServiceLoggingHandler extends LoggingHandler {
 
     @Override
     protected boolean isLogEnabled() {
-        return service.getConfiguration().isTrue("log.enable");
+        return service.getConfiguration().isTrue(Configuration.Property.LOG_ENABLE);
     }
 
 }

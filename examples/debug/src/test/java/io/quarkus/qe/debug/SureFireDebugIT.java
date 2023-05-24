@@ -1,7 +1,7 @@
 package io.quarkus.qe.debug;
 
+import static io.quarkus.test.configuration.Configuration.Property.RUN_TESTS;
 import static io.quarkus.test.debug.SureFireDebugProvider.APP_IS_READ_PRESS_ENTER_TO_EXIT;
-import static io.quarkus.test.debug.SureFireDebugProvider.RUN_TESTS;
 import static io.quarkus.test.debug.SureFireDebugProvider.TEST_RUN_SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -35,7 +35,7 @@ public class SureFireDebugIT extends MojoTestBase {
         final RunningInvoker invoker = new RunningInvoker(testDir, false);
         invoker.setMavenExecutable(new File("../../mvnw").getAbsoluteFile());
         final MavenProcessInvocationResult result = invoker.execute(Arrays.asList("clean", "verify", "-Dts.debug",
-                "-D" + RUN_TESTS),
+                "-D" + RUN_TESTS.getName()),
                 Collections.emptyMap());
 
         // wait till app is ready for debugging and press enter
