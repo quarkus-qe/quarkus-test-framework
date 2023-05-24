@@ -9,13 +9,12 @@ import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.utils.DockerUtils;
 
 public class ContainerRegistryKubernetesQuarkusApplicationManagedResource
         extends KubernetesQuarkusApplicationManagedResource<ArtifactQuarkusApplicationManagedResourceBuilder> {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "kubernetes.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
     private static final String QUARKUS_KUBERNETES_TEMPLATE = "/quarkus-app-kubernetes-template.yml";
     private static final String DEPLOYMENT = "kubernetes.yml";
 
@@ -46,8 +45,9 @@ public class ContainerRegistryKubernetesQuarkusApplicationManagedResource
     }
 
     private void loadDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                QUARKUS_KUBERNETES_TEMPLATE);
+        String deploymentFile = model.getContext().getOwner().getConfiguration()
+                .getOrDefault(Configuration.Property.KUBERNETES_DEPLOYMENT_TEMPLATE_PROPERTY,
+                        QUARKUS_KUBERNETES_TEMPLATE);
         client.applyServiceProperties(model.getContext().getOwner(), deploymentFile,
                 this::replaceDeploymentContent,
                 addExtraTemplateProperties(),
@@ -55,7 +55,8 @@ public class ContainerRegistryKubernetesQuarkusApplicationManagedResource
     }
 
     private String replaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        String customServiceName = model.getContext().getOwner().getConfiguration()
+                .get(Configuration.Property.KUBERNETES_DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getName());

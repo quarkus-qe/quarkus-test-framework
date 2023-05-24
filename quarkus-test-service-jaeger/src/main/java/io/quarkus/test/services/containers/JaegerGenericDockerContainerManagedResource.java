@@ -1,6 +1,6 @@
 package io.quarkus.test.services.containers;
 
-import static io.quarkus.test.bootstrap.JaegerService.JAEGER_TRACE_URL_PROPERTY;
+import static io.quarkus.test.configuration.Configuration.Property.JAEGER_TRACE_URL_PROPERTY;
 import static io.quarkus.test.services.Certificate.Format.PEM;
 
 import org.testcontainers.containers.GenericContainer;
@@ -27,7 +27,7 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
     @Override
     public void start() {
         super.start();
-        model.getContext().put(JAEGER_TRACE_URL_PROPERTY, getJaegerTraceUrl());
+        model.getContext().put(JAEGER_TRACE_URL_PROPERTY.getName(), getJaegerTraceUrl());
     }
 
     @Override

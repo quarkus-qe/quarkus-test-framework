@@ -1,6 +1,5 @@
 package io.quarkus.test.services.containers;
 
-import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT;
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
@@ -25,7 +24,7 @@ import org.testcontainers.utility.MountableFile;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
-import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
@@ -36,9 +35,7 @@ import io.quarkus.test.utils.FileUtils;
 public abstract class DockerContainerManagedResource implements ManagedResource {
 
     public static final String DOCKER_INNER_CONTAINER = DockerContainerManagedResource.class.getName() + "_inner";
-    private static final String DELETE_IMAGE_ON_STOP_PROPERTY = "container.delete.image.on.stop";
     private static final String TARGET = "target";
-    private static final PropertyLookup CONTAINER_STARTUP_ATTEMPTS = new PropertyLookup("container-startup-attempts", "1");
 
     private final ServiceContext context;
 
@@ -64,10 +61,11 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             DockerUtils.pullImageById(image);
         }
 
-        innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
-                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
+        Configuration configuration = context.getOwner().getConfiguration();
+        innerContainer.withStartupTimeout(configuration
+                .getAsDuration(Configuration.Property.SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
         innerContainer.withEnv(resolveProperties());
-        innerContainer.withStartupAttempts(CONTAINER_STARTUP_ATTEMPTS.getAsInteger());
+        innerContainer.withStartupAttempts(configuration.getAsInteger(Configuration.Property.CONTAINER_STARTUP_ATTEMPTS, 1));
 
         loggingHandler = new TestContainersLoggingHandler(context.getOwner(), innerContainer);
         loggingHandler.startWatching();
@@ -78,7 +76,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     }
 
     private boolean isDockerImageDeletedOnStop() {
-        return context.getOwner().getConfiguration().isTrue(DELETE_IMAGE_ON_STOP_PROPERTY);
+        return context.getOwner().getConfiguration().isTrue(Configuration.Property.DELETE_IMAGE_ON_STOP_PROPERTY);
     }
 
     protected abstract GenericContainer<?> initContainer();
