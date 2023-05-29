@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.3.1.Beta16-SNAPSHOT</version>
+        <version>1.3.0.Beta17</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>quarkus-examples-parent</artifactId>
@@ -63,7 +63,7 @@
                             <!--don't time out, wait for termination signal from user that debugging is over -->
                             <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
                             <!--our ForkNode factory helps us to propagate termination signal down to JUnit provider -->
-                            <forkNode implementation="io.quarkus.test.debug.SureFireDebugForkNodeFactory"/>
+                            <forkNode implementation="io.quarkus.test.debug.SureFireDebugForkNodeFactory" />
                         </configuration>
                     </plugin>
                 </plugins>
