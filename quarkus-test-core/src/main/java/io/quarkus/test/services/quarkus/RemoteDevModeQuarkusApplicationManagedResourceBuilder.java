@@ -119,6 +119,7 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
 
         List<String> command = MavenUtils.mvnCommand(getContext());
         command.add(withProperty(QuarkusProperties.PACKAGE_TYPE_NAME, QuarkusProperties.MUTABLE_JAR));
+        command.add(SKIP_CHECKSTYLE);
         command.add(withProperty(QUARKUS_LIVE_RELOAD_PASSWORD, liveReloadPassword));
         command.add(withProperty(QUARKUS_LIVE_RELOAD_URL,
                 managedResource.getURI(Protocol.HTTP).toString()));
