@@ -51,6 +51,7 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
+import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -65,7 +66,6 @@ import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
-import io.fabric8.openshift.client.impl.OpenShiftClientImpl;
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
@@ -108,14 +108,18 @@ public final class OpenShiftClient {
         if (ENABLED_EPHEMERAL_NAMESPACES.getAsBoolean()) {
             currentNamespace = createProject();
             OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).withNamespace(currentNamespace).build();
-            client = new OpenShiftClientImpl(config);
+            client = createClient(config);
         } else {
             OpenShiftConfig config = new OpenShiftConfigBuilder().withTrustCerts(true).build();
-            client = new OpenShiftClientImpl(config);
+            client = createClient(config);
             currentNamespace = client.getNamespace();
         }
         isClientReady = true;
         kn = client.adapt(KnativeClient.class);
+    }
+
+    private static NamespacedOpenShiftClient createClient(OpenShiftConfig config) {
+        return new KubernetesClientBuilder().withConfig(config).build().adapt(NamespacedOpenShiftClient.class);
     }
 
     public static OpenShiftClient create(String scenarioId) {
