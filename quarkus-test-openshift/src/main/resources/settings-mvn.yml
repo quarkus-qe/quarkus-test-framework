@@ -8,6 +8,15 @@ data:
     <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+        <mirrors>
+            <mirror>
+                <id>internal.s2i.maven.remote.repository.mirror</id>
+                <mirrorOf>internal.s2i.maven.remote.repository</mirrorOf>
+                <name>internal.s2i.maven.remote.repository</name>
+                <url>${internal.s2i.maven.remote.repository}</url>
+                <blocked>false</blocked>
+            </mirror>
+        </mirrors>
         <profiles>
             <profile>
                 <id>redhat</id>
