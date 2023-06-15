@@ -66,6 +66,7 @@ import io.fabric8.openshift.api.model.operatorhub.v1alpha1.SubscriptionSpec;
 import io.fabric8.openshift.client.NamespacedOpenShiftClient;
 import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
+import io.fabric8.openshift.client.impl.OpenShiftClientImpl;
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
@@ -98,7 +99,7 @@ public final class OpenShiftClient {
     private static final String OC = "oc";
 
     private final String currentNamespace;
-    private final NamespacedOpenShiftClient client;
+    private final OpenShiftClientImpl client;
     private final KnativeClient kn;
     private final String scenarioId;
     private boolean isClientReady;
@@ -118,8 +119,10 @@ public final class OpenShiftClient {
         kn = client.adapt(KnativeClient.class);
     }
 
-    private static NamespacedOpenShiftClient createClient(OpenShiftConfig config) {
-        return new KubernetesClientBuilder().withConfig(config).build().adapt(NamespacedOpenShiftClient.class);
+    private static OpenShiftClientImpl createClient(OpenShiftConfig config) {
+        return new KubernetesClientBuilder().withConfig(config).build()
+                .adapt(NamespacedOpenShiftClient.class)
+                .adapt(OpenShiftClientImpl.class);
     }
 
     public static OpenShiftClient create(String scenarioId) {
