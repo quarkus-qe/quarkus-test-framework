@@ -143,6 +143,7 @@ jobs:
           java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
+          ./quarkus-dev-cli version
       - name: Build
         run: |
           mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
