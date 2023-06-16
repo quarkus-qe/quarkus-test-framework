@@ -53,6 +53,7 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
+import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
@@ -957,7 +958,9 @@ public final class OpenShiftClient {
     }
 
     private List<HasMetadata> loadYaml(String template) {
-        return client.load(new ByteArrayInputStream(template.getBytes())).items();
+        NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> load = client
+                .load(new ByteArrayInputStream(template.getBytes()));
+        return load.items();
     }
 
     private String generateRandomProjectName() {
