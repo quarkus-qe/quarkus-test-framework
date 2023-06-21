@@ -29,7 +29,7 @@ import io.quarkus.test.utils.ProcessBuilderProvider;
 public class QuarkusHelmClient {
 
     public static final String COMMAND_LOG_FILE = "quarkus-helm-command.out";
-    private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.helm.cmd", "helm");
+    static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.helm.cmd", "helm");
     private static final Path TARGET = Paths.get("target");
     private static final int NAME_POS = 0;
     private static final int NAMESPACE_POS = 1;

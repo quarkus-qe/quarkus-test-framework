@@ -10,16 +10,15 @@ import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 import io.quarkus.test.bootstrap.QuarkusHelmFileClient;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 
 @QuarkusScenario
-@DisabledOnOs(OS.WINDOWS)
 @DisabledOnNative // Helm is concerned just about image name, Native compilation is not relevant
+@EnabledIf(value = "io.quarkus.test.bootstrap.HelmUtils#isHelmFileInstalled", disabledReason = "Helmfile needs to be locally installed")
 public class QuarkusHelmFileClientIT {
 
     private static Path helmfilesFolder;
