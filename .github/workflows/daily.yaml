@@ -145,8 +145,9 @@ jobs:
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
       - name: Build
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -pl '!examples/quarkus-helm'
       - name: Generate Jacoco Report
         run: |
           cd coverage-report
@@ -233,6 +234,7 @@ jobs:
         shell: bash
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
           if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
              EXCLUDE_MODULES="-pl !examples/grpc"
@@ -240,6 +242,7 @@ jobs:
 
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
+             EXCLUDE_MODULES+=" -pl '!examples/quarkus-helm'"
           fi
 
           mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION $EXCLUDE_MODULES
@@ -291,8 +294,9 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build in JVM mode
         shell: bash
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -pl '!examples/quarkus-helm'
       - name: Zip Artifacts
         shell: bash
         if: failure()
@@ -362,8 +366,9 @@ jobs:
         uses: al-cheb/configure-pagefile-action@v1.3
       - name: Build in Native mode
         shell: bash
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native,skip-tests-on-windows-in-native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native,skip-tests-on-windows-in-native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -pl '!examples/quarkus-helm'
       - name: Zip Artifacts
         shell: bash
         if: failure()

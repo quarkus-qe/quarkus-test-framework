@@ -16,7 +16,7 @@ import io.quarkus.test.utils.ProcessBuilderProvider;
 
 public class QuarkusHelmFileClient {
     public static final String COMMAND_LOG_FILE = "quarkus-helmfile-command.out";
-    private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.helmfile.cmd", "helmfile");
+    static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.helmfile.cmd", "helmfile");
     private static final Path TARGET = Paths.get("target");
 
     private final ScenarioContext context;

@@ -8,6 +8,7 @@ import java.util.Map;
 import jakarta.inject.Inject;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIf;
 
 import io.quarkus.test.bootstrap.QuarkusHelmClient;
 import io.quarkus.test.scenarios.QuarkusScenario;
@@ -21,6 +22,7 @@ public class QuarkusOpenShiftHelmClientIT {
     static QuarkusHelmClient helmClient;
 
     @Test
+    @EnabledIf(value = "io.quarkus.test.bootstrap.HelmUtils#isHelmInstalled", disabledReason = "Helm needs to be locally installed")
     public void verifyHelmInjection() {
         QuarkusHelmClient.Result helmCmdResult = helmClient.run("version");
         assertTrue(

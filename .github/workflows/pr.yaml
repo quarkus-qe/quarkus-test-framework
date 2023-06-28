@@ -146,8 +146,9 @@ jobs:
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
       - name: Build in JVM mode
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -pl '!examples/quarkus-helm'
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -194,8 +195,9 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build in JVM mode
         shell: bash
+        # TODO: Remove quarkus-helm module exclusion when Quarkus helm extension bumps to 1.0.9
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -pl '!examples/quarkus-helm'
       - name: Zip Artifacts
         shell: bash
         if: failure()
