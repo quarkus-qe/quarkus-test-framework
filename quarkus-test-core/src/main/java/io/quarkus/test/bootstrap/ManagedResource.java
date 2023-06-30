@@ -56,6 +56,13 @@ public interface ManagedResource {
     default void validate() {
     }
 
+    /*
+     * An action, which should be executed as soon as the resource is started.
+     */
+    default void afterStart() {
+
+    }
+
     default URILike createURI(String scheme, String host, int port) {
         return new URILike(scheme, host, port, null);
     }
