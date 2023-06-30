@@ -250,6 +250,7 @@ public class BaseService<T extends Service> implements Service {
         this.managedResourceBuilder = managedResourceBuilder;
         this.managedResource = managedResourceBuilder.build(context);
         this.managedResource.validate();
+        this.onPostStart((service) -> this.managedResource.afterStart());
     }
 
     public void restart() {

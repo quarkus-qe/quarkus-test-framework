@@ -10,6 +10,10 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
+/**
+ * This class describes a Quarkus application,
+ * children classes define, where and how it is built and run.
+ */
 public abstract class QuarkusManagedResource implements ManagedResource {
 
     private static final String EXPECTED_OUTPUT_DEFAULT = "Installed features";
@@ -38,12 +42,7 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     @Override
     public boolean isRunning() {
-        if (getLoggingHandler() != null && getLoggingHandler().logsContains(expectedOutput)) {
-            getLoggingHandler().flush();
-            return true;
-        }
-
-        return false;
+        return getLoggingHandler() != null && getLoggingHandler().logsContains(expectedOutput);
     }
 
     @Override
@@ -62,6 +61,11 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     public void onPostBuild() {
 
+    }
+
+    @Override
+    public void afterStart() {
+        getLoggingHandler().flush();
     }
 
     protected ServiceContext getContext() {
