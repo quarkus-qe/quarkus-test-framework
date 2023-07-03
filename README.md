@@ -58,7 +58,7 @@ Then, we need to add the `quarkus-test-parent` bom dependency under the `depende
             <type>pom</type>
             <scope>import</scope>
         </dependency>
-    <dependencies>
+    </dependencies>
 </dependencyManagement>
 ```
 
