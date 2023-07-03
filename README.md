@@ -36,7 +36,7 @@ Main features:
 First, we need a Quarkus application that we want to verify. If you don't have one, follow the [Getting Started from Quarkus guide](https://quarkus.io/guides/getting-started) or simply execute:
 
 ```s
-mvn io.quarkus.platform:quarkus-maven-plugin:2.3.0.Final:create \
+mvn io.quarkus:quarkus-maven-plugin:3.2.0.Final:create \
     -DprojectGroupId=org.acme \
     -DprojectArtifactId=getting-started \
     -DclassName="org.acme.getting.started.GreetingResource" \
