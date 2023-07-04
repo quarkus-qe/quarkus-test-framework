@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
@@ -8,6 +9,7 @@ import java.nio.file.Path;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.DevModeQuarkusApplication;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 
 public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
@@ -30,6 +32,11 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
+        if (QuarkusProperties.disableBuildAnalytics()) {
+            getContext()
+                    .getOwner()
+                    .withProperty(QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, Boolean.TRUE.toString());
+        }
         build();
         return new DevModeLocalhostQuarkusApplicationManagedResource(this);
     }

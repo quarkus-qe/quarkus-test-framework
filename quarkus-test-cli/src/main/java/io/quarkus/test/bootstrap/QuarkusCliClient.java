@@ -1,5 +1,7 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY;
+import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.File;
@@ -16,6 +18,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.CliDevModeLocalhostQuarkusApplicationManagedResource;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ProcessBuilderProvider;
 
@@ -169,6 +172,10 @@ public class QuarkusCliClient {
         List<String> cmd = new ArrayList<>();
         cmd.addAll(Arrays.asList(COMMAND.get().split(" ")));
         cmd.addAll(Arrays.asList(args));
+
+        if (QuarkusProperties.disableBuildAnalytics()) {
+            cmd.add(format("-D%s=%s", QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, Boolean.TRUE));
+        }
 
         Log.info(cmd.stream().collect(Collectors.joining(" ")));
         try {

@@ -14,6 +14,9 @@ public final class QuarkusProperties {
     public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
     public static final PropertyLookup PLUGIN_VERSION = new PropertyLookup("quarkus-plugin.version");
+    public static final String QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY = "quarkus.analytics.disabled";
+    public static final PropertyLookup QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP = new PropertyLookup(
+            QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, "true");
     public static final String PACKAGE_TYPE_NAME = "quarkus.package.type";
     public static final String MUTABLE_JAR = "mutable-jar";
     public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
@@ -35,6 +38,10 @@ public final class QuarkusProperties {
 
     public static String getPluginVersion() {
         return defaultVersionIfEmpty(PLUGIN_VERSION.get());
+    }
+
+    public static boolean disableBuildAnalytics() {
+        return QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP.getAsBoolean();
     }
 
     public static boolean isNativePackageType() {
