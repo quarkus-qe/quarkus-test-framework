@@ -68,10 +68,7 @@ quarkus.oidc-client.enabled
 quarkus.oidc-token-propagation.enabled
 quarkus.oidc.enabled
 quarkus.openshift.
-quarkus.opentelemetry.enabled
-quarkus.opentelemetry.tracer.enabled
-quarkus.opentelemetry.tracer.exporter.jaeger.enabled
-quarkus.opentelemetry.tracer.exporter.otlp.enabled
+quarkus.otel.enabled
 quarkus.package.type
 quarkus.reactive-messaging.health.enabled
 quarkus.reactive-messaging.kafka.serializer-autodetection.enabled
