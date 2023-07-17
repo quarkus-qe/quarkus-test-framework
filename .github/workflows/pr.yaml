@@ -18,8 +18,9 @@ jobs:
           check-latest: true
           cache: 'maven'
       - name: Build with Maven
+        # TODO: remove 'quarkus.bootstrap.effective-model-builder' property when issue get fixed: https://github.com/quarkusio/quarkus/issues/34787
         run: |
-          mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+          mvn -V -B -s .github/mvn-settings.xml verify -Pframework,examples -Dvalidate-format -DskipTests -DskipITs -Dquarkus.bootstrap.effective-model-builder
   quarkus-main-build:
     name: Quarkus main build
     runs-on: ubuntu-latest
