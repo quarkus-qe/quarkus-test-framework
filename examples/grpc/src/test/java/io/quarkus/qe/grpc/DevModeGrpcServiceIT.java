@@ -6,11 +6,9 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.GrpcService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 @QuarkusScenario
-@DisabledOnNative
 public class DevModeGrpcServiceIT {
 
     static final String NAME = "Victor";
