@@ -257,6 +257,11 @@ public class BaseService<T extends Service> implements Service {
         managedResource.restart();
     }
 
+    public void restartAndWaitUntilServiceIsStarted() {
+        restart();
+        waitUntilServiceIsStarted();
+    }
+
     @Override
     public LogsVerifier logs() {
         return new LogsVerifier(this);
