@@ -17,9 +17,6 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -58,7 +55,6 @@ import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
-import io.fabric8.kubernetes.client.impl.KubernetesClientImpl;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
@@ -962,26 +958,9 @@ public final class OpenShiftClient {
     }
 
     private List<HasMetadata> loadYaml(String template) {
-        NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> metadata = loadUsingDarkArtsOfReflection(
-                client, new ByteArrayInputStream(template.getBytes()));
-        return metadata.items();
-    }
-
-    /*
-     * todo replace the only call of this method with client.load(new ByteArrayInputStream(...)
-     * when https://github.com/quarkusio/quarkus/pull/33767 got released (probably 3.2.0)
-     * verification: mvn clean install -Pframework \
-     * && mvn clean verify -Popenshift,examples -pl examples/https/ -Dquarkus.platform.version=999-SNAPSHOT
-     */
-    private NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> loadUsingDarkArtsOfReflection(
-            OpenShiftClientImpl client, ByteArrayInputStream stream) {
-        try {
-            Method method = KubernetesClientImpl.class.getDeclaredMethod("load", InputStream.class);
-            Object metadata = method.invoke(client, stream);
-            return (NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata>) metadata;
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
+        NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable<HasMetadata> load = client
+                .load(new ByteArrayInputStream(template.getBytes()));
+        return load.items();
     }
 
     private String generateRandomProjectName() {
