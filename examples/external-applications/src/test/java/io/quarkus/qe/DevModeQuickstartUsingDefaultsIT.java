@@ -7,11 +7,9 @@ import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
 @QuarkusScenario
-@DisabledOnNative
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support long file paths")
 public class DevModeQuickstartUsingDefaultsIT {
 

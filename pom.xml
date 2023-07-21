@@ -52,6 +52,7 @@
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
         <exclude.kubernetes.tests>**/Kubernetes*IT.java</exclude.kubernetes.tests>
+        <exclude.quarkus.devmode.tests>no</exclude.quarkus.devmode.tests>
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
@@ -348,6 +349,7 @@
                             <excludes>
                                 <exclude>${exclude.openshift.tests}</exclude>
                                 <exclude>${exclude.kubernetes.tests}</exclude>
+                                <exclude>${exclude.quarkus.devmode.tests}</exclude>
                             </excludes>
                         </configuration>
                     </execution>
@@ -432,6 +434,7 @@
                 <quarkus.package.type>native</quarkus.package.type>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.native-image-xmx>5g</quarkus.native.native-image-xmx>
+                <exclude.quarkus.devmode.tests>**/*DevMode*IT.java</exclude.quarkus.devmode.tests>
             </properties>
         </profile>
         <profile>

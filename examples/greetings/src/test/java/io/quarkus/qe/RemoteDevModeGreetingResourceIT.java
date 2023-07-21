@@ -7,13 +7,11 @@ import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.RemoteDevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
 
 @QuarkusScenario
-@DisabledOnNative
-public class RemoteDevGreetingResourceIT {
+public class RemoteDevModeGreetingResourceIT {
 
     static final String VICTOR_NAME = "victor";
 

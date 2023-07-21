@@ -3,14 +3,12 @@ package io.quarkus.qe.database.mysql;
 import io.quarkus.test.bootstrap.DefaultService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.Container;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 /**
  * This test verifies that resources in test can be used in DevMode.
  */
-@DisabledOnNative // Don't run DEV mode tests in native: https://github.com/quarkus-qe/quarkus-test-framework/issues/720
 @QuarkusScenario
 public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
 
