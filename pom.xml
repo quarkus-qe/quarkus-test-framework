@@ -62,6 +62,8 @@
         <playwright.version>1.36.0</playwright.version>
         <!-- Faster build when using -DskipTests -->
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
+        <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
+        <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -341,6 +343,9 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
+                            <systemProperties>
+                                <oracle.image>${oracle.image}</oracle.image>
+                            </systemProperties>
                             <argLine>${jacoco.agent.argLine}</argLine>
                             <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
                             <includes>
