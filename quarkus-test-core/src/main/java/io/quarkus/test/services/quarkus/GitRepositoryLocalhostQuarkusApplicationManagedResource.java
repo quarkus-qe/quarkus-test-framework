@@ -2,6 +2,8 @@ package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.cloneRepository;
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.mavenBuild;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_GROUP_ID;
+import static io.quarkus.test.utils.MavenUtils.withProperty;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -43,13 +45,20 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
 
     @Override
     protected List<String> prepareCommand(List<String> systemProperties) {
-        // Dev mode
+        final List<String> commands;
+
         if (model.isDevMode()) {
-            return MavenUtils.devModeMavenCommand(model.getContext(), systemProperties);
+            // Dev mode
+            commands = MavenUtils.devModeMavenCommand(model.getContext(), systemProperties);
+        } else {
+            // JVM or Native
+            commands = super.prepareCommand(systemProperties);
         }
 
-        // JVM or Native
-        return super.prepareCommand(systemProperties);
+        // set quarkus.platform.group-id
+        commands.add(withProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()));
+
+        return List.copyOf(commands);
     }
 
     @Override
