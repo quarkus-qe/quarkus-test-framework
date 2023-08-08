@@ -12,7 +12,7 @@ items:
       - name: latest
         from:
           kind: DockerImage
-          name: quay.io/keycloak/keycloak:19.0.1
+          name: quay.io/keycloak/keycloak:22.0.1
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:
