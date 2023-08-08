@@ -15,7 +15,7 @@ public class OpenShiftUsingCustomTemplateResourceIT {
     private static final String CLIENT_ID_DEFAULT = "test-application-client";
     private static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
 
-    @Container(image = "quay.io/keycloak/keycloak:19.0.1", expectedLog = "started", port = 8080)
+    @Container(image = "quay.io/keycloak/keycloak:22.0.1", expectedLog = "started", port = 8080)
     static final KeycloakService customkeycloak = new KeycloakService("/keycloak-realm.json", REALM_DEFAULT);
 
     @QuarkusApplication
