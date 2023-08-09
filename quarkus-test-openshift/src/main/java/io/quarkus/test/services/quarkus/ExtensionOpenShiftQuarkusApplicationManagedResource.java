@@ -34,7 +34,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
 
     private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
-    private static final String QUARKUS_PLUGIN_EXPOSE = "-Dquarkus.openshift.expose=true";
     private static final String QUARKUS_PLUGIN_ROUTE_EXPOSE = "-Dquarkus.openshift.route.expose=true";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
     private static final String QUARKUS_KUBERNETES_CLIENT_NAMESPACE = "quarkus.kubernetes-client.namespace";
@@ -121,8 +120,8 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
 
         List<String> args = mvnCommand(model.getContext());
         args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
-                QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_EXPOSE, QUARKUS_PLUGIN_ROUTE_EXPOSE,
-                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD));
+                QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_ROUTE_EXPOSE, SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE,
+                ENSURE_QUARKUS_BUILD));
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());
