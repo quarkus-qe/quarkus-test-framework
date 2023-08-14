@@ -8,6 +8,6 @@ public class PrometheusPushGatewayContainer extends GenericContainer<PrometheusP
 
     public PrometheusPushGatewayContainer() {
         super("prom/pushgateway");
-        addFixedExposedPort(REST_PORT, REST_PORT);
+        addExposedPort(REST_PORT);
     }
 }

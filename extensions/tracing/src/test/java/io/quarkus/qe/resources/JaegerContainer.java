@@ -15,7 +15,7 @@ public class JaegerContainer extends GenericContainer<JaegerContainer> {
         addEnv("COLLECTOR_OTLP_ENABLED", "true");
         waitingFor(Wait.forLogMessage(".*server started.*", 1));
         withStartupTimeout(Duration.ofSeconds(STARTUP_TIMEOUT_SECONDS));
-        addFixedExposedPort(REST_PORT, REST_PORT);
-        addFixedExposedPort(TRACE_PORT, TRACE_PORT);
+        addExposedPort(REST_PORT);
+        addExposedPort(TRACE_PORT);
     }
 }
