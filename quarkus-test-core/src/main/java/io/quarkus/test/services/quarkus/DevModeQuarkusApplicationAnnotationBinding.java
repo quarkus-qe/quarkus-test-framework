@@ -22,4 +22,9 @@ public class DevModeQuarkusApplicationAnnotationBinding implements AnnotationBin
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
+
 }

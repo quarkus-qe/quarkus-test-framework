@@ -20,4 +20,9 @@ public class JaegerContainerAnnotationBinding implements AnnotationBinding {
         builder.init(metadata);
         return builder;
     }
+
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
 }

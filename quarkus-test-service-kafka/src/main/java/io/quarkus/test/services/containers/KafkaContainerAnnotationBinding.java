@@ -22,4 +22,9 @@ public class KafkaContainerAnnotationBinding implements AnnotationBinding {
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
+
 }

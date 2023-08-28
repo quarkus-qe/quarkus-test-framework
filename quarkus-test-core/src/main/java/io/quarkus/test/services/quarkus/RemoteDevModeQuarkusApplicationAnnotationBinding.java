@@ -22,4 +22,9 @@ public class RemoteDevModeQuarkusApplicationAnnotationBinding implements Annotat
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
+
 }

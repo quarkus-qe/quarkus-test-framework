@@ -20,4 +20,9 @@ public class OperatorAnnotationBinding implements AnnotationBinding {
         builder.init(metadata);
         return builder;
     }
+
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return false;
+    }
 }
