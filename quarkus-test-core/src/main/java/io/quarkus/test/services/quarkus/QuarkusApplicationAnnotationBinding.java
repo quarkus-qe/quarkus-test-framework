@@ -22,4 +22,9 @@ public class QuarkusApplicationAnnotationBinding implements AnnotationBinding {
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return false;
+    }
+
 }

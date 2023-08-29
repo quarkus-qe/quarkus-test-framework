@@ -16,8 +16,6 @@ import jakarta.inject.Inject;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.condition.DisabledOnOs;
-import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
@@ -67,7 +65,6 @@ public class QuarkusCliClientIT {
 
     @Test
     @EnabledOnNative
-    @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support Linux containers yet")
     public void shouldBuildApplicationOnNativeUsingDocker() {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream(STREAM_VERSION));

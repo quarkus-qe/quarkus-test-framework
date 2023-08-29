@@ -1,0 +1,1 @@
+io.quarkus.test.execution.condition.CliQuarkusScenarioContainerExecutionCondition

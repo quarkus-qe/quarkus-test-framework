@@ -9,10 +9,12 @@ import java.lang.annotation.Target;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
+import io.quarkus.test.scenarios.execution.condition.QuarkusScenarioExecutionConditions;
 
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(QuarkusScenarioBootstrap.class)
+@ExtendWith(QuarkusScenarioExecutionConditions.class)
 @Inherited
 public @interface QuarkusScenario {
 }

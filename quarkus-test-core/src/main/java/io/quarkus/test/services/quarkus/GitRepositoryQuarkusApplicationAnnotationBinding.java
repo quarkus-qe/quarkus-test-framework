@@ -22,4 +22,9 @@ public class GitRepositoryQuarkusApplicationAnnotationBinding implements Annotat
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return false;
+    }
+
 }

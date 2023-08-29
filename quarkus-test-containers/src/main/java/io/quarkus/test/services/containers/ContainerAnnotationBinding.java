@@ -22,4 +22,9 @@ public class ContainerAnnotationBinding implements AnnotationBinding {
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
+
 }

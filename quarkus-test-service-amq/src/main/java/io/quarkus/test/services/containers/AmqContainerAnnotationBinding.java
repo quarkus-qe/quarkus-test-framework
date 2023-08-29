@@ -22,4 +22,9 @@ public class AmqContainerAnnotationBinding implements AnnotationBinding {
         return builder;
     }
 
+    @Override
+    public boolean requiresLinuxContainersOnBareMetal() {
+        return true;
+    }
+
 }
