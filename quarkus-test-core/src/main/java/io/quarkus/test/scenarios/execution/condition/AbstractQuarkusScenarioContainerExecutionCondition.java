@@ -21,13 +21,13 @@ import io.quarkus.test.utils.Command;
 
 public abstract class AbstractQuarkusScenarioContainerExecutionCondition implements QuarkusScenarioExecutionCondition {
 
+    public static final ConditionEvaluationResult ENV_SUPPORTS_LINUX_CONTAINERS = enabled("Environment supports"
+            + " Linux containers");
+    public static final String ENV_DOES_NOT_SUPPORT_LINUX_CONTAINERS = "Test class '%s' requires Linux containers, "
+            + "but the environment does not support them";
     private static final Logger LOG = Logger.getLogger(AbstractQuarkusScenarioContainerExecutionCondition.class.getName());
     private static final ConditionEvaluationResult CONDITION_NOT_MATCHED = enabled("This condition should "
             + "only be applied on test classes annotated with the '@QuarkusScenario' annotation");
-    private static final ConditionEvaluationResult ENV_SUPPORTS_LINUX_CONTAINERS = enabled("Environment supports"
-            + " Linux containers");
-    private static final String ENV_DOES_NOT_SUPPORT_LINUX_CONTAINERS = "Test class '%s' requires Linux containers, "
-            + "but the environment does not support them";
     private static final String LINUX_CONTAINERS_NOT_REQUIRED = "Test class '%s' does not require containers";
     private static final String LINUX_CONTAINER_OS_TYPE = "linux";
     private static final String PODMAN = "podman";
@@ -61,7 +61,7 @@ public abstract class AbstractQuarkusScenarioContainerExecutionCondition impleme
 
     protected abstract boolean areContainersRequired(Class<?> testClass);
 
-    private static synchronized boolean areLinuxContainersSupported() {
+    public static synchronized boolean areLinuxContainersSupported() {
         if (areLinuxContainersSupported == null) {
             areLinuxContainersSupported = checkLinuxContainersSupported();
         }
