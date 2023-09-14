@@ -315,7 +315,7 @@ jobs:
       matrix:
         java: [ 17 ]
         quarkus-version: ["999-SNAPSHOT"]
-        graalvm-version: [ "22.3.2"]
+        graalvm-version: ["mandrel-latest"]
     steps:
       - uses: actions/checkout@v3
       - name: Install JDK {{ matrix.java }}
