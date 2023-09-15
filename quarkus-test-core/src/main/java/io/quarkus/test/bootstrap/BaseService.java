@@ -271,7 +271,7 @@ public class BaseService<T extends Service> implements Service {
         return context.getServiceFolder();
     }
 
-    protected <U> U getPropertyFromContext(String key) {
+    public <U> U getPropertyFromContext(String key) {
         if (context == null) {
             fail("Service has not been initialized yet. Make sure you invoke this method in the right order.");
         }
