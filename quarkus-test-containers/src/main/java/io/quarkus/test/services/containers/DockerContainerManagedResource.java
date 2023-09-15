@@ -31,6 +31,7 @@ import io.quarkus.test.utils.DockerUtils;
 
 public abstract class DockerContainerManagedResource implements ManagedResource {
 
+    public static final String DOCKER_INNER_CONTAINER = DockerContainerManagedResource.class.getName() + "_inner";
     private static final String DELETE_IMAGE_ON_STOP_PROPERTY = "container.delete.image.on.stop";
     private static final String TARGET = "target";
 
@@ -66,6 +67,8 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         loggingHandler.startWatching();
 
         doStart();
+
+        context.put(DOCKER_INNER_CONTAINER, innerContainer);
     }
 
     private boolean isDockerImageDeletedOnStop() {
