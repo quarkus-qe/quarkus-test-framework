@@ -12,7 +12,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>quarkus-cli</module>
-        <module>quarkus-helm</module>
+        <!-- TODO: uncomment helm when we use version adapted to https://github.com/quarkusio/quarkus/pull/34956 -->
+        <!-- <module>quarkus-helm</module> -->
         <module>pingpong</module>
         <module>restclient</module>
         <module>greetings</module>
