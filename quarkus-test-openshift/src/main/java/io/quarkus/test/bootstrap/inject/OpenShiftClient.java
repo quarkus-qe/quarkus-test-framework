@@ -226,11 +226,10 @@ public final class OpenShiftClient {
      * @param service
      */
     public void rollout(Service service) {
-        try {
-            new Command(OC, "rollout", "latest", "dc/" + service.getName(), "-n", currentNamespace).runAndWait();
-        } catch (Exception e) {
-            fail("Deployment failed to be started. Caused by " + e.getMessage());
-        }
+        Log.info("Rolling out deploymentConfig " + service.getName() + " in namespace " + currentNamespace);
+        Log.info("Run this command to replicate: oc rollout latest dc/" + service.getName() + " -n " + currentNamespace);
+        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).deployLatest(true);
+        Log.info("dc/" + service.getName() + " rolled out.");
     }
 
     /**
