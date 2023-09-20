@@ -353,11 +353,7 @@ jobs:
         with:
           version: ${{ matrix.graalvm-version }}
           java-version: ${{ matrix.java }}
-          components: 'native-image'
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Install native-image component
-        run: |
-          gu.cmd install native-image
       - name: Configure Pagefile
         # Increased the page-file size due to memory-consumption of native-image command
         # For details see https://github.com/actions/virtual-environments/issues/785
