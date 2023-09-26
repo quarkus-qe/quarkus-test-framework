@@ -225,6 +225,7 @@ public final class OpenShiftClient {
      *
      * @param service
      */
+    @Deprecated(forRemoval = true) //This method is not used anymore. Remove this annotation if you need it for some reason
     public void rollout(Service service) {
         Log.info("Rolling out deploymentConfig " + service.getName() + " in namespace " + currentNamespace);
         Log.info("Run this command to replicate: oc rollout latest dc/" + service.getName() + " -n " + currentNamespace);
