@@ -2,7 +2,6 @@ package io.quarkus.test.bootstrap;
 
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
-import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 
 import java.util.Arrays;
 import java.util.List;
@@ -63,20 +62,20 @@ public class InfinispanService extends BaseService<InfinispanService> {
 
         if (configFile != null && !configFile.isEmpty()) {
             // legacy -> Infinispan previous to version 14
-            withProperty("CONFIG_PATH", RESOURCE_PREFIX + SLASH + configFile);
+            withProperty("CONFIG_PATH", RESOURCE_PREFIX + configFile);
             // Infinispan 14+ configuration setup
             withProperty("INFINISPAN_CONFIG_PATH", "resource_with_destination::/opt/infinispan/server/conf|" + configFile);
         }
 
         if (userConfigFiles != null) {
             for (int index = 0; index < userConfigFiles.size(); index++) {
-                withProperty("USER_CONFIG_" + index, RESOURCE_PREFIX + SLASH + userConfigFiles.get(index));
+                withProperty("USER_CONFIG_" + index, RESOURCE_PREFIX + userConfigFiles.get(index));
             }
         }
 
         if (secretFiles != null) {
             for (int index = 0; index < secretFiles.size(); index++) {
-                withProperty("SECRET_" + index, SECRET_PREFIX + SLASH + secretFiles.get(index));
+                withProperty("SECRET_" + index, SECRET_PREFIX + secretFiles.get(index));
             }
         }
 
