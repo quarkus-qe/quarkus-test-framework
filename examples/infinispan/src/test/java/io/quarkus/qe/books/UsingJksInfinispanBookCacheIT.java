@@ -12,7 +12,7 @@ public class UsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
     @Container(image = "docker.io/infinispan/server:14.0", expectedLog = "Infinispan Server.*started in", port = 11222)
     static final InfinispanService infinispan = new InfinispanService()
             .withConfigFile("infinispan.xml")
-            .withSecretFiles("jks/keystore.jks");
+            .withSecretFiles("/jks/keystore.jks");
 
     @QuarkusApplication
     static final RestService app = new RestService()
