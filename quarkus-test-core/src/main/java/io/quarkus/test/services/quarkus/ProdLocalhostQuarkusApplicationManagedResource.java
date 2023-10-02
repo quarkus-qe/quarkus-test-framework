@@ -7,10 +7,14 @@ import java.util.List;
 
 import org.apache.commons.lang3.ArrayUtils;
 
+import io.quarkus.test.configuration.PropertyLookup;
+
 public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQuarkusApplicationManagedResource {
 
     private static final String JAVA = "java";
     private static final String QUARKUS_ARGS_PROPERTY_NAME = "quarkus.args";
+    private static final String ENABLE_PREVIEW = "--enable-preview";
+    private static final PropertyLookup JAVA_ENABLE_PREVIEW = new PropertyLookup("ts.enable-java-preview", "false");
 
     private final ProdQuarkusApplicationManagedResourceBuilder model;
 
@@ -25,6 +29,9 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
         String[] cmdArgs = extractQuarkusArgs(systemProperties);
         if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
             command.add(JAVA);
+            if (JAVA_ENABLE_PREVIEW.getAsBoolean()) {
+                command.add(ENABLE_PREVIEW);
+            }
             command.addAll(systemProperties);
             command.add("-jar");
             command.add(model.getArtifact().toAbsolutePath().toString());
