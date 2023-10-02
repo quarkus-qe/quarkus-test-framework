@@ -75,7 +75,7 @@ items:
         spec:
           containers:
             - name: k8s-zookeeper
-              image: quay.io/debezium/zookeeper
+              image: zookeeper
               ports:
                 - containerPort: 2181
                   name: client
