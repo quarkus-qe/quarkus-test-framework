@@ -66,10 +66,6 @@ jobs:
       - name: Build
         run: |
           MAVEN_PROFILES="-Pframework,examples"
-          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
-             EXCLUDE_MODULES="-pl !examples/grpc"
-             MAVEN_PROFILES=$MAVEN_PROFILES
-          fi
 
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
@@ -236,10 +232,6 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build
         run: |
-          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
-             EXCLUDE_MODULES="-pl !examples/grpc"
-          fi
-
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
