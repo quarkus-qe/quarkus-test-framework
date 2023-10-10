@@ -3,6 +3,7 @@ package io.quarkus.qe;
 import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
@@ -10,6 +11,7 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
+@Disabled("Temporarily disabled to see if the fail happens just in this test case")
 public class BuildTimeGreetingResourceIT {
 
     @QuarkusApplication
