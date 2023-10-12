@@ -7,7 +7,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
@@ -124,8 +124,8 @@ public class QuarkusHelmClient {
     public void waitToReadiness(String fullReadinessPath, Duration atMost) {
         await().ignoreExceptions().atMost(atMost)
                 .untilAsserted(() -> {
-                    URL url = new URL(fullReadinessPath);
-                    HttpURLConnection con = (HttpURLConnection) url.openConnection();
+                    URI uri = URI.create(fullReadinessPath);
+                    HttpURLConnection con = (HttpURLConnection) uri.toURL().openConnection();
                     try {
                         con.setRequestMethod("GET");
                         con.connect();
