@@ -15,7 +15,7 @@ public class OpenShiftS2iQuickstartUsingUberJarIT {
     /**
      * Package type is set in the custom template.
      */
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", branch = "3.2", contextDir = "getting-started")
     static final RestService appuberjar = new RestService();
 
     @Test
