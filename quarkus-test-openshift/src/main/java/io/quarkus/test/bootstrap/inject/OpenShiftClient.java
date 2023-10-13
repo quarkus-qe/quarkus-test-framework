@@ -712,9 +712,10 @@ public final class OpenShiftClient {
 
                 // add env var properties
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
-                enrichProperties.putAll(extraTemplateProperties);
+                Map<String, String> environmentVariables = convertPropertiesToEnvironment(enrichProperties);
+                environmentVariables.putAll(extraTemplateProperties);
                 dc.getSpec().getTemplate().getSpec().getContainers()
-                        .forEach(container -> enrichProperties.entrySet().forEach(
+                        .forEach(container -> environmentVariables.entrySet().forEach(
                                 property -> {
                                     String key = property.getKey();
                                     EnvVar envVar = getEnvVarByKey(key, container);
@@ -738,6 +739,28 @@ public final class OpenShiftClient {
         }
 
         return template;
+    }
+
+    /**
+     *
+     * Converts names of Quarkus properties to names of environment variables,
+     * eg. quarkus.consul-config.agent.host-port->QUARKUS_CONSUL_CONFIG_AGENT_HOST_PORT
+     *
+     * see https://quarkus.io/guides/config-reference#environment-variables for details
+     */
+    private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
+        HashMap<String, String> environment = new HashMap<>(properties.size());
+        properties.forEach((property, value) -> {
+            String variable;
+            if (property.startsWith("quarkus.")) {
+                variable = property.toUpperCase()
+                        .replaceAll("[^\\p{Alnum}]{1}", "_");
+            } else {
+                variable = property;
+            }
+            environment.put(variable, value);
+        });
+        return environment;
     }
 
     private EnvVar getEnvVarByKey(String key, Container container) {
