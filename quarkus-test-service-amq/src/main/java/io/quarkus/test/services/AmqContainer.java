@@ -13,7 +13,7 @@ import io.quarkus.test.services.containers.model.AmqProtocol;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface AmqContainer {
 
-    String image() default "quay.io/artemiscloud/activemq-artemis-broker:0.1.2";
+    String image() default "quay.io/artemiscloud/activemq-artemis-broker:1.0.22";
 
     String expectedLog() default "Artemis Console available";
 
