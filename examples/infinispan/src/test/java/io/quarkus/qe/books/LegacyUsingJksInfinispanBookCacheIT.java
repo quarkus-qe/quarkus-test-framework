@@ -21,5 +21,6 @@ public class LegacyUsingJksInfinispanBookCacheIT extends BaseBookCacheIT {
             .withProperty("quarkus.infinispan-client.password", infinispan.getPassword())
             .withProperty("quarkus.infinispan-client.trust-store", "secret::/jks/server.jks")
             .withProperty("quarkus.infinispan-client.trust-store-password", "changeit")
-            .withProperty("quarkus.infinispan-client.trust-store-type", "jks");
+            .withProperty("quarkus.infinispan-client.trust-store-type", "jks")
+            .withProperty("quarkus.infinispan-client.sni-host-name", "localhost");
 }
