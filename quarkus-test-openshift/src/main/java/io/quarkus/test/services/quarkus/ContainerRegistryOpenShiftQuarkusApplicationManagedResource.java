@@ -26,7 +26,6 @@ public class ContainerRegistryOpenShiftQuarkusApplicationManagedResource
     protected void doInit() {
         image = createImageAndPush();
         super.doInit();
-        client.rollout(model.getContext().getOwner());
         exposeServices();
     }
 
