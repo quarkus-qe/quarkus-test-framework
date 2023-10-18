@@ -130,6 +130,15 @@ module.
 
 If you just need a report for a single module, run `mvn install jacoco:report -Pcoverage` in that module (or with `-f ...`).
 
+## Branches
+Branches are created for important Quarkus versions, usually related to RHBQ releases and community LTS releases.
+
+When creating new branch please ensure following items:
+ - There are no pending PRs for relevant RHBQ or Quarkus stream
+ - Pin external application branches, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/905
+ - Pin CLI to concrete stream, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/918
+ - Update GH Actions to use the right Quarkus branch, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/920
+
 ## The small print
 
 This project is an open source project, please act responsibly, be nice, polite and enjoy!
