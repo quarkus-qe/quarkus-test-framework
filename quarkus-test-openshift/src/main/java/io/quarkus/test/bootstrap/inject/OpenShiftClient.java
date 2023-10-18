@@ -713,7 +713,20 @@ public final class OpenShiftClient {
 
                 // add env var properties
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
-                Map<String, String> environmentVariables = convertPropertiesToEnvironment(enrichProperties);
+
+                final Map<String, String> environmentVariables;
+                final boolean isQuarkusRuntime = dc.getSpec().getTemplate().getMetadata() != null
+                        && dc.getSpec().getTemplate().getMetadata().getLabels() != null
+                        && "quarkus"
+                                .equals(dc.getSpec().getTemplate().getMetadata().getLabels().get("app.openshift.io/runtime"));
+                if (isQuarkusRuntime) {
+                    // Configuration properties are only converted to MP Config format for Quarkus runtime for
+                    // other runtimes may expect different format.
+                    environmentVariables = convertPropertiesToEnvironment(enrichProperties);
+                } else {
+                    environmentVariables = enrichProperties;
+                }
+
                 environmentVariables.putAll(extraTemplateProperties);
                 dc.getSpec().getTemplate().getSpec().getContainers()
                         .forEach(container -> environmentVariables.entrySet().forEach(
@@ -744,21 +757,15 @@ public final class OpenShiftClient {
 
     /**
      *
-     * Converts names of Quarkus properties to names of environment variables,
-     * eg. quarkus.consul-config.agent.host-port->QUARKUS_CONSUL_CONFIG_AGENT_HOST_PORT
+     * Converts names of configuration properties to the MicroProfile Config specification compliant environment
+     * variables format, e.g. quarkus.consul-config.agent.host-port->QUARKUS_CONSUL_CONFIG_AGENT_HOST_PORT
      *
      * see https://quarkus.io/guides/config-reference#environment-variables for details
      */
     private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
         HashMap<String, String> environment = new HashMap<>(properties.size());
         properties.forEach((property, value) -> {
-            String variable;
-            if (property.startsWith("quarkus.")) {
-                variable = property.toUpperCase()
-                        .replaceAll("[^\\p{Alnum}]{1}", "_");
-            } else {
-                variable = property;
-            }
+            String variable = property.toUpperCase().replaceAll("[^\\p{Alnum}]{1}", "_");
             environment.put(variable, value);
         });
         return environment;
