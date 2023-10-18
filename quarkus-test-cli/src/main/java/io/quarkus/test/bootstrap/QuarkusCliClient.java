@@ -207,7 +207,7 @@ public class QuarkusCliClient {
         }
 
         public static CreateApplicationRequest defaults() {
-            return new CreateApplicationRequest();
+            return new CreateApplicationRequest().withStream("2.13");
         }
     }
 
@@ -232,7 +232,7 @@ public class QuarkusCliClient {
         }
 
         public static CreateExtensionRequest defaults() {
-            return new CreateExtensionRequest();
+            return new CreateExtensionRequest().withStream("2.13");
         }
     }
 
