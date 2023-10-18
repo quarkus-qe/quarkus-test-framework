@@ -6,6 +6,7 @@ target
 bin
 *.iml
 .idea
+.quarkus/
 
 # Maven
 target/
