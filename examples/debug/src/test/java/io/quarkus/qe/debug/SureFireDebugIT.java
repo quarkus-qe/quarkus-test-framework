@@ -21,7 +21,12 @@ import io.quarkus.maven.it.MojoTestBase;
 import io.quarkus.maven.it.verifier.MavenProcessInvocationResult;
 import io.quarkus.maven.it.verifier.RunningInvoker;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
+import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
 
+// FIXME: run tests on Quarkus snapshot as well when we are on 3.6.x
+//   we can't run them now due to conflicting Groovy versions used by RestAssured library
+//   which is causing class loading issues when on 999-SNAPSHOT
+@DisabledOnQuarkusSnapshot(reason = "RestAssured 5.3.2 is using different Groovy version than 5.3.0")
 @DisabledOnOs(WINDOWS)
 @DisabledOnNative
 public class SureFireDebugIT extends MojoTestBase {
