@@ -31,6 +31,6 @@ public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
     }
 
     public static boolean isQuarkusSnapshotVersion() {
-        return QUARKUS_SNAPSHOT_VERSION.equals(QuarkusProperties.getVersion());
+        return QuarkusProperties.getVersion().contains(QUARKUS_SNAPSHOT_VERSION); // to cover cases like 3.2.999-SNAPSHOT
     }
 }
