@@ -34,7 +34,7 @@ jobs:
           path: maven-repo-current-fw.tgz
           retention-days: 1
   quarkus-main-build:
-    name: Quarkus main build
+    name: Quarkus 3.2 build
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -53,9 +53,9 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Build Quarkus main
+      - name: Build Quarkus 3.2
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && git checkout 3.2 && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -119,7 +119,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.2.999-SNAPSHOT"]
         java: [ 17 ]
     steps:
       - uses: actions/checkout@v4
@@ -152,12 +152,12 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 3.2 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-3.2.999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
@@ -233,7 +233,7 @@ jobs:
     strategy:
       matrix:
         java: [ 11 ]
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.2.999-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v4
       - name: Install JDK {{ matrix.java }}
