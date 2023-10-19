@@ -56,30 +56,37 @@ public class SureFireDebugProvider extends AbstractProvider {
 
     @Override
     public RunResult invoke(Object o) throws TestSetFailedException, ReporterException, InvocationTargetException {
-        var bootstrap = new QuarkusScenarioBootstrap();
-        var testContext = new TestContext.TestContextImpl(findTestClass(), Set.of());
-        var testClassInstance = instantiateTestClass();
+        try {
+            var bootstrap = new QuarkusScenarioBootstrap();
+            var testContext = new TestContext.TestContextImpl(findTestClass(), Set.of());
+            var testClassInstance = instantiateTestClass();
 
-        bootstrap.beforeAll(testContext);
-        invokeTestBeforeAll(testClassInstance);
-        if (runTests) {
-            // beforeEach methods are called before test
-            runTests(testClassInstance, bootstrap, testContext);
-        } else {
-            invokeTestBeforeEach(testClassInstance);
-            bootstrap.beforeEach(testContext, findTestMethod());
+            bootstrap.beforeAll(testContext);
+            invokeTestBeforeAll(testClassInstance);
+            if (runTests) {
+                // beforeEach methods are called before test
+                runTests(testClassInstance, bootstrap, testContext);
+            } else {
+                invokeTestBeforeEach(testClassInstance);
+                bootstrap.beforeEach(testContext, findTestMethod());
+            }
+
+            waitTillUserWishesToExit();
+
+            if (!runTests) {
+                bootstrap.afterEach();
+                invokeTestAfterEach(testClassInstance);
+            }
+            invokeTestAfterAll(testClassInstance);
+            bootstrap.afterAll();
+
+            return noTestsRun();
+        } catch (Throwable t) {
+            // this needs to be done, because the exception and message are not logged,
+            // instead, generic exception is provided
+            LOG.error("Execution failed with following exception", t);
+            throw t;
         }
-
-        waitTillUserWishesToExit();
-
-        if (!runTests) {
-            bootstrap.afterEach();
-            invokeTestAfterEach(testClassInstance);
-        }
-        invokeTestAfterAll(testClassInstance);
-        bootstrap.afterAll();
-
-        return noTestsRun();
     }
 
     private Object instantiateTestClass() throws InvocationTargetException {
