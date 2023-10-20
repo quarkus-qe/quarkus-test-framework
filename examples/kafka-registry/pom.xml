@@ -10,7 +10,7 @@
     <artifactId>examples-kafka-registry</artifactId>
     <name>Quarkus - Test Framework - Examples - Kafka with Registry</name>
     <properties>
-        <confluent.kafka-avro-serializer.version>7.3.4</confluent.kafka-avro-serializer.version>
+        <confluent.kafka-avro-serializer.version>7.5.1</confluent.kafka-avro-serializer.version>
     </properties>
 
     <dependencies>
@@ -37,6 +37,10 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${confluent.kafka-avro-serializer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-csv</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
