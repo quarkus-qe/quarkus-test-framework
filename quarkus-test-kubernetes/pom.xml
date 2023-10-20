@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.3.1.Beta28-SNAPSHOT</version>
+        <version>1.3.0.Beta29</version>
     </parent>
     <artifactId>quarkus-test-kubernetes</artifactId>
     <name>Quarkus - Test Framework - Kubernetes</name>
