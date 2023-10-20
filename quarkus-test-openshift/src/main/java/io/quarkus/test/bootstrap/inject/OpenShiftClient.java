@@ -42,12 +42,14 @@ import org.opentest4j.AssertionFailedError;
 
 import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
+import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.client.CustomResource;
@@ -74,9 +76,11 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.model.CustomVolume;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.operator.model.CustomResourceStatus;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.AwaitilityUtils;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.smallrye.config.common.utils.StringUtil;
 
 public final class OpenShiftClient {
 
@@ -96,6 +100,7 @@ public final class OpenShiftClient {
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
     private static final String CUSTOM_RESOURCE_EXPECTED_STATUS = "True";
     private static final String RESOURCE_MNT_FOLDER = "/resources";
+    private static final String APP_PROPS_CONFIG_MAP_KEY = "application-properties";
 
     private static final String OC = "oc";
 
@@ -723,6 +728,14 @@ public final class OpenShiftClient {
                     // Configuration properties are only converted to MP Config format for Quarkus runtime for
                     // other runtimes may expect different format.
                     environmentVariables = convertPropertiesToEnvironment(enrichProperties);
+
+                    // config properties that contains dashes or other special chars need to be added in dotted
+                    // format in a config source with lower priority than env var config source has
+                    // see https://quarkus.io/version/main/guides/config-reference#environment-variables for more info
+                    var appPropertiesFileContent = createAppPropsForPropsThatRequireDottedFormat(enrichProperties);
+                    if (!appPropertiesFileContent.isEmpty()) {
+                        mountPropertiesAsQuarkusAppConfigFile(service, enrichProperties, dc, appPropertiesFileContent);
+                    }
                 } else {
                     environmentVariables = enrichProperties;
                 }
@@ -755,6 +768,52 @@ public final class OpenShiftClient {
         return template;
     }
 
+    private String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
+        return configProperties
+                .entrySet()
+                .stream()
+                .filter(e -> {
+                    var configPropertyName = e.getKey();
+                    var environmentVariableName = StringUtil.replaceNonAlphanumericByUnderscores(configPropertyName);
+                    var configPropertyNameCreatedFromEnvName = StringUtil.toLowerCaseAndDotted(environmentVariableName);
+                    return !configPropertyNameCreatedFromEnvName.equalsIgnoreCase(configPropertyName);
+                })
+                .map(e -> e.getKey() + "=" + e.getValue() + System.lineSeparator())
+                .collect(Collectors.joining());
+    }
+
+    private void mountPropertiesAsQuarkusAppConfigFile(Service service, Map<String, String> enrichProperties,
+            DeploymentConfig dc, String appPropertiesFileContent) {
+        var appConfigFileName = service.getName().toLowerCase() + "-quarkus-application-configuration-file";
+
+        // create dedicated config map only with app properties that must exist in dotted config source
+        createOrUpdateConfigMap(appConfigFileName, APP_PROPS_CONFIG_MAP_KEY, appPropertiesFileContent);
+
+        // create Quarkus pod volume where we mount config map that contains application.properties
+        var configMapVolumeSource = new ConfigMapVolumeSourceBuilder()
+                .withName(appConfigFileName)
+                .build();
+        var volume = new VolumeBuilder()
+                .withName(appConfigFileName)
+                .withConfigMap(configMapVolumeSource)
+                .build();
+        dc.getSpec().getTemplate().getSpec().getVolumes().add(volume);
+
+        // $PWD/config/application.properties
+        var pwd = QuarkusProperties.isNativePackageType() ? "/home/quarkus" : "/deployments";
+
+        // mount volume to each deployment config containers
+        var volumeMount = new VolumeMountBuilder()
+                .withName(appConfigFileName)
+                .withSubPath(APP_PROPS_CONFIG_MAP_KEY)
+                .withReadOnly(true)
+                .withMountPath(pwd + "/config/application.properties")
+                .build();
+        dc.getSpec().getTemplate().getSpec().getContainers()
+                .forEach(container -> container.getVolumeMounts()
+                        .add(volumeMount));
+    }
+
     /**
      *
      * Converts names of configuration properties to the MicroProfile Config specification compliant environment
@@ -765,7 +824,7 @@ public final class OpenShiftClient {
     private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
         HashMap<String, String> environment = new HashMap<>(properties.size());
         properties.forEach((property, value) -> {
-            String variable = property.toUpperCase().replaceAll("[^\\p{Alnum}]{1}", "_");
+            String variable = StringUtil.replaceNonAlphanumericByUnderscores(property);
             environment.put(variable, value);
         });
         return environment;
