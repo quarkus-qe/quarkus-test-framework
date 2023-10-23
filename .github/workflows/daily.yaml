@@ -59,7 +59,7 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.2.0
+        uses: mamezou-tech/setup-helmfile@v1.3.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
@@ -108,7 +108,7 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.2.0
+        uses: mamezou-tech/setup-helmfile@v1.3.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
@@ -218,7 +218,7 @@ jobs:
           version: v3.9.0
         id: install-helm
       - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v1.2.0
+        uses: mamezou-tech/setup-helmfile@v1.3.0
         with:
           helmfile-version: "v0.145.2"
           install-helm: no
