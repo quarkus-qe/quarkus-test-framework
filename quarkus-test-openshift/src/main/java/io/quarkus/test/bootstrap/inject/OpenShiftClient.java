@@ -824,7 +824,7 @@ public final class OpenShiftClient {
     private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
         HashMap<String, String> environment = new HashMap<>(properties.size());
         properties.forEach((property, value) -> {
-            String variable = StringUtil.replaceNonAlphanumericByUnderscores(property);
+            String variable = StringUtil.replaceNonAlphanumericByUnderscores(property).toUpperCase();
             environment.put(variable, value);
         });
         return environment;
