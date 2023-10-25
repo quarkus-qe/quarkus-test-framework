@@ -283,9 +283,9 @@ public class BaseService<T extends Service> implements Service {
         try {
             managedResource.start();
             listeners.forEach(ext -> ext.onServiceStarted(context));
-        } catch (Exception ex) {
-            listeners.forEach(ext -> ext.onServiceError(context, ex));
-            throw ex;
+        } catch (Throwable t) {
+            listeners.forEach(ext -> ext.onServiceError(context, t));
+            throw t;
         }
     }
 
@@ -299,14 +299,19 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
-        Duration startupCheckInterval = getConfiguration()
-                .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
-        Duration startupTimeout = getConfiguration()
-                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
-        untilIsTrue(this::isRunningOrFailed, AwaitilitySettings
-                .using(startupCheckInterval, startupTimeout)
-                .doNotIgnoreExceptions()
-                .withService(this)
-                .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
+        try {
+            Duration startupCheckInterval = getConfiguration()
+                    .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
+            Duration startupTimeout = getConfiguration()
+                    .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT);
+            untilIsTrue(this::isRunningOrFailed, AwaitilitySettings
+                    .using(startupCheckInterval, startupTimeout)
+                    .doNotIgnoreExceptions()
+                    .withService(this)
+                    .timeoutMessage("Service didn't start in %s minutes", startupTimeout));
+        } catch (Throwable t) {
+            listeners.forEach(ext -> ext.onServiceError(context, t));
+            throw t;
+        }
     }
 }
