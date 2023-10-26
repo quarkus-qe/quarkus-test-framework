@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.3.1.Beta29-SNAPSHOT</version>
+        <version>1.3.0.Beta30</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-amq-amqp</artifactId>
