@@ -30,7 +30,6 @@ import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
-import io.quarkus.test.utils.ReflectionUtils;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -155,14 +154,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 String groupId = StringUtils.defaultIfEmpty(resolveProperty(d.groupId()), QUARKUS_GROUP_ID_DEFAULT);
                 String version = StringUtils.defaultIfEmpty(resolveProperty(d.version()), Version.getVersion());
                 AppArtifact artifact = new AppArtifact(groupId, d.artifactId(), version);
-                // Quarkus introduces a breaking change in 2.3:
-                // https://github.com/quarkusio/quarkus/commit/0c85b27c4046c894c181ffea367fca503d1c682c
-                if (isQuarkusVersion2Dot3OrAbove()) {
-                    return ReflectionUtils.createInstance(AppDependency.class,
-                            artifact, DEPENDENCY_SCOPE_DEFAULT, new int[] { DEPENDENCY_DIRECT_FLAG });
-                }
-
-                return new AppDependency(artifact, DEPENDENCY_SCOPE_DEFAULT);
+                return new AppDependency(artifact, DEPENDENCY_SCOPE_DEFAULT, DEPENDENCY_DIRECT_FLAG);
             }).collect(Collectors.toList());
         }
     }

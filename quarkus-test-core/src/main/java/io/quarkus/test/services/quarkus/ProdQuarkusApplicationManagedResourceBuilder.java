@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -23,7 +24,6 @@ import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
-import io.quarkus.test.utils.ReflectionUtils;
 
 public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarkusApplicationManagedResourceBuilder {
 
@@ -145,21 +145,12 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                     .setIsolateDeployment(true)
                     .setProjectRoot(testLocation)
                     .setBaseName(getContext().getName())
-                    .setTargetDirectory(appFolder);
+                    .setTargetDirectory(appFolder)
+                    .setLocalProjectDiscovery(true);
 
             if (!getForcedDependencies().isEmpty()) {
-                // The method setForcedDependencies signature changed from `List<AppDependency>` to `List<Dependency>` where
-                // Dependency is an interface of AppDependency, so it should be fine. However, the compiler fails to cast it,
-                // so we need to use reflection to sort it out for the most recent version and older versions.
-                ReflectionUtils.invokeMethod(builder, "setForcedDependencies", getForcedDependencies());
+                builder.setForcedDependencies(new ArrayList<>(getForcedDependencies()));
             }
-
-            // The method `setLocalProjectDiscovery` signature changed from `Boolean` to `boolean` and this might make
-            // to fail the tests at runtime when using different versions.
-            // In order to workaround this, we need to invoke this method at runtime to let JVM unbox the arguments properly.
-            // Note that this is happening because we want to support both 2.x and 1.13.x Quarkus versions.
-            // Another strategy could be to have our own version of Quarkus bootstrap.
-            ReflectionUtils.invokeMethod(builder, "setLocalProjectDiscovery", true);
 
             AugmentResult result;
             try (CuratedApplication curatedApplication = builder.build().bootstrap()) {
