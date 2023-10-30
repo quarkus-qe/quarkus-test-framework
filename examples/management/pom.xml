@@ -9,6 +9,10 @@
     </parent>
     <artifactId>examples-management</artifactId>
     <name>Quarkus - Test Framework - Examples - Management Interface</name>
+    <properties>
+        <!-- Skip build since our framework will build own executable anyway as it detects build-time properties -->
+        <quarkus.build.skip>true</quarkus.build.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
