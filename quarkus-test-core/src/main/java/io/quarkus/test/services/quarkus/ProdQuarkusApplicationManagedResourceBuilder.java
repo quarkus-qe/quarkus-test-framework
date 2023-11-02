@@ -3,6 +3,7 @@ package io.quarkus.test.services.quarkus;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -10,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
+import org.jboss.logging.Logger;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.exporter.ExplodedExporter;
 import org.jboss.shrinkwrap.api.spec.JavaArchive;
@@ -24,11 +26,13 @@ import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
+import io.quarkus.test.utils.Command;
 
 public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarkusApplicationManagedResourceBuilder {
 
     protected static final String TARGET = "target";
 
+    private static final Logger LOG = Logger.getLogger(ProdQuarkusApplicationManagedResourceBuilder.class.getName());
     private static final String NATIVE_RUNNER = "-runner";
     private static final String EXE = ".exe";
     private static final String JVM_RUNNER = "-runner.jar";
@@ -79,10 +83,32 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         managedResource.onPreBuild();
         copyResourcesToAppFolder();
         if (managedResource.needsBuildArtifact()) {
-            this.artifact = tryToReuseOrBuildArtifact();
+            try {
+                this.artifact = tryToReuseOrBuildArtifact();
+            } catch (Throwable t) {
+                debugFileAccessRaceOnWindows();
+                throw t;
+            }
         }
 
         managedResource.onPostBuild();
+    }
+
+    private void debugFileAccessRaceOnWindows() {
+        if (OS.current() == OS.WINDOWS && Boolean.getBoolean("enable-win-race-debug")) {
+            LOG.info("List all running processes:");
+            ProcessHandle.allProcesses().forEach(processHandle -> {
+                LOG.infof("pid - '%s', is alive - '%b', command - '%s', arguments - '%s'", processHandle.pid(),
+                        processHandle.isAlive(), processHandle.info().command().orElse(""),
+                        processHandle.info().arguments());
+            });
+            LOG.info("Print all file open handles:");
+            try {
+                new Command(".\\handle.exe -accepteula").onDirectory(Path.of(System.getenv("GITHUB_WORKSPACE"))).runAndWait();
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException("Failed to run 'handle.exe': " + e.getMessage());
+            }
+        }
     }
 
     protected QuarkusManagedResource findManagedResource() {
