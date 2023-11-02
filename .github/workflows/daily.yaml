@@ -328,6 +328,12 @@ jobs:
       - name: Install helmfile through windows scoop
         shell: bash
         run: scoop install helmfile
+      - name: Download Sysinternals Handle program used for native race debugging
+        shell: pwsh
+        run: Invoke-WebRequest https://download.sysinternals.com/files/Handle.zip -OutFile .\handle.zip
+      - name: Unzip Sysinternals Handle
+        shell: pwsh
+        run: Expand-Archive .\handle.zip -DestinationPath .
       - name: Download Maven Repo
         uses: actions/download-artifact@v3
         with:
@@ -353,7 +359,7 @@ jobs:
       - name: Build in Native mode
         shell: bash
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Denable-win-race-debug=true
       - name: Zip Artifacts
         shell: bash
         if: failure()
