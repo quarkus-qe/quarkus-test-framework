@@ -12,8 +12,6 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshot;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.QuarkusApplication;
 
 @DisabledOnNative(reason = "Due to high native build execution time in every restart")
@@ -50,14 +48,6 @@ public class VerifyNonAppEndpointsIT {
         givenNonAppRootPath("/");
         whenUpdateProperties();
         thenNonAppEndpointsShouldBeNotFound("/api");
-    }
-
-    @DisabledOnQuarkusVersion(version = "2\\..*", reason = "Redirection is no longer supported in 2.x")
-    @DisabledOnQuarkusSnapshot(reason = "Redirection is no longer supported in 999-SNAPSHOT")
-    @Test
-    public void verifyNonAppRootPathIsRedirected() {
-        givenRootPath("/api");
-        givenNonAppRootPath("/q");
     }
 
     private void givenNonAppRootPath(String path) {

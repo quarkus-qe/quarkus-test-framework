@@ -10,12 +10,10 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.utils.AwaitilityUtils;
 
 @QuarkusScenario
-@DisabledOnQuarkusVersion(version = "3.0.0.CR2", reason = "Continuous Testing page was added to DEV UI in Quarkus 3.0.0.Final")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class DevModeGreetingResourceIT {
 

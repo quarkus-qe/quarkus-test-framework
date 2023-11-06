@@ -6,10 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.restassured.http.ContentType;
 
-@DisabledOnQuarkusVersion(version = "1\\..*", reason = "Auto marshallers do not work on Quarkus 1.x")
 public abstract class BaseBookCacheIT {
 
     private static final String BOOK_TITLE = "testBook";
