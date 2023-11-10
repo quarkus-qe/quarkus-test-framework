@@ -138,6 +138,18 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
+    Set<String> getBuildPropertiesSetAsSystemProperties() {
+        // the idea is to collect properties set as -Dquarkus.property-key=value
+        // this can be done more robust with environment properties etc. if necessary
+        return System.getProperties()
+                .entrySet()
+                .stream()
+                .filter(e -> e.getKey() instanceof String)
+                .filter(e -> isBuildProperty((String) e.getKey()))
+                .map(e -> PropertiesUtils.toMvnSystemProperty((String) e.getKey(), (String) e.getValue()))
+                .collect(toSet());
+    }
+
     public void initAppClasses(Class<?>[] classes) {
         requiresCustomBuild = true;
         appClasses = classes;

@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.logging.FileServiceLoggingHandler;
@@ -25,6 +24,7 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.ProcessBuilderProvider;
 import io.quarkus.test.utils.ProcessUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 import io.quarkus.test.utils.SocketUtils;
 
 public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
@@ -179,8 +179,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         }
 
         return runtimeProperties.entrySet().stream()
-                .map(e -> "-D" + (OS.WINDOWS.isCurrentOs() ? e.getKey().replace("\"", "\\\"") : e.getKey())
-                        + "=" + getComputedValue(e.getValue()))
+                .map(e -> PropertiesUtils.toMvnSystemProperty(e.getKey(), getComputedValue(e.getValue())))
                 .collect(Collectors.toList());
     }
 
