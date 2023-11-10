@@ -48,8 +48,12 @@ public final class ClassPathUtils {
     }
 
     private static String normalizeClassName(String path) {
+        return normalizeClassName(path, CLASS_SUFFIX);
+    }
+
+    public static String normalizeClassName(String path, String suffix) {
         String source = SOURCE_CLASSES_LOCATION.relativize(Paths.get(path)).toString()
-                .replace(CLASS_SUFFIX, StringUtils.EMPTY);
+                .replace(suffix, StringUtils.EMPTY);
         if (OS.WINDOWS.isCurrentOs()) {
             source = source.replace("\\", ".");
         } else {

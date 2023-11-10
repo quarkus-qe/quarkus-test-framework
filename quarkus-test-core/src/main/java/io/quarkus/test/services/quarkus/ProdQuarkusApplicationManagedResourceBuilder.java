@@ -30,11 +30,11 @@ import io.quarkus.test.utils.Command;
 
 public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarkusApplicationManagedResourceBuilder {
 
-    protected static final String TARGET = "target";
+    static final String NATIVE_RUNNER = "-runner";
+    static final String EXE = ".exe";
+    static final String TARGET = "target";
 
     private static final Logger LOG = Logger.getLogger(ProdQuarkusApplicationManagedResourceBuilder.class.getName());
-    private static final String NATIVE_RUNNER = "-runner";
-    private static final String EXE = ".exe";
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
@@ -157,6 +157,13 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     }
 
     private Path buildArtifact() {
+        if (QuarkusProperties.isNativePackageType(getContext()) && OS.WINDOWS.isCurrentOs()) {
+            return new QuarkusMavenPluginBuildHelper(this).buildNativeExecutable();
+        }
+        return buildArtifactUsingQuarkusBootstrap();
+    }
+
+    private Path buildArtifactUsingQuarkusBootstrap() {
         try {
             createSnapshotOfBuildProperties();
             Path appFolder = getApplicationFolder();

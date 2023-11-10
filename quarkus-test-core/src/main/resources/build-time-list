@@ -93,3 +93,4 @@ quarkus.smallrye-metrics.jaxrs.enabled
 quarkus.ssl.native
 quarkus.vault.devservices.enabled
 quarkus.vault.health.enabled
+quarkus.native.container-build
