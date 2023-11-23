@@ -16,7 +16,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
     private static final String PASSWORD = "admin";
     private static final int HTTP_80 = 80;
 
-    private String realmBasePath = "auth/realms";
+    private String realmBasePath = "realms";
     private final String realm;
 
     /**
