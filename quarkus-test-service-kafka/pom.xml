@@ -10,7 +10,7 @@
     <name>Quarkus - Test Framework - Service - Kafka</name>
     <properties>
         <strimzi.testcontainers.version>0.105.0</strimzi.testcontainers.version>
-        <log4j.version>2.21.1</log4j.version>
+        <log4j.version>2.22.0</log4j.version>
     </properties>
     <dependencies>
         <dependency>
