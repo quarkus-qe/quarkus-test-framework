@@ -87,7 +87,7 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
             }
         }
 
-        return registryImage.toLowerCase();
+        return registryImage;
     }
 
     @Override
