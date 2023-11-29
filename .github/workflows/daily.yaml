@@ -17,7 +17,7 @@ jobs:
       - name: Install required tools
         run: sudo apt update && sudo apt install pigz
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -47,7 +47,7 @@ jobs:
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -95,7 +95,7 @@ jobs:
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -206,7 +206,7 @@ jobs:
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -258,7 +258,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -311,7 +311,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -385,7 +385,7 @@ jobs:
 #      - name: Reclaim Disk Space
 #        run: .github/ci-prerequisites.sh
 #      - name: Install JDK {{ matrix.java }}
-#        uses: actions/setup-java@v3
+#        uses: actions/setup-java@v4
 #        with:
 #          distribution: 'temurin'
 #          java-version: ${{ matrix.java }}
