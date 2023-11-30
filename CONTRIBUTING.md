@@ -105,7 +105,7 @@ Be sure to test your pull request in:
 If you have not done so on this machine, you need to:
  
 * Install Git and configure your GitHub access
-* Install Java SDK 11+ (OpenJDK recommended)
+* Install Java SDK 17+ (OpenJDK recommended)
 * Install Docker - Check [the installation guide](https://docs.docker.com/install/), and [the MacOS installation guide](https://docs.docker.com/docker-for-mac/install/)
 
 ### Code Style
