@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 17 ]
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -41,7 +41,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["current"]
-        java: [ 11, 17 ]
+        java: [ 17, 21 ]
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["999-SNAPSHOT"]
-        java: [ 11, 17 ]
+        java: [ 17, 21 ]
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -253,7 +253,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        java: [ 11, 17 ]
+        java: [ 17, 21 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v4
@@ -307,7 +307,8 @@ jobs:
       matrix:
         java: [ 17 ]
         quarkus-version: ["999-SNAPSHOT"]
-        graalvm-version: ["mandrel-23.0.1.2-Final"]
+        graalvm-version: ["mandrel-latest"]
+        graalvm-java: ["21"]
     steps:
       - uses: actions/checkout@v4
       - name: Install JDK {{ matrix.java }}
@@ -350,7 +351,7 @@ jobs:
         uses: graalvm/setup-graalvm@v1
         with:
           version: ${{ matrix.graalvm-version }}
-          java-version: ${{ matrix.java }}
+          java-version: ${{ matrix.graalvm-java }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure Pagefile
         # Increased the page-file size due to memory-consumption of native-image command
@@ -379,7 +380,7 @@ jobs:
 #    strategy:
 #      matrix:
 #        quarkus-version: ["999-SNAPSHOT"]
-#        java: [ 11 ]
+#        java: [ 17 ]
 #    steps:
 #      - uses: actions/checkout@v4
 #      - name: Reclaim Disk Space

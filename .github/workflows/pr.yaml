@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 17 ]
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -39,7 +39,7 @@ jobs:
     needs: validate-format
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 17 ]
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -232,7 +232,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        java: [ 11 ]
+        java: [ 17 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v4
