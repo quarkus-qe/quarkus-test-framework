@@ -64,6 +64,10 @@
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
+        <kafka.registry.confluent.image>confluentinc/cp-schema-registry:7.3.3</kafka.registry.confluent.image>
+        <kafka.registry.apicurio.image>quay.io/apicurio/apicurio-registry-mem:2.4.14.Final</kafka.registry.apicurio.image>
+        <kafka.vendor.confluent.image>confluentinc/cp-kafka:7.3.3</kafka.vendor.confluent.image>
+        <kafka.vendor.strimzi.image>quay.io/strimzi/kafka:0.34.0-kafka-3.4.0</kafka.vendor.strimzi.image>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -345,6 +349,10 @@
                         <configuration>
                             <systemProperties>
                                 <oracle.image>${oracle.image}</oracle.image>
+                                <kafka.registry.confluent.image>${kafka.registry.confluent.image}</kafka.registry.confluent.image>
+                                <kafka.registry.apicurio.image>${kafka.registry.apicurio.image}</kafka.registry.apicurio.image>
+                                <kafka.vendor.confluent.image>${kafka.vendor.confluent.image}</kafka.vendor.confluent.image>
+                                <kafka.vendor.strimzi.image>${kafka.vendor.strimzi.image}</kafka.vendor.strimzi.image>
                             </systemProperties>
                             <argLine>${jacoco.agent.argLine}</argLine>
                             <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
