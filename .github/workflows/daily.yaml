@@ -113,7 +113,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -223,7 +223,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -276,7 +276,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -336,7 +336,7 @@ jobs:
         shell: pwsh
         run: Expand-Archive .\handle.zip -DestinationPath .
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -404,7 +404,7 @@ jobs:
 #          username: ${{ secrets.CI_REGISTRY_USERNAME }}
 #          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
 #      - name: Download Maven Repo
-#        uses: actions/download-artifact@v3
+#        uses: actions/download-artifact@v4
 #        with:
 #          name: maven-repo
 #          path: .
