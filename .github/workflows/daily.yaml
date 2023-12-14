@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maven-repo
           path: maven-repo.tgz
@@ -78,7 +78,7 @@ jobs:
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-artifacts
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
@@ -183,12 +183,12 @@ jobs:
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-artifacts
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
       - name: Archive Coverage Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-coverage
           path: coverage-report/target/site/jacoco
@@ -243,7 +243,7 @@ jobs:
           zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-artifacts
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -295,7 +295,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
@@ -369,7 +369,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-native${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-artifacts
           path: artifacts-latest-windows-native${{ matrix.java }}.tar
@@ -423,7 +423,7 @@ jobs:
 #          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
 #      - name: Archive artifacts
 #        if: failure()
-#        uses: actions/upload-artifact@v3
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: ci-artifacts
 #          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
