@@ -1,26 +1,23 @@
 package io.quarkus.test.services.containers.model;
 
-import static io.quarkus.test.utils.ImageUtil.getImageName;
-import static io.quarkus.test.utils.ImageUtil.getImageVersion;
-
 public enum KafkaRegistry {
-    CONFLUENT("kafka.registry.confluent.image", "/", 8081),
-    APICURIO("kafka.registry.apicurio.image", "/apis", 8080);
+    CONFLUENT("confluentinc/cp-schema-registry", "7.3.3", "/", 8081),
+    APICURIO("quay.io/apicurio/apicurio-registry-mem", "2.4.14.Final", "/apis", 8080);
 
-    private final String imageName;
+    private final String image;
     private final String defaultVersion;
     private final String path;
     private final int port;
 
-    KafkaRegistry(String imagePropertyName, String path, int port) {
-        this.imageName = getImageName(imagePropertyName);
-        this.defaultVersion = getImageVersion(imagePropertyName);
+    KafkaRegistry(String image, String defaultVersion, String path, int port) {
+        this.image = image;
+        this.defaultVersion = defaultVersion;
         this.path = path;
         this.port = port;
     }
 
     public String getImage() {
-        return imageName;
+        return image;
     }
 
     public String getDefaultVersion() {
