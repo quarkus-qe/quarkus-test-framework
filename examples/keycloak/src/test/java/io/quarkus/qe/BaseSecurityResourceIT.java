@@ -1,5 +1,8 @@
 package io.quarkus.qe;
 
+import static io.quarkus.test.bootstrap.KeycloakService.DEFAULT_REALM;
+import static io.quarkus.test.bootstrap.KeycloakService.DEFAULT_REALM_BASE_PATH;
+import static io.quarkus.test.bootstrap.KeycloakService.DEFAULT_REALM_FILE;
 import static org.hamcrest.Matchers.equalTo;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -12,14 +15,12 @@ import io.quarkus.test.services.KeycloakContainer;
 
 public abstract class BaseSecurityResourceIT {
 
-    static final String REALM_BASE_PATH = "realms";
-    static final String REALM_DEFAULT = "test-realm";
     static final String CLIENT_ID_DEFAULT = "test-application-client";
     static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
     static final String NORMAL_USER = "test-normal-user";
 
-    @KeycloakContainer(command = { "start-dev --import-realm" })
-    static KeycloakService keycloak = new KeycloakService("/keycloak-realm.json", REALM_DEFAULT, REALM_BASE_PATH);
+    @KeycloakContainer(command = { "start-dev", "--import-realm" })
+    static KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
 
     private AuthzClient authzClient;
 

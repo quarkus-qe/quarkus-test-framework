@@ -6,6 +6,7 @@ import java.util.ServiceLoader;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.services.KeycloakContainer;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class KeycloakContainerManagedResourceBuilder extends ContainerManagedResourceBuilder {
 
@@ -46,9 +47,9 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     @Override
     public void init(Annotation annotation) {
         KeycloakContainer metadata = (KeycloakContainer) annotation;
-        this.image = metadata.image();
+        this.image = PropertiesUtils.resolveProperty(metadata.image());
         this.restPort = metadata.port();
-        this.expectedLog = metadata.expectedLog();
+        this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.command = metadata.command();
     }
 

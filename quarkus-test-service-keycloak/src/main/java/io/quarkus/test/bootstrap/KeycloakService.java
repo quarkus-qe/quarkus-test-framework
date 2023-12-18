@@ -11,6 +11,9 @@ import org.keycloak.authorization.client.Configuration;
 
 public class KeycloakService extends BaseService<KeycloakService> {
 
+    public static final String DEFAULT_REALM_BASE_PATH = "/realms";
+    public static final String DEFAULT_REALM = "test-realm";
+    public static final String DEFAULT_REALM_FILE = "/keycloak-realm.json";
     private static final String REALM_DEST_PATH = "/opt/keycloak/data/import";
     private static final String USER = "admin";
     private static final String PASSWORD = "admin";
@@ -30,16 +33,6 @@ public class KeycloakService extends BaseService<KeycloakService> {
         this(realmName);
         this.realmBasePath = normalizeRealmBasePath(realmBasePath);
         withProperty("KEYCLOAK_IMPORT", "resource::" + realmFile); // Required by keycloak 16 and lower
-        withProperty("KEYCLOAK_REALM_IMPORT", "resource_with_destination::" + REALM_DEST_PATH + "|" + realmFile);
-    }
-
-    /**
-     * Legacy constructor used by previous versions of Keycloak 18.
-     */
-    @Deprecated
-    public KeycloakService(String realmFile, String realmName) {
-        this(realmName);
-        withProperty("KEYCLOAK_IMPORT", "resource::" + realmFile);
         withProperty("KEYCLOAK_REALM_IMPORT", "resource_with_destination::" + REALM_DEST_PATH + "|" + realmFile);
     }
 
