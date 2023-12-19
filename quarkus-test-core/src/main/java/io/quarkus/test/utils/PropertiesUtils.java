@@ -16,8 +16,10 @@ import org.junit.jupiter.api.condition.OS;
 
 public final class PropertiesUtils {
 
+    public static final String DESTINATION_TO_FILENAME_SEPARATOR = "|";
     public static final String RESOURCE_PREFIX = "resource::/";
     public static final String RESOURCE_WITH_DESTINATION_PREFIX = "resource_with_destination::";
+    public static final String SECRET_WITH_DESTINATION_PREFIX = "secret_with_destination::";
     public static final String RESOURCE_WITH_DESTINATION_SPLIT_CHAR = "\\|";
     public static final String RESOURCE_WITH_DESTINATION_PREFIX_MATCHER = ".*" + RESOURCE_WITH_DESTINATION_SPLIT_CHAR + ".*";
     public static final String SECRET_PREFIX = "secret::/";

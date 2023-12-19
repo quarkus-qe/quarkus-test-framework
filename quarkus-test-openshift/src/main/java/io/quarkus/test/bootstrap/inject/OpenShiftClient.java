@@ -5,11 +5,13 @@ import static io.quarkus.test.model.CustomVolume.VolumeType.SECRET;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsNotNull;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
+import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -873,14 +875,25 @@ public final class OpenShiftClient {
                 createOrUpdateConfigMap(configMapName, fileNameNormalized, getFileContent(fileName));
                 propertyValue = joinMountPathAndFileName(mountPath, fileNameNormalized);
                 // Add the volume
-                if (!volumes.containsKey(mountPath)) {
+                if (!volumes.containsKey(propertyValue)) {
                     volumes.put(propertyValue, new CustomVolume(configMapName, fileNameNormalized, CONFIG_MAP));
                 }
+            } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
+                String path = entry.getValue().replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+                int separatorIdx = path.indexOf(DESTINATION_TO_FILENAME_SEPARATOR);
+                final String mountPath = path.substring(0, separatorIdx);
+                final String filename = getFileName(path.substring(separatorIdx + 1));
+                final String secretName = normalizeConfigMapName(mountPath, filename);
+
+                // Push secret file
+                doCreateSecretFromFile(secretName, getFilePath(SLASH + filename));
+                propertyValue = joinMountPathAndFileName(mountPath, filename);
+                volumes.putIfAbsent(mountPath, new CustomVolume(secretName, "", SECRET));
             } else if (isSecret(propertyValue)) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String secretName = normalizeConfigMapName(path, filename);
+                String secretName = normalizeConfigMapName(mountPath, filename);
 
                 // Push secret file
                 doCreateSecretFromFile(secretName, getFilePath(path));
