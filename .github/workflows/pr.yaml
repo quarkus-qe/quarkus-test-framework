@@ -28,7 +28,7 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo-current-fw.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maven-repo-current-fw
           path: maven-repo-current-fw.tgz
@@ -60,7 +60,7 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maven-repo
           path: maven-repo.tgz
@@ -95,7 +95,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo-current-fw
           path: .
@@ -109,9 +109,9 @@ jobs:
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
   linux-build-jvm-latest:
     name: Linux - JVM build - Latest Version
@@ -143,7 +143,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -168,9 +168,9 @@ jobs:
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
   linux-build-native-released:
     name: Daily - Linux - Native build - Released Version
@@ -206,7 +206,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo-current-fw
           path: .
@@ -222,9 +222,9 @@ jobs:
           zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   windows-build-jvm-latest:
     name: Windows - JVM build - Latest Version
@@ -255,7 +255,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -274,7 +274,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-latest-windows-jvm${{ matrix.java }}
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
