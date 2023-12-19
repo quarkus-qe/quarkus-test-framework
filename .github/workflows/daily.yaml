@@ -30,7 +30,7 @@ jobs:
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
       - name: Persist Maven Repo
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: maven-repo
           path: maven-repo.tgz
@@ -78,9 +78,9 @@ jobs:
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
   linux-build-jvm-latest:
     name: Daily - Linux - JVM build - Latest Version
@@ -113,7 +113,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -183,12 +183,12 @@ jobs:
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
       - name: Archive Coverage Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ci-coverage
           path: coverage-report/target/site/jacoco
@@ -223,7 +223,7 @@ jobs:
           helmfile-version: "v0.145.2"
           install-helm: no
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -243,9 +243,9 @@ jobs:
           zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   windows-build-jvm-latest:
     name: Daily - Windows - JVM build - Latest Version
@@ -276,7 +276,7 @@ jobs:
         shell: bash
         run: scoop install helmfile
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -295,9 +295,9 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-latest-windows-jvm${{ matrix.java }}
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
   windows-build-native-latest:
     name: Daily - Windows - Native build - Latest Version
@@ -336,7 +336,7 @@ jobs:
         shell: pwsh
         run: Expand-Archive .\handle.zip -DestinationPath .
       - name: Download Maven Repo
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: maven-repo
           path: .
@@ -369,9 +369,9 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-native${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
-          name: ci-artifacts
+          name: artifacts-latest-windows-native${{ matrix.java }}
           path: artifacts-latest-windows-native${{ matrix.java }}.tar
 #  kubernetes-build-native-latest:
 #    name: Daily - Kubernetes - Native build - Latest Version
@@ -404,7 +404,7 @@ jobs:
 #          username: ${{ secrets.CI_REGISTRY_USERNAME }}
 #          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
 #      - name: Download Maven Repo
-#        uses: actions/download-artifact@v3
+#        uses: actions/download-artifact@v4
 #        with:
 #          name: maven-repo
 #          path: .
@@ -423,7 +423,7 @@ jobs:
 #          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
 #      - name: Archive artifacts
 #        if: failure()
-#        uses: actions/upload-artifact@v3
+#        uses: actions/upload-artifact@v4
 #        with:
 #          name: ci-artifacts
 #          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
