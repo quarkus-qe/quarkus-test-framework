@@ -845,7 +845,7 @@ public final class OpenShiftClient {
                 String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String configMapName = normalizeConfigMapName(mountPath);
+                String configMapName = normalizeConfigMapName(mountPath, filename);
 
                 // Update config map
                 createOrUpdateConfigMap(configMapName, filename, getFileContent(path));
@@ -855,7 +855,7 @@ public final class OpenShiftClient {
                     volumes.put(mountPath, new CustomVolume(configMapName, "", CONFIG_MAP));
                 }
 
-                propertyValue = mountPath + SLASH + filename;
+                propertyValue = joinMountPathAndFileName(mountPath, filename);
             } else if (isResourceWithDestinationPath(propertyValue)) {
                 String path = propertyValue.replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
                 if (!propertyValue.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
@@ -867,11 +867,11 @@ public final class OpenShiftClient {
                 String mountPath = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
                 String fileName = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
                 String fileNameNormalized = getFileName(fileName);
-                String configMapName = normalizeConfigMapName(mountPath);
+                String configMapName = normalizeConfigMapName(mountPath, fileNameNormalized);
 
                 // Update config map
                 createOrUpdateConfigMap(configMapName, fileNameNormalized, getFileContent(fileName));
-                propertyValue = mountPath + SLASH + fileNameNormalized;
+                propertyValue = joinMountPathAndFileName(mountPath, fileNameNormalized);
                 // Add the volume
                 if (!volumes.containsKey(mountPath)) {
                     volumes.put(propertyValue, new CustomVolume(configMapName, fileNameNormalized, CONFIG_MAP));
@@ -880,13 +880,13 @@ public final class OpenShiftClient {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String secretName = normalizeConfigMapName(path);
+                String secretName = normalizeConfigMapName(path, filename);
 
                 // Push secret file
                 doCreateSecretFromFile(secretName, getFilePath(path));
                 volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
 
-                propertyValue = mountPath + SLASH + filename;
+                propertyValue = joinMountPathAndFileName(mountPath, filename);
             }
 
             output.put(entry.getKey(), propertyValue);
@@ -975,10 +975,19 @@ public final class OpenShiftClient {
         return path;
     }
 
-    private String normalizeConfigMapName(String name) {
-        return StringUtils.removeStart(name, SLASH)
+    private String normalizeConfigMapName(String mountPath, String fileName) {
+        // /some/mount/path/file-name => some-mount-path-file-name
+        return StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
                 .replaceAll(Pattern.quote("."), "-")
                 .replaceAll(SLASH, "-");
+    }
+
+    private static String joinMountPathAndFileName(String mountPath, String fileName) {
+        if (!mountPath.endsWith(SLASH)) {
+            // /some/mount/path => /some/mount/path/
+            mountPath += SLASH;
+        }
+        return mountPath + fileName;
     }
 
     private boolean isResourceWithDestinationPath(String key) {
