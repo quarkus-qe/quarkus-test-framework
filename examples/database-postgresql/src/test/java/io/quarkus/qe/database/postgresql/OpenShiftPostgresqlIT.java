@@ -11,8 +11,9 @@ public class OpenShiftPostgresqlIT extends AbstractSqlDatabaseIT {
 
     private static final int POSTGRESQL_PORT = 5432;
 
-    @Container(image = "quay.io/quarkusqeteam/postgres:14.0", port = POSTGRESQL_PORT, expectedLog = "is ready")
-    static PostgresqlService database = new PostgresqlService();
+    @Container(image = "${postgresql.image}", port = POSTGRESQL_PORT, expectedLog = "is ready")
+    static PostgresqlService database = new PostgresqlService()
+            .withProperty("PGDATA", "/tmp/psql");
 
     @QuarkusApplication
     static RestService app = new RestService()

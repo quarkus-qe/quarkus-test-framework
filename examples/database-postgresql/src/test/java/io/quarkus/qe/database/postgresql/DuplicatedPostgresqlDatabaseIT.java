@@ -1,7 +1,5 @@
 package io.quarkus.qe.database.postgresql;
 
-import static io.quarkus.qe.database.postgresql.PostgresqlDatabaseIT.POSTGRES_IMG;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +14,7 @@ public class DuplicatedPostgresqlDatabaseIT {
 
     private static final int POSTGRESQL_PORT = 5432;
 
-    @Container(image = POSTGRES_IMG, port = POSTGRESQL_PORT, expectedLog = "is ready")
+    @Container(image = "${postgresql.image}", port = POSTGRESQL_PORT, expectedLog = "is ready")
     static PostgresqlService database = new PostgresqlService();
 
     @QuarkusApplication
