@@ -16,6 +16,7 @@ import org.jboss.logging.Logger;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.utils.Command;
 
@@ -32,12 +33,19 @@ public abstract class AbstractQuarkusScenarioContainerExecutionCondition impleme
     private static final String LINUX_CONTAINER_OS_TYPE = "linux";
     private static final String PODMAN = "podman";
     private static final String DOCKER_HOST = "DOCKER_HOST";
+    private static final PropertyLookup DOCKER_DETECTION_ENABLED = new PropertyLookup("ts.docker-detection-enabled", "true");
     private static Boolean areLinuxContainersSupported = null;
 
     @Override
     public final ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
         if (TRUE.equals(areLinuxContainersSupported)) {
-            // optimization - don't evaluate condition if we know Linux containers are available
+            // optimization - don't evaluate condition if we know Linux containers are available or evaluation is disabled
+            return ENV_SUPPORTS_LINUX_CONTAINERS;
+        }
+
+        // Docker detection implemented here leverage Docker CLI, however TestContainers does not require the CLI to work
+        if (!DOCKER_DETECTION_ENABLED.getAsBoolean()) {
+            areLinuxContainersSupported = TRUE;
             return ENV_SUPPORTS_LINUX_CONTAINERS;
         }
 
