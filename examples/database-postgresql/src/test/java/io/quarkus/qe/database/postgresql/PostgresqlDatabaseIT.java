@@ -10,9 +10,8 @@ import io.quarkus.test.services.QuarkusApplication;
 public class PostgresqlDatabaseIT extends AbstractSqlDatabaseIT {
 
     private static final int POSTGRESQL_PORT = 5432;
-    public static final String POSTGRES_IMG = "docker.io/postgres:13.8";
 
-    @Container(image = POSTGRES_IMG, port = POSTGRESQL_PORT, expectedLog = "is ready")
+    @Container(image = "${postgresql.image}", port = POSTGRESQL_PORT, expectedLog = "is ready")
     static PostgresqlService database = new PostgresqlService();
 
     @QuarkusApplication

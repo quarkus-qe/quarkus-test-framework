@@ -14,7 +14,7 @@ public abstract class AbstractMysqlReusableInstance extends AbstractSqlDatabaseI
      * property `ts.database.container.reusable` is enabled on test.properties
      **/
 
-    @Container(image = "docker.io/mysql:8.0.30", port = 3306, expectedLog = "port: 3306  MySQL Community Server")
+    @Container(image = "${mysql.image}", port = 3306, expectedLog = "port: 3306  MySQL Community Server")
     public static MySqlService database = new MySqlService();
 
     static Integer containerPort;

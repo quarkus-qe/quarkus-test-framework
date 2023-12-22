@@ -75,6 +75,7 @@ items:
             app: 'jaeger'
         spec:
           containers:
+            # Image is used only in this configuration, no need in tracking the image in Maven properties
             - image: 'quay.io/jaegertracing/all-in-one:1.41'
               name: 'jaeger'
               env:

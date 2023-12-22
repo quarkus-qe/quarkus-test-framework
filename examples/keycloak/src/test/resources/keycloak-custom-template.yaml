@@ -12,7 +12,8 @@ items:
       - name: latest
         from:
           kind: DockerImage
-          name: quay.io/keycloak/keycloak:22.0.1
+          # Hardcoded image is used only here, tests use one from KeycloakContainer
+          name: quay.io/keycloak/keycloak:23.0
 - apiVersion: apps.openshift.io/v1
   kind: DeploymentConfig
   metadata:

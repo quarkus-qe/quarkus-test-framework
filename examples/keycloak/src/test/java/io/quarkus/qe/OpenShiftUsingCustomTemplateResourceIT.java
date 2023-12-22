@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.KeycloakService;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftScenario;
-import io.quarkus.test.services.Container;
+import io.quarkus.test.services.KeycloakContainer;
 import io.quarkus.test.services.QuarkusApplication;
 
 @OpenShiftScenario
@@ -18,7 +18,7 @@ public class OpenShiftUsingCustomTemplateResourceIT {
     private static final String CLIENT_ID_DEFAULT = "test-application-client";
     private static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
 
-    @Container(image = "quay.io/keycloak/keycloak:22.0.1", expectedLog = "started", port = 8080)
+    @KeycloakContainer(command = { "start-dev", "--import-realm" })
     static final KeycloakService customkeycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM,
             DEFAULT_REALM_BASE_PATH);
 

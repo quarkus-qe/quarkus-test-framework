@@ -63,6 +63,10 @@
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
+        <postgresql.image>docker.io/postgres:16.1</postgresql.image>
+        <mysql.image>docker.io/mysql:8.2.0</mysql.image>
+        <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
+        <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -344,6 +348,10 @@
                         <configuration>
                             <systemProperties>
                                 <oracle.image>${oracle.image}</oracle.image>
+                                <postgresql.image>${postgresql.image}</postgresql.image>
+                                <mysql.image>${mysql.image}</mysql.image>
+                                <infinispan.image>${infinispan.image}</infinispan.image>
+                                <infinispan-legacy.image>${infinispan-legacy.image}</infinispan-legacy.image>
                             </systemProperties>
                             <argLine>${jacoco.agent.argLine}</argLine>
                             <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
