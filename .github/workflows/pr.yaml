@@ -30,7 +30,7 @@ jobs:
       - name: Persist Maven Repo
         uses: actions/upload-artifact@v4
         with:
-          name: maven-repo-current-fw
+          name: maven-repo-current-fw${{matrix.java}}
           path: maven-repo-current-fw.tgz
           retention-days: 1
   quarkus-main-build:
@@ -62,7 +62,7 @@ jobs:
       - name: Persist Maven Repo
         uses: actions/upload-artifact@v4
         with:
-          name: maven-repo
+          name: maven-repo${{matrix.java}}
           path: maven-repo.tgz
           retention-days: 1
   linux-build-jvm-released:
@@ -97,7 +97,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-current-fw
+          name: maven-repo-current-fw${{matrix.java}}
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -145,7 +145,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo
+          name: maven-repo${{matrix.java}}
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -208,7 +208,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-current-fw
+          name: maven-repo-current-fw${{matrix.java}}
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -257,7 +257,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo
+          name: maven-repo${{matrix.java}}
           path: .
       - name: Extract Maven Repo
         shell: bash
