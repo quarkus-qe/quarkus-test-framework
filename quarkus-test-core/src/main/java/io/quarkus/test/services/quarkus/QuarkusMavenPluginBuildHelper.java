@@ -18,7 +18,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -45,6 +47,11 @@ import io.smallrye.common.os.OS;
 
 class QuarkusMavenPluginBuildHelper {
 
+    private static final Set<String> FAILSAFE_BUILD_LIFECYCLE_PHASES = Set.of("verify", "install", "deploy",
+            "integration-test");
+    // following constant helps us to detect args specified before lifecycle phase like `mvn -Dstuff verify`
+    // TODO: this should probably be more robust
+    private static final String LAUNCHER = "org.codehaus.plexus.classworlds.launcher.Launcher";
     private static final String JAVA_SUFFIX = ".java";
     private static final String POM_XML = "pom.xml";
     private final Path appFolder;
@@ -58,10 +65,38 @@ class QuarkusMavenPluginBuildHelper {
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
-        this.cmdLineBuildArgs = Set.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties());
+        this.cmdLineBuildArgs = findMavenCommandLineArgs();
     }
 
-    Path buildNativeExecutable() {
+    private static Set<String> findMavenCommandLineArgs() {
+        Set<String> mvnArgs = new HashSet<>();
+        ProcessHandle processHandle = ProcessHandle.current();
+        do {
+            if (processHandle.info().arguments().isPresent()) {
+                String[] args = processHandle.info().arguments().get();
+                boolean keepArgs = false;
+                for (String arg : args) {
+                    if (arg == null) {
+                        // this is probably not necessary, but let's stay on the safe side
+                        continue;
+                    }
+                    if (keepArgs && arg.startsWith("-D")) {
+                        mvnArgs.add(arg);
+                    } else if (LAUNCHER.equals(arg) || FAILSAFE_BUILD_LIFECYCLE_PHASES.contains(arg)) {
+                        // order is important here - we only want to propagate mvn args
+                        keepArgs = true;
+                    }
+                }
+                if (keepArgs) {
+                    return mvnArgs;
+                }
+            }
+            processHandle = processHandle.parent().orElse(null);
+        } while (processHandle != null);
+        throw new IllegalStateException("Failed to detect mvn command line arguments");
+    }
+
+    Optional<Path> buildNativeExecutable() {
         // this snapshot helps to determine next time app is restarted whether build is necessary (what has changes)
         createSnapshotOfBuildProperties.run();
 
@@ -113,8 +148,7 @@ class QuarkusMavenPluginBuildHelper {
             nativeRunnerExpectedLocation += EXE;
         }
         return findTargetFile(mavenBuildProjectRoot.resolve(TARGET), nativeRunnerExpectedLocation)
-                .map(Path::of)
-                .orElseThrow(() -> new IllegalStateException("Native executable is missing"));
+                .map(Path::of);
     }
 
     private String[] getBuildNativeExecutableCmd() {

@@ -157,8 +157,17 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     }
 
     private Path buildArtifact() {
-        if (QuarkusProperties.isNativePackageType(getContext()) && OS.WINDOWS.isCurrentOs()) {
-            return new QuarkusMavenPluginBuildHelper(this).buildNativeExecutable();
+        if (QuarkusProperties.isNativePackageType(getContext())) {
+            return new QuarkusMavenPluginBuildHelper(this)
+                    .buildNativeExecutable()
+                    .orElseGet(() -> {
+                        LOG.warn("""
+                                Quarkus Maven plugin is missing, falling back to Quarkus bootstrap strategy.
+                                Please add 'quarkus-maven-plugin' to your project as the bootstrap strategy will be removed
+                                in the future.
+                                """);
+                        return buildArtifactUsingQuarkusBootstrap();
+                    });
         }
         return buildArtifactUsingQuarkusBootstrap();
     }
