@@ -115,7 +115,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-linux-build-jvm
+          name: maven-repo
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -225,7 +225,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-linux-build-native
+          name: maven-repo
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -278,7 +278,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-windows-build-jvm
+          name: maven-repo
           path: .
       - name: Extract Maven Repo
         shell: bash
@@ -338,7 +338,7 @@ jobs:
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
-          name: maven-repo-windows-build-native
+          name: maven-repo
           path: .
       - name: Extract Maven Repo
         shell: bash
