@@ -65,7 +65,10 @@ class QuarkusMavenPluginBuildHelper {
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
-        this.cmdLineBuildArgs = findMavenCommandLineArgs();
+        // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
+        // TODO: if we ever extend native executable coverage on Windows, we must find a way how to access only original args
+        this.cmdLineBuildArgs = OS.WINDOWS.isCurrent() ? Set.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties())
+                : findMavenCommandLineArgs();
     }
 
     private static Set<String> findMavenCommandLineArgs() {
