@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.hamcrest.Matcher;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
@@ -13,6 +14,7 @@ import io.quarkus.test.services.knative.eventing.FunqyKnativeEventsService;
 import io.quarkus.test.services.knative.eventing.OpenShiftExtensionFunqyKnativeEventsService;
 
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
+@Disabled("https://github.com/quarkusio/quarkus/issues/38018")
 public class OpenShiftUsingExtensionAndServerlessFunqyKnEventsIT {
 
     private static final String INVOKED_FUNCTION = "defaultChain";
