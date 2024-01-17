@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.4.0.Beta6</version>
+        <version>1.4.1.Beta6-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-quarkus-cli</artifactId>
