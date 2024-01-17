@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.4.1.Beta5-SNAPSHOT</version>
+        <version>1.4.0.Beta6</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-pingpong</artifactId>
