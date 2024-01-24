@@ -50,6 +50,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
 
     private Class<?>[] appClasses;
+    /**
+     * Whether build consist of all source classes or only some of them.
+     */
+    private boolean buildWithAllClasses = true;
     private List<AppDependency> forcedDependencies = Collections.emptyList();
     private boolean requiresCustomBuild = false;
     private ServiceContext context;
@@ -90,6 +94,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected Class<?>[] getAppClasses() {
         return appClasses;
+    }
+
+    protected boolean isBuildWithAllClasses() {
+        return buildWithAllClasses;
     }
 
     protected List<AppDependency> getForcedDependencies() {
@@ -156,6 +164,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         if (appClasses == null || appClasses.length == 0) {
             appClasses = ClassPathUtils.findAllClassesFromSource();
             requiresCustomBuild = false;
+        } else {
+            buildWithAllClasses = false;
         }
     }
 
