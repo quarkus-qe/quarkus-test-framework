@@ -59,11 +59,14 @@ class QuarkusMavenPluginBuildHelper {
     private final Runnable createSnapshotOfBuildProperties;
     private final List<Dependency> forcedDependencies;
     private final Set<String> cmdLineBuildArgs;
+    private final boolean buildWithAllClasses;
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder) {
         this.createSnapshotOfBuildProperties = resourceBuilder::createSnapshotOfBuildProperties;
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
+        this.buildWithAllClasses = resourceBuilder.isBuildWithAllClasses();
+
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
         // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
         // TODO: if we ever extend native executable coverage on Windows, we must find a way how to access only original args
@@ -238,21 +241,65 @@ class QuarkusMavenPluginBuildHelper {
         FileUtils.copyDirectoryTo(mainSourceDir, newMainSourceDir);
         Path srcMainJava = newMainSourceDir.resolve("java");
 
-        // find non-application classes
-        final Set<Path> nonAppClassesPaths;
-        try (Stream<Path> stream = Files.walk(srcMainJava)) {
-            nonAppClassesPaths = stream
-                    .filter(path -> path.toString().endsWith(JAVA_SUFFIX))
-                    .filter(this::isNotAppClass)
-                    .collect(toSet());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        if (!buildWithAllClasses) {
+            if (Files.exists(srcMainJava)) {
+                // find non-application classes
+                final Set<Path> nonAppClassesPaths;
+                try (Stream<Path> stream = Files.walk(srcMainJava)) {
+                    nonAppClassesPaths = stream
+                            .filter(path -> path.toString().endsWith(JAVA_SUFFIX))
+                            .filter(this::isNotAppClass)
+                            .collect(toSet());
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-        // delete non-application classes
-        if (!nonAppClassesPaths.isEmpty()) {
-            for (Path nonAppClassPath : nonAppClassesPaths) {
-                FileUtils.deletePath(nonAppClassPath);
+                // delete non-application classes
+                if (!nonAppClassesPaths.isEmpty()) {
+                    for (Path nonAppClassPath : nonAppClassesPaths) {
+                        FileUtils.deletePath(nonAppClassPath);
+                    }
+                }
+            } else {
+                // there are no app classes in src/main/java, so let's create the directory for test app classes
+                srcMainJava.toFile().mkdirs();
+            }
+
+            // add app classes from src/test/java
+            // app classes are 'merged' (app classes from both 'src/main/java' and 'src/test/java' are kept)
+
+            // 1. find test app classes
+            Path testSourceDir = Path.of("src").resolve("test").resolve("java");
+            final Set<Path> testDirAppClassesPaths;
+            try (Stream<Path> stream = Files.walk(testSourceDir)) {
+                testDirAppClassesPaths = stream
+                        .filter(path -> path.toString().endsWith(JAVA_SUFFIX))
+                        .filter(this::isAppClass)
+                        .collect(toSet());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+            // 2. copy them to the new source dir
+            if (!testDirAppClassesPaths.isEmpty()) {
+                String normalizedTestSourceDirPath = testSourceDir.toAbsolutePath().normalize().toString();
+                if (!normalizedTestSourceDirPath.endsWith("/")) {
+                    // this prevents situation when test app file sub-path starts with a '/'
+                    normalizedTestSourceDirPath += "/";
+                }
+                for (Path appFilePath : testDirAppClassesPaths) {
+                    String normalizedAppFileDirPath = appFilePath.getParent().toAbsolutePath().normalize().toString();
+                    if (!normalizedAppFileDirPath.startsWith(normalizedTestSourceDirPath)) {
+                        throw new IllegalStateException("Merging algorithm doesn't work correctly. "
+                                + "Java test file '" + normalizedAppFileDirPath + "' does not belong to the '"
+                                + normalizedTestSourceDirPath + "' folder.");
+                    }
+                    String javaDirSubPath = normalizedAppFileDirPath.substring(normalizedTestSourceDirPath.length());
+                    Path newDir = srcMainJava.resolve(javaDirSubPath);
+                    // create dir if it doesn't exist
+                    newDir.toFile().mkdirs();
+                    FileUtils.copyFileTo(appFilePath.toFile(), newDir);
+                }
             }
         }
     }
@@ -260,6 +307,11 @@ class QuarkusMavenPluginBuildHelper {
     private boolean isNotAppClass(Path path) {
         String normalizedPath = ClassPathUtils.normalizeClassName(path.toString(), JAVA_SUFFIX);
         return appClassNames.stream().noneMatch(normalizedPath::endsWith);
+    }
+
+    private boolean isAppClass(Path path) {
+        String normalizedPath = ClassPathUtils.normalizeClassName(path.toString(), JAVA_SUFFIX);
+        return appClassNames.stream().anyMatch(normalizedPath::endsWith);
     }
 
     private void addForcedDependenciesToNewPom(Document pomDocument, Node projectElement) {
