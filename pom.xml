@@ -226,6 +226,7 @@
                     <configuration>
                         <!-- fixes unavailable native binary build logs, https://github.com/quarkus-qe/quarkus-test-framework/issues/785 -->
                         <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory" />
+                        <rerunFailingTestsCount>2</rerunFailingTestsCount>
                     </configuration>
                 </plugin>
                 <plugin>
