@@ -51,7 +51,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         applyDeployment();
         exposeService();
 
-        client.scaleToWhenDcReady(model.getContext().getOwner(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
         loggingHandler = new OpenShiftLoggingHandler(model.getContext());
@@ -120,12 +120,12 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
         }
-
         String args = Arrays.stream(model.getCommand()).map(cmd -> "\"" + cmd + "\"").collect(Collectors.joining(", "));
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
-                .replaceAll(quote("${ARGS}"), args);
+                .replaceAll(quote("${ARGS}"), args)
+                .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project());
     }
 
     private void applyDeployment() {

@@ -77,7 +77,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
 
     @Override
     protected void doUpdate() {
-        client.applyServicePropertiesUsingDeploymentConfig(model.getContext().getOwner());
+        client.applyServicePropertiesToDeployment(model.getContext().getOwner());
     }
 
     @Override

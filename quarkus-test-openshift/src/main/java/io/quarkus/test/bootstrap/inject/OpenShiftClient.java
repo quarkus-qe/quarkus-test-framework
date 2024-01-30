@@ -54,13 +54,13 @@ import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
-import io.fabric8.openshift.api.model.DeploymentConfig;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroup;
@@ -215,16 +215,15 @@ public final class OpenShiftClient {
      *
      * @param service
      */
-    public void applyServicePropertiesUsingDeploymentConfig(Service service) {
-        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).get();
-        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
+    public void applyServicePropertiesToDeployment(Service service) {
+        Deployment deployment = client.apps().deployments().withName(service.getName()).get();
+        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
 
-        dc.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
+        deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
             enrichProperties.entrySet().forEach(
                     envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
         });
-
-        client.deploymentConfigs().resource(dc).createOrReplace();
+        client.apps().deployments().resource(deployment).createOrReplace();
     }
 
     /**
@@ -232,12 +231,12 @@ public final class OpenShiftClient {
      *
      * @param service
      */
-    @Deprecated(forRemoval = true) //This method is not used anymore. Remove this annotation if you need it for some reason
+    @Deprecated(forRemoval = true)
+    //This method is not used anymore. Remove this annotation if you need it for some reason
     public void rollout(Service service) {
-        Log.info("Rolling out deploymentConfig " + service.getName() + " in namespace " + currentNamespace);
+        Log.info("Rolling out deployment " + service.getName() + " in namespace " + currentNamespace);
         Log.info("Run this command to replicate: oc rollout latest dc/" + service.getName() + " -n " + currentNamespace);
-        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).deployLatest(true);
-        Log.info("dc/" + service.getName() + " rolled out.");
+        Log.info("deployment/" + service.getName() + " rolled out.");
     }
 
     /**
@@ -308,22 +307,14 @@ public final class OpenShiftClient {
         }
 
         try {
-            new Command(OC, "scale", "dc/" + service.getName(), "--replicas=" + replicas, "-n", currentNamespace).runAndWait();
+            new Command(OC, "scale",
+                    "deployment/" + service.getName(),
+                    "--replicas=" + replicas,
+                    "-n", currentNamespace)
+                    .runAndWait();
         } catch (Exception e) {
             fail("Service failed to be scaled. Caused by " + e.getMessage());
         }
-    }
-
-    public void scaleToWhenDcReady(Service service, int replicas) {
-        if (isServerlessService(service.getName())) {
-            return;
-        }
-
-        AwaitilityUtils.untilIsTrue(() -> {
-            Log.info("Waiting for dc to be ready");
-            return client.deploymentConfigs().withName(service.getName()).get() != null;
-        });
-        scaleTo(service, replicas);
     }
 
     /**
@@ -362,8 +353,8 @@ public final class OpenShiftClient {
      * @return ready replicas amount
      */
     public int readyReplicas(Service service) {
-        DeploymentConfig dc = client.deploymentConfigs().withName(service.getName()).get();
-        return Optional.ofNullable(dc.getStatus().getReadyReplicas()).orElse(0);
+        Deployment deployment = client.apps().deployments().withName(service.getName()).get();
+        return Optional.ofNullable(deployment.getStatus().getReadyReplicas()).orElse(0);
     }
 
     /**
@@ -704,28 +695,22 @@ public final class OpenShiftClient {
             objMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
             obj.getMetadata().setLabels(objMetadataLabels);
 
-            if (obj instanceof DeploymentConfig) {
-                DeploymentConfig dc = (DeploymentConfig) obj;
-
-                // set deployment name
-                dc.getMetadata().setName(service.getName());
+            if (obj instanceof Deployment) {
+                Deployment deployment = (Deployment) obj;
 
                 // set metadata to template
-                dc.getSpec().getTemplate().getMetadata().setNamespace(project());
+                deployment.getSpec().getTemplate().getMetadata().setNamespace(project());
 
                 // add label for logs and and unique scenarioId
-                Map<String, String> templateMetadataLabels = dc.getSpec().getTemplate().getMetadata().getLabels();
+                Map<String, String> templateMetadataLabels = deployment.getSpec().getTemplate().getMetadata().getLabels();
                 templateMetadataLabels.put(LABEL_TO_WATCH_FOR_LOGS, service.getName());
                 templateMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
 
                 // add env var properties
-                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), dc);
+                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
 
                 final Map<String, String> environmentVariables;
-                final boolean isQuarkusRuntime = dc.getSpec().getTemplate().getMetadata() != null
-                        && dc.getSpec().getTemplate().getMetadata().getLabels() != null
-                        && "quarkus"
-                                .equals(dc.getSpec().getTemplate().getMetadata().getLabels().get("app.openshift.io/runtime"));
+                final boolean isQuarkusRuntime = "quarkus".equals(templateMetadataLabels.get("app.openshift.io/runtime"));
                 if (isQuarkusRuntime) {
                     // Configuration properties are only converted to MP Config format for Quarkus runtime for
                     // other runtimes may expect different format.
@@ -736,14 +721,14 @@ public final class OpenShiftClient {
                     // see https://quarkus.io/version/main/guides/config-reference#environment-variables for more info
                     var appPropertiesFileContent = createAppPropsForPropsThatRequireDottedFormat(enrichProperties);
                     if (!appPropertiesFileContent.isEmpty()) {
-                        mountPropertiesAsQuarkusAppConfigFile(service, enrichProperties, dc, appPropertiesFileContent);
+                        mountPropertiesAsQuarkusAppConfigFile(service, enrichProperties, deployment, appPropertiesFileContent);
                     }
                 } else {
                     environmentVariables = enrichProperties;
                 }
 
                 environmentVariables.putAll(extraTemplateProperties);
-                dc.getSpec().getTemplate().getSpec().getContainers()
+                deployment.getSpec().getTemplate().getSpec().getContainers()
                         .forEach(container -> environmentVariables.entrySet().forEach(
                                 property -> {
                                     String key = property.getKey();
@@ -785,7 +770,7 @@ public final class OpenShiftClient {
     }
 
     private void mountPropertiesAsQuarkusAppConfigFile(Service service, Map<String, String> enrichProperties,
-            DeploymentConfig dc, String appPropertiesFileContent) {
+            Deployment deployment, String appPropertiesFileContent) {
         var appConfigFileName = service.getName().toLowerCase() + "-quarkus-application-configuration-file";
 
         // create dedicated config map only with app properties that must exist in dotted config source
@@ -799,7 +784,7 @@ public final class OpenShiftClient {
                 .withName(appConfigFileName)
                 .withConfigMap(configMapVolumeSource)
                 .build();
-        dc.getSpec().getTemplate().getSpec().getVolumes().add(volume);
+        deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume);
 
         // $PWD/config/application.properties
         var pwd = QuarkusProperties.isNativePackageType() ? "/home/quarkus" : "/deployments";
@@ -811,16 +796,15 @@ public final class OpenShiftClient {
                 .withReadOnly(true)
                 .withMountPath(pwd + "/config/application.properties")
                 .build();
-        dc.getSpec().getTemplate().getSpec().getContainers()
+        deployment.getSpec().getTemplate().getSpec().getContainers()
                 .forEach(container -> container.getVolumeMounts()
                         .add(volumeMount));
     }
 
     /**
-     *
      * Converts names of configuration properties to the MicroProfile Config specification compliant environment
      * variables format, e.g. quarkus.consul-config.agent.host-port->QUARKUS_CONSUL_CONFIG_AGENT_HOST_PORT
-     *
+     * <p>
      * see https://quarkus.io/guides/config-reference#environment-variables for details
      */
     private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
@@ -836,7 +820,7 @@ public final class OpenShiftClient {
         return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
-    private Map<String, String> enrichProperties(Map<String, String> properties, DeploymentConfig dc) {
+    private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment) {
         // mount path x volume
         Map<String, CustomVolume> volumes = new HashMap<>();
 
@@ -906,10 +890,10 @@ public final class OpenShiftClient {
         }
 
         for (Entry<String, CustomVolume> volume : volumes.entrySet()) {
-            dc.getSpec().getTemplate().getSpec().getVolumes().add(volume.getValue().getVolume());
+            deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume.getValue().getVolume());
 
             // Configure all the containers to map the volume
-            dc.getSpec().getTemplate().getSpec().getContainers()
+            deployment.getSpec().getTemplate().getSpec().getContainers()
                     .forEach(container -> container.getVolumeMounts()
                             .add(createVolumeMount(volume)));
         }

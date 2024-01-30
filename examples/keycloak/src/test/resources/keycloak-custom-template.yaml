@@ -14,14 +14,15 @@ items:
           kind: DockerImage
           # Hardcoded image is used only here, tests use one from KeycloakContainer
           name: quay.io/keycloak/keycloak:23.0
-- apiVersion: apps.openshift.io/v1
-  kind: DeploymentConfig
+- apiVersion: apps/v1
+  kind: Deployment
   metadata:
-    name: keycloak
+    name: ${SERVICE_NAME}
   spec:
     replicas: 1
     selector:
-      name: keycloak
+      matchLabels:
+        name: keycloak
     strategy:
       type: Recreate
     template:
@@ -46,7 +47,7 @@ items:
             value: keycloak-ping
           - name: OPENSHIFT_DNS_PING_SERVICE_PORT
             value: "8888"
-          image: ''
+          image: image-registry.openshift-image-registry.svc:5000/${CURRENT_NAMESPACE}/keycloak:latest
           imagePullPolicy: Always
           ports:
           - containerPort: 8778
@@ -79,17 +80,6 @@ items:
         - name: keycloak-cert-jgroups-volume
           secret:
             secretName: keycloak-cert-jgroups-secret
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - keycloak
-        from:
-          kind: ImageStreamTag
-          name: keycloak:latest
-
 - apiVersion: v1
   kind: Service
   metadata:
