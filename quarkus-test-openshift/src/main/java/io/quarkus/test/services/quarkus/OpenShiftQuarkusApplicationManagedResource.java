@@ -121,7 +121,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     @Override
     public void restart() {
         stop();
-        if (model.containsBuildProperties()) {
+        if (model.buildPropertiesChanged()) {
             init = false;
             model.build();
         }

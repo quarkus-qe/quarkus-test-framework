@@ -120,7 +120,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
     @Override
     public void restart() {
         stop();
-        if (model.containsBuildProperties()) {
+        if (model.buildPropertiesChanged()) {
             model.build();
         }
 

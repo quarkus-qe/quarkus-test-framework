@@ -98,7 +98,7 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
     @Override
     public void restart() {
         stop();
-        if (model.containsBuildProperties()) {
+        if (model.buildPropertiesChanged()) {
             init = false;
             model.build();
         }

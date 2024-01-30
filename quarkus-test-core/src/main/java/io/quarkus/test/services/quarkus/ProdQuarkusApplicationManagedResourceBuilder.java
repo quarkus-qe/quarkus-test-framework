@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.QuarkusMavenPluginBuildHelper.findNativeBuildExecutable;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -135,15 +136,12 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                             targetFolder,
                             artifactSuffix)));
         }
-        if (!containsBuildProperties() && !requiresCustomBuild()) {
+        createSnapshotOfBuildPropertiesIfNotExists();
+        if (!buildPropertiesChanged()) {
             if (QuarkusProperties.isNativePackageType(getContext())) {
-                String nativeRunnerExpectedLocation = NATIVE_RUNNER;
-                if (OS.WINDOWS.isCurrentOs()) {
-                    nativeRunnerExpectedLocation += EXE;
-                }
-
-                artifactLocation = findTargetFile(targetFolder, nativeRunnerExpectedLocation);
-            } else {
+                // custom native executable has different name, therefore we can safely re-use it
+                artifactLocation = findNativeBuildExecutable(targetFolder, requiresCustomBuild(), getApplicationFolder());
+            } else if (!requiresCustomBuild()) {
                 artifactLocation = findTargetFile(targetFolder, JVM_RUNNER)
                         .or(() -> findTargetFile(targetFolder.resolve(QUARKUS_APP), QUARKUS_RUN));
             }
@@ -158,7 +156,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
 
     private Path buildArtifact() {
         if (QuarkusProperties.isNativePackageType(getContext())) {
-            return new QuarkusMavenPluginBuildHelper(this)
+            return new QuarkusMavenPluginBuildHelper(this, getTargetFolderForLocalArtifacts())
                     .buildNativeExecutable()
                     .orElseGet(() -> {
                         LOG.warn("""

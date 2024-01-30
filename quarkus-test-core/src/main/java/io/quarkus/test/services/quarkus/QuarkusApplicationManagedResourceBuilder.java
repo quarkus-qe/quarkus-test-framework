@@ -125,7 +125,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 .orElseGet(() -> computedProperties.get(propertyWithProfile(name)));
     }
 
-    public boolean containsBuildProperties() {
+    public boolean buildPropertiesChanged() {
         Map<String, String> differenceProperties = MapUtils.difference(context.getOwner().getProperties(), propertiesSnapshot);
         Set<String> properties = differenceProperties.keySet();
         if (properties.isEmpty()) {
@@ -135,9 +135,32 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return properties.stream().anyMatch(this::isBuildProperty);
     }
 
+    public boolean containsBuildProperties() {
+        if (propertiesSnapshot == null) {
+            return false;
+        }
+        return propertiesSnapshot.keySet().stream().anyMatch(this::isBuildProperty);
+    }
+
+    /**
+     * Creates snapshot of build properties if it doesn't exist and determines whether custom build is required
+     * due to build-time properties in native mode.
+     */
+    public void createSnapshotOfBuildPropertiesIfNotExists() {
+        if (propertiesSnapshot == null) {
+            createSnapshotOfBuildProperties();
+        }
+    }
+
     public Map<String, String> createSnapshotOfBuildProperties() {
         propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
-        return new HashMap<>(context.getOwner().getProperties());
+
+        // if there are build-time properties, custom build is required
+        if (!requiresCustomBuild) {
+            requiresCustomBuild = containsBuildProperties();
+        }
+
+        return propertiesSnapshot;
     }
 
     public Map<String, String> getBuildProperties() {
