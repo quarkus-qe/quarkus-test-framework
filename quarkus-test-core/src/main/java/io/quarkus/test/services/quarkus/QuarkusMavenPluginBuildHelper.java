@@ -47,6 +47,7 @@ import io.smallrye.common.os.OS;
 
 class QuarkusMavenPluginBuildHelper {
 
+    private static final String CUSTOM_RUNNER_DIR = "custom-build";
     private static final Set<String> FAILSAFE_BUILD_LIFECYCLE_PHASES = Set.of("verify", "install", "deploy",
             "integration-test");
     // following constant helps us to detect args specified before lifecycle phase like `mvn -Dstuff verify`
@@ -56,16 +57,20 @@ class QuarkusMavenPluginBuildHelper {
     private static final String POM_XML = "pom.xml";
     private final Path appFolder;
     private final Set<String> appClassNames;
-    private final Runnable createSnapshotOfBuildProperties;
     private final List<Dependency> forcedDependencies;
     private final Set<String> cmdLineBuildArgs;
     private final boolean buildWithAllClasses;
+    private final boolean customBuildRequired;
+    private final Path targetFolderForLocalArtifacts;
 
-    QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder) {
-        this.createSnapshotOfBuildProperties = resourceBuilder::createSnapshotOfBuildProperties;
+    QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
+            Path targetFolderForLocalArtifacts) {
+        resourceBuilder.createSnapshotOfBuildProperties();
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.buildWithAllClasses = resourceBuilder.isBuildWithAllClasses();
+        this.customBuildRequired = resourceBuilder.requiresCustomBuild();
+        this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
 
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
         // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
@@ -103,9 +108,6 @@ class QuarkusMavenPluginBuildHelper {
     }
 
     Optional<Path> buildNativeExecutable() {
-        // this snapshot helps to determine next time app is restarted whether build is necessary (what has changes)
-        createSnapshotOfBuildProperties.run();
-
         // create new project root
         Path mavenBuildProjectRoot = appFolder.resolve("mvn-build");
         FileUtils.recreateDirectory(mavenBuildProjectRoot);
@@ -148,13 +150,38 @@ class QuarkusMavenPluginBuildHelper {
             throw new RuntimeException("Failed to build native executable: " + e.getMessage());
         }
 
-        // find created native executable
-        String nativeRunnerExpectedLocation = NATIVE_RUNNER;
-        if (org.junit.jupiter.api.condition.OS.WINDOWS.isCurrentOs()) {
-            nativeRunnerExpectedLocation += EXE;
+        return findTargetFile(mavenBuildProjectRoot.resolve(TARGET), nativeRunnerName())
+                .map(Path::of)
+                .flatMap(this::moveToPermanentLocation);
+    }
+
+    /**
+     * Moves built native executable from application folder target file to target folder for local artifacts.
+     * This makes executable re-usable when flaky tests are re-run as app folder is deleted when the test is finished.
+     */
+    private Optional<Path> moveToPermanentLocation(Path tempNativeExecutablePath) {
+        // find permanent re-usable location of our native executable
+        final Path permanentNativeExecutablePath;
+        if (customBuildRequired) {
+            Path customExecutableTargetDir = targetFolderForLocalArtifacts.resolve(CUSTOM_RUNNER_DIR);
+            customExecutableTargetDir.toFile().mkdir();
+            permanentNativeExecutablePath = customExecutableTargetDir.resolve(getUniqueAppName(appFolder) + nativeRunnerName());
+        } else {
+            permanentNativeExecutablePath = targetFolderForLocalArtifacts.resolve(nativeRunnerName());
         }
-        return findTargetFile(mavenBuildProjectRoot.resolve(TARGET), nativeRunnerExpectedLocation)
-                .map(Path::of);
+
+        // delete existing executable if exists
+        if (Files.exists(permanentNativeExecutablePath)) {
+            FileUtils.deleteFile(permanentNativeExecutablePath.toFile());
+        }
+
+        // move executable to the permanent location
+        final boolean moved = tempNativeExecutablePath.toFile().renameTo(permanentNativeExecutablePath.toFile());
+        if (!moved) {
+            throw new IllegalStateException("Failed to move native executable from '" + tempNativeExecutablePath.toFile()
+                    + "' to '" + tempNativeExecutablePath.toFile() + "'");
+        }
+        return Optional.of(permanentNativeExecutablePath);
     }
 
     private String[] getBuildNativeExecutableCmd() {
@@ -421,5 +448,26 @@ class QuarkusMavenPluginBuildHelper {
                     "Project either needs to contain Maven wrapper or runner must have installed Maven");
         }
         return "mvn";
+    }
+
+    static Optional<String> findNativeBuildExecutable(Path targetFolder, boolean customBuildRequired, Path appFolder) {
+        if (customBuildRequired) {
+            final String customExecutableName = getUniqueAppName(appFolder) + nativeRunnerName();
+            return findTargetFile(targetFolder.resolve(CUSTOM_RUNNER_DIR), customExecutableName::equalsIgnoreCase);
+        }
+        return findTargetFile(targetFolder, nativeRunnerName());
+    }
+
+    private static String getUniqueAppName(Path appFolder) {
+        // test class + app name
+        return appFolder.getParent().toFile().getName() + "-" + appFolder.toFile().getName();
+    }
+
+    private static String nativeRunnerName() {
+        if (org.junit.jupiter.api.condition.OS.WINDOWS.isCurrentOs()) {
+            return NATIVE_RUNNER + EXE;
+        } else {
+            return NATIVE_RUNNER;
+        }
     }
 }

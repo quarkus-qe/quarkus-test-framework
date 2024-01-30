@@ -12,6 +12,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
@@ -128,9 +129,13 @@ public final class FileUtils {
     }
 
     public static Optional<String> findTargetFile(Path basePath, String endsWith) {
+        return findTargetFile(basePath, fileName -> fileName.endsWith(endsWith));
+    }
+
+    public static Optional<String> findTargetFile(Path basePath, Predicate<String> fileNameMatcher) {
         try (Stream<Path> binariesFound = Files
                 .find(basePath, NO_RECURSIVE,
-                        (path, basicFileAttributes) -> path.toFile().getName().endsWith(endsWith))) {
+                        (path, basicFileAttributes) -> fileNameMatcher.test(path.toFile().getName()))) {
             return binariesFound.map(path -> path.normalize().toString()).findFirst();
         } catch (IOException ex) {
             // ignored
