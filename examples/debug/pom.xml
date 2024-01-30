@@ -64,10 +64,6 @@
                     <name>native</name>
                 </property>
             </activation>
-            <properties>
-                <!-- Skipped Quarkus build in native as there is nothing to compile or test -->
-                <quarkus.build.skip>true</quarkus.build.skip>
-            </properties>
         </profile>
     </profiles>
 </project>

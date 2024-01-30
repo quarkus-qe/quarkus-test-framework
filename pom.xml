@@ -448,6 +448,8 @@
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.native-image-xmx>5g</quarkus.native.native-image-xmx>
                 <exclude.quarkus.devmode.tests>**/*DevMode*IT.java</exclude.quarkus.devmode.tests>
+                <!-- Let FW handle the native executable build to avoid unused build when all tests require custom build -->
+                <quarkus.build.skip>true</quarkus.build.skip>
             </properties>
         </profile>
         <profile>

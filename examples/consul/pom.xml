@@ -66,17 +66,5 @@
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
-            <id>skip-build-on-windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <properties>
-                <!-- Skip build to see if we still experience race on Windows -->
-                <quarkus.build.skip>true</quarkus.build.skip>
-            </properties>
-        </profile>
     </profiles>
 </project>
