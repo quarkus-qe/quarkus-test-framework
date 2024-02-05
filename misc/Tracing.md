@@ -20,7 +20,7 @@ All the metrics will be tagging [the test execution properties](Execution.md).
 - On bare metal:
 
 ```
-docker run --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 16686:16686 -p 4318:4318 quay.io/jaegertracing/all-in-one:1.41
+docker run --name jaeger -e COLLECTOR_OTLP_ENABLED=true -p 16686:16686 -p 4318:4318 quay.io/jaegertracing/all-in-one:1.53
 ```
 
 The JAEGER API URL will be available at `http://localhost:4318/v1/traces`.

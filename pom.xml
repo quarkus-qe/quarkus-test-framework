@@ -64,7 +64,7 @@
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
         <postgresql.image>docker.io/postgres:16.1</postgresql.image>
-        <mysql.image>docker.io/mysql:8.2.0</mysql.image>
+        <mysql.image>docker.io/mysql:8.3.0</mysql.image>
         <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
     </properties>
