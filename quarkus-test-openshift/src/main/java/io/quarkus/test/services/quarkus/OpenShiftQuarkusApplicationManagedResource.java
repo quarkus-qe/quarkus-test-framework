@@ -55,7 +55,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
             doUpdate();
         }
 
-        client.scaleToWhenDcReady(model.getContext().getOwner(), 1);
+        client.scaleTo(model.getContext().getOwner(), 1);
 
         running = true;
 

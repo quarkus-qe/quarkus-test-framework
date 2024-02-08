@@ -86,6 +86,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
                 .replaceAll(quote("${GIT_REF}"), model.getGitBranch())
                 .replaceAll(quote("${CONTEXT_DIR}"), model.getContextDir())
                 .replaceAll(quote("${GIT_MAVEN_ARGS}"), mavenArgs)
+                .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project())
                 .replaceAll(quote(QUARKUS_PLATFORM_GROUP_ID_PROPERTY), PLATFORM_GROUP_ID.get())
                 .replaceAll(quote(QUARKUS_PLATFORM_VERSION_PROPERTY), quarkusPlatformVersion);
     }

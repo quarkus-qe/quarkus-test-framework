@@ -26,8 +26,8 @@ items:
     selector:
       app.kubernetes.io/name: "${SERVICE_NAME}"
     type: "ClusterIP"
-- apiVersion: "apps.openshift.io/v1"
-  kind: "DeploymentConfig"
+- apiVersion: "apps/v1"
+  kind: "Deployment"
   metadata:
     labels:
       app.openshift.io/runtime: "quarkus"
@@ -36,7 +36,8 @@ items:
   spec:
     replicas: 1
     selector:
-      app.kubernetes.io/name: "${SERVICE_NAME}"
+      matchLabels:
+        app.kubernetes.io/name: "${SERVICE_NAME}"
     template:
       metadata:
         labels:
