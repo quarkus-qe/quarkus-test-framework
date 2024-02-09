@@ -152,6 +152,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         }
     }
 
+    public boolean hasAppSpecificConfigProperties() {
+        return propertiesSnapshot != null && !propertiesSnapshot.isEmpty();
+    }
+
     public Map<String, String> createSnapshotOfBuildProperties() {
         propertiesSnapshot = new HashMap<>(context.getOwner().getProperties());
 

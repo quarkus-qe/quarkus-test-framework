@@ -69,7 +69,9 @@ class QuarkusMavenPluginBuildHelper {
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.buildWithAllClasses = resourceBuilder.isBuildWithAllClasses();
-        this.customBuildRequired = resourceBuilder.requiresCustomBuild();
+        // runtime properties provided at build time are currently available during the build time and so are custom props
+        // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
+        this.customBuildRequired = resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties();
         this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
 
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
@@ -163,11 +165,12 @@ class QuarkusMavenPluginBuildHelper {
         // find permanent re-usable location of our native executable
         final Path permanentNativeExecutablePath;
         if (customBuildRequired) {
-            Path customExecutableTargetDir = targetFolderForLocalArtifacts.resolve(CUSTOM_RUNNER_DIR);
-            customExecutableTargetDir.toFile().mkdir();
-            permanentNativeExecutablePath = customExecutableTargetDir.resolve(getUniqueAppName(appFolder) + nativeRunnerName());
+            String uniqueAppName = getUniqueAppName(appFolder);
+            Path customExecutableTargetDir = targetFolderForLocalArtifacts.resolve(CUSTOM_RUNNER_DIR).resolve(uniqueAppName);
+            customExecutableTargetDir.toFile().mkdirs();
+            permanentNativeExecutablePath = customExecutableTargetDir.resolve(uniqueAppName + nativeRunnerName());
         } else {
-            permanentNativeExecutablePath = targetFolderForLocalArtifacts.resolve(nativeRunnerName());
+            permanentNativeExecutablePath = targetFolderForLocalArtifacts.resolve("quarkus" + nativeRunnerName());
         }
 
         // delete existing executable if exists
@@ -452,8 +455,10 @@ class QuarkusMavenPluginBuildHelper {
 
     static Optional<String> findNativeBuildExecutable(Path targetFolder, boolean customBuildRequired, Path appFolder) {
         if (customBuildRequired) {
-            final String customExecutableName = getUniqueAppName(appFolder) + nativeRunnerName();
-            return findTargetFile(targetFolder.resolve(CUSTOM_RUNNER_DIR), customExecutableName::equalsIgnoreCase);
+            final String uniqueAppName = getUniqueAppName(appFolder);
+            final String customExecutableName = uniqueAppName + nativeRunnerName();
+            return findTargetFile(targetFolder.resolve(CUSTOM_RUNNER_DIR).resolve(uniqueAppName),
+                    customExecutableName::equalsIgnoreCase);
         }
         return findTargetFile(targetFolder, nativeRunnerName());
     }
