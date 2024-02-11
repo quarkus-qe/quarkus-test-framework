@@ -1,1 +1,2 @@
 io.quarkus.test.services.containers.OpenShiftKeycloakContainerManagedResourceBinding
+io.quarkus.test.services.containers.KubernetesKeycloakContainerManagedResourceBinding

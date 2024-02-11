@@ -64,7 +64,6 @@ public class ContainerRegistryKubernetesQuarkusApplicationManagedResource
         return content
                 .replaceAll(quote("${IMAGE}"), image)
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
-                .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
                 .replaceAll(quote("${INTERNAL_PORT}"),
                         model.getContext().getOwner().getProperty(QUARKUS_HTTP_PORT_PROPERTY, "" + HTTP_PORT_DEFAULT));
     }
