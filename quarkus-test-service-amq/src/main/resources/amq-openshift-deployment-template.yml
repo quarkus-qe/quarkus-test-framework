@@ -42,7 +42,7 @@ items:
         spec:
           containers:
             - name: ${SERVICE_NAME}
-              image: image-registry.openshift-image-registry.svc:5000/${CURRENT_NAMESPACE}/amq:latest
+              image: image-registry.openshift-image-registry.svc:5000/${CURRENT_NAMESPACE}/${SERVICE_NAME}:latest
               imagePullPolicy: Always
               env:
                 - name: AMQ_QUEUES
