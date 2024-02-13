@@ -296,6 +296,34 @@ public final class OpenShiftClient {
     }
 
     /**
+     * Create a service for deployment.
+     * Usually done automatically, or inside yamls, so this method should be used only in a very special cases,
+     * eg: https://github.com/quarkusio/quarkus/issues/34645
+     *
+     * @param appName name of the application to expose
+     * @param serviceName name of service, which is to be created
+     * @param port port on the service and the app (they are the same to keep things simple)
+     */
+    public void createService(String appName, String serviceName, int port) {
+        io.fabric8.kubernetes.api.model.Service route = client.services().withName(serviceName).get();
+        if (route != null) {
+            // already exposed.
+            return;
+        }
+
+        try {
+            new Command(OC, "expose", "deployment/" + appName,
+                    "--port=" + port,
+                    "--target-port=" + port,
+                    "--name=" + serviceName,
+                    "-n", currentNamespace,
+                    "-l" + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
+        } catch (Exception e) {
+            fail("Service was not created. Caused by " + e.getMessage());
+        }
+    }
+
+    /**
      * Scale the service to the replicas.
      *
      * @param service
