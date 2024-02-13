@@ -12,6 +12,7 @@ import java.util.ServiceLoader.Provider;
 
 import jakarta.inject.Inject;
 
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.extension.AfterAllCallback;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
@@ -26,6 +27,7 @@ import io.quarkus.test.bootstrap.TestContext.TestContextImpl;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
+import io.quarkus.test.utils.KnownExceptionChecker;
 import io.quarkus.test.utils.ReflectionUtils;
 
 public class QuarkusScenarioBootstrap
@@ -168,6 +170,18 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onServiceLaunch(scenario, service));
         try {
             service.start();
+        } catch (RuntimeException runtimeException) {
+            // catch known failures is service launch.
+            // mostly searching for "Broken pipe" failure - https://github.com/quarkusio/quarkus/issues/38334
+            if (KnownExceptionChecker.checkForKnownException(runtimeException)) {
+                Log.error("Known exception catched, printing it");
+                runtimeException.printStackTrace();
+                // abort test execution
+                Assumptions.abort();
+            } else {
+                scenarioOnError(runtimeException);
+                throw runtimeException;
+            }
         } catch (Throwable throwable) {
             scenarioOnError(throwable);
             throw throwable;
