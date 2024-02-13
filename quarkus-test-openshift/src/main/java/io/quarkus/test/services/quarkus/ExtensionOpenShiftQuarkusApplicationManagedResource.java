@@ -70,8 +70,11 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
      */
     private void exposeManagementRoute() {
         if (model.useSeparateManagementInterface()) {
-            String app = model.getContext().getOwner().getName();
-            client.expose(app, app + "-management", model.getManagementPort());
+            final String app = model.getContext().getOwner().getName();
+            final String routeName = app + "-management";
+            final int port = model.getManagementPort();
+            client.createService(app, routeName, port);
+            client.expose(routeName, routeName, port);
         }
     }
 

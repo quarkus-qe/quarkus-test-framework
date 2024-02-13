@@ -67,6 +67,7 @@
         <mysql.image>docker.io/mysql:8.3.0</mysql.image>
         <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
+        <reruns>2</reruns>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -226,7 +227,7 @@
                     <configuration>
                         <!-- fixes unavailable native binary build logs, https://github.com/quarkus-qe/quarkus-test-framework/issues/785 -->
                         <forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory" />
-                        <rerunFailingTestsCount>2</rerunFailingTestsCount>
+                        <rerunFailingTestsCount>${reruns}</rerunFailingTestsCount>
                     </configuration>
                 </plugin>
                 <plugin>
