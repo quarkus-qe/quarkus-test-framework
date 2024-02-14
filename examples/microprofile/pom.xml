@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.4.2.Beta8</version>
+        <version>1.4.3.Beta8-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-microprofile</artifactId>
