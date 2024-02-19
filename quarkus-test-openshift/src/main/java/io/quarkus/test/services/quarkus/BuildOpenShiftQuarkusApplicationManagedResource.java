@@ -104,6 +104,10 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
         String s2iVersion = getS2iImageVersion(s2iImage);
         String quarkusOpts = getQuarkusOpts();
 
+        if (!quarkusOpts.isEmpty()) {
+            Log.info("Setting QUARKUS_OPTS, based on " + QUARKUS_OPENSHIFT_OPTS_PROPERTY + " to " + quarkusOpts);
+        }
+
         return content.replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER}"),
                 StringUtils.substringBeforeLast(s2iImage, IMAGE_TAG_SEPARATOR))
                 .replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER_VERSION}"), s2iVersion)
