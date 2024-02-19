@@ -92,7 +92,7 @@ items:
                 - name: "QUARKUS_HOME"
                   value: "/home/quarkus/"
                 - name: "QUARKUS_OPTS"
-                  value: ""
+                  value: "${QUARKUS_OPTS}"
                 - name: "JAVA_APP_JAR"
                   value: "/deployments/${ARTIFACT}"
               image: "${IMAGE_NAME}"

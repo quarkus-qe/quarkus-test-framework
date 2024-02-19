@@ -6,9 +6,12 @@ import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_N
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.opentest4j.AssertionFailedError;
@@ -18,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public class BuildOpenShiftQuarkusApplicationManagedResource
         extends TemplateOpenShiftQuarkusApplicationManagedResource<ArtifactQuarkusApplicationManagedResourceBuilder> {
@@ -26,6 +30,7 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
 
     private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-build-openshift-template.yml";
     private static final String IMAGE_TAG_SEPARATOR = ":";
+    private static final String QUARKUS_OPENSHIFT_OPTS_PROPERTY = "quarkus.openshift.env.vars.quarkus-opts";
 
     private String builtImageName = "no-image-yet";
 
@@ -97,11 +102,13 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     protected String replaceDeploymentContent(String content) {
         String s2iImage = getS2iImage();
         String s2iVersion = getS2iImageVersion(s2iImage);
+        String quarkusOpts = getQuarkusOpts();
 
         return content.replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER}"),
                 StringUtils.substringBeforeLast(s2iImage, IMAGE_TAG_SEPARATOR))
                 .replaceAll(quote("${QUARKUS_S2I_IMAGE_BUILDER_VERSION}"), s2iVersion)
                 .replaceAll(quote("${ARTIFACT}"), model.getArtifact().getFileName().toString())
+                .replaceAll(quote("${QUARKUS_OPTS}"), quarkusOpts)
                 .replaceAll(quote("${IMAGE_NAME}"), this.builtImageName);
     }
 
@@ -136,5 +143,16 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
         PropertyLookup s2iImageProperty = isNativeTest() ? QUARKUS_NATIVE_S2I : QUARKUS_JVM_S2I;
         return model.getContext().getOwner().getProperty(s2iImageProperty.getPropertyKey())
                 .orElseGet(() -> s2iImageProperty.get(model.getContext()));
+    }
+
+    private String getQuarkusOpts() {
+        Path applicationProperties = model.getComputedApplicationProperties();
+        if (Files.exists(applicationProperties)) {
+            Map<String, String> properties = PropertiesUtils.toMap(applicationProperties);
+            if (properties.containsKey(QUARKUS_OPENSHIFT_OPTS_PROPERTY)) {
+                return properties.get(QUARKUS_OPENSHIFT_OPTS_PROPERTY);
+            }
+        }
+        return "";
     }
 }
