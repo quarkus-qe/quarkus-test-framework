@@ -68,6 +68,7 @@
         <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <reruns>2</reruns>
+        <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -219,6 +220,14 @@
         </dependency>
     </dependencies>
     <build>
+        <extensions>
+            <!--Creates report about detected flaky tests during SureFire and FailSafe test runs -->
+            <extension>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>flaky-run-reporter</artifactId>
+                <version>${flaky-run-reporter.version}</version>
+            </extension>
+        </extensions>
         <pluginManagement>
             <plugins>
                 <plugin>

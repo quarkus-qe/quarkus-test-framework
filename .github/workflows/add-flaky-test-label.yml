@@ -1,0 +1,29 @@
+name: Add 'triage/flaky-test' label and inform if PR CI run contained flaky tests
+on:
+  workflow_run:
+    workflows: ["PR"]
+    types:
+      - completed
+jobs:
+  handle-flaky-tests-in-pr-ci:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      GH_REPO: ${{ github.repository }}
+      WORKFLOW_ID:  ${{ github.event.workflow_run.id }}
+    steps:
+      - name: 'Download "jobs-with-flaky-tests" artifact'
+        run: gh run download $WORKFLOW_ID -n jobs-with-flaky-tests || true
+      - name: 'Get PR number'
+        if: ${{ hashFiles('**/jobs-with-flaky-tests') != '' }}
+        run: gh run download $WORKFLOW_ID -n pr-number || true
+      - name: 'Add "triage/flaky-test" label'
+        if: ${{ hashFiles('**/pr-number') != '' }}
+        run: |
+          gh pr edit "$(cat pr-number)" --add-label 'triage/flaky-test'
+      - name: 'Comment on PR about flaky tests'
+        if: ${{ hashFiles('**/pr-number') != '' }}
+        run: |
+          gh pr comment "$(cat pr-number)" --body "Following jobs contain at least one flaky test: $(cat jobs-with-flaky-tests)"
