@@ -87,7 +87,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - name: Install Helm client
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.9.0
         id: install
@@ -142,7 +142,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - name: Install Helm client
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.9.0
         id: install
@@ -212,7 +212,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - name: Install Helm client
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.9.0
         id: install-helm
@@ -267,7 +267,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - name: Install Helm client
-        uses: azure/setup-helm@v3
+        uses: azure/setup-helm@v4
         with:
           version: v3.9.0
         id: install
