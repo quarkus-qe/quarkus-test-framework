@@ -18,6 +18,7 @@ public class LocalTLSIT {
     static final RestService service = new RestService()
             .withProperty("quarkus.management.port", "9003")
             .withProperty("quarkus.management.ssl.certificate.key-store-file", "META-INF/resources/server.keystore")
+            .withProperty("quarkus.management.ssl.certificate.key-store-file-type", "JKS")
             .withProperty("quarkus.management.ssl.certificate.key-store-password", "password");
 
     @Test
