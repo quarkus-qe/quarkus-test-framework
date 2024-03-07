@@ -1,0 +1,44 @@
+name: Check release version
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - .github/project.yml
+jobs:
+  check-release-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check release version
+        run: |
+          current_release=$(curl -sSL "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)
+          current_release_patch_version=$(echo "$current_release" | cut -d"." -f3,3)
+          current_release_pre_number=$(echo "$current_release" | cut -d"." -f4,4 | grep -o '[0-9]' || true)
+
+          next_release=$(grep -E 'current-version:\s*' .github/project.yml | awk '{print $2}')
+          next_release_patch_version=$(echo "$next_release" | cut -d"." -f3,3)
+          next_release_pre_number=$(echo "$next_release" | cut -d"." -f4,4 | grep -o '[0-9]' || true)
+          
+          if ! [[ $current_release =~ .*Final$ ]]; then
+            if [[ $next_release_patch_version > $current_release_patch_version ]]; then
+              echo "Error: you are bumping the FW patch version when the previous release was not Final"
+              exit 1;
+            fi
+            if [[ $next_release_pre_number != $(("$current_release_pre_number" + 1)) ]]; then
+              echo "Error: pre-release version should go one by one as sequence"
+              correct_version=$(echo "$current_release" | cut -d"." -f1,2,3)
+              correct_prerelease_number=$(($current_release_pre_number + 1))
+              echo "After" $current_release "should go "$correct_version".Beta"$correct_prerelease_number or Final release
+              exit 1;
+            fi
+          else
+            if [[ $(("$current_release_patch_version" + 1)) != $next_release_patch_version || ($next_release_pre_number != 1) ]]; then
+                echo "Error: release patch versions should be bumped one by one as sequence and pre-release version must be Beta1"
+                correct_minor_release=$(echo "$current_release" | cut -d"." -f1,2)
+                correct_patch_version=$(("$current_release_patch_version" + 1))
+                echo "After" $current_release "should go" $correct_minor_release"."$correct_patch_version".Beta1"
+                exit 1;
+              fi
+          fi
