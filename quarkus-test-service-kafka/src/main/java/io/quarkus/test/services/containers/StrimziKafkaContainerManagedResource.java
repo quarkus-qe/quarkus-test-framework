@@ -19,6 +19,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     private static final String SSL_SERVER_PROPERTIES_DEFAULT = "strimzi-default-server-ssl.properties";
     private static final String SSL_SERVER_KEYSTORE_DEFAULT = "strimzi-default-server-ssl-keystore.p12";
     private static final String SASL_SERVER_PROPERTIES_DEFAULT = "strimzi-default-server-sasl.properties";
+    private static final String SASL_SSL_SERVER_PROPERTIES_DEFAULT = "strimzi-default-server-sasl-ssl.properties";
 
     protected StrimziKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -36,6 +37,8 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             uri = uri.withScheme("SSL");
         } else if (model.getProtocol() == KafkaProtocol.SASL) {
             uri = uri.withScheme("SASL_PLAINTEXT");
+        } else if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
+            uri = uri.withScheme("SASL_SSL");
         }
         return uri;
     }
@@ -75,6 +78,8 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             return SSL_SERVER_PROPERTIES_DEFAULT;
         } else if (model.getProtocol() == KafkaProtocol.SASL) {
             return SASL_SERVER_PROPERTIES_DEFAULT;
+        } else if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
+            return SASL_SSL_SERVER_PROPERTIES_DEFAULT;
         }
 
         return super.getServerProperties();
@@ -85,7 +90,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
         List<String> effectiveUserKafkaConfigResources = new ArrayList<>();
         effectiveUserKafkaConfigResources.addAll(Arrays.asList(super.getKafkaConfigResources()));
 
-        if (model.getProtocol() == KafkaProtocol.SSL) {
+        if (model.getProtocol() == KafkaProtocol.SSL || model.getProtocol() == KafkaProtocol.SASL_SSL) {
             effectiveUserKafkaConfigResources.add(SSL_SERVER_KEYSTORE_DEFAULT);
         }
 
