@@ -12,6 +12,7 @@ import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -20,11 +21,12 @@ import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 
+@Disabled // TODO: enable when Quarkus 3.9 is released
 @Tag("quarkus-cli")
 @QuarkusScenario
 public class QuarkusCliClientIT {
 
-    static final String RESTEASY_REACTIVE_EXTENSION = "quarkus-resteasy-reactive";
+    static final String REST_EXTENSION = "quarkus-rest";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";
     static final int CMD_DELAY_SEC = 3;
 
@@ -73,15 +75,15 @@ public class QuarkusCliClientIT {
         QuarkusCliRestService app = cliClient.createApplication("app",
                 QuarkusCliClient.CreateApplicationRequest.defaults());
 
-        // By default, it installs only "quarkus-resteasy-reactive"
-        assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);
+        // By default, it installs only "quarkus-rest"
+        assertInstalledExtensions(app, REST_EXTENSION);
 
         // Let's install Quarkus SmallRye Health
         QuarkusCliClient.Result result = app.installExtension(SMALLRYE_HEALTH_EXTENSION);
         assertTrue(result.isSuccessful(), SMALLRYE_HEALTH_EXTENSION + " was not installed. Output: " + result.getOutput());
 
         // Verify both extensions now
-        assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION, SMALLRYE_HEALTH_EXTENSION);
+        assertInstalledExtensions(app, REST_EXTENSION, SMALLRYE_HEALTH_EXTENSION);
 
         // The health endpoint should be now available
         app.start();
