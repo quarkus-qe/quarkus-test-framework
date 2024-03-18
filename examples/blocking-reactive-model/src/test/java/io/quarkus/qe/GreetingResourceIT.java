@@ -17,24 +17,23 @@ public class GreetingResourceIT {
     private static final String HELLO = "Hello";
     private static final String HELLO_PATH = "/hello";
     private static final String RESTEASY_CLASSIC = "resteasy";
-    private static final String RESTEASY_REACTIVE = "resteasy-reactive";
+    private static final String REST = "rest";
 
     @QuarkusApplication(dependencies = @Dependency(artifactId = "quarkus-" + RESTEASY_CLASSIC))
-    static final RestService blocking = new RestService();
+    static final RestService resteasyClassic = new RestService();
 
-    @QuarkusApplication(dependencies = @Dependency(artifactId = "quarkus-" + RESTEASY_REACTIVE))
-    static final RestService reactive = new RestService();
+    @QuarkusApplication(dependencies = @Dependency(artifactId = "quarkus-" + REST))
+    static final RestService rest = new RestService();
 
     @Test
     public void shouldPickTheForcedDependencies() {
-        // classic
-        blocking.given().get(HELLO_PATH).then().body(is(HELLO));
-        assertTrue(blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_CLASSIC));
-        // necessary 'resteasy' is also prefix of the 'resteasy-reactive'
-        assertFalse(blocking.logs().forQuarkus().installedFeatures().contains(RESTEASY_REACTIVE));
+        // resteasy classic
+        resteasyClassic.given().get(HELLO_PATH).then().body(is(HELLO));
+        assertTrue(resteasyClassic.logs().forQuarkus().installedFeatures().contains(RESTEASY_CLASSIC));
 
-        // reactive
-        reactive.given().get(HELLO_PATH).then().body(is(HELLO));
-        assertTrue(reactive.logs().forQuarkus().installedFeatures().contains(RESTEASY_REACTIVE));
+        // rest
+        rest.given().get(HELLO_PATH).then().body(is(HELLO));
+        assertTrue(rest.logs().forQuarkus().installedFeatures().contains(REST));
+        assertFalse(rest.logs().forQuarkus().installedFeatures().contains(RESTEASY_CLASSIC));
     }
 }

@@ -16,7 +16,7 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-rest-client-mutiny</artifactId>
+            <artifactId>quarkus-resteasy-client-mutiny</artifactId>
         </dependency>
         <dependency>
             <groupId>io.quarkus.qe</groupId>
