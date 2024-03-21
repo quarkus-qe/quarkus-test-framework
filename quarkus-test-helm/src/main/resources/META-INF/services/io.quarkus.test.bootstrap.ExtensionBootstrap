@@ -1,2 +1,0 @@
-io.quarkus.test.bootstrap.QuarkusHelmExtensionBootstrap
-io.quarkus.test.bootstrap.QuarkusHelmFileExtensionBootstrap
