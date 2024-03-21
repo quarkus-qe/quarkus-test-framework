@@ -9,10 +9,10 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 
 public class MetricsExtensionBootstrap implements ExtensionBootstrap {
 
-    private static final PropertyLookup METRICS_EXTENSION_ENABLED_PROPERTY = new PropertyLookup(
-            "metrics.enabled", "true");
-    private static final PropertyLookup METRICS_PUSH_AFTER_EACH_TEST = new PropertyLookup(
-            "metrics.push-after-each-test", "false");
+    private static final PropertyLookup METRICS_EXTENSION_ENABLED_PROPERTY = new PropertyLookup("metrics.enabled",
+            "true");
+    private static final PropertyLookup METRICS_PUSH_AFTER_EACH_TEST = new PropertyLookup("metrics.push-after-each-test",
+            "false");
 
     private final boolean extensionEnabled;
 
