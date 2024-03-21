@@ -107,11 +107,6 @@
             </dependency>
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
-                <artifactId>quarkus-test-helm</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-images</artifactId>
                 <version>${project.version}</version>
             </dependency>
@@ -390,7 +385,6 @@
             <modules>
                 <module>quarkus-test-core</module>
                 <module>quarkus-test-cli</module>
-                <module>quarkus-test-helm</module>
                 <module>quarkus-test-containers</module>
                 <module>quarkus-test-images</module>
                 <module>quarkus-test-kubernetes</module>
