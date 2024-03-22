@@ -15,7 +15,8 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support long file paths")
 public class QuickstartUsingUsingUberJarIT {
 
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", mavenArgs = "-Dquarkus.package.type=uber-jar -DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION}")
+    // TODO: drop config key quarkus.package.type when Quarkus is bumped to 3.10
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", mavenArgs = "-Dquarkus.package.jar.type=uber-jar -Dquarkus.package.type=uber-jar -DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION}")
     static final RestService app = new RestService();
 
     @Test
