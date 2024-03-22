@@ -1,1 +1,2 @@
 io.quarkus.test.scenarios.execution.condition.AnnotationBindingQuarkusScenarioContainerExecutionCondition
+io.quarkus.test.scenarios.execution.condition.DisableDevModeTestsInNativeExecutionCondition

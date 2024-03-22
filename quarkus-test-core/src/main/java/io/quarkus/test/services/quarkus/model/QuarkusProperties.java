@@ -14,10 +14,14 @@ public final class QuarkusProperties {
     public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
     public static final PropertyLookup PLUGIN_VERSION = new PropertyLookup("quarkus-plugin.version");
+    public static final PropertyLookup NATIVE_ENABLED = new PropertyLookup("quarkus.native.enabled");
     public static final String QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY = "quarkus.analytics.disabled";
     public static final PropertyLookup QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP = new PropertyLookup(
             QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, "true");
-    public static final String PACKAGE_TYPE_NAME = "quarkus.package.type";
+    // TODO: drop ternary operator when Quarkus version is bumped to 3.10
+    public static final String PACKAGE_TYPE_NAME = defaultVersionIfEmpty(PLATFORM_VERSION.get()).startsWith("3.9.")
+            ? "quarkus.package.type"
+            : "quarkus.package.jar.type";
     public static final String MUTABLE_JAR = "mutable-jar";
     public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
     public static final List<String> PACKAGE_TYPE_NATIVE_VALUES = Arrays.asList("native", "native-sources");
@@ -45,19 +49,25 @@ public final class QuarkusProperties {
     }
 
     public static boolean isNativePackageType() {
-        return PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get());
+        // TODO: simplify condition when Quarkus version is bumped to 3.10
+        return isNativeEnabled() || PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get());
     }
 
     public static boolean isNativePackageType(ServiceContext context) {
-        return PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get(context));
+        // TODO: simplify condition when Quarkus version is bumped to 3.10
+        return isNativeEnabled() || PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get(context));
+    }
+
+    public static boolean isNativeEnabled() {
+        return Boolean.parseBoolean(NATIVE_ENABLED.get());
     }
 
     public static boolean isLegacyJarPackageType(ServiceContext context) {
-        return PACKAGE_TYPE_LEGACY_JAR_VALUES.contains(PACKAGE_TYPE.get(context));
+        return !isNativeEnabled() && PACKAGE_TYPE_LEGACY_JAR_VALUES.contains(PACKAGE_TYPE.get(context));
     }
 
     public static boolean isJvmPackageType(ServiceContext context) {
-        return PACKAGE_TYPE_JVM_VALUES.contains(PACKAGE_TYPE.get(context));
+        return !isNativeEnabled() && PACKAGE_TYPE_JVM_VALUES.contains(PACKAGE_TYPE.get(context));
     }
 
     private static String defaultVersionIfEmpty(String version) {

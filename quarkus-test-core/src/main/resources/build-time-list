@@ -69,7 +69,10 @@ quarkus.resteasy-client-oidc-token-propagation.enabled
 quarkus.oidc.enabled
 quarkus.openshift.
 quarkus.otel.enabled
+FIXME: drop next line when Quarkus version is bumped to 3.10
 quarkus.package.type
+quarkus.package.jar.type
+quarkus.native.enabled
 quarkus.messaging.health.enabled
 quarkus.messaging.kafka.serializer-autodetection.enabled
 quarkus.messaging.metrics.enabled
