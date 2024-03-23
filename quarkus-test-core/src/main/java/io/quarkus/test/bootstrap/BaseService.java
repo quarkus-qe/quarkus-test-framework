@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -24,6 +25,7 @@ import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.LogsVerifier;
 import io.quarkus.test.utils.PropertiesUtils;
+import io.quarkus.test.utils.TestExecutionProperties;
 
 public class BaseService<T extends Service> implements Service {
 
@@ -236,8 +238,24 @@ public class BaseService<T extends Service> implements Service {
 
     @Override
     public ServiceContext register(String serviceName, ScenarioContext context) {
+        if (TestExecutionProperties.isOpenshiftPlatform() || TestExecutionProperties.isKubernetesPlatform()) {
+            // sanitize service name used in the Deployment
+            // name must fit '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')' regular expression
+            // we mostly want to sanitize field names (not explicitly declared service names)
+            // so Java enforces portion of the regular expression for us
+            return registerWithSanitizedServiceName(context, hyphenate(serviceName), serviceName);
+        }
+        return registerWithSanitizedServiceName(context, serviceName, serviceName);
+    }
+
+    private ServiceContext registerWithSanitizedServiceName(ScenarioContext context, String serviceName,
+            String originalServiceName) {
         this.serviceName = serviceName;
-        this.configuration = Configuration.load(serviceName);
+        if (serviceName.equals(originalServiceName)) {
+            this.configuration = Configuration.load(serviceName);
+        } else {
+            this.configuration = Configuration.load(serviceName, originalServiceName);
+        }
         this.context = new ServiceContext(this, context);
         onPreStart(s -> futureProperties.forEach(Runnable::run));
         context.getTestStore().put(serviceName, this);
