@@ -85,12 +85,14 @@ public final class Configuration {
         return new Configuration(properties);
     }
 
-    public static Configuration load(String serviceName) {
+    public static Configuration load(String... serviceNames) {
         Configuration configuration = load();
-        // Then, properties from test.properties and scope as service name
-        configuration.properties.putAll(loadPropertiesFrom(TEST_PROPERTIES, serviceName));
-        // Then, highest priority: properties from system properties and scope as service name
-        configuration.properties.putAll(loadPropertiesFromSystemProperties(serviceName));
+        for (String serviceName : serviceNames) {
+            // Then, properties from test.properties and scope as service name
+            configuration.properties.putAll(loadPropertiesFrom(TEST_PROPERTIES, serviceName));
+            // Then, highest priority: properties from system properties and scope as service name
+            configuration.properties.putAll(loadPropertiesFromSystemProperties(serviceName));
+        }
 
         return configuration;
     }
