@@ -52,5 +52,9 @@
             <optional>true</optional>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>me.escoffier.certs</groupId>
+            <artifactId>certificate-generator</artifactId>
+        </dependency>
     </dependencies>
 </project>
