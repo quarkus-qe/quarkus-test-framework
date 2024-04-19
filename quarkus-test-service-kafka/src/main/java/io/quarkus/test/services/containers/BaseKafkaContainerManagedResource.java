@@ -1,5 +1,7 @@
 package io.quarkus.test.services.containers;
 
+import java.io.File;
+
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -65,6 +67,10 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         return model.getVendor().getRegistry().getPort();
     }
 
+    protected String getResourceTargetName(String resource) {
+        return resource;
+    }
+
     @Override
     protected GenericContainer<?> initContainer() {
         GenericContainer<?> kafkaContainer = initKafkaContainer();
@@ -78,7 +84,15 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         }
 
         for (String resource : getKafkaConfigResources()) {
-            kafkaContainer.withCopyFileToContainer(MountableFile.forClasspathResource(resource), kafkaConfigPath + resource);
+            if (resource.contains(File.separator)) {
+                // file in the target directory
+                String fileName = resource.substring(resource.lastIndexOf(File.separator) + 1);
+                kafkaContainer.withCopyFileToContainer(MountableFile.forHostPath(resource), kafkaConfigPath + fileName);
+            } else {
+                // resource
+                kafkaContainer.withCopyFileToContainer(MountableFile.forClasspathResource(resource),
+                        kafkaConfigPath + getResourceTargetName(resource));
+            }
         }
 
         if (model.isWithRegistry()) {

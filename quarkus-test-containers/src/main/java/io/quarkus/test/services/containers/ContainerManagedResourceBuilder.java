@@ -4,6 +4,7 @@ import java.lang.annotation.Annotation;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
+import io.quarkus.test.bootstrap.LocalhostManagedResource;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -20,6 +21,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String expectedLog;
     private String[] command;
     private Integer port;
+    private boolean portDockerHostToLocalhost;
 
     protected String getImage() {
         return image;
@@ -48,6 +50,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.command = metadata.command();
         this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.port = metadata.port();
+        this.portDockerHostToLocalhost = metadata.portDockerHostToLocalhost();
     }
 
     @Override
@@ -55,10 +58,16 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.context = context;
         for (ContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(context)) {
+                if (portDockerHostToLocalhost) {
+                    return new LocalhostManagedResource(binding.init(this));
+                }
                 return binding.init(this);
             }
         }
 
+        if (portDockerHostToLocalhost) {
+            return new LocalhostManagedResource(new GenericDockerContainerManagedResource(this));
+        }
         return new GenericDockerContainerManagedResource(this);
     }
 }
