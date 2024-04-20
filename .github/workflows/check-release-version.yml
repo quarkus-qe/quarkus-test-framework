@@ -15,11 +15,11 @@ jobs:
         run: |
           current_release=$(curl -sSL "https://api.github.com/repos/${GITHUB_REPOSITORY}/releases/latest" | jq -r .tag_name)
           current_release_patch_version=$(echo "$current_release" | cut -d"." -f3,3)
-          current_release_pre_number=$(echo "$current_release" | cut -d"." -f4,4 | grep -o '[0-9]' || true)
+          current_release_pre_number=$(echo "$current_release" | cut -d"." -f4,4 | grep -o '[0-9]\+' || true)
 
           next_release=$(grep -E 'current-version:\s*' .github/project.yml | awk '{print $2}')
           next_release_patch_version=$(echo "$next_release" | cut -d"." -f3,3)
-          next_release_pre_number=$(echo "$next_release" | cut -d"." -f4,4 | grep -o '[0-9]' || true)
+          next_release_pre_number=$(echo "$next_release" | cut -d"." -f4,4 | grep -o '[0-9]\+' || true)
           
           if ! [[ $current_release =~ .*Final$ ]]; then
             if [[ $next_release_patch_version > $current_release_patch_version ]]; then
