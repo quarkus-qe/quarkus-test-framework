@@ -36,7 +36,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     private static final String SASL_SERVER_PROPERTIES_DEFAULT = "strimzi-default-server-sasl.properties";
     private static final String SASL_SSL_SERVER_PROPERTIES_DEFAULT = "strimzi-default-server-sasl-ssl.properties";
     private static final String SASL_USERNAME_VALUE = "client";
-    private static final String SASL_PASSWORD_VALUE = "client-secret";
+    private static final String SASL_PASSWORD_VALUE = "client-secret12345678912345678912";
 
     protected StrimziKafkaContainerManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -58,6 +58,29 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             uri = uri.withScheme("SASL_SSL");
         }
         return uri;
+    }
+
+    @Override
+    public void afterStart() {
+        super.afterStart();
+        if (model.getProtocol() == KafkaProtocol.SASL_SSL
+                && (model.getServerProperties() == null || model.getServerProperties().isEmpty())) {
+            // make sure that client is added right after the start to Zookeeper
+            // see https://kafka.apache.org/documentation/#security_sasl_scram for more info
+            ExtendedStrimziKafkaContainer container = model.getContext().get(DOCKER_INNER_CONTAINER);
+            var command = ("/opt/kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config "
+                    + "'SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s;")
+                    .formatted(SASL_PASSWORD_VALUE, SASL_USERNAME_VALUE);
+            try {
+                var execResult = container.execInContainer("sh", "-c", command);
+                if (execResult.getExitCode() != 0) {
+                    throw new IllegalStateException(
+                            "Failed to add Kafka 'client' user to Zookeeper: " + execResult.getStderr());
+                }
+            } catch (IOException | InterruptedException e) {
+                throw new RuntimeException("Failed to add Kafka 'client' user to Zookeeper", e);
+            }
+        }
     }
 
     @Override
@@ -149,15 +172,16 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
 
             var configPropertyIterator = Map.of(
                     "kafka.ssl.enable", "true",
+                    "kafka.security.protocol", "SSL",
                     "kafka.ssl.truststore.location", trustStoreLocation,
                     "kafka.ssl.truststore.password", "top-secret",
                     "kafka.ssl.truststore.type", "PKCS12");
             if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
                 configPropertyIterator = new HashMap<>(configPropertyIterator);
                 configPropertyIterator.put("kafka.security.protocol", "SASL_SSL");
-                configPropertyIterator.put("kafka.sasl.mechanism", "PLAIN");
+                configPropertyIterator.put("kafka.sasl.mechanism", "SCRAM-SHA-512");
                 configPropertyIterator.put("kafka.sasl.jaas.config",
-                        "org.apache.kafka.common.security.plain.PlainLoginModule required "
+                        "org.apache.kafka.common.security.scram.ScramLoginModule required "
                                 + "username=\"" + SASL_USERNAME_VALUE + "\" "
                                 + "password=\"" + SASL_PASSWORD_VALUE + "\";");
                 configPropertyIterator.put("ssl.endpoint.identification.algorithm", "https");
