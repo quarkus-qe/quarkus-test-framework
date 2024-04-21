@@ -2,7 +2,9 @@ package io.quarkus.test.services.containers;
 
 import static java.util.regex.Pattern.quote;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -73,7 +75,7 @@ public class KubernetesContainerManagedResource implements ManagedResource {
         }
 
         return createURI("http",
-                client.host(model.getContext().getOwner()),
+                client.host(),
                 client.port(model.getContext().getOwner()));
     }
 
@@ -100,11 +102,11 @@ public class KubernetesContainerManagedResource implements ManagedResource {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getName());
         }
-
+        String args = Arrays.stream(model.getCommand()).map(cmd -> "\"" + cmd + "\"").collect(Collectors.joining(", "));
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
-                .replaceAll(quote("${ARGS}"), String.join(" ", model.getCommand()));
+                .replaceAll(quote("${ARGS}"), args);
     }
 
     private boolean useInternalServiceAsUrl() {

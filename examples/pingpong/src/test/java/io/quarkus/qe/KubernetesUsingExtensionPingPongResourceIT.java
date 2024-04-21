@@ -11,8 +11,7 @@ import io.quarkus.test.services.QuarkusApplication;
 public class KubernetesUsingExtensionPingPongResourceIT {
 
     @QuarkusApplication
-    static final RestService pingpong = new RestService()
-            .withProperty("quarkus.kubernetes.service-type", "LoadBalancer");
+    static final RestService pingpong = new RestService();
 
     @Test
     public void shouldPingPongIsUpAndRunning() {

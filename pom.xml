@@ -507,6 +507,23 @@
                 <include.tests>**/Kubernetes*IT.java</include.tests>
                 <exclude.kubernetes.tests>no</exclude.kubernetes.tests>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <!-- always set 'Kubernetes' property as that's how detect Kubernetes tests inside FW -->
+                                        <kubernetes>true</kubernetes>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>validate-format</id>

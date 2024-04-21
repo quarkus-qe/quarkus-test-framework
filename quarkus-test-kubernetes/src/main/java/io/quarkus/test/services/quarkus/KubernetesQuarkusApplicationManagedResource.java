@@ -71,13 +71,9 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
 
     @Override
     public URILike getURI(Protocol protocol) {
-        if (protocol == Protocol.HTTPS) {
-            fail("SSL is not supported for Kubernetes tests yet");
-        } else if (protocol == Protocol.GRPC) {
-            fail("gRPC is not supported for Kubernetes tests yet");
-        }
+        validateProtocol(protocol);
         return createURI(protocol.getValue(),
-                client.host(model.getContext().getOwner()),
+                client.host(),
                 client.port(model.getContext().getOwner()));
     }
 
