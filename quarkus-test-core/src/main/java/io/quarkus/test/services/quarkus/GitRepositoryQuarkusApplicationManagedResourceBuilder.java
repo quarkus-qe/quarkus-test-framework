@@ -3,6 +3,7 @@ package io.quarkus.test.services.quarkus;
 import static java.util.regex.Pattern.quote;
 
 import java.lang.annotation.Annotation;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ServiceLoader;
 
@@ -90,5 +91,19 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         }
 
         return appFolder;
+    }
+
+    @Override
+    protected void copyResourcesInFolderToAppFolder(Path folder) {
+        // normal apps will create application.properties from parent folder but our source is git project
+        super.copyResourcesInFolderToAppFolder(getApplicationFolder().resolve(folder));
+    }
+
+    @Override
+    protected void copyResourcesToAppFolder() {
+        // app folder may not exist when S2I scenario use OpenShift build strategy where we do not clone git project
+        if (Files.exists(getApplicationFolder())) {
+            super.copyResourcesToAppFolder();
+        }
     }
 }
