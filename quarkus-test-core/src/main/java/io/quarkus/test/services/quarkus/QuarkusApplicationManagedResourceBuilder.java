@@ -252,7 +252,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                         || name.equals(build)); // or it's equal to
     }
 
-    private void copyResourcesInFolderToAppFolder(Path folder) {
+    protected void copyResourcesInFolderToAppFolder(Path folder) {
         try (Stream<Path> binariesFound = Files
                 .find(folder, Integer.MAX_VALUE,
                         (path, basicFileAttributes) -> !Files.isDirectory(path))) {
