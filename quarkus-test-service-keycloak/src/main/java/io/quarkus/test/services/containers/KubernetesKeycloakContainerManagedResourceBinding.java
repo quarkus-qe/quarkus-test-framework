@@ -1,12 +1,17 @@
 package io.quarkus.test.services.containers;
 
+import java.lang.annotation.Annotation;
+import java.util.Arrays;
+
 import io.quarkus.test.bootstrap.ManagedResource;
-import io.quarkus.test.scenarios.KubernetesScenario;
 
 public class KubernetesKeycloakContainerManagedResourceBinding implements KeycloakContainerManagedResourceBinding {
     @Override
     public boolean appliesFor(KeycloakContainerManagedResourceBuilder builder) {
-        return builder.getContext().getTestContext().getRequiredTestClass().isAnnotationPresent(KubernetesScenario.class);
+        Annotation[] annotations = builder.getContext().getTestContext().getRequiredTestClass().getAnnotations();
+        return Arrays.stream(annotations)
+                .anyMatch(annotation -> annotation.annotationType().getName()
+                        .equals("io.quarkus.test.scenarios.KubernetesScenario"));
     }
 
     @Override
