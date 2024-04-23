@@ -1,30 +1,26 @@
 package io.quarkus.test.services.containers;
 
-import static me.escoffier.certs.Format.PKCS12;
+import static io.quarkus.test.services.Certificate.Format.PKCS12;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 
 import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.quarkus.test.services.containers.strimzi.ExtendedStrimziKafkaContainer;
 import io.quarkus.test.utils.DockerUtils;
-import me.escoffier.certs.CertificateGenerator;
-import me.escoffier.certs.CertificateRequest;
-import me.escoffier.certs.Pkcs12CertificateFiles;
 
 public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
@@ -139,25 +135,10 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             final String trustStoreLocation;
             if (useDefaultServerProperties()) {
                 if (useDefaultTrustStore()) {
-                    // generate certs
-                    final Path certsDir;
-                    try {
-                        certsDir = Files.createTempDirectory("certs");
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    CertificateGenerator generator = new CertificateGenerator(certsDir, true);
-                    CertificateRequest request = (new CertificateRequest()).withName(STRIMZI_SERVER_SSL)
-                            .withClientCertificate(false).withFormat(PKCS12).withCN("localhost").withPassword("top-secret")
-                            .withDuration(Duration.ofDays(2));
-                    try {
-                        var certFile = (Pkcs12CertificateFiles) generator.generate(request).get(0);
-                        trustStoreLocation = certFile.trustStoreFile().toString();
-                        effectiveUserKafkaConfigResources.add(trustStoreLocation);
-                        effectiveUserKafkaConfigResources.add(certFile.keyStoreFile().toString());
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+                    var cert = CertificateBuilder.of(STRIMZI_SERVER_SSL, PKCS12, "top-secret");
+                    trustStoreLocation = Objects.requireNonNull(cert.truststorePath());
+                    effectiveUserKafkaConfigResources.add(trustStoreLocation);
+                    effectiveUserKafkaConfigResources.add(Objects.requireNonNull(cert.keystorePath()));
                 } else {
                     // truststore in application resources dir
                     trustStoreLocation = SSL_SERVER_TRUSTSTORE;

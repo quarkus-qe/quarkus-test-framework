@@ -8,6 +8,7 @@ import java.nio.file.Path;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
@@ -21,6 +22,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
         setPropertiesFile(metadata.properties());
         setGrpcEnabled(metadata.grpc());
         setSslEnabled(metadata.ssl());
+        setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
     }
 
     @Override
@@ -32,6 +34,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
+        configureCertificates();
         if (QuarkusProperties.disableBuildAnalytics()) {
             getContext()
                     .getOwner()
