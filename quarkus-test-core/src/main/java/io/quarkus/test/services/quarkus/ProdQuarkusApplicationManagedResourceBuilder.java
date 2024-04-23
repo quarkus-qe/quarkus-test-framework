@@ -25,6 +25,7 @@ import io.quarkus.bootstrap.app.QuarkusBootstrap;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.common.PathTestHelper;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.Command;
@@ -68,12 +69,14 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         setGrpcEnabled(metadata.grpc());
         initAppClasses(metadata.classes());
         initForcedDependencies(metadata.dependencies());
+        setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
     }
 
     @Override
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
+        configureCertificates();
         managedResource = findManagedResource();
         build();
 
