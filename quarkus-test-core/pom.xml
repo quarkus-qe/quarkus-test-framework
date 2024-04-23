@@ -57,6 +57,10 @@
             <groupId>io.smallrye.reactive</groupId>
             <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
         </dependency>
+        <dependency>
+            <groupId>me.escoffier.certs</groupId>
+            <artifactId>certificate-generator</artifactId>
+        </dependency>
         <!-- used by our own SureFire debug provider -->
         <dependency>
             <groupId>org.apache.maven.surefire</groupId>
