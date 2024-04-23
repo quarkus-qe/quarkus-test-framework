@@ -24,8 +24,8 @@ import io.quarkus.bootstrap.model.AppDependency;
 import io.quarkus.builder.Version;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.Dependency;
-import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
@@ -61,6 +61,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean sslEnabled = false;
     private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
+    private CertificateBuilder certificateBuilder;
 
     protected abstract void build();
 
@@ -212,6 +213,21 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         context.getOwner().withProperty("quarkus.log.console.format", "%d{HH:mm:ss,SSS} %s%e%n");
     }
 
+    protected void configureCertificates() {
+        if (certificateBuilder != null) {
+            getContext().put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
+            certificateBuilder
+                    .certificates()
+                    .forEach(certificate -> certificate
+                            .configProperties()
+                            .forEach((k, v) -> context.getOwner().withProperty(k, v)));
+        }
+    }
+
+    protected void setCertificateBuilder(CertificateBuilder certificateBuilder) {
+        this.certificateBuilder = certificateBuilder;
+    }
+
     protected void copyResourcesToAppFolder() {
         copyResourcesInFolderToAppFolder(RESOURCES_FOLDER);
         copyResourcesInFolderToAppFolder(TEST_RESOURCES_FOLDER);
@@ -277,14 +293,6 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     private String propertyWithProfile(String name) {
         return "%" + context.getScenarioContext().getRunningTestClassName() + "." + name;
-    }
-
-    private boolean isQuarkusVersion2Dot3OrAbove() {
-        String quarkusVersion = QuarkusProperties.getVersion();
-        return !quarkusVersion.startsWith("2.2.")
-                && !quarkusVersion.startsWith("2.1.")
-                && !quarkusVersion.startsWith("2.0.")
-                && !quarkusVersion.startsWith("1.");
     }
 
     public boolean useSeparateManagementInterface() {
