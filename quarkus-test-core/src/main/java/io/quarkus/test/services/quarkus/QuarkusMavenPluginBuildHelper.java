@@ -12,6 +12,7 @@ import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static io.quarkus.test.utils.PropertiesUtils.toMvnSystemProperty;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -62,9 +64,11 @@ class QuarkusMavenPluginBuildHelper {
     private final boolean buildWithAllClasses;
     private final boolean customBuildRequired;
     private final Path targetFolderForLocalArtifacts;
+    private final QuarkusApplicationManagedResourceBuilder resourceBuilder;
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
             Path targetFolderForLocalArtifacts) {
+        this.resourceBuilder = resourceBuilder;
         resourceBuilder.createSnapshotOfBuildProperties();
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
@@ -109,7 +113,19 @@ class QuarkusMavenPluginBuildHelper {
         throw new IllegalStateException("Failed to detect mvn command line arguments");
     }
 
-    Optional<Path> buildNativeExecutable() {
+    void prepareApplicationFolder() {
+        var mavenProjectRoot = prepareMavenProject();
+
+        try {
+            FileUtils.copyDirectoryTo(mavenProjectRoot, appFolder);
+            FileUtils.deleteFile(mavenProjectRoot.toFile());
+            resourceBuilder.copyResourcesToAppFolder();
+        } catch (Exception ex) {
+            fail("Failed to build Quarkus artifacts. Caused by " + ex);
+        }
+    }
+
+    private Path prepareMavenProject() {
         // create new project root
         Path mavenBuildProjectRoot = appFolder.resolve("mvn-build");
         FileUtils.recreateDirectory(mavenBuildProjectRoot);
@@ -144,6 +160,13 @@ class QuarkusMavenPluginBuildHelper {
 
         // add enhanced application.properties and META-INF to the new project
         addEnhancedAppPropsAndMetaInf(mavenBuildProjectRoot);
+
+        return mavenBuildProjectRoot;
+    }
+
+    Optional<Path> buildNativeExecutable() {
+        Objects.requireNonNull(targetFolderForLocalArtifacts);
+        var mavenBuildProjectRoot = prepareMavenProject();
 
         // build artifact with Quarkus Maven Plugin
         try {
