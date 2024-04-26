@@ -12,7 +12,6 @@ import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -21,7 +20,6 @@ import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 
-@Disabled // TODO: enable when Quarkus 3.9 is released
 @Tag("quarkus-cli")
 @QuarkusScenario
 public class QuarkusCliClientIT {
