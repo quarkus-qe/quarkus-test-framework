@@ -13,7 +13,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
 public class OpenShiftExtensionCamelFileBindyFtpIT {
 
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/apache/camel-quarkus-examples.git", contextDir = "file-bindy-ftp", mavenArgs = "-Dopenshift")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/apache/camel-quarkus-examples.git", branch = "3.8.x", contextDir = "file-bindy-ftp", mavenArgs = "-Dopenshift")
     static final RestService app = new RestService();
 
     @Test

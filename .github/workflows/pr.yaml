@@ -34,7 +34,7 @@ jobs:
           path: maven-repo-current-fw.tgz
           retention-days: 1
   quarkus-main-build:
-    name: Quarkus main build
+    name: Quarkus 3.8 build
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -53,9 +53,9 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Build Quarkus main
+      - name: Build Quarkus 3.8
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && git checkout 3.8 && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -84,16 +84,6 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
-        id: install
-      - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v2.0.0
-        with:
-          helmfile-version: "v0.145.2"
-          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
@@ -119,7 +109,7 @@ jobs:
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.8.999-SNAPSHOT"]
         java: [ 17 ]
     steps:
       - uses: actions/checkout@v4
@@ -132,16 +122,6 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
-        id: install
-      - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v2.0.0
-        with:
-          helmfile-version: "v0.145.2"
-          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
@@ -152,12 +132,12 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 3.8 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-3.8.999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
@@ -195,16 +175,6 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
-        id: install-helm
-      - name: Setup helmfile
-        uses: mamezou-tech/setup-helmfile@v2.0.0
-        with:
-          helmfile-version: "v0.145.2"
-          install-helm: no
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:
@@ -233,7 +203,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.8.999-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v4
       - name: Install JDK {{ matrix.java }}
@@ -243,17 +213,6 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Install Helm client
-        uses: azure/setup-helm@v3
-        with:
-          version: v3.9.0
-        id: install
-      - uses: MinoruSekine/setup-scoop@main
-        with:
-          add_extras_bucket: 'true'
-      - name: Install helmfile
-        shell: bash
-        run: scoop install helmfile
       - name: Download Maven Repo
         uses: actions/download-artifact@v4
         with:

@@ -100,6 +100,17 @@ public class BaseService<T extends Service> implements Service {
     /**
      * The runtime configuration property to be used if the built artifact is
      * configured to be run.
+     *
+     * NOTE: unlike other {@link this::withProperties}, here we add new properties and keep the old ones
+     */
+    public T withProperties(Supplier<Map<String, String>> newProperties) {
+        futureProperties.add(() -> properties.putAll(newProperties.get()));
+        return (T) this;
+    }
+
+    /**
+     * The runtime configuration property to be used if the built artifact is
+     * configured to be run.
      */
     @Override
     public T withProperty(String key, String value) {

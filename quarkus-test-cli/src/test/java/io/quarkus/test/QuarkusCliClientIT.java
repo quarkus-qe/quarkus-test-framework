@@ -48,7 +48,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldCreateApplicationOnJvm() {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app", defaults());
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream("3.8"));
 
         // Should build on Jvm
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -63,7 +63,7 @@ public class QuarkusCliClientIT {
     @EnabledOnNative
     public void shouldBuildApplicationOnNativeUsingDocker() {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app", defaults());
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream("3.8"));
 
         // Should build on Native
         QuarkusCliClient.Result result = app.buildOnNative();
@@ -74,7 +74,7 @@ public class QuarkusCliClientIT {
     public void shouldCreateApplicationWithCodeStarter() {
         // Create application with Resteasy Jackson
         QuarkusCliRestService app = cliClient.createApplication("app",
-                defaults().withExtensions(RESTEASY_SPRING_WEB_EXTENSION,
+                defaults().withStream("3.8").withExtensions(RESTEASY_SPRING_WEB_EXTENSION,
                         RESTEASY_REACTIVE_JACKSON_EXTENSION));
 
         // Verify By default, it installs only "quarkus-resteasy"
@@ -87,7 +87,7 @@ public class QuarkusCliClientIT {
 
     @Test
     public void shouldCreateApplicationUsingArtifactId() {
-        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app", defaults());
+        QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app", defaults().withStream("3.8"));
         assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
 
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -97,7 +97,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldAddAndRemoveExtensions() throws InterruptedException {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app", defaults());
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream("3.8"));
 
         // By default, it installs only "quarkus-resteasy-reactive"
         assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);

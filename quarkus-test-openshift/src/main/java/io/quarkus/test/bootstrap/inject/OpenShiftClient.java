@@ -97,6 +97,7 @@ public final class OpenShiftClient {
     private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
+    private static final int SPECS_SECRET_NAME_LIMIT = 63;
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
     private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
@@ -892,14 +893,15 @@ public final class OpenShiftClient {
                 }
             } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
                 String path = entry.getValue().replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
-                int separatorIdx = path.indexOf(DESTINATION_TO_FILENAME_SEPARATOR);
+                int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
                 final String mountPath = path.substring(0, separatorIdx);
-                final String filename = getFileName(path.substring(separatorIdx + 1));
-                final String secretName = normalizeConfigMapName(mountPath, filename);
+                final String filename = path.substring(separatorIdx + 1);
+                String secretName = normalizeConfigMapName(mountPath, filename);
 
                 // Push secret file
-                doCreateSecretFromFile(secretName, getFilePath(SLASH + filename));
                 propertyValue = joinMountPathAndFileName(mountPath, filename);
+                String filePath = Files.exists(Path.of(propertyValue)) ? propertyValue : getFilePath(SLASH + filename);
+                doCreateSecretFromFile(secretName, filePath);
                 volumes.putIfAbsent(mountPath, new CustomVolume(secretName, "", SECRET));
             } else if (isSecret(propertyValue)) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
@@ -1002,9 +1004,17 @@ public final class OpenShiftClient {
 
     private String normalizeConfigMapName(String mountPath, String fileName) {
         // /some/mount/path/file-name => some-mount-path-file-name
-        return StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
+        var newName = StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
                 .replaceAll(Pattern.quote("."), "-")
                 .replaceAll(SLASH, "-");
+        if (newName.length() > SPECS_SECRET_NAME_LIMIT) {
+            newName = newName.substring(newName.length() - SPECS_SECRET_NAME_LIMIT);
+            while (newName.startsWith("-")) {
+                // must not start with '-something' as it's considered to be a flag
+                newName = newName.substring(1);
+            }
+        }
+        return newName;
     }
 
     private static String joinMountPathAndFileName(String mountPath, String fileName) {

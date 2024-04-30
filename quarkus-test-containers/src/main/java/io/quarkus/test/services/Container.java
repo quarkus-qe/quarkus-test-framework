@@ -19,5 +19,11 @@ public @interface Container {
 
     String[] command() default {};
 
+    /**
+     * If true, forwards Docker ports from localhost to Docker host on Windows.
+     * This works around issue when certificates are only generated for localhost.
+     */
+    boolean portDockerHostToLocalhost() default false;
+
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
 }

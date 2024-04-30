@@ -35,7 +35,7 @@ public class QuarkusCliClientIT {
     public void shouldCreateApplicationOnJvm() {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app",
-                QuarkusCliClient.CreateApplicationRequest.defaults());
+                QuarkusCliClient.CreateApplicationRequest.defaults().withStream("3.8"));
 
         // Should build on Jvm
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -60,7 +60,7 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldCreateApplicationUsingArtifactId() {
         QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app",
-                QuarkusCliClient.CreateApplicationRequest.defaults());
+                QuarkusCliClient.CreateApplicationRequest.defaults().withStream("3.8"));
         assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
 
         QuarkusCliClient.Result result = app.buildOnJvm();
@@ -71,7 +71,7 @@ public class QuarkusCliClientIT {
     public void shouldAddAndRemoveExtensions() throws InterruptedException {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app",
-                QuarkusCliClient.CreateApplicationRequest.defaults());
+                QuarkusCliClient.CreateApplicationRequest.defaults().withStream("3.8"));
 
         // By default, it installs only "quarkus-resteasy-reactive"
         assertInstalledExtensions(app, RESTEASY_REACTIVE_EXTENSION);
