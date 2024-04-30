@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkus.qe</groupId>
     <artifactId>quarkus-test-parent</artifactId>
-    <version>1.5.0.Beta1</version>
+    <version>1.5.1.Beta1-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
     <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
@@ -25,7 +25,7 @@
         <connection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</connection>
         <developerConnection>scm:git:git@github.com:quarkus-qe/quarkus-test-framework.git</developerConnection>
         <url>https://github.com/quarkus-qe/quarkus-test-framework</url>
-        <tag>1.5.0.Beta1</tag>
+        <tag>HEAD</tag>
     </scm>
     <url>https://github.com/quarkus-qe/quarkus-test-framework/</url>
     <properties>
