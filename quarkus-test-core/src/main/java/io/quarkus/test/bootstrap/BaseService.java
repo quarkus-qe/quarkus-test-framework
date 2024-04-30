@@ -39,6 +39,7 @@ public class BaseService<T extends Service> implements Service {
     protected ServiceContext context;
     private final ServiceLoader<ServiceListener> listeners = ServiceLoader.load(ServiceListener.class);
     private final List<Action> onPreStartActions = new LinkedList<>();
+    private final List<Action> onPreStopActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
     private final Map<String, String> properties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
@@ -76,6 +77,11 @@ public class BaseService<T extends Service> implements Service {
 
     public T onPreStart(Action action) {
         onPreStartActions.add(action);
+        return (T) this;
+    }
+
+    public T onPreStop(Action action) {
+        onPreStopActions.add(action);
         return (T) this;
     }
 
@@ -225,6 +231,7 @@ public class BaseService<T extends Service> implements Service {
 
         Log.debug(this, "Stopping service (%s)", getDisplayName());
         listeners.forEach(ext -> ext.onServiceStopped(context));
+        onPreStopActions.forEach(a -> a.handle(this));
         managedResource.stop();
 
         Log.info(this, "Service stopped (%s)", getDisplayName());
