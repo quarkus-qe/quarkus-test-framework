@@ -15,7 +15,7 @@ import org.testcontainers.containers.GenericContainer;
 
 import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.bootstrap.Protocol;
-import io.quarkus.test.security.certificate.CertificateBuilder;
+import io.quarkus.test.security.certificate.Certificate;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
@@ -135,7 +135,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             final String trustStoreLocation;
             if (useDefaultServerProperties()) {
                 if (useDefaultTrustStore()) {
-                    var cert = CertificateBuilder.of(STRIMZI_SERVER_SSL, PKCS12, "top-secret");
+                    var cert = Certificate.of(STRIMZI_SERVER_SSL, PKCS12, "top-secret");
                     trustStoreLocation = Objects.requireNonNull(cert.truststorePath());
                     effectiveUserKafkaConfigResources.add(trustStoreLocation);
                     effectiveUserKafkaConfigResources.add(Objects.requireNonNull(cert.keystorePath()));
