@@ -14,7 +14,6 @@ import java.util.stream.Stream;
 import jakarta.inject.Inject;
 
 import org.apache.http.HttpStatus;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -24,12 +23,11 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
-@Disabled // TODO: enable when Quarkus 3.9 is released
 @Tag("quarkus-cli")
 @QuarkusScenario
 public class QuarkusCliClientIT {
 
-    static final String REST_SPRING_WEB_EXTENSION = "quarkus-spring-web-rest";
+    static final String REST_SPRING_WEB_EXTENSION = "quarkus-spring-web";
     static final String REST_EXTENSION = "quarkus-rest";
     static final String REST_JACKSON_EXTENSION = "quarkus-rest-jackson";
     static final String SMALLRYE_HEALTH_EXTENSION = "quarkus-smallrye-health";

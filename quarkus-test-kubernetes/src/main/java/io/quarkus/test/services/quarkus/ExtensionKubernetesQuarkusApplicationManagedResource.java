@@ -34,7 +34,7 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
 
     private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-kubernetes-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
-    private static final String QUARKUS_PLUGIN_INGRESS_EXPOSE = "-Dquarkus.kubernetes.ingress.expose=true";
+    private static final String USING_SERVICE_TYPE_NODE_PORT = "-Dquarkus.kubernetes.service-type=NodePort";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
     private static final String QUARKUS_CONTAINER_IMAGE_REGISTRY = "quarkus.container-image.registry";
     private static final String QUARKUS_CONTAINER_IMAGE_GROUP = "quarkus.container-image.group";
@@ -100,7 +100,7 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
 
         List<String> args = mvnCommand(model.getContext());
         args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
-                QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_INGRESS_EXPOSE,
+                QUARKUS_PLUGIN_DEPLOY, USING_SERVICE_TYPE_NODE_PORT,
                 SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD));
         propagateContainerRegistryIfSet(args);
         args.add(withContainerName());

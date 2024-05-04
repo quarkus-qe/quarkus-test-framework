@@ -14,6 +14,7 @@ import static io.quarkus.test.utils.MavenUtils.mvnCommand;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -50,7 +51,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     private static final String KNATIVE = "knative";
     private static final String QUARKUS_KUBERNETES_DEPLOYMENT_TARGET_OPENSHIFT = String.format("-D%s=%s",
             QUARKUS_KUBERNETES_DEPLOYMENT_TARGET, OPENSHIFT);
-    private static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources", "application.properties");
+    private static final Path APPLICATION_PROPERTIES_PATH = Paths.get("src", "main", "resources", "application.properties");
 
     public ExtensionOpenShiftQuarkusApplicationManagedResource(ProdQuarkusApplicationManagedResourceBuilder model) {
         super(model);
@@ -59,7 +60,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     @Override
     protected void doInit() {
         cloneProjectToServiceAppFolder();
-        copyBuildPropertiesIntoAppFolder();
+        copyComputedPropertiesIntoAppFolder();
         deployProjectUsingMavenCommand();
         exposeManagementRoute();
     }
@@ -101,19 +102,32 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
 
     }
 
-    private void copyBuildPropertiesIntoAppFolder() {
-        Map<String, String> buildProperties = model.getBuildProperties();
-        if (buildProperties.isEmpty()) {
-            return;
+    private void copyComputedPropertiesIntoAppFolder() {
+        // always copy computed properties to app folder as system properties are not propagated to OpenShift
+        Path computedPropertiesPath = model.getComputedApplicationProperties();
+        if (Files.exists(computedPropertiesPath)) {
+            var computedProperties = PropertiesUtils.toMap(computedPropertiesPath);
+            if (!computedProperties.isEmpty()) {
+                Path appPropertiesPath = model.getApplicationFolder().resolve(APPLICATION_PROPERTIES_PATH);
+                createApplicationPropertiesIfNotExists(appPropertiesPath);
+                PropertiesUtils.fromMap(computedProperties, appPropertiesPath);
+            }
         }
-
-        Path applicationPropertiesPath = model.getComputedApplicationProperties();
-        if (Files.exists(applicationPropertiesPath)) {
-            buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
-        }
-
-        PropertiesUtils.fromMap(buildProperties, getContext().getServiceFolder().resolve(RESOURCES_FOLDER));
         model.createSnapshotOfBuildProperties();
+    }
+
+    private static void createApplicationPropertiesIfNotExists(Path appPropertiesPath) {
+        if (!Files.exists(appPropertiesPath)) {
+            if (!Files.exists(appPropertiesPath.getParent())) {
+                appPropertiesPath.getParent().toFile().mkdirs();
+            }
+            try {
+                appPropertiesPath.toFile().createNewFile();
+            } catch (IOException e) {
+                throw new RuntimeException(
+                        "Failed to create application properties file at path: '%s'".formatted(appPropertiesPath), e);
+            }
+        }
     }
 
     private void deployProjectUsingMavenCommand() {

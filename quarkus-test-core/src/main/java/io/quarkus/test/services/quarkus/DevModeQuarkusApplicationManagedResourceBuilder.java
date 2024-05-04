@@ -1,16 +1,15 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
-import io.quarkus.test.utils.FileUtils;
 
 public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
 
@@ -21,6 +20,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
         setPropertiesFile(metadata.properties());
         setGrpcEnabled(metadata.grpc());
         setSslEnabled(metadata.ssl());
+        setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
     }
 
     @Override
@@ -32,6 +32,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
+        configureCertificates();
         if (QuarkusProperties.disableBuildAnalytics()) {
             getContext()
                     .getOwner()
@@ -42,11 +43,6 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     }
 
     protected void build() {
-        try {
-            FileUtils.copyCurrentDirectoryTo(getContext().getServiceFolder());
-            copyResourcesToAppFolder();
-        } catch (Exception ex) {
-            fail("Failed to build Quarkus artifacts. Caused by " + ex);
-        }
+        new QuarkusMavenPluginBuildHelper(this, null).prepareApplicationFolder();
     }
 }

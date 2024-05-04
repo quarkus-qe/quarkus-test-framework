@@ -39,6 +39,7 @@ public class BaseService<T extends Service> implements Service {
     protected ServiceContext context;
     private final ServiceLoader<ServiceListener> listeners = ServiceLoader.load(ServiceListener.class);
     private final List<Action> onPreStartActions = new LinkedList<>();
+    private final List<Action> onPreStopActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
     private final Map<String, String> properties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
@@ -79,6 +80,11 @@ public class BaseService<T extends Service> implements Service {
         return (T) this;
     }
 
+    public T onPreStop(Action action) {
+        onPreStopActions.add(action);
+        return (T) this;
+    }
+
     public T onPostStart(Action action) {
         onPostStartActions.add(action);
         return (T) this;
@@ -96,6 +102,17 @@ public class BaseService<T extends Service> implements Service {
     public T withProperties(String... propertiesFiles) {
         properties.clear();
         Stream.of(propertiesFiles).map(PropertiesUtils::toMap).forEach(properties::putAll);
+        return (T) this;
+    }
+
+    /**
+     * The runtime configuration property to be used if the built artifact is
+     * configured to be run.
+     *
+     * NOTE: unlike other {@link this::withProperties}, here we add new properties and keep the old ones
+     */
+    public T withProperties(Supplier<Map<String, String>> newProperties) {
+        futureProperties.add(() -> properties.putAll(newProperties.get()));
         return (T) this;
     }
 
@@ -214,6 +231,7 @@ public class BaseService<T extends Service> implements Service {
 
         Log.debug(this, "Stopping service (%s)", getDisplayName());
         listeners.forEach(ext -> ext.onServiceStopped(context));
+        onPreStopActions.forEach(a -> a.handle(this));
         managedResource.stop();
 
         Log.info(this, "Service stopped (%s)", getDisplayName());

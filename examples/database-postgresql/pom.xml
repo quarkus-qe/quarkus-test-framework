@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.4.3.Beta9-SNAPSHOT</version>
+        <version>1.5.1.Beta2-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-database-postgresql</artifactId>
@@ -44,6 +44,11 @@
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-openshift</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-kubernetes</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

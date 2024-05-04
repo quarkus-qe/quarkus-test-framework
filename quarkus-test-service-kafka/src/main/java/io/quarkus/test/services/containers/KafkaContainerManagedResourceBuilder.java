@@ -3,6 +3,7 @@ package io.quarkus.test.services.containers;
 import java.lang.annotation.Annotation;
 import java.util.ServiceLoader;
 
+import io.quarkus.test.bootstrap.LocalhostManagedResource;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -115,7 +116,7 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
         }
 
         if (vendor == KafkaVendor.STRIMZI) {
-            return new StrimziKafkaContainerManagedResource(this);
+            return new LocalhostManagedResource(new StrimziKafkaContainerManagedResource(this));
         }
 
         return new ConfluentKafkaContainerManagedResource(this);

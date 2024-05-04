@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.4.3.Beta9-SNAPSHOT</version>
+        <version>1.5.1.Beta2-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>quarkus-test-core</artifactId>
@@ -56,6 +56,10 @@
         <dependency>
             <groupId>io.smallrye.reactive</groupId>
             <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>me.escoffier.certs</groupId>
+            <artifactId>certificate-generator</artifactId>
         </dependency>
         <!-- used by our own SureFire debug provider -->
         <dependency>

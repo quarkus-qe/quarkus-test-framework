@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkus.qe</groupId>
     <artifactId>quarkus-test-parent</artifactId>
-    <version>1.4.3.Beta9-SNAPSHOT</version>
+    <version>1.5.1.Beta2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
     <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
@@ -30,7 +30,7 @@
     <url>https://github.com/quarkus-qe/quarkus-test-framework/</url>
     <properties>
         <compiler-plugin.version>3.13.0</compiler-plugin.version>
-        <source-plugin.version>3.3.0</source-plugin.version>
+        <source-plugin.version>3.3.1</source-plugin.version>
         <javadoc-plugin.version>3.6.3</javadoc-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
         <maven.compiler.release>17</maven.compiler.release>
@@ -39,14 +39,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <surefire-plugin.version>3.2.5</surefire-plugin.version>
         <maven-resources-plugin.version>3.3.1</maven-resources-plugin.version>
-        <jacoco-maven-plugin.version>0.8.11</jacoco-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
         <prometheus.simpleclient_pushgateway.version>0.16.0</prometheus.simpleclient_pushgateway.version>
         <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
         <formatter-maven-plugin.version>2.23.0</formatter-maven-plugin.version>
         <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.9.1</quarkus.platform.version>
+        <quarkus.platform.version>3.10.0</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -55,10 +55,10 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
-        <checkstyle.version>10.14.2</checkstyle.version>
+        <checkstyle.version>10.16.0</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
-        <playwright.version>1.42.0</playwright.version>
+        <playwright.version>1.43.0</playwright.version>
         <!-- Faster build when using -DskipTests -->
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
@@ -69,6 +69,7 @@
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
+        <certificate-generator.version>0.6.0</certificate-generator.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -199,6 +200,11 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-test-maven</artifactId>
                 <version>${quarkus.platform.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>me.escoffier.certs</groupId>
+                <artifactId>certificate-generator</artifactId>
+                <version>${certificate-generator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -501,6 +507,23 @@
                 <include.tests>**/Kubernetes*IT.java</include.tests>
                 <exclude.kubernetes.tests>no</exclude.kubernetes.tests>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <!-- always set 'Kubernetes' property as that's how detect Kubernetes tests inside FW -->
+                                        <kubernetes>true</kubernetes>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <id>validate-format</id>
