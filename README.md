@@ -20,7 +20,7 @@ Main features:
 - Write the test scenario once and run it everywhere (cloud, bare metal, etc)
 - Developer and Test friendly
 - Quarkus features focused (allow to define custom source classes, build/runtime properties, etc)
-- Test isolation: for example, in OpenShift or Kubernetes, tests will be executed in an ephemeral namespace
+- Test isolation: for example, in OpenShift or Kubernetes, tests can be executed in an ephemeral namespace
 
 # Requirements
 
