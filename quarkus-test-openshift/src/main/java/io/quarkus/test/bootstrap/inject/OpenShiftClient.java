@@ -741,14 +741,16 @@ public final class OpenShiftClient {
                 final Map<String, String> environmentVariables;
                 final boolean isQuarkusRuntime = "quarkus".equals(templateMetadataLabels.get("app.openshift.io/runtime"));
                 if (isQuarkusRuntime) {
+                    var propsThatRequireDottedFormat = appPropsThatRequireDottedFormat(enrichProperties);
+
                     // Configuration properties are only converted to MP Config format for Quarkus runtime for
                     // other runtimes may expect different format.
-                    environmentVariables = convertPropertiesToEnvironment(enrichProperties);
+                    environmentVariables = convertPropertiesToEnvironment(enrichProperties, propsThatRequireDottedFormat);
 
                     // config properties that contains dashes or other special chars need to be added in dotted
                     // format in a config source with lower priority than env var config source has
                     // see https://quarkus.io/version/main/guides/config-reference#environment-variables for more info
-                    var appPropertiesFileContent = createAppPropsForPropsThatRequireDottedFormat(enrichProperties);
+                    var appPropertiesFileContent = createAppPropsForPropsThatRequireDottedFormat(propsThatRequireDottedFormat);
                     if (!appPropertiesFileContent.isEmpty()) {
                         mountPropertiesAsQuarkusAppConfigFile(service, enrichProperties, deployment, appPropertiesFileContent);
                     }
@@ -788,14 +790,21 @@ public final class OpenShiftClient {
         return configProperties
                 .entrySet()
                 .stream()
+                .map(e -> e.getKey() + "=" + e.getValue() + System.lineSeparator())
+                .collect(Collectors.joining());
+    }
+
+    private static Map<String, String> appPropsThatRequireDottedFormat(Map<String, String> configProperties) {
+        return configProperties
+                .entrySet()
+                .stream()
                 .filter(e -> {
                     var configPropertyName = e.getKey();
                     var environmentVariableName = StringUtil.replaceNonAlphanumericByUnderscores(configPropertyName);
                     var configPropertyNameCreatedFromEnvName = StringUtil.toLowerCaseAndDotted(environmentVariableName);
                     return !configPropertyNameCreatedFromEnvName.equalsIgnoreCase(configPropertyName);
                 })
-                .map(e -> e.getKey() + "=" + e.getValue() + System.lineSeparator())
-                .collect(Collectors.joining());
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private void mountPropertiesAsQuarkusAppConfigFile(Service service, Map<String, String> enrichProperties,
@@ -836,11 +845,17 @@ public final class OpenShiftClient {
      * <p>
      * see https://quarkus.io/guides/config-reference#environment-variables for details
      */
-    private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties) {
+    private static Map<String, String> convertPropertiesToEnvironment(Map<String, String> properties,
+            Map<String, String> propsThatRequireDottedFormat) {
         HashMap<String, String> environment = new HashMap<>(properties.size());
         properties.forEach((property, value) -> {
-            String variable = StringUtil.replaceNonAlphanumericByUnderscores(property).toUpperCase();
-            environment.put(variable, value);
+            // non-Quarkus properties may require different format than MP config format
+            // they could also consume environment variables directly but the mapping from env vars is not one to one,
+            // therefore we should use Quarkus config source to propagate the information
+            if (!propsThatRequireDottedFormat.containsKey(property) || isQuarkusProperty(property)) {
+                String variable = StringUtil.replaceNonAlphanumericByUnderscores(property).toUpperCase();
+                environment.put(variable, value);
+            }
         });
         return environment;
     }
@@ -1100,5 +1115,9 @@ public final class OpenShiftClient {
         return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
+    }
+
+    private static boolean isQuarkusProperty(String propertyKey) {
+        return propertyKey.startsWith("quarkus.");
     }
 }
