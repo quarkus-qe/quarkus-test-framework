@@ -1,5 +1,6 @@
 package io.quarkus.test.utils;
 
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
@@ -46,5 +47,9 @@ public final class TestExecutionProperties {
 
     public static String getBuildNumber() {
         return INSTANCE.buildNumber;
+    }
+
+    public static boolean useManagementSsl(Service service) {
+        return service.getProperty("quarkus.management.ssl.certificate.key-store-file").isPresent();
     }
 }
