@@ -30,6 +30,7 @@ import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
+import io.quarkus.test.utils.TestExecutionProperties;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -309,7 +310,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     }
 
     public boolean useManagementSsl() {
-        return getContext().getOwner().getProperty("quarkus.management.ssl.certificate.key-store-file").isPresent();
+        return TestExecutionProperties.useManagementSsl(getContext().getOwner());
     }
 
     public int getHttpPort() {

@@ -465,6 +465,23 @@
                 <include.tests>**/OpenShift*IT.java</include.tests>
                 <exclude.openshift.tests>no</exclude.openshift.tests>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <artifactId>maven-failsafe-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <configuration>
+                                    <systemPropertyVariables>
+                                        <!-- always set 'OpenShift' property as that's how detect OpenShift tests inside FW -->
+                                        <openshift>true</openshift>
+                                    </systemPropertyVariables>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
         <profile>
             <!-- You need to be connected to a Kubernetes instance to activate 
