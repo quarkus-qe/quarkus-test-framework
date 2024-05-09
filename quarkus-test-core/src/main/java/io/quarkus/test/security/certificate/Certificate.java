@@ -36,6 +36,8 @@ import me.escoffier.certs.Pkcs12CertificateFiles;
 
 public interface Certificate {
 
+    String prefix();
+
     String format();
 
     String password();
@@ -50,6 +52,14 @@ public interface Certificate {
 
     Collection<ClientCertificate> clientCertificates();
 
+    interface PemCertificate extends Certificate {
+
+        String keyPath();
+
+        String certPath();
+
+    }
+
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password) {
         return of(prefix, format, password, false, false, false, new io.quarkus.test.services.Certificate.ClientCertificate[0]);
     }
@@ -57,9 +67,12 @@ public interface Certificate {
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
             boolean keystoreProps, boolean truststoreProps, boolean keystoreManagementInterfaceProps,
             io.quarkus.test.services.Certificate.ClientCertificate[] clientCertificates) {
+        Map<String, String> props = new HashMap<>();
         CertificateGenerator generator = new CertificateGenerator(createCertsTempDir(prefix), false);
         String serverTrustStoreLocation = null;
         String serverKeyStoreLocation = null;
+        String keyLocation = null;
+        String certLocation = null;
         List<ClientCertificate> generatedClientCerts = new ArrayList<>();
         String[] cnAttrs = collectCommonNames(clientCertificates);
         var unknownClientCn = getUnknownClientCnAttr(clientCertificates, cnAttrs);
@@ -81,7 +94,21 @@ public interface Certificate {
                     serverTrustStoreLocation = getPathOrNull(pkcs12CertFile.trustStoreFile());
                 }
             } else if (certFile instanceof PemCertificateFiles pemCertsFile) {
-                serverTrustStoreLocation = getPathOrNull(pemCertsFile.serverTrustFile());
+                keyLocation = getPathOrNull(pemCertsFile.keyFile());
+                certLocation = getPathOrNull(pemCertsFile.certFile());
+                if (isOpenshiftPlatform() || isKubernetesPlatform()) {
+                    if (certLocation != null) {
+                        certLocation = makeFileMountPathUnique(prefix, certLocation);
+                        // mount certificate to the pod
+                        props.put(getRandomPropKey("crt"), toSecretProperty(certLocation));
+                    }
+
+                    if (keyLocation != null) {
+                        keyLocation = makeFileMountPathUnique(prefix, keyLocation);
+                        // mount private key to the pod
+                        props.put(getRandomPropKey("key"), toSecretProperty(keyLocation));
+                    }
+                }
             } else if (certFile instanceof JksCertificateFiles jksCertFile) {
                 serverKeyStoreLocation = getPathOrNull(jksCertFile.keyStoreFile());
                 if (withClientCerts) {
@@ -122,7 +149,6 @@ public interface Certificate {
         }
 
         // 3. PREPARE QUARKUS APPLICATION CONFIGURATION PROPERTIES
-        Map<String, String> props = new HashMap<>();
         if (serverTrustStoreLocation != null) {
             if (isOpenshiftPlatform() || isKubernetesPlatform()) {
                 // mount truststore to the pod
@@ -153,7 +179,7 @@ public interface Certificate {
         }
 
         return new CertificateImpl(serverKeyStoreLocation, serverTrustStoreLocation, Map.copyOf(props),
-                List.copyOf(generatedClientCerts), password, format.toString());
+                List.copyOf(generatedClientCerts), password, format.toString(), keyLocation, certLocation, prefix);
     }
 
     private static String getUnknownClientCnAttr(io.quarkus.test.services.Certificate.ClientCertificate[] clientCertificates,
