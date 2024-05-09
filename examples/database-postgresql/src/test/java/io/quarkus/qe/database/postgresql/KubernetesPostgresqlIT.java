@@ -1,3 +1,8 @@
+/*  File: KubernetesPostgresqlIT.java
+    Author: Georgii Troitskii (xtroit00)
+    Date: 9.5.2024
+*/
+
 package io.quarkus.qe.database.postgresql;
 
 import io.quarkus.test.bootstrap.PostgresqlService;
