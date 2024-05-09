@@ -256,7 +256,11 @@ public class BaseService<T extends Service> implements Service {
     public ServiceContext register(String serviceName, ScenarioContext context) {
         this.serviceName = serviceName;
         this.configuration = Configuration.load(serviceName);
+
         this.context = new ServiceContext(this, context);
+        onPreStart(s -> properties.putAll(this.context.getConfigPropertiesWithTestScope()));
+        onPreStop(s -> this.context.getConfigPropertiesWithTestScope().forEach((k, v) -> properties.remove(k)));
+
         onPreStart(s -> futureProperties.forEach(Runnable::run));
         context.getTestStore().put(serviceName, this);
         return this.context;
