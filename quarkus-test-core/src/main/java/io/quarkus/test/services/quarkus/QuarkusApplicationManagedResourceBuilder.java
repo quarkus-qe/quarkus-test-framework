@@ -221,7 +221,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                     .certificates()
                     .forEach(certificate -> certificate
                             .configProperties()
-                            .forEach((k, v) -> context.getOwner().withProperty(k, v)));
+                            .forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v)));
         }
     }
 

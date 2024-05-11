@@ -11,6 +11,8 @@ public interface CertificateBuilder {
 
     List<Certificate> certificates();
 
+    Certificate findCertificateByPrefix(String prefix);
+
     static CertificateBuilder of(io.quarkus.test.services.Certificate[] certificates) {
         if (certificates == null || certificates.length == 0) {
             return null;

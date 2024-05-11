@@ -5,7 +5,8 @@ import java.util.Map;
 import java.util.Objects;
 
 record CertificateImpl(String keystorePath, String truststorePath, Map<String, String> configProperties,
-        Collection<ClientCertificate> clientCertificates, String password, String format) implements Certificate {
+        Collection<ClientCertificate> clientCertificates, String password, String format, String keyPath, String certPath,
+        String prefix) implements Certificate.PemCertificate {
 
     @Override
     public ClientCertificate getClientCertificateByCn(String cn) {
