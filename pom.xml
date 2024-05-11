@@ -47,7 +47,7 @@
         <impsort-maven-plugin.version>1.9.0</impsort-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.2.11.Final</quarkus.platform.version>
+        <quarkus.platform.version>3.2.12.Final</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -97,11 +97,6 @@
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
                 <artifactId>quarkus-test-cli</artifactId>
-                <version>${project.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>io.quarkus.qe</groupId>
-                <artifactId>quarkus-test-helm</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -374,7 +369,6 @@
             <modules>
                 <module>quarkus-test-core</module>
                 <module>quarkus-test-cli</module>
-                <module>quarkus-test-helm</module>
                 <module>quarkus-test-containers</module>
                 <module>quarkus-test-images</module>
                 <module>quarkus-test-kubernetes</module>
