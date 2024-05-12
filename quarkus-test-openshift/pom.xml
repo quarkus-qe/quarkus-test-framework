@@ -39,11 +39,6 @@
             <artifactId>smallrye-config-common</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-builder</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-containers</artifactId>
             <optional>true</optional>
