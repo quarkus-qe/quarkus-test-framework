@@ -12,7 +12,6 @@ import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static io.quarkus.test.utils.PropertiesUtils.toMvnSystemProperty;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,20 +113,12 @@ class QuarkusMavenPluginBuildHelper {
     }
 
     void prepareApplicationFolder() {
-        var mavenProjectRoot = prepareMavenProject();
-
-        try {
-            FileUtils.copyDirectoryTo(mavenProjectRoot, appFolder);
-            FileUtils.deleteFile(mavenProjectRoot.toFile());
-            resourceBuilder.copyResourcesToAppFolder();
-        } catch (Exception ex) {
-            fail("Failed to build Quarkus artifacts. Caused by " + ex);
-        }
+        prepareMavenProject(appFolder);
+        resourceBuilder.copyResourcesToAppFolder();
     }
 
-    private Path prepareMavenProject() {
+    private Path prepareMavenProject(Path mavenBuildProjectRoot) {
         // create new project root
-        Path mavenBuildProjectRoot = appFolder.resolve("mvn-build");
         FileUtils.recreateDirectory(mavenBuildProjectRoot);
 
         // add pom.xml copy to new project root
@@ -166,7 +157,7 @@ class QuarkusMavenPluginBuildHelper {
 
     Optional<Path> buildNativeExecutable() {
         Objects.requireNonNull(targetFolderForLocalArtifacts);
-        var mavenBuildProjectRoot = prepareMavenProject();
+        var mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
 
         // build artifact with Quarkus Maven Plugin
         try {
