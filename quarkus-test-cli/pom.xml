@@ -13,10 +13,5 @@
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
         </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-builder</artifactId>
-            <scope>provided</scope>
-        </dependency>
     </dependencies>
 </project>
