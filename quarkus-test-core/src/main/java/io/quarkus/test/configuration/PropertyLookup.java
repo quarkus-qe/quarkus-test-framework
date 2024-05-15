@@ -37,7 +37,7 @@ public class PropertyLookup {
         }
 
         // Or from test.properties
-        value = service.getOwner().getConfiguration().get(propertyKey);
+        value = Configuration.Property.getByName(propertyKey).map(GLOBAL::get).orElse("");
         if (StringUtils.isNotBlank(value)) {
             return value;
         }
@@ -50,7 +50,7 @@ public class PropertyLookup {
 
     public String get() {
         // Try first using the Configuration API
-        String value = GLOBAL.get(propertyKey);
+        String value = Configuration.Property.getByName(propertyKey).map(GLOBAL::get).orElse("");
         if (StringUtils.isNotBlank(value)) {
             return value;
         }

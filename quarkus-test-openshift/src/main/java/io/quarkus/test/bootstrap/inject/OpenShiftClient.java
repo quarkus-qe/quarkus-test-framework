@@ -73,6 +73,7 @@ import io.fabric8.openshift.client.OpenShiftConfig;
 import io.fabric8.openshift.client.OpenShiftConfigBuilder;
 import io.fabric8.openshift.client.impl.OpenShiftClientImpl;
 import io.quarkus.test.bootstrap.Service;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.model.CustomVolume;
@@ -92,8 +93,7 @@ public final class OpenShiftClient {
             "ts.openshift.ephemeral.namespaces.enabled", Boolean.TRUE.toString());
 
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
-    private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
-    private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
+
     private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
@@ -484,9 +484,12 @@ public final class OpenShiftClient {
                         && !StringUtils.equals(obj.getMetadata().getName(), service.getName())) {
                     ImageStream is = (ImageStream) obj;
                     untilIsTrue(() -> hasImageStreamTags(is),
-                            AwaitilitySettings.defaults().withService(service)
+                            AwaitilitySettings.defaults()
+                                    .withService(service)
                                     .usingTimeout(
-                                            service.getConfiguration().getAsDuration(IMAGE_STREAM_TIMEOUT, TIMEOUT_DEFAULT)));
+                                            service.getConfiguration()
+                                                    .getAsDuration(Configuration.Property.IMAGE_STREAM_TIMEOUT,
+                                                            TIMEOUT_DEFAULT)));
                 }
             }
         } catch (IOException e) {
@@ -539,7 +542,8 @@ public final class OpenShiftClient {
         }, AwaitilitySettings
                 .defaults()
                 .withService(service)
-                .usingTimeout(service.getConfiguration().getAsDuration(OPERATOR_INSTALL_TIMEOUT, TIMEOUT_DEFAULT)));
+                .usingTimeout(service.getConfiguration()
+                        .getAsDuration(Configuration.Property.OPERATOR_INSTALL_TIMEOUT, TIMEOUT_DEFAULT)));
         Log.info("Operator installed... %s", service.getName());
     }
 
