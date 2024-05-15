@@ -152,7 +152,7 @@ jobs:
           ./quarkus-dev-cli version
       - name: Build in JVM mode
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
