@@ -428,7 +428,6 @@
                                     <systemProperties>
                                         <quarkus.native.enabled>${quarkus.native.enabled}</quarkus.native.enabled>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
-                                        <quarkus.package.type>${quarkus.package.type}</quarkus.package.type>
                                         <quarkus.native.container-build>${quarkus.native.container-build}</quarkus.native.container-build>
                                         <quarkus.native.native-image-xmx>${quarkus.native.native-image-xmx}</quarkus.native.native-image-xmx>
                                     </systemProperties>
@@ -440,8 +439,6 @@
             </build>
             <properties>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
-                <!-- TODO: drop next line when Quarkus is bumped to 3.10 -->
-                <quarkus.package.type>native</quarkus.package.type>
                 <quarkus.native.container-build>true</quarkus.native.container-build>
                 <quarkus.native.native-image-xmx>5g</quarkus.native.native-image-xmx>
                 <exclude.quarkus.devmode.tests>**/*DevMode*IT.java</exclude.quarkus.devmode.tests>

@@ -18,10 +18,7 @@ public final class QuarkusProperties {
     public static final String QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY = "quarkus.analytics.disabled";
     public static final PropertyLookup QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP = new PropertyLookup(
             QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, "true");
-    // TODO: drop ternary operator when Quarkus version is bumped to 3.10
-    public static final String PACKAGE_TYPE_NAME = defaultVersionIfEmpty(PLATFORM_VERSION.get()).startsWith("3.9.")
-            ? "quarkus.package.type"
-            : "quarkus.package.jar.type";
+    public static final String PACKAGE_TYPE_NAME = "quarkus.package.jar.type";
     public static final String MUTABLE_JAR = "mutable-jar";
     public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
     public static final List<String> PACKAGE_TYPE_NATIVE_VALUES = Arrays.asList("native", "native-sources");
