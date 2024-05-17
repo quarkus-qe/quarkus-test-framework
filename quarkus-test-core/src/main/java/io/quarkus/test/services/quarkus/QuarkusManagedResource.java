@@ -84,7 +84,7 @@ public abstract class QuarkusManagedResource implements ManagedResource {
 
     private static LaunchMode detectLaunchMode(ServiceContext serviceContext) {
         LaunchMode launchMode = LaunchMode.JVM;
-        if (QuarkusProperties.isNativePackageType(serviceContext)) {
+        if (QuarkusProperties.isNativeEnabled(serviceContext)) {
             launchMode = LaunchMode.NATIVE;
         } else if (QuarkusProperties.isLegacyJarPackageType(serviceContext)) {
             launchMode = LaunchMode.LEGACY_JAR;

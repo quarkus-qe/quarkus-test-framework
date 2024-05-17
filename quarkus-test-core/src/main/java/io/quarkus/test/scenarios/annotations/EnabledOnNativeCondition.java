@@ -10,7 +10,7 @@ public class EnabledOnNativeCondition implements ExecutionCondition {
 
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-        if (QuarkusProperties.isNativePackageType()) {
+        if (QuarkusProperties.isNativeEnabled()) {
             return ConditionEvaluationResult.enabled("Running test as it's running on Native");
         }
 

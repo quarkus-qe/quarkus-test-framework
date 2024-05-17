@@ -141,7 +141,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         }
         createSnapshotOfBuildPropertiesIfNotExists();
         if (!buildPropertiesChanged()) {
-            if (QuarkusProperties.isNativePackageType(getContext())) {
+            if (QuarkusProperties.isNativeEnabled(getContext())) {
                 // custom native executable has different name, therefore we can safely re-use it
                 artifactLocation = findNativeBuildExecutable(targetFolder, requiresCustomBuild(), getApplicationFolder());
             } else if (!requiresCustomBuild()) {
@@ -158,7 +158,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     }
 
     private Path buildArtifact() {
-        if (QuarkusProperties.isNativePackageType(getContext())) {
+        if (QuarkusProperties.isNativeEnabled(getContext())) {
             return new QuarkusMavenPluginBuildHelper(this, getTargetFolderForLocalArtifacts())
                     .buildNativeExecutable()
                     .orElseGet(() -> {

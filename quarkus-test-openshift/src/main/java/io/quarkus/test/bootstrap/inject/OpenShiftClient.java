@@ -825,7 +825,7 @@ public final class OpenShiftClient {
         deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume);
 
         // $PWD/config/application.properties
-        var pwd = QuarkusProperties.isNativePackageType() ? "/home/quarkus" : "/deployments";
+        var pwd = QuarkusProperties.isNativeEnabled() ? "/home/quarkus" : "/deployments";
 
         // mount volume to each deployment config containers
         var volumeMount = new VolumeMountBuilder()
