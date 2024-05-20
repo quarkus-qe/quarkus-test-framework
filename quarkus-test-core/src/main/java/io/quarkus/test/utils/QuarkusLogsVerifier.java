@@ -1,7 +1,6 @@
 package io.quarkus.test.utils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +25,6 @@ public class QuarkusLogsVerifier {
                 .filter(log -> log.contains(INSTALLED_FEATURES))
                 .flatMap(log -> Stream.of(StringUtils.substringBetween(log, OPEN_TAG, CLOSE_TAG).split(COMMA)))
                 .map(String::trim)
-                .collect(Collectors.toList());
+                .toList();
     }
 }

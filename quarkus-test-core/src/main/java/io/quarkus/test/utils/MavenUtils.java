@@ -163,7 +163,7 @@ public final class MavenUtils {
 
     private enum PropagatePropertiesStrategy {
         ALL("all", name -> PROPAGATE_PROPERTIES_STRATEGY_ALL_EXCLUSIONS.getAsList()
-                .stream().noneMatch(exclude -> name.startsWith(exclude))),
+                .stream().noneMatch(name::startsWith)),
         NONE("none", name -> false),
         ONLY_QUARKUS("only-quarkus", name -> StringUtils.startsWith(name, QUARKUS_PROPERTY_PREFIX));
 

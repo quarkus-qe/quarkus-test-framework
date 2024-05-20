@@ -34,7 +34,7 @@ public class FailGreetingResourceIT {
     @Order(2)
     @Test
     public void shouldFailOnStart() {
-        assertThrows(AssertionError.class, () -> app.start(),
+        assertThrows(AssertionError.class, app::start,
                 "Should fail because runtime exception in ValidateCustomProperty");
     }
 

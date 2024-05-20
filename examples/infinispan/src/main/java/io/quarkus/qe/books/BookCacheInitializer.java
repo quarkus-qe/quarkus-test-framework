@@ -5,7 +5,7 @@ import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 
 import org.infinispan.client.hotrod.RemoteCacheManager;
-import org.infinispan.commons.configuration.XMLStringConfiguration;
+import org.infinispan.commons.configuration.StringConfiguration;
 
 import io.quarkus.runtime.StartupEvent;
 
@@ -23,7 +23,7 @@ public class BookCacheInitializer {
 
     void onStart(@Observes StartupEvent ev) {
         cacheManager.administration().getOrCreateCache(CACHE_NAME,
-                new XMLStringConfiguration(String.format(CACHE_CONFIG, CACHE_NAME)));
+                new StringConfiguration(String.format(CACHE_CONFIG, CACHE_NAME)));
 
     }
 

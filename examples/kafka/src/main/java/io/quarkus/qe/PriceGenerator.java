@@ -18,7 +18,7 @@ public class PriceGenerator {
 
     private static final int MAX_PRICE = 100;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     @Outgoing("generated-price")
     public Multi<Integer> generate() {

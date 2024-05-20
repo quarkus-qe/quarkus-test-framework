@@ -38,7 +38,7 @@ public abstract class BaseGreetingResourceIT {
         app.given().get("/api/from-custom-source").then().statusCode(HttpStatus.SC_OK).body(is("Hello Config Source!"));
     }
 
-    protected static final void onLoadConfigureConsul(Service service) {
+    protected static void onLoadConfigureConsul(Service service) {
         consul.loadPropertiesFromFile(KEY, "application.properties");
     }
 

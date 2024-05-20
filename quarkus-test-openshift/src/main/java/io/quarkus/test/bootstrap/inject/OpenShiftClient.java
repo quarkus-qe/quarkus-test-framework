@@ -57,7 +57,6 @@ import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
-import io.fabric8.kubernetes.client.dsl.ContainerResource;
 import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -221,8 +220,7 @@ public final class OpenShiftClient {
         Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
 
         deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-            enrichProperties.entrySet().forEach(
-                    envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+            enrichProperties.forEach((key, value) -> container.getEnv().add(new EnvVar(key, value, null)));
         });
         client.apps().deployments().resource(deployment).createOrReplace();
     }
@@ -405,7 +403,7 @@ public final class OpenShiftClient {
             PodResource resource = client.pods().withName(podName);
             for (Container container : pod.getSpec().getContainers()) {
                 logs.put(podName + "-" + container.getName(),
-                        ((ContainerResource) resource.inContainer(container.getName())).getLog());
+                        resource.inContainer(container.getName()).getLog());
             }
         }
 
@@ -426,7 +424,7 @@ public final class OpenShiftClient {
                 PodResource resource = client.pods().withName(podName);
                 for (Container container : pod.getSpec().getContainers()) {
                     logs.put(podName + "-" + container.getName(),
-                            ((ContainerResource) resource.inContainer(container.getName())).getLog());
+                            resource.inContainer(container.getName()).getLog());
                 }
             }
         }
@@ -480,9 +478,8 @@ public final class OpenShiftClient {
         try {
             List<HasMetadata> objs = loadYaml(Files.readString(file));
             for (HasMetadata obj : objs) {
-                if ((obj instanceof ImageStream)
+                if ((obj instanceof ImageStream is)
                         && !StringUtils.equals(obj.getMetadata().getName(), service.getName())) {
-                    ImageStream is = (ImageStream) obj;
                     untilIsTrue(() -> hasImageStreamTags(is),
                             AwaitilitySettings.defaults().withService(service)
                                     .usingTimeout(
@@ -724,8 +721,7 @@ public final class OpenShiftClient {
             objMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
             obj.getMetadata().setLabels(objMetadataLabels);
 
-            if (obj instanceof Deployment) {
-                Deployment deployment = (Deployment) obj;
+            if (obj instanceof Deployment deployment) {
 
                 // set metadata to template
                 deployment.getSpec().getTemplate().getMetadata().setNamespace(project());
@@ -760,16 +756,14 @@ public final class OpenShiftClient {
 
                 environmentVariables.putAll(extraTemplateProperties);
                 deployment.getSpec().getTemplate().getSpec().getContainers()
-                        .forEach(container -> environmentVariables.entrySet().forEach(
-                                property -> {
-                                    String key = property.getKey();
-                                    EnvVar envVar = getEnvVarByKey(key, container);
-                                    if (envVar == null) {
-                                        container.getEnv().add(new EnvVar(key, property.getValue(), null));
-                                    } else {
-                                        envVar.setValue(property.getValue());
-                                    }
-                                }));
+                        .forEach(container -> environmentVariables.forEach((key, value) -> {
+                            EnvVar envVar = getEnvVarByKey(key, container);
+                            if (envVar == null) {
+                                container.getEnv().add(new EnvVar(key, value, null));
+                            } else {
+                                envVar.setValue(value);
+                            }
+                        }));
             }
         }
 

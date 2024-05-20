@@ -256,7 +256,7 @@ public class QuarkusScenarioBootstrap
                 .filter(field -> field.getName().equals(fieldToInject.getName())
                         && !field.isAnnotationPresent(LookupService.class))
                 .findAny();
-        if (!fieldService.isPresent()) {
+        if (fieldService.isEmpty()) {
             fail("Could not lookup service with name " + fieldToInject.getName());
         }
 
@@ -271,7 +271,7 @@ public class QuarkusScenarioBootstrap
                 .map(Optional::get)
                 .findFirst();
 
-        if (!parameter.isPresent()) {
+        if (parameter.isEmpty()) {
             fail("Failed to inject: " + name);
         }
 

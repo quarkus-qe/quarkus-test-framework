@@ -19,9 +19,9 @@ public class OperatorManagedResource implements ManagedResource {
 
     private final OperatorManagedResourceBuilder model;
     private final OpenShiftClient client;
+    private final List<CustomResourceDefinition> crdsToWatch = new ArrayList<>();
 
     private boolean running;
-    private List<CustomResourceDefinition> crdsToWatch = new ArrayList<>();
 
     public OperatorManagedResource(OperatorManagedResourceBuilder model) {
         this.model = model;
@@ -65,10 +65,9 @@ public class OperatorManagedResource implements ManagedResource {
     }
 
     private void applyCRDs() {
-        if (model.getContext().getOwner() instanceof OperatorService) {
-            OperatorService service = (OperatorService) model.getContext().getOwner();
-            for (Object crd : service.getCrds()) {
-                applyCRD((CustomResourceDefinition) crd);
+        if (model.getContext().getOwner() instanceof OperatorService<?> service) {
+            for (var crd : service.getCrds()) {
+                applyCRD(crd);
             }
         }
     }

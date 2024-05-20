@@ -31,14 +31,15 @@ public enum OpenShiftDeploymentStrategy {
     UsingOpenShiftExtensionAndDockerBuildStrategy(
             ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManagedResource::new);
 
-    private final Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource> supplier;
+    private final Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource<?>> sup;
 
     OpenShiftDeploymentStrategy(
-            Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource> supplier) {
-        this.supplier = supplier;
+            Function<ProdQuarkusApplicationManagedResourceBuilder, OpenShiftQuarkusApplicationManagedResource<?>> supplier) {
+        this.sup = supplier;
     }
 
-    public OpenShiftQuarkusApplicationManagedResource getManagedResource(ProdQuarkusApplicationManagedResourceBuilder builder) {
-        return supplier.apply(builder);
+    public OpenShiftQuarkusApplicationManagedResource<?> getManagedResource(
+            ProdQuarkusApplicationManagedResourceBuilder builder) {
+        return sup.apply(builder);
     }
 }

@@ -20,9 +20,9 @@ public class RemoteDevModeBuildOpenShiftQuarkusApplicationManagedResource
     private static final String REMOTE_DEV_LOG_OUTPUT_FILE = "remote-dev-out.log";
 
     private final RemoteDevModeQuarkusApplicationManagedResourceBuilder model;
+    private final File remoteDevLogFile;
 
     private Process remoteDevProcess;
-    private File remoteDevLogFile;
     private LoggingHandler remoteDevLoggingHandler;
 
     public RemoteDevModeBuildOpenShiftQuarkusApplicationManagedResource(

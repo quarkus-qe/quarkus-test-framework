@@ -7,8 +7,8 @@ public enum Protocol {
     MANAGEMENT("management", 9000), //can be either http or https
     NONE(null, -1);
 
-    private String value;
-    private int port;
+    private final String value;
+    private final int port;
 
     Protocol(String value, int port) {
         this.value = value;
