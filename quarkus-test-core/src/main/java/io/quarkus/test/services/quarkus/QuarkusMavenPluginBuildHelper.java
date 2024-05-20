@@ -61,20 +61,15 @@ class QuarkusMavenPluginBuildHelper {
     private final List<Dependency> forcedDependencies;
     private final Set<String> cmdLineBuildArgs;
     private final boolean buildWithAllClasses;
-    private final boolean customBuildRequired;
     private final Path targetFolderForLocalArtifacts;
     private final QuarkusApplicationManagedResourceBuilder resourceBuilder;
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
             Path targetFolderForLocalArtifacts) {
         this.resourceBuilder = resourceBuilder;
-        resourceBuilder.createSnapshotOfBuildProperties();
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.buildWithAllClasses = resourceBuilder.isBuildWithAllClasses();
-        // runtime properties provided at build time are currently available during the build time and so are custom props
-        // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
-        this.customBuildRequired = resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties();
         this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
 
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
@@ -178,7 +173,7 @@ class QuarkusMavenPluginBuildHelper {
     private Optional<Path> moveToPermanentLocation(Path tempNativeExecutablePath) {
         // find permanent re-usable location of our native executable
         final Path permanentNativeExecutablePath;
-        if (customBuildRequired) {
+        if (isCustomBuildRequired()) {
             String uniqueAppName = getUniqueAppName(appFolder);
             Path customExecutableTargetDir = targetFolderForLocalArtifacts.resolve(CUSTOM_RUNNER_DIR).resolve(uniqueAppName);
             customExecutableTargetDir.toFile().mkdirs();
@@ -199,6 +194,13 @@ class QuarkusMavenPluginBuildHelper {
                     + "' to '" + tempNativeExecutablePath.toFile() + "'");
         }
         return Optional.of(permanentNativeExecutablePath);
+    }
+
+    private boolean isCustomBuildRequired() {
+        // runtime properties provided at build time are currently available during the build time and so are custom props
+        // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
+        resourceBuilder.createSnapshotOfBuildProperties();
+        return resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties();
     }
 
     private String[] getBuildNativeExecutableCmd() {
