@@ -1,7 +1,7 @@
 package io.quarkus.test.scenarios.execution.condition;
 
 import static io.quarkus.test.scenarios.execution.condition.AbstractQuarkusScenarioContainerExecutionCondition.CONDITION_NOT_MATCHED;
-import static io.quarkus.test.services.quarkus.model.QuarkusProperties.isNativePackageType;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.isNativeEnabled;
 
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
@@ -25,7 +25,7 @@ public class DisableDevModeTestsInNativeExecutionCondition implements QuarkusSce
     }
 
     private static ConditionEvaluationResult evaluate(Class<?> testClass) {
-        if (isNativePackageType() && isDevModeTest(testClass)) {
+        if (isNativeEnabled() && isDevModeTest(testClass)) {
             return ConditionEvaluationResult.disabled("DEV mode tests can't be run when native mode is enabled");
         } else {
             return ConditionEvaluationResult.enabled("Not a DEV mode test in native mode");

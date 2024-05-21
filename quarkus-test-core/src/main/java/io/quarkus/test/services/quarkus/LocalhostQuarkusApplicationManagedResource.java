@@ -34,7 +34,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
     private final QuarkusApplicationManagedResourceBuilder model;
 
-    private File logOutputFile;
+    private final File logOutputFile;
     private Process process;
     private LoggingHandler loggingHandler;
     private int assignedHttpPort;
@@ -93,17 +93,11 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         } else if (protocol == Protocol.GRPC && !model.isGrpcEnabled()) {
             fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
         }
-        int port;
-        switch (protocol) {
-            case HTTPS:
-                port = assignedHttpsPort;
-                break;
-            case GRPC:
-                port = assignedGrpcPort;
-                break;
-            default:
-                port = assignedHttpPort;
-        }
+        int port = switch (protocol) {
+            case HTTPS -> assignedHttpsPort;
+            case GRPC -> assignedGrpcPort;
+            default -> assignedHttpPort;
+        };
         if (protocol == Protocol.MANAGEMENT && model.useSeparateManagementInterface()) {
             return createURI(model.useManagementSsl() ? "https" : "http",
                     "localhost",

@@ -30,7 +30,7 @@ public class StockPriceProducer {
     @OnOverflow(value = OnOverflow.Strategy.DROP)
     Emitter<StockPrice> emitter;
 
-    private Random random = new Random();
+    private final Random random = new Random();
 
     public Uni<Void> generate() {
         IntStream.range(0, config.batchSize()).forEach(next -> {

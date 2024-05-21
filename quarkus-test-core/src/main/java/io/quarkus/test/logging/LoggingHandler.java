@@ -15,8 +15,8 @@ public abstract class LoggingHandler implements Closeable {
     private static final long TIMEOUT_IN_MILLIS = 4000;
     private static final String ANY = ".*";
 
+    private final List<String> logs = new CopyOnWriteArrayList<>();
     private Thread innerThread;
-    private List<String> logs = new CopyOnWriteArrayList<>();
     private boolean running = false;
 
     protected abstract void handle();

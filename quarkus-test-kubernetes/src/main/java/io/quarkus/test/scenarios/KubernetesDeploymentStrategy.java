@@ -20,15 +20,15 @@ public enum KubernetesDeploymentStrategy {
      */
     UsingKubernetesExtension(ExtensionKubernetesQuarkusApplicationManagedResource::new);
 
-    private final Function<ProdQuarkusApplicationManagedResourceBuilder, KubernetesQuarkusApplicationManagedResource> supplier;
+    private final Function<ProdQuarkusApplicationManagedResourceBuilder, KubernetesQuarkusApplicationManagedResource<?>> sup;
 
     KubernetesDeploymentStrategy(
-            Function<ProdQuarkusApplicationManagedResourceBuilder, KubernetesQuarkusApplicationManagedResource> supplier) {
-        this.supplier = supplier;
+            Function<ProdQuarkusApplicationManagedResourceBuilder, KubernetesQuarkusApplicationManagedResource<?>> supplier) {
+        this.sup = supplier;
     }
 
-    public KubernetesQuarkusApplicationManagedResource getManagedResource(
+    public KubernetesQuarkusApplicationManagedResource<?> getManagedResource(
             ProdQuarkusApplicationManagedResourceBuilder builder) {
-        return supplier.apply(builder);
+        return sup.apply(builder);
     }
 }

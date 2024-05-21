@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.5.1.Beta2-SNAPSHOT</version>
+        <version>1.5.1.Beta4-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>quarkus-test-core</artifactId>
@@ -40,18 +40,6 @@
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
             <artifactId>playwright</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-sdk</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-exporter-otlp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.prometheus</groupId>
-            <artifactId>simpleclient_pushgateway</artifactId>
         </dependency>
         <dependency>
             <groupId>io.smallrye.reactive</groupId>

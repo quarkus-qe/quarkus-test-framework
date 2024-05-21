@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.5.1.Beta2-SNAPSHOT</version>
+        <version>1.5.1.Beta4-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-test-cli</artifactId>
     <name>Quarkus - Test Framework - CLI</name>
@@ -12,11 +12,6 @@
         <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-builder</artifactId>
-            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>

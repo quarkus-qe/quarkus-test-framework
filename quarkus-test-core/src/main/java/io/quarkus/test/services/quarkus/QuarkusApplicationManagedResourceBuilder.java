@@ -10,9 +10,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -22,6 +24,8 @@ import org.apache.commons.lang3.StringUtils;
 import io.quarkus.bootstrap.model.AppArtifact;
 import io.quarkus.bootstrap.model.AppDependency;
 import io.quarkus.builder.Version;
+import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
+import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.security.certificate.CertificateBuilder;
@@ -42,10 +46,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
 
-    private static final String BUILD_TIME_PROPERTIES = "/build-time-list";
     private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
     private static final String APPLICATION_PROPERTIES = "application.properties";
-    private static final Set<String> BUILD_PROPERTIES = FileUtils.loadFile(BUILD_TIME_PROPERTIES).lines().collect(toSet());
     private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
     private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
@@ -63,6 +65,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
     private CertificateBuilder certificateBuilder;
+    private Set<String> detectedBuildTimeProperties;
 
     protected abstract void build();
 
@@ -221,7 +224,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                     .certificates()
                     .forEach(certificate -> certificate
                             .configProperties()
-                            .forEach((k, v) -> context.getOwner().withProperty(k, v)));
+                            .forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v)));
         }
     }
 
@@ -260,13 +263,47 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         map.putAll(context.getOwner().getProperties());
         // Then overwrite the application properties with the generated application.properties
         PropertiesUtils.fromMap(map, generatedApplicationProperties);
+
+        // detect build time properties in computed properties and other config sources
+        detectBuildTimeProperties(map);
+    }
+
+    protected void detectBuildTimeProperties(Map<String, String> computedProperties) {
+        // this won't detect build-time properties for dependencies forced with @Dependency as they are not
+        // on the classpath which doesn't matter because custom build is always required when any dependency is forced
+        var classLoader = Thread.currentThread().getContextClassLoader();
+
+        try {
+            var buildTimeConfigReader = new BuildTimeConfigurationReader(classLoader);
+            var buildSystemProps = new Properties();
+            buildSystemProps.putAll(computedProperties);
+
+            // this must always be set as Quarkus sets and config expansions would fail
+            buildSystemProps.put("platform.quarkus.native.builder-image", "<<ignored>>");
+
+            var config = buildTimeConfigReader.initConfiguration(LaunchMode.NORMAL, buildSystemProps, Map.of());
+            var readResult = buildTimeConfigReader.readConfiguration(config);
+            var buildTimeConfigKeys = new HashSet<String>();
+            buildTimeConfigKeys.addAll(readResult.getAllBuildTimeValues().keySet());
+            buildTimeConfigKeys.addAll(readResult.getBuildTimeRunTimeValues().keySet());
+            this.detectedBuildTimeProperties = Set.copyOf(buildTimeConfigKeys);
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException("Failed to detect build time properties", e);
+        }
+    }
+
+    private Set<String> getDetectedBuildTimeProperties() {
+        if (detectedBuildTimeProperties == null) {
+            throw new IllegalStateException("""
+                    Build time configuration properties are not initialized yet.
+                    This must mean there is a race in the Test Framework design and we need to fix it.
+                    """);
+        }
+        return detectedBuildTimeProperties;
     }
 
     private boolean isBuildProperty(String name) {
-        return BUILD_PROPERTIES.stream().anyMatch(
-                build -> name.matches(build) // It's a regular expression
-                        || (build.endsWith(".") && name.startsWith(build)) // contains with
-                        || name.equals(build)); // or it's equal to
+        return getDetectedBuildTimeProperties().contains(name);
     }
 
     protected void copyResourcesInFolderToAppFolder(Path folder) {

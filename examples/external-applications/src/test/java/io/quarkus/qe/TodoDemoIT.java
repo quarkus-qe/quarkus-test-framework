@@ -16,8 +16,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 public class TodoDemoIT {
     private static final String REPO = "https://github.com/quarkusio/todo-demo-app.git";
     private static final String DEFAULT_ARGS = "-DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} ";
-    // TODO: drop config key quarkus.package.type when Quarkus is bumped to 3.10
-    private static final String UBER = "-Dquarkus.package.type=uber-jar -Dquarkus.package.jar.type=uber-jar ";
+    private static final String UBER = "-Dquarkus.package.jar.type=uber-jar ";
 
     @GitRepositoryQuarkusApplication(repo = REPO, mavenArgs = DEFAULT_ARGS + UBER)
     static final RestService app = new RestService();

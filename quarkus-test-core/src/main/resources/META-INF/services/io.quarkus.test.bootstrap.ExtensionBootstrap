@@ -1,2 +1,0 @@
-io.quarkus.test.tracing.TracingExtensionBootstrap
-io.quarkus.test.metrics.MetricsExtensionBootstrap

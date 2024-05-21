@@ -5,6 +5,7 @@ import static java.util.regex.Pattern.quote;
 import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.ServiceLoader;
 
 import org.apache.commons.lang3.StringUtils;
@@ -104,6 +105,9 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         // app folder may not exist when S2I scenario use OpenShift build strategy where we do not clone git project
         if (Files.exists(getApplicationFolder())) {
             super.copyResourcesToAppFolder();
+        } else {
+            // initialize build time properties from default config sources
+            detectBuildTimeProperties(Map.of());
         }
     }
 }

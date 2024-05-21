@@ -14,7 +14,6 @@ import io.quarkus.test.services.knative.eventing.FunqyKnativeEventsService;
 import io.quarkus.test.services.knative.eventing.OpenShiftExtensionFunqyKnativeEventsService;
 
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingOpenShiftExtension)
-@Disabled("https://github.com/quarkusio/quarkus/issues/38018")
 public class OpenShiftUsingExtensionAndServerlessFunqyKnEventsIT {
 
     private static final String INVOKED_FUNCTION = "defaultChain";
@@ -31,6 +30,7 @@ public class OpenShiftUsingExtensionAndServerlessFunqyKnEventsIT {
             .withTrigger().name("lastchainlink").defaultBroker().filterCloudEventType("lastChainLink").endTrigger();
 
     @Test
+    @Disabled("https://github.com/quarkusio/quarkus/issues/40676")
     public void simpleFunctionChainCloudEventGetTest() {
         final String actualResponse = service
                 .<String> funcInvoker()
