@@ -1,7 +1,7 @@
 
 package io.quarkus.qe;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,7 +44,7 @@ public class StrimziKafkaWithRegistryMessagingIT {
         source.register(inboundSseEvent -> latch.countDown());
         source.open();
         boolean completed = latch.await(5, TimeUnit.MINUTES);
-        assertEquals(true, completed);
+        assertTrue(completed);
         source.close();
     }
 }

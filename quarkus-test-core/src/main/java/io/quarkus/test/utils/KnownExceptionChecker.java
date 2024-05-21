@@ -31,7 +31,7 @@ public final class KnownExceptionChecker {
     /**
      * List to store enabled handlers, which are going to be effective.
      */
-    private static List<Predicate<Throwable>> enabledExceptionsHandlers = new ArrayList<>();
+    private static final List<Predicate<Throwable>> ENABLED_EXCEPTIONS_HANDLERS = new ArrayList<>();
 
     /*
      * Read system property and assign desired handlers as enabled ones
@@ -42,7 +42,7 @@ public final class KnownExceptionChecker {
             String[] splitParameters = enableHandlersParam.split(",");
             for (String enableHandler : splitParameters) {
                 if (ALL_EXCEPTION_HANDLERS.containsKey(enableHandler.trim())) {
-                    enabledExceptionsHandlers.add(ALL_EXCEPTION_HANDLERS.get(enableHandler.trim()));
+                    ENABLED_EXCEPTIONS_HANDLERS.add(ALL_EXCEPTION_HANDLERS.get(enableHandler.trim()));
                 } else {
                     Log.warn("Trying to enable unknown exception handler: " + enableHandler);
                 }
@@ -61,7 +61,7 @@ public final class KnownExceptionChecker {
      * @return true if any known exception message is included, false otherwise
      */
     public static boolean checkForKnownException(Throwable throwable) {
-        for (Predicate<Throwable> p : enabledExceptionsHandlers) {
+        for (Predicate<Throwable> p : ENABLED_EXCEPTIONS_HANDLERS) {
             if (p.test(throwable)) {
                 return true;
             }

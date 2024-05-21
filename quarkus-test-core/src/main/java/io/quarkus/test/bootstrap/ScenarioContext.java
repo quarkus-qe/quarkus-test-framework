@@ -25,18 +25,6 @@ public final class ScenarioContext {
         this.id = generateScenarioId(testContext);
     }
 
-    private ScenarioContext(TestContext testContext, String id, boolean failed, boolean debug) {
-        this.testContext = testContext;
-        this.id = id;
-        this.failed = failed;
-        this.debug = debug;
-    }
-
-    public ScenarioContext toClassScenarioContext() {
-        // drop test method name
-        return new ScenarioContext(new TestContextImpl(testContext, null), id, failed, debug);
-    }
-
     public String getId() {
         return id;
     }

@@ -10,7 +10,7 @@ import io.quarkus.test.services.operator.model.CustomResourceStatus;
 
 public class OperatorService<T extends Service> extends BaseService<T> {
 
-    private List<CustomResourceDefinition> crds = new ArrayList<>();
+    private final List<CustomResourceDefinition> crds = new ArrayList<>();
 
     public List<CustomResourceDefinition> getCrds() {
         return crds;

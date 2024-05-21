@@ -6,12 +6,10 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 
 public class QuarkusCliExtensionBootstrap implements ExtensionBootstrap {
 
-    private ScenarioContext context;
     private QuarkusCliClient client;
 
     @Override
     public boolean appliesFor(ScenarioContext context) {
-        this.context = context;
         return context.isAnnotationPresent(QuarkusScenario.class);
     }
 

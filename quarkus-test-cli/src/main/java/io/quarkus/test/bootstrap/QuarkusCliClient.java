@@ -65,7 +65,7 @@ public class QuarkusCliClient {
         cmd.add("dev");
         cmd.addAll(arguments.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue())
-                .collect(Collectors.toList()));
+                .toList());
         return runCli(servicePath, logOutput, cmd.toArray(new String[cmd.size()]));
     }
 
@@ -99,7 +99,7 @@ public class QuarkusCliClient {
         }
         // Extra args
         if (request.extraArgs != null && request.extraArgs.length > 0) {
-            Stream.of(request.extraArgs).forEach(args::add);
+            args.addAll(Arrays.asList(request.extraArgs));
         }
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
@@ -136,7 +136,7 @@ public class QuarkusCliClient {
         }
         // Extra args
         if (request.extraArgs != null && request.extraArgs.length > 0) {
-            Stream.of(request.extraArgs).forEach(args::add);
+            args.addAll(Arrays.asList(request.extraArgs));
         }
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
@@ -177,7 +177,7 @@ public class QuarkusCliClient {
             cmd.add(format("-D%s=%s", QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, Boolean.TRUE));
         }
 
-        Log.info(cmd.stream().collect(Collectors.joining(" ")));
+        Log.info(String.join(" ", cmd));
         try {
             return ProcessBuilderProvider.command(cmd)
                     .redirectErrorStream(true)

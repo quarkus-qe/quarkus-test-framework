@@ -150,11 +150,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
             }
         }
 
-        if (artifactLocation.isEmpty()) {
-            return buildArtifact();
-        } else {
-            return Path.of(artifactLocation.get());
-        }
+        return artifactLocation.map(Path::of).orElseGet(this::buildArtifact);
     }
 
     private Path buildArtifact() {

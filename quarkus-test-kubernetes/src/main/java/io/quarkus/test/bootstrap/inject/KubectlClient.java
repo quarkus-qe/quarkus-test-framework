@@ -129,8 +129,7 @@ public final class KubectlClient {
         Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
 
         deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
-            enrichProperties.entrySet().forEach(
-                    envVar -> container.getEnv().add(new EnvVar(envVar.getKey(), envVar.getValue(), null)));
+            enrichProperties.forEach((key, value) -> container.getEnv().add(new EnvVar(key, value, null)));
         });
 
         client.apps().deployments().withTimeout(DEPLOYMENT_CREATION_TIMEOUT, TimeUnit.SECONDS).delete();
@@ -314,8 +313,7 @@ public final class KubectlClient {
             objMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
             obj.getMetadata().setLabels(objMetadataLabels);
 
-            if (obj instanceof Deployment) {
-                Deployment deployment = (Deployment) obj;
+            if (obj instanceof Deployment deployment) {
 
                 // set deployment name
                 deployment.getMetadata().setName(service.getName());
@@ -332,13 +330,12 @@ public final class KubectlClient {
                 Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
                 enrichProperties.putAll(extraTemplateProperties);
                 deployment.getSpec().getTemplate().getSpec().getContainers()
-                        .forEach(container -> enrichProperties.entrySet().forEach(property -> {
-                            String key = property.getKey();
+                        .forEach(container -> enrichProperties.forEach((key, value) -> {
                             EnvVar envVar = getEnvVarByKey(key, container);
                             if (envVar == null) {
-                                container.getEnv().add(new EnvVar(key, property.getValue(), null));
+                                container.getEnv().add(new EnvVar(key, value, null));
                             } else {
-                                envVar.setValue(property.getValue());
+                                envVar.setValue(value);
                             }
                         }));
             }
@@ -574,15 +571,6 @@ public final class KubectlClient {
         }
 
         return done;
-    }
-
-    private void printServiceInfo(Service service) {
-        try {
-            new Command(KUBECTL, "get", "svc", service.getName(), "-n", currentNamespace)
-                    .outputToConsole()
-                    .runAndWait();
-        } catch (Exception ignored) {
-        }
     }
 
 }
