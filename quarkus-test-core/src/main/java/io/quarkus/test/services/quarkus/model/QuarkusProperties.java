@@ -18,13 +18,9 @@ public final class QuarkusProperties {
     public static final String QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY = "quarkus.analytics.disabled";
     public static final PropertyLookup QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP = new PropertyLookup(
             QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, "true");
-    // TODO: drop ternary operator when Quarkus version is bumped to 3.10
-    public static final String PACKAGE_TYPE_NAME = defaultVersionIfEmpty(PLATFORM_VERSION.get()).startsWith("3.9.")
-            ? "quarkus.package.type"
-            : "quarkus.package.jar.type";
+    public static final String PACKAGE_TYPE_NAME = "quarkus.package.jar.type";
     public static final String MUTABLE_JAR = "mutable-jar";
     public static final PropertyLookup PACKAGE_TYPE = new PropertyLookup(PACKAGE_TYPE_NAME);
-    public static final List<String> PACKAGE_TYPE_NATIVE_VALUES = Arrays.asList("native", "native-sources");
     public static final List<String> PACKAGE_TYPE_LEGACY_JAR_VALUES = Arrays.asList("legacy-jar", "uber-jar", "mutable-jar");
     public static final List<String> PACKAGE_TYPE_JVM_VALUES = Arrays.asList("fast-jar", "jar");
     public static final PropertyLookup QUARKUS_JVM_S2I = new PropertyLookup("quarkus.s2i.base-jvm-image",
@@ -48,18 +44,12 @@ public final class QuarkusProperties {
         return QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP.getAsBoolean();
     }
 
-    public static boolean isNativePackageType() {
-        // TODO: simplify condition when Quarkus version is bumped to 3.10
-        return isNativeEnabled() || PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get());
-    }
-
-    public static boolean isNativePackageType(ServiceContext context) {
-        // TODO: simplify condition when Quarkus version is bumped to 3.10
-        return isNativeEnabled() || PACKAGE_TYPE_NATIVE_VALUES.contains(PACKAGE_TYPE.get(context));
-    }
-
     public static boolean isNativeEnabled() {
         return Boolean.parseBoolean(NATIVE_ENABLED.get());
+    }
+
+    public static boolean isNativeEnabled(ServiceContext context) {
+        return Boolean.parseBoolean(NATIVE_ENABLED.get(context));
     }
 
     public static boolean isLegacyJarPackageType(ServiceContext context) {
