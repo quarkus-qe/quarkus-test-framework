@@ -7,6 +7,7 @@ import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PR
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 
 import java.nio.file.Files;
@@ -28,6 +29,7 @@ import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.DockerUtils;
+import io.quarkus.test.utils.FileUtils;
 
 public abstract class DockerContainerManagedResource implements ManagedResource {
 
@@ -131,6 +133,11 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             if (isResource(entry.getValue())) {
                 value = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
                 addFileToContainer(value);
+            } else if (isSecretWithDestinationPath(entry.getValue())) {
+                value = entry.getValue().replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+                String destinationPath = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
+                String fileName = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
+                addFileToContainer(destinationPath, fileName);
             } else if (isResourceWithDestinationPath(entry.getValue())) {
                 value = entry.getValue().replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
                 if (!value.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
@@ -163,8 +170,17 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     }
 
     private void addFileToContainer(String destinationPath, String hostFilePath) {
+        var filePath = FileUtils.findTargetFile(Path.of("target"), hostFilePath);
         String containerFullPath = destinationPath + SLASH + hostFilePath;
-        innerContainer.withClasspathResourceMapping(hostFilePath, containerFullPath, BindMode.READ_ONLY);
+        if (filePath.isEmpty()) {
+            innerContainer.withClasspathResourceMapping(hostFilePath, containerFullPath, BindMode.READ_ONLY);
+        } else {
+            innerContainer.withCopyFileToContainer(MountableFile.forHostPath(filePath.get()), containerFullPath);
+        }
+    }
+
+    private static boolean isSecretWithDestinationPath(String key) {
+        return key.startsWith(SECRET_WITH_DESTINATION_PREFIX);
     }
 
     private boolean isResourceWithDestinationPath(String key) {

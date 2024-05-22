@@ -13,6 +13,10 @@ public interface CertificateBuilder {
 
     Certificate findCertificateByPrefix(String prefix);
 
+    static CertificateBuilder of(Certificate certificate) {
+        return new CertificateBuilderImp(List.of(certificate));
+    }
+
     static CertificateBuilder of(io.quarkus.test.services.Certificate[] certificates) {
         if (certificates == null || certificates.length == 0) {
             return null;
