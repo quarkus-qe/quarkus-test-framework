@@ -46,11 +46,16 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
-        this.image = PropertiesUtils.resolveProperty(metadata.image());
-        this.command = metadata.command();
-        this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
-        this.port = metadata.port();
-        this.portDockerHostToLocalhost = metadata.portDockerHostToLocalhost();
+        init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(),
+                metadata.portDockerHostToLocalhost());
+    }
+
+    protected void init(String image, String[] command, String expectedLog, int port, boolean portDockerHostToLocalhost) {
+        this.image = PropertiesUtils.resolveProperty(image);
+        this.command = command;
+        this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
+        this.port = port;
+        this.portDockerHostToLocalhost = portDockerHostToLocalhost;
     }
 
     @Override
