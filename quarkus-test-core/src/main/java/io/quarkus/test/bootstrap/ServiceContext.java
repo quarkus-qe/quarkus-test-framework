@@ -70,7 +70,7 @@ public final class ServiceContext {
         return this;
     }
 
-    Map<String, String> getConfigPropertiesWithTestScope() {
+    public Map<String, String> getConfigPropertiesWithTestScope() {
         return configPropertiesWithTestScope;
     }
 

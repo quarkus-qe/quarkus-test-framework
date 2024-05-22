@@ -1,5 +1,12 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.services.containers.SqlServerManagedResourceBuilder.CERTIFICATE_PREFIX;
+
+import java.util.Map;
+
+import io.quarkus.test.security.certificate.Certificate.PemCertificate;
+import io.quarkus.test.security.certificate.CertificateBuilder;
+
 public class SqlServerService extends DatabaseService<SqlServerService> {
 
     private static final String USER = "sa";
@@ -26,6 +33,41 @@ public class SqlServerService extends DatabaseService<SqlServerService> {
     public String getJdbcUrl() {
         var host = getURI();
         return "jdbc:" + getJdbcName() + "://" + host.getHost() + ":" + host.getPort() + ";databaseName=" + getDatabase();
+    }
+
+    /**
+     * @see #getTlsProperties(String)
+     */
+    public Map<String, String> getTlsProperties() {
+        return getTlsProperties(null);
+    }
+
+    /**
+     * Additional JDBC extension properties configuring SQL Server driver to use encrypted communication.
+     *
+     * @param datasourceName datasource name
+     * @return additional JDBC properties
+     */
+    public Map<String, String> getTlsProperties(String datasourceName) {
+        CertificateBuilder certBuilder = getPropertyFromContext(CertificateBuilder.INSTANCE_KEY);
+        if (certBuilder != null && certBuilder.findCertificateByPrefix(CERTIFICATE_PREFIX) instanceof PemCertificate pemCert) {
+            final String additionalJdbcProperties;
+            if (datasourceName != null && !datasourceName.isEmpty()) {
+                additionalJdbcProperties = "quarkus.datasource.%s.jdbc.additional-jdbc-properties.".formatted(datasourceName);
+            } else {
+                additionalJdbcProperties = "quarkus.datasource.jdbc.additional-jdbc-properties.";
+            }
+            return Map.of(
+                    additionalJdbcProperties + "trustStore", pemCert.truststorePath(),
+                    additionalJdbcProperties + "trustStorePassword", pemCert.password(),
+                    additionalJdbcProperties + "trustStoreType", "PKCS12",
+                    additionalJdbcProperties + "trustServerCertificate", "false",
+                    additionalJdbcProperties + "sslProtocol", "TLSv1.2",
+                    additionalJdbcProperties + "authentication", "SqlPassword",
+                    additionalJdbcProperties + "fips", "true",
+                    additionalJdbcProperties + "encrypt", "true");
+        }
+        return Map.of();
     }
 
     @Override
