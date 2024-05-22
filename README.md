@@ -13,7 +13,7 @@
 
 # Quarkus QE Test Framework
 
-The framework is designed using Extension Model architecture patterns, so supporting additional features or deployment options like Kubernetes or AWS is just a matter of implementing extension points and adding dependencies into the classpath.
+ng Extension Model architecture patterns, so supporting additional features or deployment options like Kubernetes or AWS is just a matter of implementing extension points and adding dependencies into the classpath.
 
 Main features:
 - Easily deploy multiple Quarkus applications and third party components in a single scenario
