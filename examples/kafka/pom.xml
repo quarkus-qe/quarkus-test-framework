@@ -48,7 +48,7 @@
                         <configuration>
                             <systemProperties>
                                 <custom.kafka.image>quay.io/strimzi/kafka</custom.kafka.image>
-                                <custom.kafka.version>0.39.0-kafka-3.6.0</custom.kafka.version>
+                                <custom.kafka.version>0.41.0-kafka-3.7.0</custom.kafka.version>
                             </systemProperties>
                         </configuration>
                     </execution>
