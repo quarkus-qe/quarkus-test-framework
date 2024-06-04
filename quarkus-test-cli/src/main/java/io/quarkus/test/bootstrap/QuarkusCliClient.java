@@ -216,6 +216,9 @@ public class QuarkusCliClient {
         }
 
         public static CreateApplicationRequest defaults() {
+            if (QuarkusProperties.getVersion().contains("SNAPSHOT")) {
+                return new CreateApplicationRequest().withPlatformBom("io.quarkus::" + QuarkusProperties.getVersion());
+            }
             return new CreateApplicationRequest();
         }
     }
