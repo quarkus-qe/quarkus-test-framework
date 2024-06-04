@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -286,6 +287,28 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             var buildTimeConfigKeys = new HashSet<String>();
             buildTimeConfigKeys.addAll(readResult.getAllBuildTimeValues().keySet());
             buildTimeConfigKeys.addAll(readResult.getBuildTimeRunTimeValues().keySet());
+
+            // gather build-time config keys from extensions deployment modules
+            // this won't work for named config keys (without regex), but we can tweak that in the future if we need to
+            var deploymentBuildProps = Arrays
+                    .stream(FileUtils
+                            .loadFile("/deployment-build-props.txt")
+                            .split(System.lineSeparator()))
+                    .map(String::trim)
+                    .collect(toSet());
+            buildTimeConfigKeys.addAll(deploymentBuildProps);
+
+            // handle relocations - if relocation processor is applied, we won't find original config property
+            // in the build-time or build-time-runtime-fixed properties as we can only find there the relocated one
+            var relocatedBuildTimeProps = buildSystemProps
+                    .stringPropertyNames()
+                    .stream()
+                    .filter(p -> !buildTimeConfigKeys.contains(p))
+                    .filter(p -> !p.equals(config.getConfigValue(p).getName()))
+                    .filter(p -> buildTimeConfigKeys.contains(config.getConfigValue(p).getName()))
+                    .collect(toSet());
+            buildTimeConfigKeys.addAll(relocatedBuildTimeProps);
+
             this.detectedBuildTimeProperties = Set.copyOf(buildTimeConfigKeys);
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("Failed to detect build time properties", e);
