@@ -354,14 +354,14 @@
                             <goal>verify</goal>
                         </goals>
                         <configuration>
-                            <systemProperties>
+                            <systemPropertyVariables>
                                 <oracle.image>${oracle.image}</oracle.image>
                                 <postgresql.image>${postgresql.image}</postgresql.image>
                                 <mysql.image>${mysql.image}</mysql.image>
                                 <infinispan.image>${infinispan.image}</infinispan.image>
                                 <infinispan-legacy.image>${infinispan-legacy.image}</infinispan-legacy.image>
                                 <consul.image>${consul.image}</consul.image>
-                            </systemProperties>
+                            </systemPropertyVariables>
                             <argLine>${jacoco.agent.argLine}</argLine>
                             <excludedGroups>${exclude.tests.with.tags}</excludedGroups>
                             <includes>
@@ -428,12 +428,12 @@
                         <executions>
                             <execution>
                                 <configuration>
-                                    <systemProperties>
+                                    <systemPropertyVariables>
                                         <quarkus.native.enabled>${quarkus.native.enabled}</quarkus.native.enabled>
                                         <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
                                         <quarkus.native.container-build>${quarkus.native.container-build}</quarkus.native.container-build>
                                         <quarkus.native.native-image-xmx>${quarkus.native.native-image-xmx}</quarkus.native.native-image-xmx>
-                                    </systemProperties>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>
