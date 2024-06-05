@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.5.0.Beta6</version>
+        <version>1.5.1.Beta6-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-test-images</artifactId>
     <name>Quarkus - Test Framework - Core - Images</name>
