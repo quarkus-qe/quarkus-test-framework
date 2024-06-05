@@ -36,6 +36,7 @@ import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 import io.quarkus.test.utils.TestExecutionProperties;
+import io.smallrye.config.SecretKeys;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -299,14 +300,16 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             buildTimeConfigKeys.addAll(deploymentBuildProps);
 
             // handle relocations - if relocation processor is applied, we won't find original config property
-            // in the build-time or build-time-runtime-fixed properties as we can only find there the relocated one
-            var relocatedBuildTimeProps = buildSystemProps
+            // in the build-time or build-time-runtime-fixed properties as we can only find there the relocated one;
+            // we can safely guess that secret keys are not build-time config props,
+            // but we don't create config ourselves, hence unlock keys to avoid build failures
+            var relocatedBuildTimeProps = SecretKeys.doUnlocked(() -> buildSystemProps
                     .stringPropertyNames()
                     .stream()
                     .filter(p -> !buildTimeConfigKeys.contains(p))
                     .filter(p -> !p.equals(config.getConfigValue(p).getName()))
                     .filter(p -> buildTimeConfigKeys.contains(config.getConfigValue(p).getName()))
-                    .collect(toSet());
+                    .collect(toSet()));
             buildTimeConfigKeys.addAll(relocatedBuildTimeProps);
 
             this.detectedBuildTimeProperties = Set.copyOf(buildTimeConfigKeys);
