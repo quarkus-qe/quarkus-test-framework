@@ -60,3 +60,10 @@ jobs:
           branch: ${{github.base_ref}}
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tags: true
+      - name: Publish release notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          gh release edit release-draft --verify-tag --latest --draft=false --target ${{github.sha}} -t ${{steps.metadata.outputs.current-version}} --tag ${{steps.metadata.outputs.current-version}}
+          gh api --method DELETE -H "Accept: application/vnd.github+json" repos/{owner}/{repo}/git/refs/tags/release-draft

@@ -22,6 +22,6 @@ categories:
     label: 'chore'
 change-template: '- #$NUMBER: $TITLE (@$AUTHOR)'
 template: |
-  ## 1.0.z Changes
+  ## Changes
   $CHANGES
   All contributors: $CONTRIBUTORS

@@ -13,5 +13,6 @@ jobs:
       - uses: release-drafter/release-drafter@v6
         with:
           config-name: upstream-release-drafter.yml
+          tag: release-draft
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
