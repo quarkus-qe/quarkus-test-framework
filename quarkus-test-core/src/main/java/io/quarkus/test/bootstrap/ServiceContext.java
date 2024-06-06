@@ -3,6 +3,7 @@ package io.quarkus.test.bootstrap;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class ServiceContext {
 
@@ -21,6 +22,12 @@ public final class ServiceContext {
      * This field stores properties that has only a test class scope.
      */
     private final Map<String, String> configPropertiesWithTestScope = new HashMap<>();
+
+    ServiceContext(Service owner, ScenarioContext scenarioContext, Path serviceFolder) {
+        this.owner = owner;
+        this.scenarioContext = scenarioContext;
+        this.serviceFolder = Objects.requireNonNull(serviceFolder);
+    }
 
     ServiceContext(Service owner, ScenarioContext scenarioContext) {
         this.owner = owner;

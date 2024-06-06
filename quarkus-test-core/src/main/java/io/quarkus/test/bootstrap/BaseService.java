@@ -275,13 +275,17 @@ public class BaseService<T extends Service> implements Service {
             this.configuration = Configuration.load(serviceName, originalServiceName);
         }
 
-        this.context = new ServiceContext(this, context);
+        this.context = createServiceContext(context);
         onPreStart(s -> properties.putAll(this.context.getConfigPropertiesWithTestScope()));
         onPreStop(s -> this.context.getConfigPropertiesWithTestScope().forEach((k, v) -> properties.remove(k)));
 
         onPreStart(s -> futureProperties.forEach(Runnable::run));
         context.getTestStore().put(serviceName, this);
         return this.context;
+    }
+
+    protected ServiceContext createServiceContext(ScenarioContext context) {
+        return new ServiceContext(this, context);
     }
 
     @Override
