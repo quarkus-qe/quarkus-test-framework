@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -27,6 +29,7 @@ public class QuarkusCliClient {
     public static final String COMMAND_LOG_FILE = "quarkus-cli-command.out";
     public static final String DEV_MODE_LOG_FILE = "quarkus-cli-dev.out";
 
+    private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
     private static final Path TARGET = Paths.get("target");
@@ -69,12 +72,22 @@ public class QuarkusCliClient {
         return runCli(servicePath, logOutput, cmd.toArray(new String[cmd.size()]));
     }
 
+    public QuarkusCliRestService createApplicationAt(String name, String targetFolderName) {
+        Objects.requireNonNull(targetFolderName);
+        return createApplication(name, CreateApplicationRequest.defaults(), targetFolderName);
+    }
+
     public QuarkusCliRestService createApplication(String name) {
         return createApplication(name, CreateApplicationRequest.defaults());
     }
 
     public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request) {
-        QuarkusCliRestService service = new QuarkusCliRestService(this);
+        return createApplication(name, request, null);
+    }
+
+    public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request, String targetFolderName) {
+        Path serviceFolder = isNotEmpty(targetFolderName) ? TARGET.resolve(targetFolderName).resolve(name) : null;
+        QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
 
         service.init(s -> new CliDevModeLocalhostQuarkusApplicationManagedResource(serviceContext, this));
@@ -83,8 +96,7 @@ public class QuarkusCliClient {
         FileUtils.deletePath(serviceContext.getServiceFolder());
 
         // Generate project
-        List<String> args = new ArrayList<>();
-        args.addAll(Arrays.asList("create", "app", name));
+        List<String> args = new ArrayList<>(Arrays.asList("create", "app", name));
         // Platform Bom
         if (isNotEmpty(request.platformBom)) {
             args.add("--platform-bom=" + request.platformBom);
@@ -189,6 +201,45 @@ public class QuarkusCliClient {
         }
     }
 
+    private static boolean isUpstream() {
+        return isUpstream(QuarkusProperties.getVersion());
+    }
+
+    private static boolean isUpstream(String version) {
+        return version.contains(QUARKUS_UPSTREAM_VERSION);
+    }
+
+    private static String getFixedStreamVersion() {
+        var rawVersion = QuarkusProperties.getVersion();
+        if (isUpstream(rawVersion)) {
+            throw new IllegalStateException("Cannot set fixed stream version for '%s' as it doesn't exist" + rawVersion);
+        }
+
+        String[] version = rawVersion.split(Pattern.quote("."));
+        return String.format("%s.%s", version[0], version[1]);
+    }
+
+    private static String getCurrentPlatformBom() {
+        return QuarkusProperties.PLATFORM_GROUP_ID.get() + "::" + QuarkusProperties.getVersion();
+    }
+
+    public Result listExtensions(String... extraArgs) {
+        return listExtensions(ListExtensionRequest.defaults(), extraArgs);
+    }
+
+    public Result listExtensions(ListExtensionRequest request, String... extraArgs) {
+        List<String> args = new ArrayList<>();
+        args.add("extension");
+        args.add("list");
+        args.addAll(Arrays.asList(extraArgs));
+        if (request.stream() != null) {
+            args.addAll(Arrays.asList("--stream", request.stream()));
+        }
+        var result = run(args.toArray(String[]::new));
+        assertTrue(result.isSuccessful(), "Extensions list command didn't work. Output: " + result.getOutput());
+        return result;
+    }
+
     public static class CreateApplicationRequest {
         private String platformBom;
         private String stream;
@@ -198,6 +249,10 @@ public class QuarkusCliClient {
         public CreateApplicationRequest withPlatformBom(String platformBom) {
             this.platformBom = platformBom;
             return this;
+        }
+
+        public CreateApplicationRequest withCurrentPlatformBom() {
+            return withPlatformBom(getCurrentPlatformBom());
         }
 
         public CreateApplicationRequest withStream(String stream) {
@@ -216,10 +271,12 @@ public class QuarkusCliClient {
         }
 
         public static CreateApplicationRequest defaults() {
-            if (QuarkusProperties.getVersion().contains("SNAPSHOT")) {
-                return new CreateApplicationRequest().withPlatformBom("io.quarkus::" + QuarkusProperties.getVersion());
+            if (isUpstream()) {
+                // set platform due to https://github.com/quarkusio/quarkus/issues/40951#issuecomment-2147399201
+                return new CreateApplicationRequest().withCurrentPlatformBom();
             }
-            return new CreateApplicationRequest();
+            // set fixed stream because if tested stream is not the latest stream, we would create app with wrong version
+            return new CreateApplicationRequest().withStream(getFixedStreamVersion());
         }
     }
 
@@ -227,6 +284,10 @@ public class QuarkusCliClient {
         private String platformBom;
         private String stream;
         private String[] extraArgs;
+
+        public CreateExtensionRequest withCurrentPlatformBom() {
+            return withPlatformBom(getCurrentPlatformBom());
+        }
 
         public CreateExtensionRequest withPlatformBom(String platformBom) {
             this.platformBom = platformBom;
@@ -244,7 +305,11 @@ public class QuarkusCliClient {
         }
 
         public static CreateExtensionRequest defaults() {
-            return new CreateExtensionRequest();
+            if (isUpstream()) {
+                return new CreateExtensionRequest();
+            }
+            // set fixed stream because if tested stream is not the latest stream, we would create app with wrong version
+            return new CreateExtensionRequest().withStream(getFixedStreamVersion());
         }
     }
 
@@ -265,6 +330,16 @@ public class QuarkusCliClient {
 
         public boolean isSuccessful() {
             return EXIT_SUCCESS == exitCode;
+        }
+    }
+
+    public record ListExtensionRequest(String stream) {
+        public static ListExtensionRequest defaults() {
+            return new ListExtensionRequest(isUpstream() ? null : getFixedStreamVersion());
+        }
+
+        public static ListExtensionRequest withSetStream() {
+            return new ListExtensionRequest(isUpstream() ? QUARKUS_UPSTREAM_VERSION : getFixedStreamVersion());
         }
     }
 }
