@@ -7,6 +7,8 @@ import jakarta.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
+import io.smallrye.mutiny.Uni;
+
 @Path("/api")
 public class GreetingResource {
 
@@ -18,8 +20,8 @@ public class GreetingResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String hello() {
-        return "Hello " + property;
+    public Uni<String> hello() {
+        return Uni.createFrom().item("Hello " + property);
     }
 
     @GET
