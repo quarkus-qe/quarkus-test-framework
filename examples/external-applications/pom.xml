@@ -11,10 +11,6 @@
     <name>Quarkus - Test Framework - Examples - External Applications</name>
     <dependencies>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-resteasy</artifactId>
-        </dependency>
-        <dependency>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
             <scope>test</scope>
