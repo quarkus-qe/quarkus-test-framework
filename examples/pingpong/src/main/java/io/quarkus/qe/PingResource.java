@@ -5,12 +5,14 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
+import io.smallrye.mutiny.Uni;
+
 @Path("/ping")
 public class PingResource {
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)
-    public String ping() {
-        return "ping";
+    public Uni<String> ping() {
+        return Uni.createFrom().item("ping");
     }
 }
