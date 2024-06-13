@@ -59,7 +59,6 @@ class QuarkusMavenPluginBuildHelper {
     private final Path appFolder;
     private final Set<String> appClassNames;
     private final List<Dependency> forcedDependencies;
-    private final Set<String> cmdLineBuildArgs;
     private final boolean buildWithAllClasses;
     private final Path targetFolderForLocalArtifacts;
     private final QuarkusApplicationManagedResourceBuilder resourceBuilder;
@@ -73,10 +72,6 @@ class QuarkusMavenPluginBuildHelper {
         this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
 
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
-        // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
-        // TODO: if we ever extend native executable coverage on Windows, we must find a way how to access only original args
-        this.cmdLineBuildArgs = OS.WINDOWS.isCurrent() ? Set.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties())
-                : findMavenCommandLineArgs();
     }
 
     private static Set<String> findMavenCommandLineArgs() {
@@ -209,6 +204,7 @@ class QuarkusMavenPluginBuildHelper {
                 toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
                 toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
                 toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion()));
+        var cmdLineBuildArgs = getCmdLineBuildArgs();
         if (!cmdLineBuildArgs.isEmpty()) {
             cmdStream = Stream.concat(cmdStream, cmdLineBuildArgs.stream());
         }
@@ -391,6 +387,13 @@ class QuarkusMavenPluginBuildHelper {
                 break;
             }
         }
+    }
+
+    private Set<String> getCmdLineBuildArgs() {
+        // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
+        // TODO: if we ever extend native executable coverage on Windows, we must find a way how to access only original args
+        return OS.WINDOWS.isCurrent() ? Set.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties())
+                : findMavenCommandLineArgs();
     }
 
     private static Document getDocument(Path newPom) {
