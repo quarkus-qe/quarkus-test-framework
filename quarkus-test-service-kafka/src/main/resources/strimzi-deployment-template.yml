@@ -19,17 +19,17 @@ items:
     status:
       loadBalancer: {}
   - apiVersion: v1
-    kind: Service
+    kind: ConfigMap
     metadata:
-      name: zookeeper-service
       labels:
-        app: zookeeper
-    spec:
-      ports:
-        - port: 2181
-          name: client
-      selector:
-        app: zookeeper
+        app: ${SERVICE_NAME}
+      name: "start-script"
+    data:
+      start.sh: |-
+        #!/bin/bash
+        KAFKA_CLUSTER_ID="$(/opt/kafka/bin/kafka-storage.sh random-uuid)"
+        /opt/kafka/bin/kafka-storage.sh format -t ${KAFKA_CLUSTER_ID} -c config/kraft/server.properties
+        /opt/kafka/bin/kafka-server-start.sh config/kraft/server.properties --override listeners=PLAINTEXT://0.0.0.0:${KAFKA_PORT},CONTROLLER://localhost:9093 --override advertised.listeners=PLAINTEXT://${SERVICE_NAME}:${KAFKA_PORT}
   - apiVersion: "apps/v1"
     kind: "Deployment"
     metadata:
@@ -50,35 +50,23 @@ items:
             - name: ${SERVICE_NAME}-container
               image: ${IMAGE}:${VERSION}
               imagePullPolicy: IfNotPresent
-              command: [ "/bin/sh" ]
-              args: [ "-c", "bin/kafka-server-start.sh config/server.properties --override listeners=PLAINTEXT://0.0.0.0:${KAFKA_PORT} --override advertised.listeners=PLAINTEXT://${SERVICE_NAME}:${KAFKA_PORT} --override zookeeper.connect=zookeeper-service:2181" ]
+              command:
+                - "/tmp/start.sh"
               env:
                 - name: "LOG_DIR"
                   value: "/tmp"
               ports:
                 - containerPort: ${KAFKA_PORT}
               resources: {}
+              volumeMounts:
+                - name: script-volume
+                  mountPath: "/tmp/start.sh"
+                  subPath: "start.sh"
+          volumes:
+            - name: script-volume
+              configMap:
+                #Our template engine turns octal to decimal(for some reason) so we have to use decimal here
+                defaultMode: 365 # that is rxrxrx or 0555.
+                name: start-script
       triggers:
       - type: "ConfigChange"
-  - apiVersion: apps/v1
-    kind: Deployment
-    metadata:
-      name: zookeeper
-    spec:
-      replicas: 1
-      selector:
-        matchLabels:
-          app: zookeeper
-      template:
-        metadata:
-          labels:
-            app: zookeeper
-        spec:
-          containers:
-            - name: k8s-zookeeper
-              image: quay.io/debezium/zookeeper
-              ports:
-                - containerPort: 2181
-                  name: client
-          restartPolicy: Always
-        status: { }
