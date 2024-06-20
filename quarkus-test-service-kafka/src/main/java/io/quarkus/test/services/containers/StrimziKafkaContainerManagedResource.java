@@ -42,12 +42,12 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
 
     @Override
     protected GenericContainer<?> initKafkaContainer() {
-        ExtendedStrimziKafkaContainer container = new ExtendedStrimziKafkaContainer(getKafkaImageName(), getKafkaVersion());
+        ExtendedStrimziKafkaContainer container = new ExtendedStrimziKafkaContainer(getKafkaImageName(), getKafkaVersion())
+                .enableKraftMode();
         if (StringUtils.isNotEmpty(getServerProperties())) {
             container.useCustomServerProperties();
         }
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
-
         return container;
     }
 
