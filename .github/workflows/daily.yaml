@@ -100,17 +100,6 @@ jobs:
       - name: Extract Maven Repo
         shell: bash
         run: tar -xzf maven-repo.tgz -C ~
-#      - uses: engineerd/setup-kind@v0.5.0
-#        with:
-#          version: "v0.11.1"
-#      - name: Configure Load Balancer
-#        run: .github/configure-load-balancer.sh kind
-#      - name: Login to Docker Registry
-#        uses: docker/login-action@v1
-#        with:
-#          registry: ${{ secrets.CI_REGISTRY }}
-#          username: ${{ secrets.CI_REGISTRY_USERNAME }}
-#          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build Quarkus CLI
         run: |
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
@@ -124,7 +113,7 @@ jobs:
           ./quarkus-dev-cli version
       - name: Build
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Generate Jacoco Report
         run: |
           cd coverage-report
@@ -217,6 +206,110 @@ jobs:
         with:
           name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
+  kubernetes-build-jvm-latest:
+    name: Daily - Kubernetes - JVM - Latest version
+    runs-on: ubuntu-latest
+    needs: quarkus-main-build
+    strategy:
+      matrix:
+        quarkus-version: ["999-SNAPSHOT"]
+        java: [ 17 ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'maven'
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v4
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
+      - name: Set up Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v2.11.0
+        with:
+          minikube version: 'v1.33.1'
+          kubernetes version: 'v1.30.0'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.CI_REGISTRY_USERNAME }}
+          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
+      - name: Build
+        run: |
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+      - name: Zip Artifacts
+        if: failure()
+        run: |
+          zip -R artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}
+          path: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
+  kubernetes-build-native-latest:
+    name: Daily - Kubernetes - Native build - Latest version
+    runs-on: ubuntu-latest
+    needs: quarkus-main-build
+    strategy:
+      matrix:
+        quarkus-version: ["999-SNAPSHOT"]
+        java: [ 21 ]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'maven'
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v4
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
+      - name: Set up Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v2.11.0
+        with:
+          minikube version: 'v1.33.1'
+          kubernetes version: 'v1.30.0'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.CI_REGISTRY_USERNAME }}
+          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
+      - name: Build
+        run: |
+          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+      - name: Zip Artifacts
+        if: failure()
+        run: |
+          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
+          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   windows-build-jvm-latest:
     name: Daily - Windows - JVM build - Latest Version
     runs-on: windows-latest
@@ -321,57 +414,3 @@ jobs:
         with:
           name: artifacts-latest-windows-native${{ matrix.java }}
           path: artifacts-latest-windows-native${{ matrix.java }}.tar
-#  kubernetes-build-native-latest:
-#    name: Daily - Kubernetes - Native build - Latest Version
-#    runs-on: ubuntu-latest
-#    needs: [ quarkus-main-build, linux-build-jvm-latest ]
-#    strategy:
-#      matrix:
-#        quarkus-version: ["999-SNAPSHOT"]
-#        java: [ 17 ]
-#    steps:
-#      - uses: actions/checkout@v4
-#      - name: Reclaim Disk Space
-#        run: .github/ci-prerequisites.sh
-#      - name: Install JDK {{ matrix.java }}
-#        uses: actions/setup-java@v4
-#        with:
-#          distribution: 'temurin'
-#          java-version: ${{ matrix.java }}
-#          check-latest: true
-#          cache: 'maven'
-#      - uses: engineerd/setup-kind@v0.5.0
-#        with:
-#          version: "v0.11.1"
-#      - name: Configure Load Balancer
-#        run: .github/configure-load-balancer.sh kind
-#      - name: Login to Docker Registry
-#        uses: docker/login-action@v1
-#        with:
-#          registry: ${{ secrets.CI_REGISTRY }}
-#          username: ${{ secrets.CI_REGISTRY_USERNAME }}
-#          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
-#      - name: Download Maven Repo
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: maven-repo
-#          path: .
-#      - name: Extract Maven Repo
-#        shell: bash
-#        run: tar -xzf maven-repo.tgz -C ~
-#      - name: Build
-#        run: |
-#          if [[ "${{ matrix.quarkus-version }}" = 1.* ]]; then
-#             EXCLUDE_MODULES="-pl !examples/grpc"
-#          fi
-#          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,kubernetes,native -Dts.container.registry-url=${{ secrets.CI_REGISTRY }} -Dquarkus.platform.version="${{ matrix.quarkus-version }}" $EXCLUDE_MODULES
-#      - name: Zip Artifacts
-#        if: failure()
-#        run: |
-#          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
-#      - name: Archive artifacts
-#        if: failure()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ci-artifacts
-#          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip

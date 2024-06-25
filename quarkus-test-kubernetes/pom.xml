@@ -29,6 +29,10 @@
             </exclusions>
         </dependency>
         <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>kubernetes-httpclient-vertx</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
         </dependency>
