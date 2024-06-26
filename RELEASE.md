@@ -1,9 +1,18 @@
 # Release guide
 
+Quarkus QE test framework uses semantic versioning. Our minor releases are tied to Quarkus LTS releases, with 
+micro-releases usually containing bug-fixes or non-breaking features.
+
 ## Release streams
 
-- main will be used for development for future RHBQ release.
-- There is going to be a minor release stream for every RHBQ release - for example, 1.0.z stream for RHBQ 2.2, and 1.1.z stream for RHBQ 2.7.
+- `main` branch is used for development for next Quarkus LTS version. As it is a development branch, no final releases 
+  are to be  produced by releasing from here. To signify they're not of release quality, the versions released from main 
+  branch will always have `.Beta\D+` qualifier, e.g. `1.5.0.Beta7`.
+- Once the project is feature-complete for the next Quarkus LTS version, a branch should be produced and once we're 
+  confident about quality of the framework, a final release can be produced. Final release version will e.g. `1.5.0`.
+- Once final release of framework is produced from a branch, the subsequent releases in the stream must be backwards 
+  compatible - standard semver micro-releases. If there's a necessary breaking change, it absolutely has to be signified
+  in the release notes. The micro-release number should increase, e.g. `1.5.1`, `1.5.2`, ...
 
 ## Preconditions
 
