@@ -70,7 +70,7 @@
         <consul.image>docker.io/bitnami/consul:1.18.1</consul.image>
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
-        <certificate-generator.version>0.6.0</certificate-generator.version>
+        <certificate-generator.version>0.7.1</certificate-generator.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
