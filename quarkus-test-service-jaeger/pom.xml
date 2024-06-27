@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.5.1.Beta7-SNAPSHOT</version>
+        <version>1.5.0.Beta8</version>
     </parent>
     <artifactId>quarkus-test-service-jaeger</artifactId>
     <name>Quarkus - Test Framework - Service - Jaeger</name>
