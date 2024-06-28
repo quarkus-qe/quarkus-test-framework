@@ -1,0 +1,22 @@
+name: "Release check"
+
+on:
+  pull_request:
+    types: [opened]
+    paths:
+      - '.github/project.yml'
+jobs:
+  check-source-repo-is-not-a-fork:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Fail if source repo is a fork"
+        env:
+          SRC_REPO_NAME: ${{ github.event.pull_request.head.repo.full_name }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          echo "PR src repo full name $SRC_REPO_NAME"
+          echo "This GH repo name $GH_REPO"
+          if [ $SRC_REPO_NAME != $GH_REPO ]; then
+            exit 1
+          fi
+

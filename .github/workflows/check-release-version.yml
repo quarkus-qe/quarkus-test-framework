@@ -1,4 +1,4 @@
-name: Check release version
+name: "Release check"
 on:
   pull_request:
     types:
