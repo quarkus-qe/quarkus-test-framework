@@ -35,6 +35,14 @@ public class QuarkusCliRestService extends RestService {
         return cliClient.run(getServiceFolder(), "extension", "remove", extension);
     }
 
+    public QuarkusCliClient.Result update() {
+        return update(QuarkusCliClient.UpdateApplicationRequest.defaultUpdate());
+    }
+
+    public QuarkusCliClient.Result update(QuarkusCliClient.UpdateApplicationRequest request) {
+        return cliClient.updateApplication(request, getServiceFolder());
+    }
+
     public List<String> getInstalledExtensions() {
         QuarkusCliClient.Result result = cliClient.run(getServiceFolder(), "extension", "list", "--id");
         assertTrue(result.isSuccessful(), "Extension list failed");

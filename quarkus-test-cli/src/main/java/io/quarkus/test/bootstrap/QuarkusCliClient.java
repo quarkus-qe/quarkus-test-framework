@@ -120,6 +120,24 @@ public class QuarkusCliClient {
         return service;
     }
 
+    public Result updateApplication(UpdateApplicationRequest request, Path serviceFolder) {
+        List<String> args = new ArrayList<>(List.of("update"));
+
+        // stream
+        if (isNotEmpty(request.stream)) {
+            args.add("--stream=" + request.stream);
+        }
+
+        // platform-version
+        if (isNotEmpty(request.platformVersion)) {
+            args.add("--platform-version=" + request.platformVersion);
+        }
+
+        Result result = runCliAndWait(serviceFolder, args.toArray(new String[0]));
+        assertTrue(result.isSuccessful(), "The application was not updated. Output: " + result.getOutput());
+        return result;
+    }
+
     private static boolean isNotEmpty(String str) {
         return str != null && !str.isEmpty();
     }
@@ -277,6 +295,25 @@ public class QuarkusCliClient {
             }
             // set fixed stream because if tested stream is not the latest stream, we would create app with wrong version
             return new CreateApplicationRequest().withStream(getFixedStreamVersion());
+        }
+    }
+
+    public static class UpdateApplicationRequest {
+        private String stream;
+        private String platformVersion;
+
+        public UpdateApplicationRequest withStream(String stream) {
+            this.stream = stream;
+            return this;
+        }
+
+        public UpdateApplicationRequest withPlatformVersion(String platformVersion) {
+            this.platformVersion = platformVersion;
+            return this;
+        }
+
+        public static UpdateApplicationRequest defaultUpdate() {
+            return new UpdateApplicationRequest();
         }
     }
 
