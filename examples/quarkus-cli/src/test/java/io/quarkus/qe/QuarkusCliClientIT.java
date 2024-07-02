@@ -145,7 +145,10 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldUpdateApplication() throws IOException {
         // Create application
-        QuarkusCliRestService app = cliClient.createApplication("app", defaults().withStream("3.2"));
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults()
+                // force CLI to omit platform BOM
+                .withPlatformBom(null)
+                .withStream("3.2"));
 
         // Update application
         QuarkusCliClient.Result result = app
