@@ -6,11 +6,15 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -136,6 +140,22 @@ public class QuarkusCliClientIT {
         var result = cliClient.listExtensions();
         assertTrue(result.getOutput().contains("quarkus-rest-jackson"),
                 "Listed extensions should contain quarkus-rest-jackson: " + result.getOutput());
+    }
+
+    @Test
+    public void shouldUpdateApplication() throws IOException {
+        // Create application
+        QuarkusCliRestService app = cliClient.createApplication("app", defaults()
+                // force CLI to omit platform BOM
+                .withPlatformBom(null)
+                .withStream("3.2"));
+
+        // Update application
+        QuarkusCliClient.Result result = app
+                .update(QuarkusCliClient.UpdateApplicationRequest.defaultUpdate().withStream("3.8"));
+        File pom = app.getFileFromApplication("pom.xml");
+        assertTrue(FileUtils.readFileToString(pom, Charset.defaultCharset()).contains("<quarkus.platform.version>3.8"),
+                "Quarkus was not updated to 3.8 stream: " + result.getOutput());
     }
 
     private void assertInstalledExtensions(QuarkusCliRestService app, String... expectedExtensions) {
