@@ -64,6 +64,7 @@
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
+        <strimzi.testcontainers.version>0.106.0</strimzi.testcontainers.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -83,6 +84,22 @@
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <!-- The import above brings older version of this dependency, so we need to override it manually -->
+                <groupId>io.strimzi</groupId>
+                <artifactId>strimzi-test-container</artifactId>
+                <version>${strimzi.testcontainers.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
