@@ -18,6 +18,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.CliDevModeLocalhostQuarkusApplicationManagedResource;
+import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ProcessBuilderProvider;
@@ -77,7 +78,7 @@ public class QuarkusCliClient {
         QuarkusCliRestService service = new QuarkusCliRestService(this);
         ServiceContext serviceContext = service.register(name, context);
 
-        service.init(s -> new CliDevModeLocalhostQuarkusApplicationManagedResource(serviceContext, this));
+        service.init(request.managedResourceCreator.initBuilder(serviceContext, this));
 
         // We need the service folder to be emptied before generating the project
         FileUtils.deletePath(serviceContext.getServiceFolder());
@@ -106,6 +107,46 @@ public class QuarkusCliClient {
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
         return service;
+    }
+
+    public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir) {
+        return createApplicationFromExistingSources(name, targetFolderName, sourcesDir,
+                ((serviceContext,
+                        quarkusCliClient) -> managedResCreator -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
+                                serviceContext, quarkusCliClient)));
+    }
+
+    public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir,
+            ManagedResourceCreator managedResourceCreator) {
+        QuarkusCliRestService service = new QuarkusCliRestService(this);
+        ServiceContext serviceContext = service.register(name, context);
+
+        service.init(managedResourceCreator.initBuilder(serviceContext, this));
+
+        // We need the service folder to be emptied before generating the project
+        FileUtils.deletePath(serviceContext.getServiceFolder());
+
+        FileUtils.copyDirectoryTo(sourcesDir, serviceContext.getServiceFolder());
+
+        return service;
+    }
+
+    public Result updateApplication(UpdateApplicationRequest request, Path serviceFolder) {
+        List<String> args = new ArrayList<>(List.of("update"));
+
+        // stream
+        if (isNotEmpty(request.stream)) {
+            args.add("--stream=" + request.stream);
+        }
+
+        // platform-version
+        if (isNotEmpty(request.platformVersion)) {
+            args.add("--platform-version=" + request.platformVersion);
+        }
+
+        Result result = runCliAndWait(serviceFolder, args.toArray(new String[0]));
+        assertTrue(result.isSuccessful(), "The application was not updated. Output: " + result.getOutput());
+        return result;
     }
 
     private static boolean isNotEmpty(String str) {
@@ -194,6 +235,9 @@ public class QuarkusCliClient {
         private String stream;
         private String[] extensions;
         private String[] extraArgs;
+        private ManagedResourceCreator managedResourceCreator = (serviceContext,
+                quarkusCliClient) -> managedResourceBuilder -> new CliDevModeLocalhostQuarkusApplicationManagedResource(
+                        serviceContext, quarkusCliClient);
 
         public CreateApplicationRequest withPlatformBom(String platformBom) {
             this.platformBom = platformBom;
@@ -215,8 +259,36 @@ public class QuarkusCliClient {
             return this;
         }
 
+        public CreateApplicationRequest withManagedResourceCreator(ManagedResourceCreator managedResourceCreator) {
+            this.managedResourceCreator = managedResourceCreator;
+            return this;
+        }
+
         public static CreateApplicationRequest defaults() {
             return new CreateApplicationRequest();
+        }
+    }
+
+    public interface ManagedResourceCreator {
+        ManagedResourceBuilder initBuilder(ServiceContext serviceContext, QuarkusCliClient quarkusCliClient);
+    }
+
+    public static class UpdateApplicationRequest {
+        private String stream;
+        private String platformVersion;
+
+        public UpdateApplicationRequest withStream(String stream) {
+            this.stream = stream;
+            return this;
+        }
+
+        public UpdateApplicationRequest withPlatformVersion(String platformVersion) {
+            this.platformVersion = platformVersion;
+            return this;
+        }
+
+        public static UpdateApplicationRequest defaultUpdate() {
+            return new UpdateApplicationRequest();
         }
     }
 

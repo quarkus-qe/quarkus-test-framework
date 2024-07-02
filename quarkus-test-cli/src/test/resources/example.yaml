@@ -1,0 +1,19 @@
+quarkus:
+  datasource:
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/quarkus_test
+
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+
+  oidc:
+    enabled: true
+    auth-server-url: http://localhost:8180/auth/realms/quarkus
+    client-id: app
+
+app:
+  frontend:
+    oidc-realm: quarkus
+    oidc-app: app
+    oidc-server: http://localhost:8180/auth
