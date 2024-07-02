@@ -7,6 +7,7 @@ import org.testcontainers.images.builder.Transferable;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.strimzi.test.container.StrimziKafkaContainer;
 
@@ -32,9 +33,11 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
 
     @Override
     protected void containerIsStarting(InspectContainerResponse containerInfo, boolean reused) {
+        Log.info("Starting container using custom server properties");
         if (useCustomServerProperties) {
             List<String> script = new ArrayList<>();
             script.add("#!/bin/bash");
+            script.add("set -euv");
             int kafkaExposedPort = this.getMappedPort(KafkaVendor.STRIMZI.getPort());
             script.add("sed 's/" + KAFKA_MAPPED_PORT + "/" + kafkaExposedPort + "/g' "
                     + "config/kraft/server.properties  > /tmp/effective_server.properties");
@@ -46,6 +49,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
             script.add("bin/kafka-server-start.sh /tmp/effective_server.properties");
             this.copyFileToContainer(Transferable.of(String.join("\n", script), ALLOW_EXEC), TESTCONTAINERS_SCRIPT);
         } else {
+            Log.info("Starting container using standard server properties");
             // we do not process credentials here, since SASL always used together with custom properties
             // see StrimziKafkaContainerManagedResource#getServerProperties
             super.containerIsStarting(containerInfo, reused);
