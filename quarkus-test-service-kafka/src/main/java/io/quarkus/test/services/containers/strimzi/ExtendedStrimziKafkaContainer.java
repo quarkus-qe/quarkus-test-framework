@@ -8,6 +8,7 @@ import org.testcontainers.images.builder.Transferable;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.smallrye.mutiny.tuples.Tuple2;
 import io.strimzi.test.container.StrimziKafkaContainer;
@@ -36,15 +37,17 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
     @Override
     protected void containerIsStarting(InspectContainerResponse containerInfo, boolean reused) {
         if (useCustomServerProperties) {
+            Log.info("Starting container using custom server properties");
             List<String> script = new ArrayList<>();
             script.add("#!/bin/bash");
+            script.add("set -euv");
             int kafkaExposedPort = this.getMappedPort(KafkaVendor.STRIMZI.getPort());
             script.add("sed 's/" + KAFKA_MAPPED_PORT + "/" + kafkaExposedPort + "/g' "
                     + "config/kraft/server.properties  > /tmp/effective_server.properties");
             script.add("KAFKA_CLUSTER_ID=\"$(bin/kafka-storage.sh random-uuid)\"");
             StringBuilder storageFormat = new StringBuilder()
                     .append("/opt/kafka/bin/kafka-storage.sh format")
-                    .append(" -t ${KAFKA_CLUSTER_ID}")
+                    .append(" -t=${KAFKA_CLUSTER_ID}")
                     .append(" -c /tmp/effective_server.properties");
             credentials.ifPresent(credentials -> {
                 storageFormat.append(" --add-scram 'SCRAM-SHA-512=[name=%s,password=%s]'"
@@ -57,6 +60,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
             // we do not process credentials here, since SASL always used together with custom properties
             // see StrimziKafkaContainerManagedResource#getServerProperties
             super.containerIsStarting(containerInfo, reused);
+            Log.info("Starting container using standard server properties and cluster id " + super.getClusterId());
             // if that is to change, we will need to copy script from test containers, modify it and copy back again
         }
 
