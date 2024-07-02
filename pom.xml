@@ -65,6 +65,7 @@
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
         <postgresql.image>docker.io/postgres:16.1</postgresql.image>
         <mysql.image>docker.io/mysql:8.3.0</mysql.image>
+        <strimzi.testcontainers.version>0.106.0</strimzi.testcontainers.version>
         <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <reruns>2</reruns>
@@ -89,6 +90,22 @@
                 <version>${quarkus.platform.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
+            </dependency>
+            <dependency>
+                <!-- The import above brings older version of this dependency, so we need to override it manually -->
+                <groupId>io.strimzi</groupId>
+                <artifactId>strimzi-test-container</artifactId>
+                <version>${strimzi.testcontainers.version}</version>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-core</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>org.apache.logging.log4j</groupId>
+                        <artifactId>log4j-api</artifactId>
+                    </exclusion>
+                </exclusions>
             </dependency>
             <dependency>
                 <groupId>io.quarkus.qe</groupId>
