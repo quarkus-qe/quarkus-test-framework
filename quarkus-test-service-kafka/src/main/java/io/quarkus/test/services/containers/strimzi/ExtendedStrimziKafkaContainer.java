@@ -35,6 +35,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
     protected void containerIsStarting(InspectContainerResponse containerInfo, boolean reused) {
         Log.info("Starting container using custom server properties");
         if (useCustomServerProperties) {
+            Log.info("Starting container using custom server properties");
             List<String> script = new ArrayList<>();
             script.add("#!/bin/bash");
             script.add("set -euv");
@@ -43,7 +44,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
                     + "config/kraft/server.properties  > /tmp/effective_server.properties");
             script.add("KAFKA_CLUSTER_ID=\"$(bin/kafka-storage.sh random-uuid)\"");
             String storageFormat = "/opt/kafka/bin/kafka-storage.sh format"
-                    + " -t ${KAFKA_CLUSTER_ID}"
+                    + " -t=${KAFKA_CLUSTER_ID}"
                     + " -c /tmp/effective_server.properties";
             script.add(storageFormat);
             script.add("bin/kafka-server-start.sh /tmp/effective_server.properties");
@@ -53,6 +54,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
             // we do not process credentials here, since SASL always used together with custom properties
             // see StrimziKafkaContainerManagedResource#getServerProperties
             super.containerIsStarting(containerInfo, reused);
+            Log.info("Starting container using standard server properties and cluster id " + super.getClusterId());
             // if that is to change, we will need to copy script from test containers, modify it and copy back again
         }
     }
