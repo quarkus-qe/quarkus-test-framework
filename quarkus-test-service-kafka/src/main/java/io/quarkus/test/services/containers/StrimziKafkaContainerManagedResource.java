@@ -2,7 +2,6 @@ package io.quarkus.test.services.containers;
 
 import static io.quarkus.test.services.Certificate.Format.PKCS12;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -57,36 +56,22 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
     }
 
     @Override
-    public void afterStart() {
-        super.afterStart();
-        if (model.getProtocol() == KafkaProtocol.SASL_SSL
-                && (model.getServerProperties() == null || model.getServerProperties().isEmpty())) {
-            // make sure that client is added right after the start to Zookeeper
-            // see https://kafka.apache.org/documentation/#security_sasl_scram for more info
-            ExtendedStrimziKafkaContainer container = model.getContext().get(DOCKER_INNER_CONTAINER);
-            var command = ("/opt/kafka/bin/kafka-configs.sh --zookeeper localhost:2181 --alter --add-config "
-                    + "'SCRAM-SHA-512=[password=%s]' --entity-type users --entity-name %s;")
-                    .formatted(SASL_PASSWORD_VALUE, SASL_USERNAME_VALUE);
-            try {
-                var execResult = container.execInContainer("sh", "-c", command);
-                if (execResult.getExitCode() != 0) {
-                    throw new IllegalStateException(
-                            "Failed to add Kafka 'client' user to Zookeeper: " + execResult.getStderr());
-                }
-            } catch (IOException | InterruptedException e) {
-                throw new RuntimeException("Failed to add Kafka 'client' user to Zookeeper", e);
-            }
-        }
-    }
-
-    @Override
     protected GenericContainer<?> initKafkaContainer() {
-        ExtendedStrimziKafkaContainer container = new ExtendedStrimziKafkaContainer(getKafkaImageName(), getKafkaVersion());
+        ExtendedStrimziKafkaContainer container = new ExtendedStrimziKafkaContainer(getKafkaImageName(), getKafkaVersion())
+                .enableKraftMode();
         if (StringUtils.isNotEmpty(getServerProperties())) {
             container.useCustomServerProperties();
         }
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
-
+        if (model.getProtocol() == KafkaProtocol.SASL_SSL
+                && (model.getServerProperties() == null || model.getServerProperties().isEmpty())) {
+            /*
+             * make sure that client is added before the start
+             * https://docs.confluent.io/platform/current/kafka/authentication_sasl/authentication_sasl_scram.html#kraft-based-
+             * clusters
+             */
+            container.configureScram(SASL_USERNAME_VALUE, SASL_PASSWORD_VALUE);
+        }
         return container;
     }
 
