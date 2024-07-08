@@ -27,8 +27,9 @@ items:
     data:
       start.sh: |-
         #!/bin/bash
+        set -euv
         KAFKA_CLUSTER_ID="$(/opt/kafka/bin/kafka-storage.sh random-uuid)"
-        /opt/kafka/bin/kafka-storage.sh format -t ${KAFKA_CLUSTER_ID} -c config/kraft/server.properties
+        /opt/kafka/bin/kafka-storage.sh format -t=${KAFKA_CLUSTER_ID} -c config/kraft/server.properties
         /opt/kafka/bin/kafka-server-start.sh config/kraft/server.properties --override listeners=PLAINTEXT://0.0.0.0:${KAFKA_PORT},CONTROLLER://localhost:9093 --override advertised.listeners=PLAINTEXT://${SERVICE_NAME}:${KAFKA_PORT}
   - apiVersion: "apps/v1"
     kind: "Deployment"
