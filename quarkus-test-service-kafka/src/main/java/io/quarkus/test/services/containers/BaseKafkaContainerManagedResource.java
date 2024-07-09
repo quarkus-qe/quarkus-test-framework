@@ -7,12 +7,13 @@ import org.testcontainers.containers.wait.strategy.Wait;
 import org.testcontainers.utility.MountableFile;
 
 import io.quarkus.test.bootstrap.KafkaService;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 
 public abstract class BaseKafkaContainerManagedResource extends DockerContainerManagedResource {
 
-    private static final String SERVER_PROPERTIES = "server.properties";
-    private static final String EXPECTED_LOG = ".*started \\(kafka.server.KafkaServer\\).*";
+    private static final String SERVER_PROPERTIES = "kraft/server.properties";
+    private static final String EXPECTED_LOG = ".*started .*kafka.server.Kafka.*Server.*";
 
     protected final KafkaContainerManagedResourceBuilder model;
 
@@ -73,6 +74,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
 
         String kafkaConfigPath = model.getKafkaConfigPath();
         if (StringUtils.isNotEmpty(getServerProperties())) {
+            Log.info("Copying file %s to %s ", getServerProperties(), kafkaConfigPath + SERVER_PROPERTIES);
             kafkaContainer.withCopyFileToContainer(MountableFile.forClasspathResource(getServerProperties()),
                     kafkaConfigPath + SERVER_PROPERTIES);
         }

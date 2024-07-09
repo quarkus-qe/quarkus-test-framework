@@ -24,6 +24,7 @@ import org.testcontainers.utility.MountableFile;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
 import io.quarkus.test.services.URILike;
@@ -119,7 +120,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
             innerContainer.start();
         } catch (Exception ex) {
             stop();
-
+            loggingHandler.logs().forEach(Log::info);
             throw ex;
         }
     }
