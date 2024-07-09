@@ -23,7 +23,22 @@ public class RestService extends BaseService<RestService> {
     private static final int BUFFER_SIZE = 1024;
     private static final String BASE_PATH = "/";
 
+    private final boolean setupRestAssured;
     private WebClient webClient;
+
+    public RestService() {
+        this(true);
+    }
+
+    /**
+     * @param setupRestAssured whether RestAssured base URI, path and port should be configured;
+     *        usually you don't mind as setting up RestAssured doesn't hurt you, but it can be useful
+     *        when you want to avoid Groovy which RestAssured relies on (like when this framework
+     *        is build with a different Quarkus version than it is tested in Maven invoker tests).
+     */
+    public RestService(boolean setupRestAssured) {
+        this.setupRestAssured = setupRestAssured;
+    }
 
     public RequestSpecification given() {
         var host = getURI(Protocol.HTTP);
@@ -154,9 +169,11 @@ public class RestService extends BaseService<RestService> {
     public void start() {
         super.start();
         var host = getURI(Protocol.HTTP);
-        RestAssured.baseURI = host.getRestAssuredStyleUri();
-        RestAssured.basePath = BASE_PATH;
-        RestAssured.port = host.getPort();
+        if (setupRestAssured) {
+            RestAssured.baseURI = host.getRestAssuredStyleUri();
+            RestAssured.basePath = BASE_PATH;
+            RestAssured.port = host.getPort();
+        }
     }
 
     private static byte[] getFileContent(String path) {
