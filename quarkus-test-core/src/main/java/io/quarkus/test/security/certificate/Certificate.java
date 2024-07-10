@@ -300,9 +300,9 @@ public interface Certificate {
     }
 
     private static String toSecretProperty(String path) {
-        int fileNameSeparatorIdx = path.lastIndexOf(File.separator);
-        String fileName = path.substring(fileNameSeparatorIdx + 1);
-        String pathToFile = path.substring(0, fileNameSeparatorIdx);
+        var file = Path.of(path).toFile();
+        String fileName = file.getName();
+        String pathToFile = file.getParentFile().getAbsolutePath();
         return SECRET_WITH_DESTINATION_PREFIX + pathToFile + DESTINATION_TO_FILENAME_SEPARATOR + fileName;
     }
 
