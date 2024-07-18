@@ -20,7 +20,7 @@ Spite the test framework does not include Quarkus upstream dependencies, it need
 name: Quarkus QE Test Framework
 release:
   current-version: 0.0.3
-  next-version: 0.0.4-SNAPSHOT
+  next-version: 0.0.4
 ```
 
 3. Commit the changes and create a pull request (NOT from your fork)
