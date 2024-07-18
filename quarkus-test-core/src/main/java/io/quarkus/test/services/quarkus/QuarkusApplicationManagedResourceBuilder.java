@@ -22,10 +22,10 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.bootstrap.model.AppArtifact;
-import io.quarkus.bootstrap.model.AppDependency;
 import io.quarkus.builder.Version;
 import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
+import io.quarkus.maven.dependency.ArtifactCoords;
+import io.quarkus.maven.dependency.ArtifactDependency;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -59,7 +59,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
      * Whether build consist of all source classes or only some of them.
      */
     private boolean buildWithAllClasses = true;
-    private List<AppDependency> forcedDependencies = Collections.emptyList();
+    private List<ArtifactDependency> forcedDependencies = Collections.emptyList();
     private boolean requiresCustomBuild = false;
     private ServiceContext context;
     private String propertiesFile = APPLICATION_PROPERTIES;
@@ -107,7 +107,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
         return buildWithAllClasses;
     }
 
-    protected List<AppDependency> getForcedDependencies() {
+    protected List<ArtifactDependency> getForcedDependencies() {
         return forcedDependencies;
     }
 
@@ -209,8 +209,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             this.forcedDependencies = Stream.of(forcedDependencies).map(d -> {
                 String groupId = StringUtils.defaultIfEmpty(resolveProperty(d.groupId()), QUARKUS_GROUP_ID_DEFAULT);
                 String version = StringUtils.defaultIfEmpty(resolveProperty(d.version()), Version.getVersion());
-                AppArtifact artifact = new AppArtifact(groupId, d.artifactId(), version);
-                return new AppDependency(artifact, DEPENDENCY_SCOPE_DEFAULT, DEPENDENCY_DIRECT_FLAG);
+                ArtifactCoords artifactCoords = ArtifactCoords.jar(groupId, d.artifactId(), version);
+                return new ArtifactDependency(artifactCoords, DEPENDENCY_SCOPE_DEFAULT, DEPENDENCY_DIRECT_FLAG);
             }).collect(Collectors.toList());
         }
     }
