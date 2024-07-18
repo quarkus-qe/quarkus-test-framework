@@ -65,7 +65,7 @@
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
         <postgresql.image>docker.io/postgres:16.1</postgresql.image>
         <mysql.image>docker.io/mysql:8.3.0</mysql.image>
-        <strimzi.testcontainers.version>0.106.0</strimzi.testcontainers.version>
+        <strimzi.testcontainers.version>0.107.0</strimzi.testcontainers.version>
         <infinispan.image>docker.io/infinispan/server:14.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <reruns>2</reruns>
