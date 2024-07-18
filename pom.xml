@@ -64,7 +64,7 @@
         <quarkus.build.skip>${skipTests}</quarkus.build.skip>
         <!-- Oracle image - we aim to use same version as Dev Services for Oracle so that we only download one image -->
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
-        <strimzi.testcontainers.version>0.106.0</strimzi.testcontainers.version>
+        <strimzi.testcontainers.version>0.107.0</strimzi.testcontainers.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
