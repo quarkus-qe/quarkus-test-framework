@@ -42,10 +42,10 @@ jobs:
       - name: Maven release ${{steps.metadata.outputs.current-version}}
         run: |
           git checkout -b release
-          mvn -B release:prepare -Prelease,framework,examples -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}} -s maven-settings.xml
+          mvn -B release:prepare -Prelease,framework,examples -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}
           git checkout ${{github.base_ref}}
           git rebase release
-          mvn -B release:perform -DskipITs -Prelease,framework -s maven-settings.xml
+          mvn -B release:perform -DskipITs -Prelease,framework
         env:
           MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
