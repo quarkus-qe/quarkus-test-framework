@@ -53,7 +53,6 @@ public class QuarkusEncryptConfigCommandResult extends QuarkusConfigCommandResul
         var generatedEncryptionKey = getGeneratedEncryptionKey();
         Objects.requireNonNull(generatedEncryptionKey);
         configCommand.addToApplicationPropertiesFile(AES_GCM_NO_PADDING_HANDLER_ENC_KEY, generatedEncryptionKey);
-        System.out.println("app props are " + configCommand.getApplicationPropertiesAsStr()); // FIXME: remove me
         return this;
     }
 
