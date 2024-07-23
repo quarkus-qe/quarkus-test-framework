@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
+import io.quarkus.test.bootstrap.config.QuarkusConfigCommand;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
@@ -37,6 +38,9 @@ public class QuarkusCliClientIT {
 
     @Inject
     static QuarkusCliClient cliClient;
+
+    @Inject
+    static QuarkusConfigCommand configCommand;
 
     @Test
     public void shouldVersionMatchQuarkusVersion() {
@@ -156,6 +160,26 @@ public class QuarkusCliClientIT {
         File pom = app.getFileFromApplication("pom.xml");
         assertTrue(FileUtils.readFileToString(pom, Charset.defaultCharset()).contains("<quarkus.platform.version>3.8"),
                 "Quarkus was not updated to 3.8 stream: " + result.getOutput());
+    }
+
+    @Test
+    public void testConfigCommand() {
+        var propertyName = "property-name-1";
+        configCommand.createProperty()
+                .name(propertyName)
+                .value("val1")
+                .executeCommand()
+                .assertApplicationPropertiesContains(propertyName, "val1");
+        configCommand.updateProperty()
+                .name(propertyName)
+                .encrypt()
+                .executeCommand()
+                .assertApplicationPropertiesContains(propertyName)
+                .assertApplicationPropertiesDoesNotContain("val1");
+        configCommand.removeProperty()
+                .name(propertyName)
+                .executeCommand()
+                .assertApplicationPropertiesDoesNotContain(propertyName);
     }
 
     private void assertInstalledExtensions(QuarkusCliRestService app, String... expectedExtensions) {
