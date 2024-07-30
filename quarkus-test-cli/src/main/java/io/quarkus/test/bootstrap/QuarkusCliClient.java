@@ -90,7 +90,7 @@ public class QuarkusCliClient {
         QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
 
-        service.init(s -> new CliDevModeLocalhostQuarkusApplicationManagedResource(serviceContext, this));
+        service.init(request.managedResourceCreator.initBuilder(serviceContext, this));
 
         // We need the service folder to be emptied before generating the project
         FileUtils.deletePath(serviceContext.getServiceFolder());
@@ -263,6 +263,9 @@ public class QuarkusCliClient {
         private String stream;
         private String[] extensions;
         private String[] extraArgs;
+        private ManagedResourceCreator managedResourceCreator = (serviceContext,
+                quarkusCliClient) -> s -> new CliDevModeLocalhostQuarkusApplicationManagedResource(serviceContext,
+                        quarkusCliClient);
 
         public CreateApplicationRequest withPlatformBom(String platformBom) {
             this.platformBom = platformBom;
@@ -288,6 +291,11 @@ public class QuarkusCliClient {
             return this;
         }
 
+        public CreateApplicationRequest withManagedResourceCreator(ManagedResourceCreator managedResourceCreator) {
+            this.managedResourceCreator = managedResourceCreator;
+            return this;
+        }
+
         public static CreateApplicationRequest defaults() {
             if (isUpstream()) {
                 // set platform due to https://github.com/quarkusio/quarkus/issues/40951#issuecomment-2147399201
@@ -296,6 +304,10 @@ public class QuarkusCliClient {
             // set fixed stream because if tested stream is not the latest stream, we would create app with wrong version
             return new CreateApplicationRequest().withStream(getFixedStreamVersion());
         }
+    }
+
+    public interface ManagedResourceCreator {
+        ManagedResourceBuilder initBuilder(ServiceContext serviceContext, QuarkusCliClient quarkusCliClient);
     }
 
     public static class UpdateApplicationRequest {
