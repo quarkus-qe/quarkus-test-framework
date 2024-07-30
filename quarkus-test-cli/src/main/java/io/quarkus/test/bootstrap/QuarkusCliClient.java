@@ -20,6 +20,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.quarkus.CliDevModeLocalhostQuarkusApplicationManagedResource;
+import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.ProcessBuilderProvider;
@@ -116,6 +117,21 @@ public class QuarkusCliClient {
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
+
+        return service;
+    }
+
+    public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir) {
+        Path serviceFolder = isNotEmpty(targetFolderName) ? TARGET.resolve(targetFolderName).resolve(name) : null;
+        QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
+        ServiceContext serviceContext = service.register(name, context);
+
+        service.init(s -> new CliDevModeVersionLessQuarkusApplicationManagedResource(serviceContext, this));
+
+        // We need the service folder to be emptied before generating the project
+        FileUtils.deletePath(serviceContext.getServiceFolder());
+
+        FileUtils.copyDirectoryTo(sourcesDir, serviceContext.getServiceFolder());
 
         return service;
     }
