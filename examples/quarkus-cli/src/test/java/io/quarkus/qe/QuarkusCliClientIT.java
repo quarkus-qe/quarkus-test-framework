@@ -9,13 +9,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 import jakarta.inject.Inject;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
+import org.awaitility.Awaitility;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -197,6 +201,16 @@ public class QuarkusCliClientIT {
                 .name(propertyName)
                 .executeCommand()
                 .assertApplicationPropertiesDoesNotContain(propertyName);
+    }
+
+    @Test
+    public void testCreateApplicationFromExistingSources() {
+        Path srcPath = Paths.get("src/test/resources/existingSourcesApp");
+        QuarkusCliRestService app = cliClient.createApplicationFromExistingSources("app", null, srcPath);
+
+        app.start();
+        Awaitility.await().timeout(15, TimeUnit.SECONDS)
+                .untilAsserted(() -> app.given().get("/hello").then().statusCode(HttpStatus.SC_OK));
     }
 
     private void assertInstalledExtensions(QuarkusCliRestService app, String... expectedExtensions) {
