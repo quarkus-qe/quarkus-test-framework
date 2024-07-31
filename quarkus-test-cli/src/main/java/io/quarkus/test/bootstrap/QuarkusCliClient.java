@@ -124,7 +124,7 @@ public class QuarkusCliClient {
     public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir) {
         return createApplicationFromExistingSources(name, targetFolderName, sourcesDir,
                 ((serviceContext,
-                        quarkusCliClient) -> managedResourceCreator -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
+                        quarkusCliClient) -> managedResCreator -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
                                 serviceContext, quarkusCliClient)));
     }
 
