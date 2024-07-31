@@ -122,11 +122,19 @@ public class QuarkusCliClient {
     }
 
     public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir) {
+        return createApplicationFromExistingSources(name, targetFolderName, sourcesDir,
+                ((serviceContext,
+                        quarkusCliClient) -> managedResourceCreator -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
+                                serviceContext, quarkusCliClient)));
+    }
+
+    public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir,
+            ManagedResourceCreator managedResourceCreator) {
         Path serviceFolder = isNotEmpty(targetFolderName) ? TARGET.resolve(targetFolderName).resolve(name) : null;
         QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
 
-        service.init(s -> new CliDevModeVersionLessQuarkusApplicationManagedResource(serviceContext, this));
+        service.init(managedResourceCreator.initBuilder(serviceContext, this));
 
         // We need the service folder to be emptied before generating the project
         FileUtils.deletePath(serviceContext.getServiceFolder());
