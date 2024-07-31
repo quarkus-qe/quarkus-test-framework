@@ -6,9 +6,9 @@ import java.util.Map;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.ServiceContext;
 
-public class CliDevModeVersionLessQuarkusApplicationManagerResource
+public class CliDevModeVersionLessQuarkusApplicationManagedResource
         extends CliDevModeLocalhostQuarkusApplicationManagedResource {
-    public CliDevModeVersionLessQuarkusApplicationManagerResource(ServiceContext serviceContext, QuarkusCliClient client) {
+    public CliDevModeVersionLessQuarkusApplicationManagedResource(ServiceContext serviceContext, QuarkusCliClient client) {
         super(serviceContext, client);
     }
 

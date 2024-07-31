@@ -25,7 +25,7 @@ import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.bootstrap.config.QuarkusConfigCommand;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
-import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagerResource;
+import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @Tag("quarkus-cli")
@@ -116,8 +116,8 @@ public class QuarkusCliClientIT {
         QuarkusCliRestService app = cliClient.createApplication("versionFull:app", defaults()
                 .withStream("3.8")
                 .withPlatformBom(null)
-                .withManagedResourceCreator(
-                        (serviceContext, quarkusCliClient) -> s -> new CliDevModeVersionLessQuarkusApplicationManagerResource(
+                .withManagedResourceCreator((serviceContext,
+                        quarkusCliClient) -> managedResourceBuilder -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
                                 serviceContext, quarkusCliClient)));
 
         app.start();

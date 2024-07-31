@@ -264,8 +264,8 @@ public class QuarkusCliClient {
         private String[] extensions;
         private String[] extraArgs;
         private ManagedResourceCreator managedResourceCreator = (serviceContext,
-                quarkusCliClient) -> s -> new CliDevModeLocalhostQuarkusApplicationManagedResource(serviceContext,
-                        quarkusCliClient);
+                quarkusCliClient) -> managedResourceBuilder -> new CliDevModeLocalhostQuarkusApplicationManagedResource(
+                        serviceContext, quarkusCliClient);
 
         public CreateApplicationRequest withPlatformBom(String platformBom) {
             this.platformBom = platformBom;
