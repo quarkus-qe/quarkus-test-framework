@@ -25,6 +25,7 @@ import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.bootstrap.config.QuarkusConfigCommand;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
+import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @Tag("quarkus-cli")
@@ -108,6 +109,22 @@ public class QuarkusCliClientIT {
 
         QuarkusCliClient.Result result = app.buildOnJvm();
         assertTrue(result.isSuccessful(), "The application didn't build on JVM. Output: " + result.getOutput());
+    }
+
+    @Test
+    public void shouldRunApplicationWithoutOverwritingVersion() {
+        QuarkusCliRestService app = cliClient.createApplication("versionFull:app", defaults()
+                .withStream("3.8")
+                .withPlatformBom(null)
+                .withManagedResourceCreator((serviceContext,
+                        quarkusCliClient) -> managedResourceBuilder -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
+                                serviceContext, quarkusCliClient)));
+
+        app.start();
+        String response = app.given().get().getBody().asString();
+        // check that app was indeed running with quarkus 3.8 (it was not overwritten)
+        // version is printed on welcome screen
+        assertTrue(response.contains("3.8"), "Quarkus is not running on 3.8");
     }
 
     @Test
