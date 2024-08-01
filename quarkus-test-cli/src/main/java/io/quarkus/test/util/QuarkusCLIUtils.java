@@ -39,7 +39,7 @@ public abstract class QuarkusCLIUtils {
     private static final int GAV_FIELDS_LENGTH = 3;
 
     /**
-     * Put properties into app's application.properties file.
+     * Write properties into app's application.properties file.
      */
     public static void writePropertiesToApp(QuarkusCliRestService app, Properties properties) throws IOException {
         File propertiesFile = getPropertiesFile(app);
@@ -54,6 +54,9 @@ public abstract class QuarkusCLIUtils {
         writer.close();
     }
 
+    /**
+     * Write properties into app's application.yml file.
+     */
     public static void writePropertiesToYaml(QuarkusCliRestService app, Properties properties) throws IOException {
         File yaml = getPropertiesYamlFile(app);
         // we're using print writer to overwrite existing content of the file
@@ -138,7 +141,7 @@ public abstract class QuarkusCLIUtils {
     }
 
     /**
-     * Get dependencies for app's pom.
+     * Get dependencies from app's pom.
      * Does not read dependencyManagement.
      */
     public static List<Dependency> getDependencies(QuarkusCliRestService app) throws XmlPullParserException, IOException {
@@ -214,6 +217,9 @@ public abstract class QuarkusCLIUtils {
             return this.getVersion() == null && dependency.getVersion() == null;
         }
 
+        /**
+         * Overriding hash code is required by checkStyle if .equals is overridden.
+         */
         @Override
         public int hashCode() {
             return super.hashCode();
@@ -221,6 +227,11 @@ public abstract class QuarkusCLIUtils {
     }
 
     public static class QuarkusPlugin extends Plugin {
+        /**
+         * Constructor, which parses groupId:ArtifactId:Version into class.
+         * Version part is optional.
+         * Argument can be e.g. "org.apache.maven.plugins:maven-compiler-plugin:3.10.0"
+         */
         public QuarkusPlugin(String groupArtifactVersion) {
             String[] fields = groupArtifactVersion.split(":");
             setGroupId(fields[0]);
@@ -230,6 +241,10 @@ public abstract class QuarkusCLIUtils {
             }
         }
 
+        /**
+         * Parent Plugin class only compares groupId and artifactId in .equals.
+         * Implementing this method so we can easily detect and distinguish plugins in collections etc.
+         */
         @Override
         public boolean equals(Object obj) {
             if (!(obj instanceof Plugin plugin)) {
@@ -245,11 +260,17 @@ public abstract class QuarkusCLIUtils {
             return this.getVersion() == null && plugin.getVersion() == null;
         }
 
+        /**
+         * Overriding hash code is required by checkStyle if .equals is overridden.
+         */
         @Override
         public int hashCode() {
             return super.hashCode();
         }
 
+        /**
+         * Override toString to also print version, parent class is not doing that.
+         */
         @Override
         public String toString() {
             return "Plugin {groupId=" + getGroupId() + ", artifactId=" + getArtifactId() + ", version=" + getVersion() + "}";
