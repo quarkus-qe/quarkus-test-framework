@@ -31,6 +31,7 @@ public abstract class QuarkusCLIUtils {
     public static final String RESOURCES_DIR = "src/main/resources";
     public static final String PROPERTIES_FILE = "application.properties";
     public static final String PROPERTIES_YAML_FILE = "application.yml";
+    public static final String POM_FILE = "pom.xml";
 
     /**
      * This constant stands for number of fields in groupId:artifactId:version string, when separated via ":".
@@ -41,7 +42,7 @@ public abstract class QuarkusCLIUtils {
     /**
      * Write properties into app's application.properties file.
      */
-    public static void writePropertiesToApp(QuarkusCliRestService app, Properties properties) throws IOException {
+    public static void writePropertiesToPropertiesFile(QuarkusCliRestService app, Properties properties) throws IOException {
         File propertiesFile = getPropertiesFile(app);
         BufferedWriter writer = new BufferedWriter(new FileWriter(propertiesFile));
 
@@ -57,7 +58,7 @@ public abstract class QuarkusCLIUtils {
     /**
      * Write properties into app's application.yml file.
      */
-    public static void writePropertiesToYaml(QuarkusCliRestService app, Properties properties) throws IOException {
+    public static void writePropertiesToYamlFile(QuarkusCliRestService app, Properties properties) throws IOException {
         File yaml = getPropertiesYamlFile(app);
         // we're using print writer to overwrite existing content of the file
         PrintWriter writer = new PrintWriter(new FileWriter(yaml));
@@ -167,14 +168,14 @@ public abstract class QuarkusCLIUtils {
      * Specifying subdir param can be used to get pom of nested module (in case of multi-module apps).
      */
     public static Model getPom(QuarkusCliRestService app, String subdir) throws IOException, XmlPullParserException {
-        File pomfile = app.getFileFromApplication(subdir, "pom.xml");
+        File pomfile = app.getFileFromApplication(subdir, POM_FILE);
         MavenXpp3Reader mavenReader = new MavenXpp3Reader();
         XmlStreamReader streamReader = new XmlStreamReader(pomfile);
         return mavenReader.read(streamReader);
     }
 
     public static void savePom(QuarkusCliRestService app, Model model) throws IOException {
-        OutputStream output = new FileOutputStream(app.getFileFromApplication("pom.xml"));
+        OutputStream output = new FileOutputStream(app.getFileFromApplication(POM_FILE));
         new MavenXpp3Writer().write(output, model);
     }
 
