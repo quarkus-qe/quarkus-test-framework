@@ -10,8 +10,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -28,7 +28,7 @@ import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 
 public abstract class QuarkusCLIUtils {
-    public static final String RESOURCES_DIR = "src/main/resources";
+    public static final String RESOURCES_DIR = Paths.get("src", "main", "resources").toString();
     public static final String PROPERTIES_FILE = "application.properties";
     public static final String PROPERTIES_YAML_FILE = "application.yml";
     public static final String POM_FILE = "pom.xml";
@@ -60,15 +60,7 @@ public abstract class QuarkusCLIUtils {
      */
     public static void writePropertiesToYamlFile(QuarkusCliRestService app, Properties properties) throws IOException {
         File yaml = getPropertiesYamlFile(app);
-        // we're using print writer to overwrite existing content of the file
-        PrintWriter writer = new PrintWriter(new FileWriter(yaml));
-        for (Map.Entry<Object, Object> entry : properties.entrySet()) {
-            writer.append(entry.getKey().toString());
-            writer.append(": ");
-            writer.append(entry.getValue().toString());
-            writer.append("\n");
-        }
-        writer.close();
+        YamlPropertiesHandler.writePropertiesIntoYaml(yaml, properties);
     }
 
     public static Properties readPropertiesFile(QuarkusCliRestService app) throws IOException {
@@ -76,7 +68,8 @@ public abstract class QuarkusCLIUtils {
     }
 
     public static Properties readPropertiesYamlFile(QuarkusCliRestService app) throws IOException {
-        return loadPropertiesFromFile(getPropertiesYamlFile(app));
+        File yamlFile = getPropertiesYamlFile(app);
+        return YamlPropertiesHandler.readYamlFileIntoProperties(yamlFile);
     }
 
     public static Properties loadPropertiesFromFile(File file) throws IOException {
