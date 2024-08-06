@@ -1,5 +1,6 @@
 package io.quarkus.test.util;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -35,9 +36,113 @@ public abstract class QuarkusCLIUtils {
 
     /**
      * This constant stands for number of fields in groupId:artifactId:version string, when separated via ":".
-     * Checkstyle doesn't allow to have a number directly in a code, si this needs to be a constant.
+     * Checkstyle doesn't allow to have a number directly in a code, so this needs to be a constant.
      */
     private static final int GAV_FIELDS_LENGTH = 3;
+
+    /**
+     * Create app, put properties into application.properties file,
+     * then update the app and verify that properties are the expected ones.
+     *
+     * @param appManager Manager to produce and update app
+     * @param oldProperties Properties to put into application before update.
+     *        These properties should not be present after update.
+     * @param expectedNewProperties Properties which should be in app after update.
+     */
+    public static void checkPropertiesUpdate(IQuarkusCLIAppManager appManager,
+            Properties oldProperties, Properties expectedNewProperties) throws IOException {
+        QuarkusCliRestService app = appManager.createApplication();
+        writePropertiesToPropertiesFile(app, oldProperties);
+
+        appManager.updateApp(app);
+        Properties newProperties = readPropertiesFile(app);
+
+        verifyProperties(newProperties, oldProperties, expectedNewProperties);
+    }
+
+    /**
+     * Create app, put properties into application.yml file,
+     * then update the app and verify that properties are the expected ones.
+     *
+     * @param appManager Manager to produce and update app
+     * @param oldProperties Properties to put into application before update.
+     *        These properties should not be present after update.
+     * @param expectedNewProperties Properties which should be in app after update.
+     */
+    public static void checkYamlPropertiesUpdate(IQuarkusCLIAppManager appManager,
+            Properties oldProperties,
+            Properties expectedNewProperties) throws IOException {
+        // create app with yaml extension
+        QuarkusCliRestService app = appManager.createApplication("quarkus-config-yaml");
+        // write properties to yaml
+        writePropertiesToYamlFile(app, oldProperties);
+
+        appManager.updateApp(app);
+
+        Properties properties = readPropertiesYamlFile(app);
+        verifyProperties(properties, oldProperties, expectedNewProperties);
+    }
+
+    private static void verifyProperties(Properties actualProperties,
+            Properties oldProperties, Properties expectedNewProperties) {
+        for (Map.Entry<Object, Object> entry : expectedNewProperties.entrySet()) {
+            assertTrue(actualProperties.containsKey(entry.getKey()),
+                    "Properties after update does not contain " + entry.getKey());
+            assertEquals(entry.getValue(), actualProperties.get(entry.getKey()),
+                    "Property " + entry.getKey() + " does not match after update");
+        }
+
+        for (Map.Entry<Object, Object> entry : oldProperties.entrySet()) {
+            assertFalse(actualProperties.containsKey(entry.getKey()),
+                    "Properties after update should not contain " + entry.getKey());
+        }
+    }
+
+    /**
+     * Create app, put dependencies into it, update it and check new dependencies are present.
+     * Use {@link QuarkusDependency} it has .equals method properly set.
+     *
+     * @param oldDependencies Dependencies to put into app before update. Use {@link QuarkusDependency}.
+     *        These dependencies are expected to not be in app after update.
+     * @param newDependencies Dependencies to expect after update. Use {@link QuarkusDependency}.
+     */
+    public static void checkDependenciesUpdate(IQuarkusCLIAppManager appManager,
+            List<Dependency> oldDependencies, List<Dependency> newDependencies)
+            throws XmlPullParserException, IOException {
+        QuarkusCliRestService app = appManager.createApplication();
+        addDependenciesToPom(app, oldDependencies);
+
+        appManager.updateApp(app);
+
+        List<Dependency> actualDependencies = getDependencies(app);
+        oldDependencies.forEach(dependency -> assertFalse(actualDependencies.contains(dependency),
+                "Pom.xml after update should not contain dependency: " + dependency));
+        newDependencies.forEach(dependency -> assertTrue(actualDependencies.contains(dependency),
+                "Pom.xml after update should contain dependency: " + dependency));
+    }
+
+    /**
+     * Create app, put plugins into it, update it and check new plugins are present.
+     * Use {@link QuarkusPlugin} it has .equals method properly set.
+     *
+     * @param oldPlugins Plugin to put into app before update. Use {@link QuarkusPlugin}.
+     *        These plugins are expected to not be in app after update
+     * @param newPlugins Plguins to expect after update. Use {@link QuarkusPlugin}.
+     */
+    public static void checkPluginUpdate(IQuarkusCLIAppManager appManager,
+            List<Plugin> oldPlugins, List<Plugin> newPlugins)
+            throws XmlPullParserException, IOException {
+        QuarkusCliRestService app = appManager.createApplication();
+        addPluginsToPom(app, oldPlugins);
+
+        appManager.updateApp(app);
+
+        List<Plugin> actualPlugins = getPlugins(app);
+        oldPlugins.forEach(plugin -> assertFalse(actualPlugins.contains(plugin),
+                "Pom.xml after update should not contain plugin " + plugin));
+        newPlugins.forEach(plugin -> assertTrue(actualPlugins.contains(plugin),
+                "Pom.xml after update should contain plugin " + plugin));
+    }
 
     /**
      * Write properties into app's application.properties file.
