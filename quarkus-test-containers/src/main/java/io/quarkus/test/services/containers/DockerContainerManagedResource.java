@@ -1,6 +1,5 @@
 package io.quarkus.test.services.containers;
 
-import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT;
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
@@ -25,6 +24,7 @@ import org.testcontainers.utility.MountableFile;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
@@ -63,7 +63,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         }
 
         innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
-                .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
+                .getAsDuration(Configuration.Property.SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
         innerContainer.withEnv(resolveProperties());
 
         loggingHandler = new TestContainersLoggingHandler(context.getOwner(), innerContainer);
@@ -75,7 +75,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     }
 
     private boolean isDockerImageDeletedOnStop() {
-        return context.getOwner().getConfiguration().isTrue(DELETE_IMAGE_ON_STOP_PROPERTY);
+        return context.getOwner().getConfiguration().isTrue(Configuration.Property.DELETE_IMAGE_ON_STOP_PROPERTY);
     }
 
     protected abstract GenericContainer<?> initContainer();
