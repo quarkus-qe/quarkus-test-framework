@@ -73,7 +73,7 @@ public abstract class QuarkusCLIUtils {
             Properties oldProperties,
             Properties expectedNewProperties) throws IOException {
         // create app with yaml extension
-        QuarkusCliRestService app = appManager.createApplication("quarkus-config-yaml");
+        QuarkusCliRestService app = appManager.createApplicationWithExtensions("quarkus-config-yaml");
         // write properties to yaml
         writePropertiesToYamlFile(app, oldProperties);
 

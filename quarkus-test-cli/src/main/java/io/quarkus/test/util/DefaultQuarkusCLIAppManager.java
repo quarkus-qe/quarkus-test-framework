@@ -3,6 +3,8 @@ package io.quarkus.test.util;
 import static io.quarkus.test.bootstrap.QuarkusCliClient.CreateApplicationRequest.defaults;
 import static io.quarkus.test.bootstrap.QuarkusCliClient.UpdateApplicationRequest.defaultUpdate;
 
+import java.util.Arrays;
+
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 
 import io.quarkus.test.bootstrap.QuarkusCliClient;
@@ -41,11 +43,24 @@ public class DefaultQuarkusCLIAppManager implements IQuarkusCLIAppManager {
     }
 
     @Override
-    public QuarkusCliRestService createApplication(String... extensions) {
-        Log.info("Creating app with version stream: " + oldVersion + " and extensions " + extensions);
+    public QuarkusCliRestService createApplicationWithExtensions(String... extensions) {
+        Log.info("Creating app with version stream: " + oldVersion + " and extensions " + Arrays.toString(extensions));
         return cliClient.createApplication("app", defaults()
                 .withPlatformBom(null)
                 .withExtensions(extensions)
+                .withStream(oldVersion.toString())
+                // overwrite managedResource to use quarkus version defined in pom.xml and not overwrite it in CLI command
+                .withManagedResourceCreator((serviceContext,
+                        quarkusCliClient) -> managedResBuilder -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
+                                serviceContext, quarkusCliClient)));
+    }
+
+    @Override
+    public QuarkusCliRestService createApplicationWithExtraArgs(String... extraArgs) {
+        Log.info("Creating app with version stream: " + oldVersion + " and extraArgs " + Arrays.toString(extraArgs));
+        return cliClient.createApplication("app", defaults()
+                .withPlatformBom(null)
+                .withExtraArgs(extraArgs)
                 .withStream(oldVersion.toString())
                 // overwrite managedResource to use quarkus version defined in pom.xml and not overwrite it in CLI command
                 .withManagedResourceCreator((serviceContext,
