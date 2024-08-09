@@ -10,8 +10,10 @@ import javax.crypto.KeyGenerator;
 import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.util.QuarkusCLIUtils;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.smallrye.common.os.OS;
 
 public class QuarkusEncryptConfigCommandBuilder {
 
@@ -31,7 +33,12 @@ public class QuarkusEncryptConfigCommandBuilder {
     }
 
     public QuarkusEncryptConfigCommandBuilder secret(String secret) {
-        this.secret = secret;
+        if (OS.WINDOWS.isCurrent()) {
+            this.secret = QuarkusCLIUtils.escapeSecretCharsForWindows(secret);
+        } else {
+            this.secret = secret;
+        }
+
         return this;
     }
 

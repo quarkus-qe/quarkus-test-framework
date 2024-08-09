@@ -3,6 +3,8 @@ package io.quarkus.test.bootstrap.config;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.smallrye.common.os.OS;
+
 public class QuarkusConfigCommandResult {
 
     final String applicationPropertiesAsString;
@@ -19,8 +21,22 @@ public class QuarkusConfigCommandResult {
     }
 
     public QuarkusConfigCommandResult assertCommandOutputContains(String expected) {
-        assertTrue(output.contains(expected.trim()), "Expected output '" + output + "' does not contain '" + expected + "'");
+        if (OS.WINDOWS.isCurrent()) {
+            String windowsEscapedExpected = normalizeString(expected);
+            String windowsEscapedOutput = normalizeString(output);
+
+            assertTrue(windowsEscapedOutput.contains(windowsEscapedExpected),
+                    "Expected output '" + windowsEscapedExpected + "'does not contain '" + windowsEscapedOutput + "'");
+        } else {
+            assertTrue(output.contains(expected.trim()),
+                    "Expected output '" + output + "' does not contain '" + expected + "'");
+        }
         return this;
+    }
+
+    private String normalizeString(String str) {
+        String noAnsi = str.replaceAll("\\x1B\\[[;\\d]*m", "");
+        return noAnsi.replaceAll("\"", "").replaceAll("\n", " ").trim();
     }
 
     public QuarkusConfigCommandResult assertApplicationPropertiesContains(String str) {
