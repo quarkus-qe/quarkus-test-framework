@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.5.0.Beta13</version>
+        <version>1.5.0.Beta14-SNAPSHOT</version>
     </parent>
     <artifactId>quarkus-test-service-keycloak</artifactId>
     <name>Quarkus - Test Framework - Service - Keycloak</name>
