@@ -30,6 +30,7 @@ public class QuarkusCliClient {
     public static final String COMMAND_LOG_FILE = "quarkus-cli-command.out";
     public static final String DEV_MODE_LOG_FILE = "quarkus-cli-dev.out";
 
+    private static final String QUARKUS_VERSION_PROPERTY_NAME = "quarkus.version";
     private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final PropertyLookup COMMAND = new PropertyLookup("ts.quarkus.cli.cmd", "quarkus");
@@ -52,6 +53,9 @@ public class QuarkusCliClient {
     public Result buildApplicationOnJvm(Path serviceFolder, String... extraArgs) {
         List<String> args = new ArrayList<>();
         args.add(BUILD);
+        if (isUpstream()) {
+            args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
+        }
         args.addAll(Arrays.asList(extraArgs));
         return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
@@ -60,6 +64,9 @@ public class QuarkusCliClient {
         List<String> args = new ArrayList<>();
         args.add(BUILD);
         args.add("--native");
+        if (isUpstream()) {
+            args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
+        }
         args.addAll(Arrays.asList(extraArgs));
         return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
