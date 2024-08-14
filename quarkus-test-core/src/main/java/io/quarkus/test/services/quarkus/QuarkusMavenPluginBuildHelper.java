@@ -211,8 +211,8 @@ class QuarkusMavenPluginBuildHelper {
     }
 
     private String[] getBuildNativeExecutableCmd() {
-        Stream<String> cmdStream = Stream.of(mvnCmd(), "clean", "install", "-Dquarkus.build.skip=false",
-                "-Dnative", "-DskipTests", "-DskipITs", "-Dcheckstyle.skip",
+        Stream<String> cmdStream = Stream.of(mvnCmd(), "-B", "--no-transfer-progress", "clean", "install",
+                "-Dquarkus.build.skip=false", "-Dnative", "-DskipTests", "-DskipITs", "-Dcheckstyle.skip",
                 toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
                 toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
                 toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion()));
