@@ -22,17 +22,17 @@ import io.quarkus.test.utils.SocketUtils;
 
 public class CliDevModeLocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
-    private static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
-    private static final String QUARKUS_PLATFORM_ARTIFACT_ID = "quarkus.platform.artifact-id";
-    private static final String QUARKUS_PLATFORM_ARTIFACT_ID_VALUE = "quarkus-bom";
-    private static final String QUARKUS_PLATFORM_VERSION = "quarkus.platform.version";
+    protected static final String QUARKUS_HTTP_PORT_PROPERTY = "quarkus.http.port";
+    protected static final String QUARKUS_PLATFORM_ARTIFACT_ID = "quarkus.platform.artifact-id";
+    protected static final String QUARKUS_PLATFORM_ARTIFACT_ID_VALUE = "quarkus-bom";
+    protected static final String QUARKUS_PLATFORM_VERSION = "quarkus.platform.version";
 
-    private final ServiceContext serviceContext;
-    private final QuarkusCliClient client;
+    protected final ServiceContext serviceContext;
+    protected final QuarkusCliClient client;
 
+    protected int assignedHttpPort;
     private Process process;
     private LoggingHandler loggingHandler;
-    private int assignedHttpPort;
 
     public CliDevModeLocalhostQuarkusApplicationManagedResource(ServiceContext serviceContext,
             QuarkusCliClient client) {
@@ -101,7 +101,7 @@ public class CliDevModeLocalhostQuarkusApplicationManagedResource extends Quarku
         return loggingHandler;
     }
 
-    private Map<String, String> getPropertiesForCommand() {
+    protected Map<String, String> getPropertiesForCommand() {
         Map<String, String> runtimeProperties = new HashMap<>(serviceContext.getOwner().getProperties());
         runtimeProperties.putIfAbsent(QUARKUS_HTTP_PORT_PROPERTY, "" + assignedHttpPort);
         runtimeProperties.putIfAbsent(QUARKUS_PLATFORM_VERSION, QuarkusProperties.getVersion());
