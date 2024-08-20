@@ -85,6 +85,25 @@
     </distributionManagement>
     <dependencyManagement>
         <dependencies>
+            <!-- This is a workaround for https://github.com/quarkusio/quarkus/issues/42656. Generally, as long as we
+            go on testing upstream Quarkus with versions of framework compiled and based on already released Quarkus,
+            possibility of binary incompatibility is high - at least for fabric8 client. This workaround allows us to
+            bypass using the client managed by Quarkus and just set the client version with the framework.
+
+            To verify that this actually does something, one can build framework with released Quarkus and run OCP tests
+            with snapshot and vice-versa, e.g.:
+
+            mvn clean install -Pframework && mvn clean verify -Popenshift,examples -pl examples/https/ -Dquarkus.platform.version=999-SNAPSHOT
+            mvn clean install -Pframework -Dquarkus.platform.version=999-SNAPSHOT && mvn clean verify -Popenshift,examples -pl examples/https/ -Dquarkus.platform.version=3.13.2
+
+            -->
+            <dependency>
+                <groupId>io.fabric8</groupId>
+                <artifactId>kubernetes-client-bom</artifactId>
+                <version>6.13.3</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
             <dependency>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>${quarkus.platform.artifact-id}</artifactId>
