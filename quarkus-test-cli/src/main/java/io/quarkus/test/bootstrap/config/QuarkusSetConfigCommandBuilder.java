@@ -2,6 +2,9 @@ package io.quarkus.test.bootstrap.config;
 
 import java.util.ArrayList;
 
+import io.quarkus.test.util.QuarkusCLIUtils;
+import io.smallrye.common.os.OS;
+
 public class QuarkusSetConfigCommandBuilder {
 
     private final boolean updateScenario;
@@ -23,7 +26,11 @@ public class QuarkusSetConfigCommandBuilder {
     }
 
     public QuarkusSetConfigCommandBuilder value(String value) {
-        this.propertyValue = value;
+        if (OS.WINDOWS.isCurrent()) {
+            this.propertyValue = QuarkusCLIUtils.escapeSecretCharsForWindows(value);
+        } else {
+            this.propertyValue = value;
+        }
         return this;
     }
 

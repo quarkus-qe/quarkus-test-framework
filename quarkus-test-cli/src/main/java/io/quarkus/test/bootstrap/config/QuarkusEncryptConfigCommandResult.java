@@ -5,6 +5,8 @@ import static io.quarkus.test.bootstrap.config.QuarkusEncryptConfigCommandBuilde
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import io.quarkus.test.util.QuarkusCLIUtils;
+
 public class QuarkusEncryptConfigCommandResult extends QuarkusConfigCommandResult {
 
     private static final String SECRET_ENCRYPTED_TO = "was encrypted to";
@@ -19,7 +21,11 @@ public class QuarkusEncryptConfigCommandResult extends QuarkusConfigCommandResul
 
     public String getGeneratedEncryptionKey() {
         if (output.contains(WITH_GENERATED_KEY)) {
-            return output.transform(o -> o.substring(o.lastIndexOf(" "))).trim();
+            return output
+                    .transform(o -> o.substring(o.lastIndexOf(" ")))
+                    .transform(QuarkusCLIUtils::toUtf8)
+                    .transform(QuarkusCLIUtils::removeAnsiAndHiddenChars)
+                    .trim();
         }
         return null;
     }
@@ -29,6 +35,8 @@ public class QuarkusEncryptConfigCommandResult extends QuarkusConfigCommandResul
             encryptedSecret = output
                     .transform(o -> o.split(SECRET_ENCRYPTED_TO)[1])
                     .transform(remaining -> remaining.split(WITH_GENERATED_KEY)[0])
+                    .transform(QuarkusCLIUtils::toUtf8)
+                    .transform(QuarkusCLIUtils::removeAnsiAndHiddenChars)
                     .trim();
         }
         return encryptedSecret;

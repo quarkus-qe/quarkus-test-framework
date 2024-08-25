@@ -11,6 +11,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -27,12 +29,15 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
+import io.smallrye.common.os.OS;
 
 public abstract class QuarkusCLIUtils {
     public static final String RESOURCES_DIR = Paths.get("src", "main", "resources").toString();
     public static final String PROPERTIES_FILE = "application.properties";
     public static final String PROPERTIES_YAML_FILE = "application.yml";
     public static final String POM_FILE = "pom.xml";
+    private static final String ANSI_BOLD_TEXT_ESCAPE_SEQ = "[1m";
+    private static final char ESCAPE_CHARACTER = 27;
 
     /**
      * This constant stands for number of fields in groupId:artifactId:version string, when separated via ":".
@@ -374,5 +379,46 @@ public abstract class QuarkusCLIUtils {
         public String toString() {
             return "Plugin {groupId=" + getGroupId() + ", artifactId=" + getArtifactId() + ", version=" + getVersion() + "}";
         }
+    }
+
+    /**
+     * Escapes a command-line secret chars for Windows OS.
+     */
+    public static String escapeSecretCharsForWindows(String secret) {
+        return "\"" + secret
+                .replace("\"", "\\\"")
+                + "\"";
+    }
+
+    /**
+     * When Quarkus CLI prints out text, especially by {@code quarkus config encrypt} command,
+     * important parts (like encoded secrets) can be highlighted or there can be hidden chars.
+     * We recognize hidden chars etc. This method handles both situation. It's definitely imperfect,
+     * but we only deal with scenarios (issues) we run on.
+     */
+    public static String removeAnsiAndHiddenChars(String text) {
+        if (OS.current() == OS.WINDOWS) {
+            var result = text
+                    .trim()
+                    .transform(t -> {
+                        if (t.contains(ANSI_BOLD_TEXT_ESCAPE_SEQ)) {
+                            return t.substring(ANSI_BOLD_TEXT_ESCAPE_SEQ.length());
+                        }
+                        return t;
+                    })
+                    .transform(t -> {
+                        int idx = t.indexOf(ESCAPE_CHARACTER);
+                        if (idx >= 0) {
+                            return t.substring(0, idx);
+                        }
+                        return t;
+                    });
+            return result;
+        }
+        return text;
+    }
+
+    public static String toUtf8(String t) {
+        return new String(t.getBytes(Charset.defaultCharset()), StandardCharsets.UTF_8);
     }
 }
