@@ -71,7 +71,6 @@
         <consul.image>docker.io/bitnami/consul:1.19.1</consul.image>
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
-        <certificate-generator.version>0.7.1</certificate-generator.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -213,11 +212,6 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-test-maven</artifactId>
                 <version>${quarkus.platform.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>me.escoffier.certs</groupId>
-                <artifactId>certificate-generator</artifactId>
-                <version>${certificate-generator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

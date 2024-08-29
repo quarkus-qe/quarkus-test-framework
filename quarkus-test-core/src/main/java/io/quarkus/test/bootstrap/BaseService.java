@@ -14,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -132,6 +133,14 @@ public class BaseService<T extends Service> implements Service {
      */
     public T withProperty(String key, Supplier<String> value) {
         futureProperties.add(() -> properties.put(key, value.get()));
+        return (T) this;
+    }
+
+    /**
+     * The runtime configuration property to be configured based on type variable {@code U} from context.
+     */
+    public <U> T withProperty(String configKey, String contextKey, Function<U, String> configValue) {
+        futureProperties.add(() -> properties.put(configKey, configValue.apply(getPropertyFromContext(contextKey))));
         return (T) this;
     }
 
