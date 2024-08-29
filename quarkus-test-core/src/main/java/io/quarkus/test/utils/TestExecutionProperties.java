@@ -6,9 +6,13 @@ import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public final class TestExecutionProperties {
 
+    /**
+     * Internal configuration property signalling that Management interface TLS support is enabled.
+     * This is just a way to propagate the information within framework, users don't need to be concern with it.
+     */
+    public static final String MANAGEMENT_INTERFACE_ENABLED = "ts-internal.management.interface";
     private static final String DEFAULT_SERVICE_NAME = "quarkus_test_framework";
     private static final String DEFAULT_BUILD_NUMBER = "777-default";
-
     private static final TestExecutionProperties INSTANCE = new TestExecutionProperties();
 
     private final String serviceName;
@@ -50,6 +54,6 @@ public final class TestExecutionProperties {
     }
 
     public static boolean useManagementSsl(Service service) {
-        return service.getProperty("quarkus.management.ssl.certificate.key-store-file").isPresent();
+        return service.getProperty(MANAGEMENT_INTERFACE_ENABLED).map(Boolean::parseBoolean).orElse(false);
     }
 }

@@ -12,17 +12,17 @@ import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.QuarkusApplication;
 
 @QuarkusScenario
-public class HttpsIT {
+public class HttpsTlsRegistryNamedConfigIT {
 
-    private static final String CLIENT_CN_1 = "my-client-1";
-    private static final String CLIENT_CN_2 = "my-client-2";
-    private static final String CLIENT_CN_3 = "my-client-3";
+    static final String CLIENT_CN_1 = "my-client-1";
+    static final String CLIENT_CN_2 = "my-client-2";
+    static final String CLIENT_CN_3 = "my-client-3";
 
-    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureTruststore = true, configureHttpServer = true, useTlsRegistry = false, clientCertificates = {
+    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, clientCertificates = {
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_1),
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_2),
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_3, unknownToServer = true)
-    }))
+    }, configureTruststore = true, configureHttpServer = true, tlsConfigName = "my-name"))
     static final RestService app = new RestService()
             .withProperty("quarkus.http.ssl.client-auth", "request")
             .withProperty("quarkus.http.insecure-requests", "DISABLED");

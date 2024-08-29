@@ -46,8 +46,8 @@
             <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>me.escoffier.certs</groupId>
-            <artifactId>certificate-generator</artifactId>
+            <groupId>io.smallrye.certs</groupId>
+            <artifactId>smallrye-certificate-generator</artifactId>
         </dependency>
         <!-- used by our own SureFire debug provider -->
         <dependency>

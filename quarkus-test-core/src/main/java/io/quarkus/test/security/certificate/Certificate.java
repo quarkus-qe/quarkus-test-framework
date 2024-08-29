@@ -29,11 +29,14 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import me.escoffier.certs.CertificateGenerator;
-import me.escoffier.certs.CertificateRequest;
-import me.escoffier.certs.JksCertificateFiles;
-import me.escoffier.certs.PemCertificateFiles;
-import me.escoffier.certs.Pkcs12CertificateFiles;
+import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.TestExecutionProperties;
+import io.smallrye.certs.CertificateGenerator;
+import io.smallrye.certs.CertificateRequest;
+import io.smallrye.certs.Format;
+import io.smallrye.certs.JksCertificateFiles;
+import io.smallrye.certs.PemCertificateFiles;
+import io.smallrye.certs.Pkcs12CertificateFiles;
 
 public interface Certificate {
 
@@ -61,28 +64,38 @@ public interface Certificate {
 
     }
 
+    static Certificate.PemCertificate ofRegeneratedCert(CertificateOptions o) {
+        return of(o);
+    }
+
+    static Certificate.PemCertificate ofInterchangeable(CertificateOptions options) {
+        // this allows to swap cert when it is regenerated without making all the classes above mutable
+        // all but regenerated certificates should be interchangeable
+        // for regenerated certs, it would just add unnecessary layer (but cause no issues)
+        return InterchangeableCertificate.wrapCert(of(options), options);
+    }
+
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password, Path targetDir,
             ContainerMountStrategy containerMountStrategy, boolean createPkcs12TsForPem) {
-        return of(new CertificateOptions(prefix, format, password, false, false, false,
-                new io.quarkus.test.services.Certificate.ClientCertificate[0],
-                targetDir, containerMountStrategy, createPkcs12TsForPem));
+        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
+                new ClientCertificateRequest[0], targetDir, containerMountStrategy, createPkcs12TsForPem, null, null, null,
+                null, false, null, false));
+    }
+
+    static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
+            boolean tlsRegistryEnabled, String tlsConfigName) {
+        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
+                new ClientCertificateRequest[0], createCertsTempDir(prefix), new DefaultContainerMountStrategy(prefix), false,
+                null, null, null, null, tlsRegistryEnabled, tlsConfigName, false));
     }
 
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password) {
         return of(prefix, format, password, createCertsTempDir(prefix), new DefaultContainerMountStrategy(prefix), false);
     }
 
-    static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
-            boolean keystoreProps, boolean truststoreProps, boolean keystoreManagementInterfaceProps,
-            io.quarkus.test.services.Certificate.ClientCertificate[] clientCertificates) {
-        return of(new CertificateOptions(prefix, format, password, keystoreProps, truststoreProps,
-                keystoreManagementInterfaceProps,
-                clientCertificates, createCertsTempDir(prefix), new DefaultContainerMountStrategy(prefix), false));
-    }
-
-    private static Certificate of(CertificateOptions o) {
+    private static Certificate.PemCertificate of(CertificateOptions o) {
         Map<String, String> props = new HashMap<>();
-        CertificateGenerator generator = new CertificateGenerator(o.localTargetDir(), false);
+        CertificateGenerator generator = new CertificateGenerator(o.localTargetDir(), true);
         String serverTrustStoreLocation = null;
         String serverKeyStoreLocation = null;
         String keyLocation = null;
@@ -188,11 +201,7 @@ public interface Certificate {
                 // mount truststore to the container
                 props.put(getRandomPropKey("truststore"), toSecretProperty(containerMountPath));
             }
-            if (o.truststoreProps()) {
-                props.put("quarkus.http.ssl.certificate.trust-store-file", serverTrustStoreLocation);
-                props.put("quarkus.http.ssl.certificate.trust-store-file-type", o.format().toString());
-                props.put("quarkus.http.ssl.certificate.trust-store-password", o.password());
-            }
+            configureServerTrustStoreProps(o, props, serverTrustStoreLocation);
         }
         if (serverKeyStoreLocation != null) {
             if (o.containerMountStrategy().mountToContainer()) {
@@ -204,27 +213,118 @@ public interface Certificate {
                 // mount keystore to the container
                 props.put(getRandomPropKey("keystore"), toSecretProperty(containerMountPath));
             }
-            if (o.keystoreProps()) {
-                props.put("quarkus.http.ssl.certificate.key-store-file", serverKeyStoreLocation);
-                props.put("quarkus.http.ssl.certificate.key-store-file-type", o.format().toString());
-                props.put("quarkus.http.ssl.certificate.key-store-password", o.password());
-            }
-            if (o.keystoreManagementInterfaceProps()) {
+            configureServerKeyStoreProps(o, props, serverKeyStoreLocation);
+        }
+        configureManagementInterfaceProps(o, props, serverKeyStoreLocation);
+        configureHttpServerProps(o, props);
+
+        return createCertificate(serverKeyStoreLocation, serverTrustStoreLocation, Map.copyOf(props),
+                List.copyOf(generatedClientCerts), keyLocation, certLocation, o);
+    }
+
+    private static void configureManagementInterfaceProps(CertificateOptions o, Map<String, String> props,
+            String serverKeyStoreLocation) {
+        if (o.configureManagementInterface()) {
+            props.put(TestExecutionProperties.MANAGEMENT_INTERFACE_ENABLED, Boolean.TRUE.toString());
+            if (o.tlsRegistryEnabled()) {
+                if (isNotDefaultTlsConfig(o)) {
+                    // default TLS registry is configured automatically
+                    props.put("quarkus.management.tls-configuration-name", o.tlsConfigName());
+                }
+            } else if (serverKeyStoreLocation != null) {
                 props.put("quarkus.management.ssl.certificate.key-store-file", serverKeyStoreLocation);
                 props.put("quarkus.management.ssl.certificate.key-store-file-type", o.format().toString());
                 props.put("quarkus.management.ssl.certificate.key-store-password", o.password());
             }
         }
-
-        return new CertificateImpl(serverKeyStoreLocation, serverTrustStoreLocation, Map.copyOf(props),
-                List.copyOf(generatedClientCerts), o.password(), o.format().toString(), keyLocation, certLocation, o.prefix());
     }
 
-    private static String getUnknownClientCnAttr(io.quarkus.test.services.Certificate.ClientCertificate[] clientCertificates,
+    private static void configureHttpServerProps(CertificateOptions o, Map<String, String> props) {
+        if (o.configureHttpServer() && o.tlsRegistryEnabled()) {
+            if (isNotDefaultTlsConfig(o)) {
+                // default TLS registry is configured automatically
+                props.put("quarkus.http.tls-configuration-name", o.tlsConfigName());
+            }
+        }
+    }
+
+    private static boolean isNotDefaultTlsConfig(CertificateOptions o) {
+        if (o.tlsConfigName() == null) {
+            throw new IllegalArgumentException("TLS registry is enabled but TLS config name is null");
+        }
+        return !io.quarkus.test.services.Certificate.DEFAULT_CONFIG.equals(o.tlsConfigName());
+    }
+
+    private static void configureServerKeyStoreProps(CertificateOptions o, Map<String, String> props,
+            String serverKeyStoreLocation) {
+        if (o.keystoreProps()) {
+            if (o.tlsRegistryEnabled()) {
+                var propPrefix = tlsConfigPropPrefix(o, "key-store");
+                props.put(propPrefix + "path", serverKeyStoreLocation);
+                props.put(propPrefix + "password", o.password());
+            } else {
+                props.put("quarkus.http.ssl.certificate.key-store-file", serverKeyStoreLocation);
+                props.put("quarkus.http.ssl.certificate.key-store-file-type", o.format().toString());
+                props.put("quarkus.http.ssl.certificate.key-store-password", o.password());
+            }
+        }
+    }
+
+    private static void configureServerTrustStoreProps(CertificateOptions o, Map<String, String> props,
+            String serverTrustStoreLocation) {
+        if (o.truststoreProps()) {
+            if (o.tlsRegistryEnabled()) {
+                var propPrefix = tlsConfigPropPrefix(o, "trust-store");
+                props.put(propPrefix + "path", serverTrustStoreLocation);
+                props.put(propPrefix + "password", o.password());
+            } else {
+                props.put("quarkus.http.ssl.certificate.trust-store-file", serverTrustStoreLocation);
+                props.put("quarkus.http.ssl.certificate.trust-store-file-type", o.format().toString());
+                props.put("quarkus.http.ssl.certificate.trust-store-password", o.password());
+            }
+        }
+    }
+
+    private static String tlsConfigPropPrefix(CertificateOptions o, String propInfix) {
+        if (o.tlsConfigName() == null) {
+            throw new IllegalArgumentException("TLS registry is enabled but TLS config name is null");
+        }
+        final String baseConfigProp;
+        if (io.quarkus.test.services.Certificate.DEFAULT_CONFIG.equals(o.tlsConfigName())) {
+            // default config
+            baseConfigProp = "quarkus.tls.";
+        } else {
+            // named config
+            baseConfigProp = "quarkus.tls." + o.tlsConfigName() + ".";
+        }
+        final String storeFormat = switch (o.format()) {
+            case PKCS12 -> "p12.";
+            case JKS -> "jks.";
+            default -> "pem.";
+        };
+        return baseConfigProp + propInfix + "." + storeFormat;
+    }
+
+    private static Certificate.PemCertificate createCertificate(String keystorePath, String truststorePath,
+            Map<String, String> configProperties, Collection<ClientCertificate> clientCertificates, String keyPath,
+            String certPath, CertificateOptions o) {
+        var format = o.format().toString();
+
+        // if customizers required new location, let's move file there
+        certPath = moveFileIfRequired(o.certLocation(), certPath);
+        keyPath = moveFileIfRequired(o.keyLocation(), keyPath);
+        keystorePath = moveFileIfRequired(o.serverKeyStoreLocation(), keystorePath);
+        truststorePath = moveFileIfRequired(o.serverTrustStoreLocation(), truststorePath);
+
+        return new CertificateImpl(keystorePath, truststorePath, Map.copyOf(configProperties),
+                clientCertificates, o.password(), format, keyPath, certPath, o.prefix());
+    }
+
+    private static String getUnknownClientCnAttr(ClientCertificateRequest[] clientCertificates,
             String[] cnAttrs) {
         var cnAttrsUnknownToServer = Arrays.stream(clientCertificates)
-                .filter(io.quarkus.test.services.Certificate.ClientCertificate::unknownToServer)
-                .map(io.quarkus.test.services.Certificate.ClientCertificate::cnAttribute)
+                .filter(ClientCertificateRequest::unknownToServer)
+                .map(ClientCertificateRequest::cnAttribute)
                 .collect(Collectors.toSet());
         if (cnAttrsUnknownToServer.isEmpty()) {
             return null;
@@ -275,10 +375,10 @@ public interface Certificate {
         }
     }
 
-    private static String[] collectCommonNames(io.quarkus.test.services.Certificate.ClientCertificate[] clientCertificates) {
+    private static String[] collectCommonNames(ClientCertificateRequest[] clientCertificates) {
         return Arrays
                 .stream(clientCertificates)
-                .map(io.quarkus.test.services.Certificate.ClientCertificate::cnAttribute)
+                .map(ClientCertificateRequest::cnAttribute)
                 .toArray(String[]::new);
     }
 
@@ -286,7 +386,7 @@ public interface Certificate {
             io.quarkus.test.services.Certificate.Format format, String password, boolean withClientCerts, String cn) {
         return (new CertificateRequest())
                 .withName(prefix)
-                .withFormat(me.escoffier.certs.Format.valueOf(format.toString()))
+                .withFormat(Format.valueOf(format.toString()))
                 .withClientCertificate(withClientCerts)
                 .withCN(cn)
                 .withPassword(password)
@@ -343,5 +443,13 @@ public interface Certificate {
         } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
             throw new RuntimeException("Failed to create PKCS12 truststore", e);
         }
+    }
+
+    private static String moveFileIfRequired(String newPath, String currentPath) {
+        if (newPath != null) {
+            FileUtils.copyFileTo(currentPath, Path.of(newPath));
+            return newPath;
+        }
+        return currentPath;
     }
 }
