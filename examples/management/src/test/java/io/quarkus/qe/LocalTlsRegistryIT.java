@@ -11,10 +11,9 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.restassured.response.Response;
 
 @QuarkusScenario
-// todo Merge with LocalIT when https://github.com/quarkusio/quarkus/issues/32225 is fixed
-public class LocalTLSIT {
+public class LocalTlsRegistryIT {
 
-    @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true, useTlsRegistry = false))
+    @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true))
     static final RestService service = new RestService()
             .withProperty("quarkus.management.port", "9003");
 

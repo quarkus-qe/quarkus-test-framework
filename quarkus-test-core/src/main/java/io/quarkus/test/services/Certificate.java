@@ -5,6 +5,12 @@ package io.quarkus.test.services;
  */
 public @interface Certificate {
 
+    /**
+     * Default TLS Registry configuration name.
+     * When set to {@link #tlsConfigName()}, default, and not named TLS configuration will be set for you.
+     */
+    String DEFAULT_CONFIG = "<<default-config>>";
+
     enum Format {
         PEM,
         JKS,
@@ -27,40 +33,84 @@ public @interface Certificate {
     String password() default "password";
 
     /**
-     * Whether following configuration properties should be set for you:
+     * Whether HTTP server should be configured for you.
+     * Effect of this option depends on {@link #configureKeystore()}
+     * and {@link #configureTruststore()} and {@link #useTlsRegistry()}.
+     * That is, if {@link #useTlsRegistry()} is true, following property is configured to {@link #tlsConfigName()}:
      *
-     * - `quarkus.http.ssl.certificate.key-store-file`
-     * - `quarkus.http.ssl.certificate.key-store-file-type`
-     * - `quarkus.http.ssl.certificate.key-store-password`
+     * <pre>
+     * {@code
+     * quarkus.http.tls-configuration-name=<<tls-configuration-name>>
+     * }
+     * </pre>
+     *
+     * While if the {@link #useTlsRegistry()} is false, following properties are configured:
+     *
+     * <pre>
+     * {@code
+     * # if configure keystore is enabled
+     * quarkus.http.ssl.certificate.key-store-file
+     * quarkus.http.ssl.certificate.key-store-file-type
+     * quarkus.http.ssl.certificate.key-store-password
+     * # if configure truststore is enabled
+     * quarkus.http.ssl.certificate.trust-store-file
+     * quarkus.http.ssl.certificate.trust-store-file-type
+     * quarkus.http.ssl.certificate.trust-store-password
+     * }
+     * </pre>
      *
      * You still can set and/or override these properties
      * with {@link io.quarkus.test.bootstrap.BaseService#withProperty(String, String)} service method.
+     */
+    boolean configureHttpServer() default false;
+
+    /**
+     * Whether management interface should be configured.
+     * That is, when {@link #useTlsRegistry()} is set to {@code true}, we set:
+     *
+     * <pre>
+     * {@code
+     * quarkus.management.tls-configuration-name=<<tls-configuration-name>>
+     * }
+     * </pre>
+     *
+     * And when {@link #useTlsRegistry()} is set to {@code false} and {@link #configureKeystore()} is true, we set:
+     *
+     * <pre>
+     * {@code
+     * quarkus.management.ssl.certificate.key-store-file
+     * quarkus.management.ssl.certificate.key-store-file-type
+     * quarkus.management.ssl.certificate.key-store-password
+     * }
+     * </pre>
+     *
+     * You still can set and/or override these properties
+     * with {@link io.quarkus.test.bootstrap.BaseService#withProperty(String, String)} service method.
+     */
+    boolean configureManagementInterface() default false;
+
+    /**
+     * Whether keystore should be generated and configured for you.
      */
     boolean configureKeystore() default false;
 
     /**
-     * Whether following configuration properties should be set for you:
-     *
-     * - `quarkus.http.ssl.certificate.trust-store-file`
-     * - `quarkus.http.ssl.certificate.trust-store-file-type`
-     * - `quarkus.http.ssl.certificate.trust-store-password`
-     *
-     * You still can set and/or override these properties
-     * with {@link io.quarkus.test.bootstrap.BaseService#withProperty(String, String)} service method.
+     * Whether truststore should be generated and configured for you.
      */
     boolean configureTruststore() default false;
 
     /**
-     * Whether following configuration properties should be set for you:
-     *
-     * - `quarkus.management.ssl.certificate.key-store-file`
-     * - `quarkus.management.ssl.certificate.key-store-file-type`
-     * - `quarkus.management.ssl.certificate.key-store-password`
-     *
-     * You still can set and/or override these properties
-     * with {@link io.quarkus.test.bootstrap.BaseService#withProperty(String, String)} service method.
+     * Whether TLS registry should be configured with generated keystore and truststore.
      */
-    boolean configureKeystoreForManagementInterface() default false;
+    boolean useTlsRegistry() default true;
+
+    /**
+     * Way to configure named TLS configuration.
+     * For example, when set to {@code 0}, you can expect the TLS configuration to be named zero:
+     *
+     * - `quarkus.tls.key-store.pem.0.cert`
+     */
+    String tlsConfigName() default DEFAULT_CONFIG;
 
     /**
      * Specify client certificates that should be generated.
