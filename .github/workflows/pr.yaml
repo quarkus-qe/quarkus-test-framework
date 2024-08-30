@@ -23,7 +23,7 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
         run: |
-          mvn -V -B -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+          mvn -V -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo-current-fw.tgz -C ~ .m2/repository
@@ -55,7 +55,7 @@ jobs:
           cache: 'maven'
       - name: Build Quarkus 3.8
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && git checkout 3.8 && ./mvnw -B -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && git checkout 3.8 && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -94,7 +94,7 @@ jobs:
         run: tar -xzf maven-repo-current-fw.tgz -C ~
       - name: Build in JVM mode
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pexamples
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pexamples
       - name: Zip Artifacts
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -132,7 +132,7 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 3.8 && mvn -B -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && git checkout 3.8 && mvn -B --no-transfer-progress -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
@@ -143,7 +143,7 @@ jobs:
           ./quarkus-dev-cli version
       - name: Build in JVM mode
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,extensions -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -185,7 +185,7 @@ jobs:
         run: tar -xzf maven-repo-current-fw.tgz -C ~
       - name: Build
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pexamples,native -pl '${{ matrix.examples }}'
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pexamples,native -pl '${{ matrix.examples }}'
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -224,7 +224,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
