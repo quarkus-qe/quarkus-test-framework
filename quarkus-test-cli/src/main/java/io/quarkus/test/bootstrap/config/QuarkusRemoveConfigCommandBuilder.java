@@ -2,6 +2,8 @@ package io.quarkus.test.bootstrap.config;
 
 import java.util.ArrayList;
 
+import io.quarkus.test.bootstrap.QuarkusCliCommandResult;
+
 public class QuarkusRemoveConfigCommandBuilder {
 
     private final QuarkusConfigCommand configCommand;
@@ -12,7 +14,7 @@ public class QuarkusRemoveConfigCommandBuilder {
         this.configCommand = configCommand;
     }
 
-    public QuarkusConfigCommandResult printOutHelp() {
+    public QuarkusCliCommandResult printOutHelp() {
         this.help = true;
         return executeCommand();
     }
@@ -22,7 +24,7 @@ public class QuarkusRemoveConfigCommandBuilder {
         return this;
     }
 
-    public QuarkusConfigCommandResult executeCommand() {
+    public QuarkusCliCommandResult executeCommand() {
         var subCommand = new ArrayList<String>();
         subCommand.add("remove");
         if (help) {

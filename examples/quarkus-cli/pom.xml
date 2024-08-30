@@ -15,5 +15,29 @@
             <artifactId>quarkus-test-cli</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-tls-registry</artifactId>
+            <!-- provided so that we can use API in unit test -->
+            <!-- however we don't actually need this dependency here -->
+            <!-- it is in created TLS registry app -->
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <!-- Skip unit tests as we only want to run ITs -->
+                <!-- This will allow us to have unit tests for apps created via CLI in src/test/java -->
+                <!-- Which makes them better maintainable from IDE than Java classes in resources -->
+                <!-- Also this way, compilation fails if some bump breaks them -->
+                <!-- See the 'io.quarkus.qe.surefire' package for respective unit tests -->
+                <configuration>
+                    <skipTests>true</skipTests>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
