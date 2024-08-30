@@ -9,6 +9,7 @@ import javax.crypto.KeyGenerator;
 
 import org.junit.jupiter.api.Assertions;
 
+import io.quarkus.test.bootstrap.QuarkusCliCommandResult;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.util.QuarkusCLIUtils;
 import io.quarkus.test.utils.Command;
@@ -68,7 +69,7 @@ public class QuarkusEncryptConfigCommandBuilder {
         return this;
     }
 
-    public QuarkusConfigCommandResult printOutHelp() {
+    public QuarkusCliCommandResult printOutHelp() {
         this.help = true;
         return executeCommand();
     }
@@ -110,7 +111,7 @@ public class QuarkusEncryptConfigCommandBuilder {
 
     public QuarkusEncryptConfigCommandBuilder createKeyStore(String propertyName, String propertyValue, String storeName,
             String storePassword) {
-        var resourceDir = configCommand.app.getServiceFolder().resolve("src").resolve("main").resolve("resources");
+        var resourceDir = configCommand.getApp().getServiceFolder().resolve("src").resolve("main").resolve("resources");
         var scriptName = storePassword + "-create-script";
         var script = resourceDir.resolve(scriptName);
         FileUtils.copyContentTo("""
