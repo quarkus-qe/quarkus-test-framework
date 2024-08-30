@@ -235,6 +235,9 @@ public class QuarkusCliClient {
         cmd.addAll(Arrays.asList(args));
 
         if (QuarkusProperties.disableBuildAnalytics()) {
+            // TODO: if logic behind setting disabled analytics in our FW get revision
+            //   alter io.quarkus.test.bootstrap.tls.QuarkusTlsCommand.runTlsCommand
+            //   QE tracker: https://issues.redhat.com/browse/QQE-935
             cmd.add(format("-D%s=%s", QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, Boolean.TRUE));
         }
 
