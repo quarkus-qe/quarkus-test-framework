@@ -3,7 +3,8 @@ package io.quarkus.test.security.certificate;
 import java.util.List;
 import java.util.Objects;
 
-record CertificateBuilderImp(List<Certificate> certificates) implements CertificateBuilder {
+record CertificateBuilderImpl(List<Certificate> certificates,
+        ServingCertificateConfig servingCertificateConfig) implements CertificateBuilder {
     @Override
     public Certificate findCertificateByPrefix(String prefix) {
         Objects.requireNonNull(prefix);

@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.security.certificate.ServingCertificateConfig.SERVING_CERTIFICATE_KEY;
 import static io.quarkus.test.utils.PropertiesUtils.resolveProperty;
 import static java.util.stream.Collectors.toSet;
 
@@ -227,6 +228,9 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                     .forEach(certificate -> certificate
                             .configProperties()
                             .forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v)));
+            if (certificateBuilder.servingCertificateConfig() != null) {
+                getContext().put(SERVING_CERTIFICATE_KEY, certificateBuilder.servingCertificateConfig());
+            }
         }
     }
 
