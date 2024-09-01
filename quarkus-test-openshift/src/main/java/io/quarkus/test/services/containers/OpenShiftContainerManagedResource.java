@@ -124,6 +124,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
+                .replaceAll(quote("${INTERNAL_INGRESS_PORT}"), "" + model.getPort())
                 .replaceAll(quote("${ARGS}"), args)
                 .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project());
     }

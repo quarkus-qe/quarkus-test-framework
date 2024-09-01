@@ -12,7 +12,7 @@ items:
     spec:
       ports:
         - name: "http"
-          port: 8080
+          port: ${INTERNAL_INGRESS_PORT}
           targetPort: ${INTERNAL_PORT}
       selector:
         app.kubernetes.io/name: "${SERVICE_NAME}"

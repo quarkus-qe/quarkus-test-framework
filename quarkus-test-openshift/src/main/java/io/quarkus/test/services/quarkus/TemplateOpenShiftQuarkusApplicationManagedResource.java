@@ -1,5 +1,8 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
+import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.getInternalHttpsPort;
+import static io.quarkus.test.security.certificate.ServingCertificateConfig.isServingCertificateScenario;
 import static java.util.regex.Pattern.quote;
 
 import java.util.Collections;
@@ -41,10 +44,17 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
     }
 
     protected int getInternalPort() {
+        if (isHttpsScenario()) {
+            return getInternalHttpsPort(model.getContext());
+        }
         return model.getContext().getOwner().getProperty(QUARKUS_HTTP_PORT_PROPERTY)
                 .filter(StringUtils::isNotBlank)
                 .map(Integer::parseInt)
                 .orElse(INTERNAL_PORT_DEFAULT);
+    }
+
+    private boolean isHttpsScenario() {
+        return model.isSslEnabled() && isServingCertificateScenario(model.getContext());
     }
 
     protected Map<String, String> addExtraTemplateProperties() {
@@ -68,8 +78,10 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
         }
 
+        var ingressInternalPort = (isHttpsScenario() ? EXTERNAL_SSL_PORT : getInternalPort());
         content = content.replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort())
+                .replaceAll(quote("${INTERNAL_INGRESS_PORT}"), "" + ingressInternalPort)
                 .replace("${MANAGEMENT_PORT}", "" + model.getManagementPort());
 
         return replaceDeploymentContent(content);
