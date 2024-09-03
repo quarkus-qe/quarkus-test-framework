@@ -22,6 +22,7 @@ import io.quarkus.test.logging.FileServiceLoggingHandler;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.URILike;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.ProcessBuilderProvider;
 import io.quarkus.test.utils.ProcessUtils;
 import io.quarkus.test.utils.PropertiesUtils;
@@ -150,7 +151,11 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         }
 
         if (model.isGrpcEnabled()) {
-            assignedGrpcPort = getOrAssignPortByProperty(QUARKUS_GRPC_SERVER_PORT_PROPERTY);
+            if (QuarkusProperties.useSeparateGrpcServer(getContext())) {
+                assignedGrpcPort = getOrAssignPortByProperty(QUARKUS_GRPC_SERVER_PORT_PROPERTY);
+            } else {
+                assignedGrpcPort = assignedHttpPort;
+            }
         }
     }
 
