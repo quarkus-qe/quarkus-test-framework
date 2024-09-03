@@ -136,12 +136,20 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
                 trustStoreLocation = "${custom-kafka-trust-store-location:}";
             }
 
-            var configPropertyIterator = Map.of(
-                    "kafka.ssl.enable", "true",
-                    "kafka.security.protocol", "SSL",
-                    "kafka.ssl.truststore.location", trustStoreLocation,
-                    "kafka.ssl.truststore.password", "top-secret",
-                    "kafka.ssl.truststore.type", "PKCS12");
+            var configPropertyIterator = new HashMap<>();
+            configPropertyIterator.put("kafka.ssl.enable", "true");
+            configPropertyIterator.put("kafka.security.protocol", "SSL");
+            if (model.getQuarkusTlsRegistryConfigName() == null) {
+                configPropertyIterator.put("kafka.ssl.truststore.location", trustStoreLocation);
+                configPropertyIterator.put("kafka.ssl.truststore.password", "top-secret");
+                configPropertyIterator.put("kafka.ssl.truststore.type", "PKCS12");
+            } else {
+                final String tsConfigKeyPrefix = "quarkus.tls.%s.trust-store.p12."
+                        .formatted(model.getQuarkusTlsRegistryConfigName());
+                configPropertyIterator.put("kafka.tls-configuration-name", model.getQuarkusTlsRegistryConfigName());
+                configPropertyIterator.put(tsConfigKeyPrefix + "path", trustStoreLocation);
+                configPropertyIterator.put(tsConfigKeyPrefix + "password", "top-secret");
+            }
             if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
                 configPropertyIterator = new HashMap<>(configPropertyIterator);
                 configPropertyIterator.put("kafka.security.protocol", "SASL_SSL");
