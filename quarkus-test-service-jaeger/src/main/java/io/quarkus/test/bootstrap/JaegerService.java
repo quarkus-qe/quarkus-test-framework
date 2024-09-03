@@ -14,7 +14,11 @@ public class JaegerService extends BaseService<JaegerService> {
     }
 
     public String getCollectorUrl() {
-        return getURI(Protocol.HTTP).withPath(JAEGER_API_PATH).toString();
+        return getCollectorUrl(Protocol.HTTP);
+    }
+
+    public String getCollectorUrl(Protocol protocol) {
+        return getURI(protocol).withPath(JAEGER_API_PATH).toString();
     }
 
     public String getTraceUrl() {

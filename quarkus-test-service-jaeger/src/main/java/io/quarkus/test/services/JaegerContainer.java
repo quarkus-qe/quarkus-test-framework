@@ -34,5 +34,10 @@ public @interface JaegerContainer {
 
     String expectedLog() default "server started";
 
+    /**
+     * @return whether communication between Quarkus OTel exporter and Jaeger OTLP collector should be secured
+     */
+    boolean tls() default false;
+
     Class<? extends ManagedResourceBuilder> builder() default JaegerContainerManagedResourceBuilder.class;
 }
