@@ -37,4 +37,14 @@ public @interface KafkaContainer {
     String[] kafkaConfigResources() default {};
 
     Class<? extends ManagedResourceBuilder> builder() default KafkaContainerManagedResourceBuilder.class;
+
+    /**
+     * @return name of the TLS configuration in the TLS Registry extension; Kafka only supports named TLS configs here
+     */
+    String tlsConfigName() default "";
+
+    /**
+     * @return whether Quarkus configuration properties prepared for SSL and SASL_SSL should use Quarkus TLS registry.
+     */
+    boolean tlsRegistryEnabled() default false;
 }
