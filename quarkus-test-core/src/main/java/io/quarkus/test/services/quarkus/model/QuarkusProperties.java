@@ -11,6 +11,8 @@ import io.quarkus.test.configuration.PropertyLookup;
 
 public final class QuarkusProperties {
 
+    public static final PropertyLookup USE_SEPARATE_GRPC_SERVER = new PropertyLookup("quarkus.grpc.server.use-separate-server",
+            "true");
     public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
     public static final PropertyLookup PLUGIN_VERSION = new PropertyLookup("quarkus-plugin.version");
@@ -58,6 +60,10 @@ public final class QuarkusProperties {
 
     public static boolean isJvmPackageType(ServiceContext context) {
         return !isNativeEnabled() && PACKAGE_TYPE_JVM_VALUES.contains(PACKAGE_TYPE.get(context));
+    }
+
+    public static boolean useSeparateGrpcServer(ServiceContext context) {
+        return Boolean.parseBoolean(USE_SEPARATE_GRPC_SERVER.get(context));
     }
 
     private static String defaultVersionIfEmpty(String version) {

@@ -18,10 +18,12 @@ public class DevModeGrpcServiceIT {
 
     @Test
     public void shouldHelloWorldServiceWork() {
-        HelloRequest request = HelloRequest.newBuilder().setName(NAME).build();
-        HelloReply response = GreeterGrpc.newBlockingStub(app.grpcChannel()).sayHello(request);
+        try (var channel = app.grpcChannel()) {
+            HelloRequest request = HelloRequest.newBuilder().setName(NAME).build();
+            HelloReply response = GreeterGrpc.newBlockingStub(channel).sayHello(request);
 
-        assertEquals("Hello " + NAME, response.getMessage());
+            assertEquals("Hello " + NAME, response.getMessage());
+        }
     }
 
 }
