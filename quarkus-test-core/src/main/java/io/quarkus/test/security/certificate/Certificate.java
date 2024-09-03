@@ -1,5 +1,6 @@
 package io.quarkus.test.security.certificate;
 
+import static io.quarkus.test.services.Certificate.Format.PEM;
 import static io.quarkus.test.services.Certificate.Format.PKCS12;
 import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
@@ -28,6 +29,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
+
+import org.junit.jupiter.api.condition.OS;
 
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.TestExecutionProperties;
@@ -127,8 +130,18 @@ public interface Certificate {
                     // PKCS12 truststore
                     serverTrustStoreLocation = createPkcs12TruststoreForPem(pemCertsFile.trustStore(), o.password(), cn);
                 } else {
-                    // ca-cert
-                    serverTrustStoreLocation = getPathOrNull(pemCertsFile.trustStore());
+                    if (withClientCerts) {
+                        serverTrustStoreLocation = getPathOrNull(pemCertsFile.serverTrustFile());
+                        var clientCertLocation = getPathOrNull(pemCertsFile.clientCertFile());
+                        var clientKeyLocation = getPathOrNull(pemCertsFile.clientKeyFile());
+                        var clientTrustStore = getPathOrNull(pemCertsFile.trustFile());
+                        generatedClientCerts
+                                .add(new ClientCertificateImpl(cn, null, clientTrustStore, clientKeyLocation,
+                                        clientCertLocation));
+                    } else {
+                        // ca-cert
+                        serverTrustStoreLocation = getPathOrNull(pemCertsFile.trustStore());
+                    }
                 }
                 if (o.containerMountStrategy().mountToContainer()) {
                     if (certLocation != null) {
@@ -217,9 +230,38 @@ public interface Certificate {
         }
         configureManagementInterfaceProps(o, props, serverKeyStoreLocation);
         configureHttpServerProps(o, props);
+        configurePemConfigurationProperties(o, props, keyLocation, certLocation, serverTrustStoreLocation);
+        doubleBackSlashesOnWin(props);
 
         return createCertificate(serverKeyStoreLocation, serverTrustStoreLocation, Map.copyOf(props),
                 List.copyOf(generatedClientCerts), keyLocation, certLocation, o);
+    }
+
+    private static void doubleBackSlashesOnWin(Map<String, String> props) {
+        if (OS.WINDOWS.isCurrentOs()) {
+            // we need to quote back slashes passed as command lines in Windows as they have special meaning
+            // TODO: this must be done for all config properties, but I do not dare to change it now
+            //   now is not the good time to break test suite as this PR is going to be backported and we have pressing
+            //   matters; let's do it later: https://github.com/quarkus-qe/quarkus-test-framework/issues/1275
+            props.replaceAll((key, value) -> value.replace("\\", "\\\\"));
+        }
+    }
+
+    private static void configurePemConfigurationProperties(CertificateOptions options, Map<String, String> props,
+            String keyLocation, String certLocation, String serverTrustStoreLocation) {
+        if (options.format() == PEM) {
+            var keyStorePropertyPrefix = tlsConfigPropPrefix(options, "key-store");
+            if (keyLocation != null) {
+                props.put(keyStorePropertyPrefix + "pem-1.key", keyLocation);
+            }
+            if (certLocation != null) {
+                props.put(keyStorePropertyPrefix + "pem-1.cert", certLocation);
+            }
+            var trustStorePropertyPrefix = tlsConfigPropPrefix(options, "trust-store");
+            if (serverTrustStoreLocation != null) {
+                props.put(trustStorePropertyPrefix + "certs", serverTrustStoreLocation);
+            }
+        }
     }
 
     private static void configureManagementInterfaceProps(CertificateOptions o, Map<String, String> props,
@@ -259,9 +301,11 @@ public interface Certificate {
             String serverKeyStoreLocation) {
         if (o.keystoreProps()) {
             if (o.tlsRegistryEnabled()) {
-                var propPrefix = tlsConfigPropPrefix(o, "key-store");
-                props.put(propPrefix + "path", serverKeyStoreLocation);
-                props.put(propPrefix + "password", o.password());
+                if (o.format() != PEM) {
+                    var propPrefix = tlsConfigPropPrefix(o, "key-store");
+                    props.put(propPrefix + "path", serverKeyStoreLocation);
+                    props.put(propPrefix + "password", o.password());
+                }
             } else {
                 props.put("quarkus.http.ssl.certificate.key-store-file", serverKeyStoreLocation);
                 props.put("quarkus.http.ssl.certificate.key-store-file-type", o.format().toString());
@@ -274,9 +318,11 @@ public interface Certificate {
             String serverTrustStoreLocation) {
         if (o.truststoreProps()) {
             if (o.tlsRegistryEnabled()) {
-                var propPrefix = tlsConfigPropPrefix(o, "trust-store");
-                props.put(propPrefix + "path", serverTrustStoreLocation);
-                props.put(propPrefix + "password", o.password());
+                if (o.format() != PEM) {
+                    var propPrefix = tlsConfigPropPrefix(o, "trust-store");
+                    props.put(propPrefix + "path", serverTrustStoreLocation);
+                    props.put(propPrefix + "password", o.password());
+                }
             } else {
                 props.put("quarkus.http.ssl.certificate.trust-store-file", serverTrustStoreLocation);
                 props.put("quarkus.http.ssl.certificate.trust-store-file-type", o.format().toString());
