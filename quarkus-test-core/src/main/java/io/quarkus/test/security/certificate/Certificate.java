@@ -85,6 +85,13 @@ public interface Certificate {
                 null, false, null, false));
     }
 
+    static Certificate.PemCertificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
+            boolean tlsRegistryEnabled, String tlsConfigName, ClientCertificateRequest[] clientCertRequests) {
+        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
+                clientCertRequests, createCertsTempDir(prefix), new DefaultContainerMountStrategy(prefix), false,
+                null, null, null, null, tlsRegistryEnabled, tlsConfigName, false));
+    }
+
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
             boolean tlsRegistryEnabled, String tlsConfigName) {
         return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
