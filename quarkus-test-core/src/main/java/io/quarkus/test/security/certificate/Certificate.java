@@ -256,7 +256,7 @@ public interface Certificate {
 
     private static void configurePemConfigurationProperties(CertificateOptions options, Map<String, String> props,
             String keyLocation, String certLocation, String serverTrustStoreLocation) {
-        if (options.format() == PEM) {
+        if (options.format() == PEM && options.tlsRegistryEnabled()) {
             var keyStorePropertyPrefix = tlsConfigPropPrefix(options, "key-store");
             if (keyLocation != null) {
                 props.put(keyStorePropertyPrefix + "pem-1.key", keyLocation);
