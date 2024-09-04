@@ -8,12 +8,16 @@ import java.nio.file.Path;
 import java.util.Objects;
 
 import io.quarkus.test.security.certificate.CertificateBuilder;
+import io.quarkus.test.security.certificate.PemClientCertificate;
+import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.TestExecutionProperties;
 import io.restassured.RestAssured;
 import io.restassured.specification.RequestSpecification;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.net.KeyStoreOptions;
+import io.vertx.core.net.PemKeyCertOptions;
+import io.vertx.core.net.PemTrustOptions;
 import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.ext.web.client.WebClient;
@@ -130,30 +134,39 @@ public class RestService extends BaseService<RestService> {
         options.setDefaultHost(uri.getHost());
         options.setDefaultPort(uri.getPort());
 
-        final String keystorePath;
-        final String truststorePath;
         var certificate = certificateBuilder.certificates().get(0);
 
-        if (clientCertificateCn != null) {
-            var clientCert = certificate.getClientCertificateByCn(clientCertificateCn);
-            Objects.requireNonNull(clientCert, "Client certificate with CN %s not found".formatted(clientCertificateCn));
-            keystorePath = clientCert.keystorePath();
-            truststorePath = clientCert.truststorePath();
+        boolean isPemCertificate = Certificate.Format.PEM.toString().equals(certificate.format());
+        if (isPemCertificate && clientCertificateCn != null) {
+            var clientCert = (PemClientCertificate) certificate.getClientCertificateByCn(clientCertificateCn);
+            options.setPemKeyCertOptions(
+                    new PemKeyCertOptions().addCertPath(clientCert.certPath()).addKeyPath(clientCert.keyPath()));
+            options.setPemTrustOptions(new PemTrustOptions().addCertPath(clientCert.truststorePath()));
         } else {
-            keystorePath = certificate.keystorePath();
-            truststorePath = certificate.truststorePath();
-        }
+            final String keystorePath;
+            final String truststorePath;
 
-        if (keystorePath != null) {
-            options.setKeyCertOptions(
-                    new KeyStoreOptions().setValue(Buffer.buffer(getFileContent(keystorePath)))
-                            .setPassword(certificate.password()).setType(certificate.format()));
-        }
+            if (clientCertificateCn != null) {
+                var clientCert = certificate.getClientCertificateByCn(clientCertificateCn);
+                Objects.requireNonNull(clientCert, "Client certificate with CN %s not found".formatted(clientCertificateCn));
+                keystorePath = clientCert.keystorePath();
+                truststorePath = clientCert.truststorePath();
+            } else {
+                keystorePath = certificate.keystorePath();
+                truststorePath = certificate.truststorePath();
+            }
 
-        if (withTruststore && truststorePath != null) {
-            options.setTrustOptions(
-                    new KeyStoreOptions().setValue(Buffer.buffer(getFileContent(truststorePath)))
-                            .setPassword(certificate.password()).setType(certificate.format()));
+            if (keystorePath != null) {
+                options.setKeyCertOptions(
+                        new KeyStoreOptions().setValue(Buffer.buffer(getFileContent(keystorePath)))
+                                .setPassword(certificate.password()).setType(certificate.format()));
+            }
+
+            if (withTruststore && truststorePath != null) {
+                options.setTrustOptions(
+                        new KeyStoreOptions().setValue(Buffer.buffer(getFileContent(truststorePath)))
+                                .setPassword(certificate.password()).setType(certificate.format()));
+            }
         }
 
         var vertx = Vertx.vertx();
