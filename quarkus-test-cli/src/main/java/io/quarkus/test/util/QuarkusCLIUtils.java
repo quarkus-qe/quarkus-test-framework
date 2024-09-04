@@ -29,6 +29,7 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.smallrye.common.os.OS;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
@@ -258,6 +259,33 @@ public abstract class QuarkusCLIUtils {
      */
     public static Properties getProperties(QuarkusCliRestService app) throws XmlPullParserException, IOException {
         return getPom(app).getProperties();
+    }
+
+    /**
+     * Change given properties in app's pom.
+     * Other properties are unchanged.
+     */
+    public static void changePropertiesInPom(QuarkusCliRestService app, Properties properties)
+            throws XmlPullParserException, IOException {
+        Model pom = getPom(app);
+        Properties pomProperties = pom.getProperties();
+        pomProperties.putAll(properties);
+        pom.setProperties(pomProperties);
+        savePom(app, pom);
+    }
+
+    /**
+     * If tests are not on RHBQ it will set properties in app's pom to work with community quarkus BOM.
+     * Expects that app is using RHBQ by default.
+     */
+    public static void setCommunityBomIfNotRunningRHBQ(QuarkusCliRestService app, String communityQuarkusVersion)
+            throws XmlPullParserException, IOException {
+        if (!QuarkusProperties.getVersion().contains("redhat")) {
+            Properties communityBomProperties = new Properties();
+            communityBomProperties.put("quarkus.platform.group-id", "io.quarkus.platform");
+            communityBomProperties.put("quarkus.platform.version", communityQuarkusVersion);
+            changePropertiesInPom(app, communityBomProperties);
+        }
     }
 
     /**
