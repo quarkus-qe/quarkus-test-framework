@@ -18,7 +18,7 @@ public class HttpsIT {
     private static final String CLIENT_CN_2 = "my-client-2";
     private static final String CLIENT_CN_3 = "my-client-3";
 
-    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureTruststore = true, clientCertificates = {
+    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureTruststore = true, configureHttpServer = true, useTlsRegistry = false, clientCertificates = {
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_1),
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_2),
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_3, unknownToServer = true)

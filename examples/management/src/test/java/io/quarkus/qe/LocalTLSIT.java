@@ -14,7 +14,7 @@ import io.restassured.response.Response;
 // todo Merge with LocalIT when https://github.com/quarkusio/quarkus/issues/32225 is fixed
 public class LocalTLSIT {
 
-    @QuarkusApplication(certificates = @Certificate(configureKeystoreForManagementInterface = true))
+    @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true, useTlsRegistry = false))
     static final RestService service = new RestService()
             .withProperty("quarkus.management.port", "9003");
 

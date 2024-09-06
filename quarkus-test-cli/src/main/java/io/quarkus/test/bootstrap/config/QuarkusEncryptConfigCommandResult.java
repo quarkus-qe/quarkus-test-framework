@@ -5,17 +5,18 @@ import static io.quarkus.test.bootstrap.config.QuarkusEncryptConfigCommandBuilde
 import java.util.Objects;
 import java.util.function.Consumer;
 
+import io.quarkus.test.bootstrap.QuarkusCliCommandResult;
 import io.quarkus.test.util.QuarkusCLIUtils;
 
-public class QuarkusEncryptConfigCommandResult extends QuarkusConfigCommandResult {
+public class QuarkusEncryptConfigCommandResult extends QuarkusCliCommandResult {
 
     private static final String SECRET_ENCRYPTED_TO = "was encrypted to";
     private static final String WITH_GENERATED_KEY = "with the generated encryption key";
     private final QuarkusConfigCommand configCommand;
     private String encryptedSecret = null;
 
-    QuarkusEncryptConfigCommandResult(QuarkusConfigCommandResult delegate, QuarkusConfigCommand configCommand) {
-        super(delegate.output, delegate.applicationPropertiesAsString);
+    QuarkusEncryptConfigCommandResult(QuarkusCliCommandResult delegate, QuarkusConfigCommand configCommand) {
+        super(delegate.getOutput(), delegate.getApplicationPropertiesAsString(), configCommand);
         this.configCommand = configCommand;
     }
 

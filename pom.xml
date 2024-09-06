@@ -45,7 +45,7 @@
         <impsort-maven-plugin.version>1.11.0</impsort-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.14.0</quarkus.platform.version>
+        <quarkus.platform.version>3.14.2</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -71,7 +71,6 @@
         <consul.image>docker.io/bitnami/consul:1.19.1</consul.image>
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.2.Beta1</flaky-run-reporter.version>
-        <certificate-generator.version>0.7.1</certificate-generator.version>
     </properties>
     <distributionManagement>
         <snapshotRepository>
@@ -213,11 +212,6 @@
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-test-maven</artifactId>
                 <version>${quarkus.platform.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>me.escoffier.certs</groupId>
-                <artifactId>certificate-generator</artifactId>
-                <version>${certificate-generator.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

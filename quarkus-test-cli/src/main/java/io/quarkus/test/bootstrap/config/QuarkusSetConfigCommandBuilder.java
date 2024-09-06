@@ -2,6 +2,7 @@ package io.quarkus.test.bootstrap.config;
 
 import java.util.ArrayList;
 
+import io.quarkus.test.bootstrap.QuarkusCliCommandResult;
 import io.quarkus.test.util.QuarkusCLIUtils;
 import io.smallrye.common.os.OS;
 
@@ -34,7 +35,7 @@ public class QuarkusSetConfigCommandBuilder {
         return this;
     }
 
-    public QuarkusConfigCommandResult printOutHelp() {
+    public QuarkusCliCommandResult printOutHelp() {
         this.help = true;
         return executeCommand();
     }
@@ -49,7 +50,7 @@ public class QuarkusSetConfigCommandBuilder {
         return this;
     }
 
-    public QuarkusConfigCommandResult executeCommand() {
+    public QuarkusCliCommandResult executeCommand() {
         // e.g. quarkus config set --encrypt --name=my.secret --value=1234
         var subCommand = new ArrayList<String>();
         subCommand.add("set");

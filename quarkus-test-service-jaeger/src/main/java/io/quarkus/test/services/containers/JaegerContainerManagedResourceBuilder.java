@@ -22,6 +22,7 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
     private int tracePort;
     private String expectedLog;
     private boolean useOtlpCollector;
+    private boolean tlsEnabled;
 
     @Override
     protected String getImage() {
@@ -51,6 +52,10 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         return useOtlpCollector;
     }
 
+    protected boolean isTlsEnabled() {
+        return tlsEnabled;
+    }
+
     @Override
     public void init(Annotation annotation) {
         JaegerContainer metadata = (JaegerContainer) annotation;
@@ -59,6 +64,7 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         this.tracePort = metadata.tracePort();
         this.expectedLog = metadata.expectedLog();
         this.useOtlpCollector = metadata.useOtlpCollector();
+        this.tlsEnabled = metadata.tls();
     }
 
     @Override

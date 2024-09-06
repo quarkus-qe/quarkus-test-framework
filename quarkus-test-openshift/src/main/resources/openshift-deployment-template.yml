@@ -9,7 +9,7 @@ items:
   spec:
     ports:
     - name: "http"
-      port: ${INTERNAL_PORT}
+      port: ${INTERNAL_INGRESS_PORT}
       targetPort: ${INTERNAL_PORT}
     selector:
       deployment: "${SERVICE_NAME}"
