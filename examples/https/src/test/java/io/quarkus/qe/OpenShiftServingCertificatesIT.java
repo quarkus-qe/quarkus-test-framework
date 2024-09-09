@@ -15,7 +15,6 @@ import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.QuarkusApplication;
-import io.quarkus.test.utils.AwaitilityUtils;
 
 /**
  * Test OpenShift serving certificate support provided by our framework.
@@ -43,20 +42,17 @@ public class OpenShiftServingCertificatesIT {
     public void testSecuredCommunicationBetweenClientAndServer() {
         // REST client use OpenShift internal CA
         // server is configured with OpenShift serving certificates
-        // ad "untilAsserted": hopefully it's not necessary, but once I experienced unknown SAN,
-        // so to avoid flakiness I am adding here retry:
-        AwaitilityUtils.untilAsserted(() -> {
-            var hero = client.given()
-                    .get("hero-client-resource")
-                    .then()
-                    .statusCode(200)
-                    .extract()
-                    .as(Hero.class);
-            assertNotNull(hero);
-            assertNotNull(hero.name());
-            assertTrue(hero.name().startsWith("Name-"));
-            assertTrue(hero.otherName().startsWith("Other-"));
-        });
+        var hero = client.given()
+                .get("hero-client-resource")
+                .then()
+                .statusCode(200)
+                .extract()
+                .as(Hero.class);
+        assertNotNull(hero);
+        assertNotNull(hero.name());
+        assertTrue(hero.name().startsWith("Name-"));
+        assertNotNull(hero.otherName());
+        assertTrue(hero.otherName().startsWith("Other-"));
     }
 
 }
