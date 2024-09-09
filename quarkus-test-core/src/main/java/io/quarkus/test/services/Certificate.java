@@ -140,6 +140,7 @@ public @interface Certificate {
 
     /**
      * OpenShift serving certificates configuration. This only works when internal service is used as URL.
+     * Support for management interface is not implemented.
      */
     @interface ServingCertificates {
 
