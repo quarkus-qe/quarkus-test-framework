@@ -850,11 +850,24 @@ public final class OpenShiftClient {
     }
 
     private static List<OpenShiftPropertiesUtils.PropertyToValue> collectAnnotations(Service service) {
+        if (isManagementInterfaceService(service)) {
+            // Subject Alternative Name (SAN) must match service DNS name,
+            // and injected certificates will have SAN set to one of OpenShift services,
+            // but we can have 2 services created for one application,
+            // one for HTTP server, one for management interface
+            // so far, we don't support management interface,
+            // which allows mount exactly one secret created for the HTTP server
+            return List.of();
+        }
         return service.getProperties().values()
                 .stream()
                 .filter(OpenShiftPropertiesUtils::isAnnotation)
                 .map(OpenShiftPropertiesUtils::getServiceAnnotation)
                 .toList();
+    }
+
+    private static boolean isManagementInterfaceService(Service service) {
+        return service.getName().endsWith("-management");
     }
 
     private String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
