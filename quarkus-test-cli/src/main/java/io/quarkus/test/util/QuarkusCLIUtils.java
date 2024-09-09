@@ -279,7 +279,7 @@ public abstract class QuarkusCLIUtils {
      */
     public static void setCommunityBomIfNotRunningRHBQ(QuarkusCliRestService app, String communityQuarkusVersion)
             throws XmlPullParserException, IOException {
-        if (!QuarkusProperties.getVersion().contains("redhat")) {
+        if (!QuarkusProperties.isRHBQ()) {
             Properties communityBomProperties = new Properties();
             communityBomProperties.put("quarkus.platform.group-id", "io.quarkus.platform");
             communityBomProperties.put("quarkus.platform.version", communityQuarkusVersion);
