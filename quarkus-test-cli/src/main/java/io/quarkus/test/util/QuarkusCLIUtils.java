@@ -27,6 +27,7 @@ import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public abstract class QuarkusCLIUtils {
     public static final String RESOURCES_DIR = Paths.get("src", "main", "resources").toString();
