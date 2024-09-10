@@ -6,6 +6,8 @@ import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +32,7 @@ import io.quarkus.maven.dependency.ArtifactDependency;
 import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.Dependency;
 import io.quarkus.test.utils.ClassPathUtils;
@@ -38,6 +41,7 @@ import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 import io.quarkus.test.utils.TestExecutionProperties;
 import io.smallrye.config.SecretKeys;
+import io.smallrye.config.SmallRyeConfig;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -54,6 +58,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String DEPENDENCY_SCOPE_DEFAULT = "compile";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
     private static final int DEPENDENCY_DIRECT_FLAG = 0b000010;
+    // before 3.14.3
+    private static final int OLD_INIT_CONFIGURATION_PARAM_COUNT = 3;
+    // in 3.14.3 and 3.16
+    private static final int NEW_INIT_CONFIGURATION_PARAM_COUNT = 4;
 
     private Class<?>[] appClasses;
     /**
@@ -287,7 +295,42 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             // this must always be set as Quarkus sets and config expansions would fail
             buildSystemProps.put("platform.quarkus.native.builder-image", "<<ignored>>");
 
-            var config = buildTimeConfigReader.initConfiguration(LaunchMode.NORMAL, buildSystemProps, Map.of());
+            // TODO: using reflection because signature of the
+            //   io.quarkus.deployment.configuration.BuildTimeConfigurationReader.initConfiguration
+            //   has changed in https://github.com/quarkusio/quarkus/pull/43160
+            //   and we want to keep FW compatible for both 3.14.2 and 999-SNAPSHOT
+            //   this can be dropped when we bump FW to 3.14.3
+            SmallRyeConfig aConfig = null;
+            for (Method method : buildTimeConfigReader.getClass().getMethods()) {
+                if (method.getName().equals("initConfiguration")) {
+                    final Object[] args;
+                    if (method.getParameterCount() == OLD_INIT_CONFIGURATION_PARAM_COUNT) {
+                        // previous signature
+                        args = new Object[] { LaunchMode.NORMAL, buildSystemProps, Map.of() };
+                    } else if (method.getParameterCount() == NEW_INIT_CONFIGURATION_PARAM_COUNT) {
+                        // new signature
+                        args = new Object[] { LaunchMode.NORMAL, buildSystemProps, new Properties(), Map.of() };
+                    } else {
+                        Log.error(
+                                "'BuildTimeConfigurationReader#initConfiguration' method signature has changed, "
+                                        + "number of parameter is: " + method.getParameterCount());
+                        break;
+                    }
+
+                    try {
+                        aConfig = (SmallRyeConfig) method.invoke(buildTimeConfigReader, args);
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        throw new RuntimeException(e);
+                    }
+                    break;
+                }
+            }
+            if (aConfig == null) {
+                throw new IllegalStateException("Failed to detect 'BuildTimeConfigurationReader.initConfiguration',"
+                        + " detection of build time properties is not possible");
+            }
+
+            var config = aConfig;
             var readResult = buildTimeConfigReader.readConfiguration(config);
             var buildTimeConfigKeys = new HashSet<String>();
             buildTimeConfigKeys.addAll(readResult.getAllBuildTimeValues().keySet());
