@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-examples-parent</artifactId>
-        <version>1.6.0.Beta4</version>
+        <version>1.6.0.Beta5-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>examples-blocking-reactive</artifactId>
