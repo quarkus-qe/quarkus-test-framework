@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -20,6 +21,7 @@ import org.jboss.logmanager.formatters.PatternFormatter;
 import org.jboss.logmanager.handlers.ConsoleHandler;
 import org.jboss.logmanager.handlers.FileHandler;
 
+import io.quarkus.bootstrap.logging.QuarkusDelayedHandler;
 import io.quarkus.test.bootstrap.QuarkusScenarioBootstrap;
 import io.quarkus.test.bootstrap.ScenarioContext;
 import io.quarkus.test.bootstrap.Service;
@@ -104,6 +106,17 @@ public final class Log {
         // Configure logger handlers
         Logger logger = LogManager.getLogManager().getLogger("");
         logger.setLevel(level);
+
+        // Remove existing handlers
+        for (Handler handler : logger.getHandlers()) {
+            // we don't need QuarkusDelayedHandler,
+            // and it leads to log duplication when the 'java.util.logging.manager'
+            // system property is set to the 'org.jboss.logmanager.LogManager'
+            if (handler instanceof QuarkusDelayedHandler) {
+                logger.removeHandler(handler);
+                break;
+            }
+        }
 
         // - Console
         ConsoleHandler console = new ConsoleHandler(
