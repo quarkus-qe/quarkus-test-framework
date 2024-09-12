@@ -55,13 +55,11 @@ jobs:
           cache: 'maven'
       - name: Build
         run: |
-          MAVEN_PROFILES="-Pframework,examples"
-
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install  -Dvalidate-format $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Dvalidate-format $QUARKUS_VERSION -Pframework,examples
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -195,7 +193,7 @@ jobs:
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION $EXCLUDE_MODULES
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION
       - name: Zip Artifacts
         if: failure()
         run: |
