@@ -1,4 +1,4 @@
 name: Quarkus QE Test Framework
 release:
-  current-version: 1.6.0.Beta4
-  next-version: 1.6.0.Beta5
+  current-version: 1.6.0.Beta5
+  next-version: 1.6.0.Beta6
