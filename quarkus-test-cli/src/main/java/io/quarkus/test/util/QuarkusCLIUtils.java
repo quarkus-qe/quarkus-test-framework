@@ -50,10 +50,9 @@ public abstract class QuarkusCLIUtils {
     public static IQuarkusCLIAppManager createAppManager(QuarkusCliClient cliClient,
             DefaultArtifactVersion oldVersionStream,
             DefaultArtifactVersion newVersionStream) {
-        String quarkusPropertiesVersion = QuarkusProperties.getVersion();
-        if (quarkusPropertiesVersion != null && quarkusPropertiesVersion.contains("redhat")) {
+        if (QuarkusProperties.isRHBQ()) {
             return new RHBQPlatformAppManager(cliClient, oldVersionStream, newVersionStream,
-                    new DefaultArtifactVersion(quarkusPropertiesVersion));
+                    new DefaultArtifactVersion(QuarkusProperties.getVersion()));
         }
         return new DefaultQuarkusCLIAppManager(cliClient, oldVersionStream, newVersionStream);
     }

@@ -49,8 +49,9 @@ public class RHBQPlatformAppManager extends DefaultQuarkusCLIAppManager {
 
     private QuarkusCliRestService assertIsUsingRHBQ(QuarkusCliRestService app) {
         try {
+            // check that created application uses version with "redhat" suffix.
             assertTrue(getQuarkusAppVersion(app).toString().contains("redhat"),
-                    "Created quarkus application does not use redhat version, while should be RHBQ");
+                    "Created Quarkus application does not use \"redhat\" version, while should be RHBQ");
         } catch (IOException | XmlPullParserException e) {
             throw new RuntimeException(e);
         }
