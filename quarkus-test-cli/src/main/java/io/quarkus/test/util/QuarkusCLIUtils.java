@@ -26,6 +26,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
@@ -40,6 +41,16 @@ public abstract class QuarkusCLIUtils {
      * Checkstyle doesn't allow to have a number directly in a code, so this needs to be a constant.
      */
     private static final int GAV_FIELDS_LENGTH = 3;
+
+    public static IQuarkusCLIAppManager createAppManager(QuarkusCliClient cliClient,
+            DefaultArtifactVersion oldVersionStream,
+            DefaultArtifactVersion newVersionStream) {
+        if (QuarkusProperties.isRHBQ()) {
+            return new RHBQPlatformAppManager(cliClient, oldVersionStream, newVersionStream,
+                    new DefaultArtifactVersion(QuarkusProperties.getVersion()));
+        }
+        return new DefaultQuarkusCLIAppManager(cliClient, oldVersionStream, newVersionStream);
+    }
 
     /**
      * Create app, put properties into application.properties file,
