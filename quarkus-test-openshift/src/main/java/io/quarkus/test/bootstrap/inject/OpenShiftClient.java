@@ -64,6 +64,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
 import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRecreateWaitApplicable;
+import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.Serialization;
@@ -235,7 +236,7 @@ public final class OpenShiftClient {
         deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
             enrichProperties.forEach((key, value) -> container.getEnv().add(new EnvVar(key, value, null)));
         });
-        client.apps().deployments().resource(deployment).createOrReplace();
+        client.apps().deployments().resource(deployment).unlock().createOr(NonDeletingOperation::patch);
     }
 
     private void updateAnnotationsIfNecessary(Service service, String serviceName) {
@@ -536,8 +537,8 @@ public final class OpenShiftClient {
         groupModel.getMetadata().setName(service.getName());
         groupModel.setSpec(new OperatorGroupSpec());
         groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
-        // call createOrReplace
-        client.resource(groupModel).createOrReplace();
+        // call createOr and if it exists the update will be done
+        client.resource(groupModel).unlock().createOr(NonDeletingOperation::update);
 
         // Install the subscription
         Subscription subscriptionModel = new Subscription();
@@ -839,8 +840,8 @@ public final class OpenShiftClient {
         list.setItems(objs);
         try {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
-            Serialization.yamlMapper().writeValue(os, list);
-            template = new String(os.toByteArray());
+            os.write(Serialization.asYaml(list).getBytes());
+            template = os.toString();
         } catch (IOException e) {
             fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
         }
@@ -849,11 +850,24 @@ public final class OpenShiftClient {
     }
 
     private static List<OpenShiftPropertiesUtils.PropertyToValue> collectAnnotations(Service service) {
+        if (isManagementInterfaceService(service)) {
+            // Subject Alternative Name (SAN) must match service DNS name,
+            // and injected certificates will have SAN set to one of OpenShift services,
+            // but we can have 2 services created for one application,
+            // one for HTTP server, one for management interface
+            // so far, we don't support management interface,
+            // which allows mount exactly one secret created for the HTTP server
+            return List.of();
+        }
         return service.getProperties().values()
                 .stream()
                 .filter(OpenShiftPropertiesUtils::isAnnotation)
                 .map(OpenShiftPropertiesUtils::getServiceAnnotation)
                 .toList();
+    }
+
+    private static boolean isManagementInterfaceService(Service service) {
+        return service.getName().endsWith("-management");
     }
 
     private String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
@@ -1072,7 +1086,7 @@ public final class OpenShiftClient {
         } else {
             // create new one
             configMaps.resource(new ConfigMapBuilder().withNewMetadata().withName(configMapName).endMetadata()
-                    .addToData(key, value).build()).createOrReplace();
+                    .addToData(key, value).build()).unlock().create();
         }
     }
 

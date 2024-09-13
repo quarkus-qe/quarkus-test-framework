@@ -401,7 +401,7 @@ jobs:
       - name: Build in Native mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Denable-win-race-debug=true
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
