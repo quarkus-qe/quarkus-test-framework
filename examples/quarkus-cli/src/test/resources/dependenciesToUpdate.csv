@@ -1,0 +1,7 @@
+# Example comment
+# https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.9#resteasy-reactive-extensions-renamed-to-quarkus-rest-gear-white_check_mark
+io.quarkus:quarkus-resteasy-reactive,io.quarkus:quarkus-rest
+io.quarkus:quarkus-resteasy-reactive-jackson,io.quarkus:quarkus-rest-jackson
+
+# https://github.com/quarkusio/quarkus/wiki/Migration-Guide-3.9#graalvm-sdk-update-gear-white_check_mark
+org.graalvm.sdk:graal-sdk:24.0.2,org.graalvm.sdk:nativeimage:24.0.2

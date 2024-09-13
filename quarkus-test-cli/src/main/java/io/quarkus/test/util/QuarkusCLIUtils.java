@@ -14,10 +14,15 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
@@ -25,6 +30,8 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.apache.maven.surefire.shared.lang3.tuple.ImmutablePair;
+import org.apache.maven.surefire.shared.lang3.tuple.Pair;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -40,6 +47,8 @@ public abstract class QuarkusCLIUtils {
     public static final String POM_FILE = "pom.xml";
     private static final String ANSI_BOLD_TEXT_ESCAPE_SEQ = "[1m";
     private static final char ESCAPE_CHARACTER = 27;
+    private static final String CSV_SEPARATOR = ",";
+    private static final String CSV_COMMENT = "#";
 
     /**
      * This constant stands for number of fields in groupId:artifactId:version string, when separated via ":".
@@ -136,6 +145,31 @@ public abstract class QuarkusCLIUtils {
                 "Pom.xml after update should not contain dependency: " + dependency));
         newDependencies.forEach(dependency -> assertTrue(actualDependencies.contains(dependency),
                 "Pom.xml after update should contain dependency: " + dependency));
+    }
+
+    /**
+     * Create app, put dependencies into it, update it and check new dependencies are present.
+     * Use {@link QuarkusDependency} it has .equals method properly set.
+     *
+     * @param dependenciesToUpdate Pairs of dependencies that should be updated.
+     *        Key should be old dependency that should be updated. Value the new expected one.
+     */
+    public static void checkDependenciesUpdate(IQuarkusCLIAppManager appManager,
+            List<Pair<Dependency, Dependency>> dependenciesToUpdate)
+            throws XmlPullParserException, IOException {
+        QuarkusCliRestService app = appManager.createApplication();
+        List<Dependency> oldDependencies = dependenciesToUpdate.stream().map(Pair::getKey).collect(Collectors.toList());
+        addDependenciesToPom(app, oldDependencies);
+
+        appManager.updateApp(app);
+        List<Dependency> actualDependencies = getDependencies(app);
+        dependenciesToUpdate.forEach(dependencyToUpdate -> {
+            assertFalse(actualDependencies.contains(dependencyToUpdate.getKey()),
+                    "Dependency " + dependencyToUpdate.getKey() + " should be updated to " + dependencyToUpdate.getValue());
+
+            assertTrue(actualDependencies.contains(dependencyToUpdate.getValue()),
+                    "Dependency " + dependencyToUpdate.getKey() + " should be updated to " + dependencyToUpdate.getValue());
+        });
     }
 
     /**
@@ -319,6 +353,34 @@ public abstract class QuarkusCLIUtils {
     public static void savePom(QuarkusCliRestService app, Model model) throws IOException {
         OutputStream output = new FileOutputStream(app.getFileFromApplication(POM_FILE));
         new MavenXpp3Writer().write(output, model);
+    }
+
+    /**
+     * Load dependencies that should be updated from CSV.
+     * Expects format: <oldDependency>,<newDependency>
+     */
+    public static List<Pair<Dependency, Dependency>> loadDependencyPairsFromCSV(Path csvFile) throws IOException {
+        List<Pair<Dependency, Dependency>> dependencyPairs = new ArrayList<>();
+        try (Stream<String> lines = Files.lines(csvFile)) {
+            List<List<String>> records = lines
+                    .filter(line -> !line.isBlank())
+                    .filter(line -> !line.startsWith(CSV_COMMENT))
+                    .map(line -> Arrays.asList(line.split(CSV_SEPARATOR)))
+                    .toList();
+
+            records.forEach(record -> {
+                if (record.size() != 2) {
+                    throw new IllegalArgumentException(
+                            "Records in CSV must have 2 fields. Not true for record: " + record);
+                }
+
+                dependencyPairs.add(new ImmutablePair<>(
+                        new QuarkusCLIUtils.QuarkusDependency(record.get(0)),
+                        new QuarkusCLIUtils.QuarkusDependency(record.get(1))));
+            });
+        }
+
+        return dependencyPairs;
     }
 
     /**
