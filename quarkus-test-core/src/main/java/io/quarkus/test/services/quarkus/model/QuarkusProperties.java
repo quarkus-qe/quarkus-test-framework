@@ -32,6 +32,10 @@ public final class QuarkusProperties {
 
     }
 
+    public static boolean isRHBQ() {
+        return QuarkusProperties.getVersion().contains("redhat");
+    }
+
     public static String getVersion() {
         return defaultVersionIfEmpty(PLATFORM_VERSION.get());
     }
