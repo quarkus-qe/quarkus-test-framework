@@ -32,11 +32,13 @@ public class SureFireDebugProvider extends AbstractProvider {
     public static final String APP_IS_READ_PRESS_ENTER_TO_EXIT = "Application is ready for debugging. Press enter to exit:";
     public static final String TEST_RUN_SUCCESS = "Run all tests without failure";
     public static final String RUN_TESTS = "ts.debug.run-tests";
+    public static final String SUSPEND = "ts.debug.suspend";
     private static final Logger LOG = Logger.getLogger(SureFireDebugProvider.class);
     private static final int SLEEP_TIMEOUT = 500;
     private final ProviderParameters parameters;
     private final boolean runTests;
     private final boolean skipBeforeAndAfterTestClassMethods;
+    private final boolean suspend;
 
     public SureFireDebugProvider(ProviderParameters parameters) {
         this.parameters = parameters;
@@ -46,6 +48,7 @@ public class SureFireDebugProvider extends AbstractProvider {
         } else {
             runTests = Boolean.parseBoolean(waitingStrategyProp);
         }
+        this.suspend = Boolean.getBoolean(SUSPEND);
         skipBeforeAndAfterTestClassMethods = parseBoolean(System.getProperty("ts.debug.skip-before-and-after-methods"));
     }
 
@@ -58,7 +61,8 @@ public class SureFireDebugProvider extends AbstractProvider {
     public RunResult invoke(Object o) throws TestSetFailedException, ReporterException, InvocationTargetException {
         try {
             var bootstrap = new QuarkusScenarioBootstrap();
-            var testContext = new TestContext.TestContextImpl(findTestClass(), Set.of());
+            var debugOptions = new TestContext.DebugOptions(true, suspend);
+            var testContext = new TestContext.TestContextImpl(findTestClass(), Set.of(), debugOptions);
             var testClassInstance = instantiateTestClass();
 
             bootstrap.beforeAll(testContext);

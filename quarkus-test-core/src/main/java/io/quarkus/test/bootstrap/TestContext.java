@@ -17,6 +17,8 @@ public interface TestContext {
 
     Optional<String> getRunningTestMethodName();
 
+    DebugOptions debugOptions();
+
     interface TestStore {
 
         Object get(Object key);
@@ -25,18 +27,23 @@ public interface TestContext {
 
     }
 
+    record DebugOptions(boolean debug, boolean suspend) {
+    }
+
     final class TestContextImpl implements TestContext {
 
         private final TestStore testStore;
         private final Class<?> requiredTestClass;
         private final Set<String> tags;
         private final String runningTestMethodName;
+        private final DebugOptions debugOptions;
 
-        public TestContextImpl(Class<?> requiredTestClass, Set<String> tags) {
+        public TestContextImpl(Class<?> requiredTestClass, Set<String> tags, DebugOptions debugOptions) {
             this.testStore = new MapBackedTestStore();
             this.requiredTestClass = requiredTestClass;
             this.tags = tags;
             this.runningTestMethodName = null;
+            this.debugOptions = debugOptions;
         }
 
         TestContextImpl(Class<?> requiredTestClass, Set<String> tags, ExtensionContext.Store store) {
@@ -54,6 +61,7 @@ public interface TestContext {
             this.requiredTestClass = requiredTestClass;
             this.tags = tags;
             this.runningTestMethodName = null;
+            this.debugOptions = null;
         }
 
         TestContextImpl(TestContext testContext, String runningTestMethodName) {
@@ -61,6 +69,7 @@ public interface TestContext {
             this.requiredTestClass = testContext.getRequiredTestClass();
             this.tags = testContext.getTags();
             this.runningTestMethodName = runningTestMethodName;
+            this.debugOptions = null;
         }
 
         @Override
@@ -81,6 +90,11 @@ public interface TestContext {
         @Override
         public Optional<String> getRunningTestMethodName() {
             return runningTestMethodName == null ? Optional.empty() : Optional.of(runningTestMethodName);
+        }
+
+        @Override
+        public DebugOptions debugOptions() {
+            return debugOptions;
         }
     }
 
