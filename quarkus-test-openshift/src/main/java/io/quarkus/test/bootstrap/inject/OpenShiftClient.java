@@ -825,8 +825,15 @@ public final class OpenShiftClient {
                             }
                         }));
             } else if (obj instanceof io.fabric8.kubernetes.api.model.Service k8Service) {
+                var k8ServiceName = k8Service.getMetadata().getName();
                 boolean isQuarkusRuntime = isQuarkusRuntime(k8Service.getMetadata().getLabels());
-                if (isQuarkusRuntime) {
+                // Subject Alternative Name (SAN) must match service DNS name,
+                // and injected certificates will have SAN set to one of OpenShift services,
+                // but we can have 2 services created for one application,
+                // one for HTTP server, one for management interface
+                // so far, we don't support management interface,
+                // which allows mount exactly one secret created for the HTTP server
+                if (isQuarkusRuntime && isNotManagementInterfaceService(k8ServiceName)) {
                     collectAnnotations(service).forEach(keyToVal -> {
                         var annotationKey = keyToVal.key();
                         var annotationVal = keyToVal.value();
@@ -850,15 +857,6 @@ public final class OpenShiftClient {
     }
 
     private static List<OpenShiftPropertiesUtils.PropertyToValue> collectAnnotations(Service service) {
-        if (isManagementInterfaceService(service)) {
-            // Subject Alternative Name (SAN) must match service DNS name,
-            // and injected certificates will have SAN set to one of OpenShift services,
-            // but we can have 2 services created for one application,
-            // one for HTTP server, one for management interface
-            // so far, we don't support management interface,
-            // which allows mount exactly one secret created for the HTTP server
-            return List.of();
-        }
         return service.getProperties().values()
                 .stream()
                 .filter(OpenShiftPropertiesUtils::isAnnotation)
@@ -866,8 +864,8 @@ public final class OpenShiftClient {
                 .toList();
     }
 
-    private static boolean isManagementInterfaceService(Service service) {
-        return service.getName().endsWith("-management");
+    private static boolean isNotManagementInterfaceService(String serviceName) {
+        return serviceName == null || !serviceName.endsWith("-management");
     }
 
     private String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
