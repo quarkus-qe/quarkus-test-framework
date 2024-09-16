@@ -33,6 +33,11 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
                 command.add(ENABLE_PREVIEW);
             }
             command.addAll(systemProperties);
+            var debugOptions = model.getContext().getTestContext().debugOptions();
+            if (debugOptions != null && debugOptions.debug()) {
+                var suspend = debugOptions.suspend() ? "y" : "n";
+                command.add("-agentlib:jdwp=transport=dt_socket,address=localhost:5005,server=y,suspend=" + suspend);
+            }
             command.add("-jar");
             command.add(model.getArtifact().toAbsolutePath().toString());
         } else {
