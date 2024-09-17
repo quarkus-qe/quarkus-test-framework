@@ -19,6 +19,7 @@ import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public final class MavenUtils {
 
@@ -76,6 +77,9 @@ public final class MavenUtils {
         command.addAll(Arrays.asList(BATCH_MODE, SKIP_PROGRESS));
         command.addAll(systemProperties);
         command.add(withProperty("debug", "false"));
+        if (QuarkusProperties.disableBuildAnalytics()) {
+            command.add(QuarkusProperties.createDisableBuildAnalyticsProperty());
+        }
         command.add("quarkus:dev");
 
         return command;

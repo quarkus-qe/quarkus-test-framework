@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.createDisableBuildAnalyticsProperty;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
 import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
@@ -123,6 +124,9 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
         command.add(withProperty(QUARKUS_LIVE_RELOAD_URL,
                 managedResource.getURI(Protocol.HTTP).toString()));
         command.add("quarkus:remote-dev");
+        if (QuarkusProperties.disableBuildAnalytics()) {
+            command.add(createDisableBuildAnalyticsProperty());
+        }
 
         Log.info("Running command: %s", String.join(" ", command));
 

@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus.model;
 
+import static java.lang.String.format;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,6 +50,10 @@ public final class QuarkusProperties {
 
     public static boolean disableBuildAnalytics() {
         return QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP.getAsBoolean();
+    }
+
+    public static String createDisableBuildAnalyticsProperty() {
+        return format("-D%s=%s", QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP_KEY, Boolean.TRUE);
     }
 
     public static boolean isNativeEnabled() {
