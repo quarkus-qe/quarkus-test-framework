@@ -32,7 +32,6 @@ import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.smallrye.common.os.OS;
-import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public abstract class QuarkusCLIUtils {
     public static final String RESOURCES_DIR = Paths.get("src", "main", "resources").toString();
