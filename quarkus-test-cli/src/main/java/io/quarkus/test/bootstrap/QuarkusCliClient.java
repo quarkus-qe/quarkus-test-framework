@@ -29,7 +29,6 @@ public class QuarkusCliClient {
     public static final String COMMAND_LOG_FILE = "quarkus-cli-command.out";
     public static final String DEV_MODE_LOG_FILE = "quarkus-cli-dev.out";
 
-    private static final String QUARKUS_VERSION_PROPERTY_NAME = "quarkus.version";
     private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final String DEV = "dev";
@@ -53,9 +52,6 @@ public class QuarkusCliClient {
     public Result buildApplicationOnJvm(Path serviceFolder, String... extraArgs) {
         List<String> args = new ArrayList<>();
         args.add(BUILD);
-        if (isUpstream()) {
-            args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
-        }
         args.addAll(Arrays.asList(extraArgs));
         return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
@@ -64,9 +60,6 @@ public class QuarkusCliClient {
         List<String> args = new ArrayList<>();
         args.add(BUILD);
         args.add("--native");
-        if (isUpstream()) {
-            args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
-        }
         args.addAll(Arrays.asList(extraArgs));
         return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
     }
@@ -390,7 +383,7 @@ public class QuarkusCliClient {
 
         public static CreateExtensionRequest defaults() {
             if (isUpstream()) {
-                return new CreateExtensionRequest();
+                return new CreateExtensionRequest().withCurrentPlatformBom();
             }
             // set fixed stream because if tested stream is not the latest stream, we would create app with wrong version
             return new CreateExtensionRequest().withStream(getFixedStreamVersion());
