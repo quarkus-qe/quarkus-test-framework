@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Disabled;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 
 @OpenShiftScenario
-@Disabled
-// todo delete when https://github.com/quarkusio/quarkus/issues/32225 is fixed
+@Disabled("https://github.com/quarkus-qe/quarkus-test-framework/issues/1052")
+// todo delete when framework support SSL/TLS on openshift
 public class OpenShiftTLSIT extends LocalTLSIT {
 }
