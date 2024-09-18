@@ -39,8 +39,7 @@ public final class QuarkusTlsCommand extends AbstractCliCommand {
 
     private static QuarkusCliClient.CreateApplicationRequest getCreateAppReq() {
         return QuarkusCliClient.CreateApplicationRequest.defaults()
-                // TODO: we can drop 'tls-registry' when https://github.com/quarkusio/quarkus/issues/42751 is fixed
-                .withExtensions("tls-registry", "quarkus-rest");
+                .withExtensions("quarkus-rest");
     }
 
     private static File createTempDir() {
