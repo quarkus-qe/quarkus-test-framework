@@ -11,7 +11,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.restassured.response.Response;
 
 @QuarkusScenario
-// todo Merge with LocalIT when https://github.com/quarkusio/quarkus/issues/32225 is fixed
+// todo Merge with LocalIT when framework support SSL/TLS on openshift https://github.com/quarkus-qe/quarkus-test-framework/issues/1052
 public class LocalTLSIT {
 
     @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true, useTlsRegistry = false))
