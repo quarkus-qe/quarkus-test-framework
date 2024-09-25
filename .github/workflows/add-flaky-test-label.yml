@@ -19,6 +19,13 @@ jobs:
       - name: 'Get PR number'
         if: ${{ hashFiles('**/jobs-with-flaky-tests') != '' }}
         run: gh run download $WORKFLOW_ID -n pr-number || true
+      - name: 'Download Flaky Run Reports'
+        if: ${{ hashFiles('**/pr-number') != '' }}
+        run: |
+          gh run download $WORKFLOW_ID -n flaky-run-report-linux-jvm-released || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-linux-jvm-latest || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-linux-native-released || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-windows-jvm-latest || true
       - name: 'Add "triage/flaky-test" label'
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |
@@ -26,4 +33,6 @@ jobs:
       - name: 'Comment on PR about flaky tests'
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |
-          gh pr comment "$(cat pr-number)" --body "Following jobs contain at least one flaky test: $(cat jobs-with-flaky-tests)"
+          curl -Ls https://sh.jbang.dev | bash -s - app setup
+          ~/.jbang/bin/jbang trust add https://raw.githubusercontent.com/quarkus-qe/flaky-run-reporter/main/jbang-scripts/
+          gh pr comment "$(cat pr-number)" --body "$(~/.jbang/bin/jbang https://raw.githubusercontent.com/quarkus-qe/flaky-run-reporter/main/jbang-scripts/GitHubPrCommentator.java overview-file=jobs-with-flaky-tests flaky-reports-file-prefix=flaky-run-report)"
