@@ -102,6 +102,13 @@ jobs:
         shell: bash
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Archive flaky run report
+        id: archive-flaky-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-run-report-linux-jvm-released
+          path: target/flaky-run-report.json
       - name: Zip Artifacts
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -161,6 +168,13 @@ jobs:
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive flaky run report
+        id: archive-flaky-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-run-report-linux-jvm-latest
+          path: target/flaky-run-report.json
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
@@ -207,6 +221,13 @@ jobs:
         shell: bash
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Archive flaky run report
+        id: archive-flaky-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-run-report-linux-native-released
+          path: target/flaky-run-report.json
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -253,6 +274,13 @@ jobs:
         id: flaky-test-detector
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Archive flaky run report
+        id: archive-flaky-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: flaky-run-report-windows-jvm-last
+          path: target/flaky-run-report.json
       - name: Zip Artifacts
         shell: bash
         if: failure()
