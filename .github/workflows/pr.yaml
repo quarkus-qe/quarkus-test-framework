@@ -102,13 +102,18 @@ jobs:
         shell: bash
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Rename flaky test run report to avoid file name conflicts
+        id: rename-flaky-test-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        shell: bash
+        run: mv target/flaky-run-report.json target/flaky-run-report-linux-jvm-released.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-linux-jvm-released.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: flaky-run-report-linux-jvm-released
-          path: target/flaky-run-report.json
+          path: target/flaky-run-report-linux-jvm-released.json
       - name: Zip Artifacts
         run: |
           zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -165,13 +170,18 @@ jobs:
         shell: bash
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Rename flaky test run report to avoid file name conflicts
+        id: rename-flaky-test-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        shell: bash
+        run: mv target/flaky-run-report.json target/flaky-run-report-linux-jvm-latest.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-linux-jvm-latest.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: flaky-run-report-linux-jvm-latest
-          path: target/flaky-run-report.json
+          path: target/flaky-run-report-linux-jvm-latest.json
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -221,13 +231,18 @@ jobs:
         shell: bash
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Rename flaky test run report to avoid file name conflicts
+        id: rename-flaky-test-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        shell: bash
+        run: mv target/flaky-run-report.json target/flaky-run-report-linux-native-released.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-linux-native-released.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: flaky-run-report-linux-native-released
-          path: target/flaky-run-report.json
+          path: target/flaky-run-report-linux-native-released.json
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -274,13 +289,18 @@ jobs:
         id: flaky-test-detector
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
+      - name: Rename flaky test run report to avoid file name conflicts
+        id: rename-flaky-test-run-report
+        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        shell: bash
+        run: mv target/flaky-run-report.json target/flaky-run-report-windows-jvm-latest.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-windows-jvm-latest.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: flaky-run-report-windows-jvm-latest
-          path: target/flaky-run-report.json
+          path: target/flaky-run-report-windows-jvm-latest.json
       - name: Zip Artifacts
         shell: bash
         if: failure()
