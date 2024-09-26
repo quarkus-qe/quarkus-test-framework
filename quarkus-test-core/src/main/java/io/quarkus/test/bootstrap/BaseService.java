@@ -3,6 +3,9 @@ package io.quarkus.test.bootstrap;
 import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
+import static io.quarkus.test.utils.TestExecutionProperties.isThisCliApp;
+import static io.quarkus.test.utils.TestExecutionProperties.isThisStartedCliApp;
+import static io.quarkus.test.utils.TestExecutionProperties.rememberThisAppStarted;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Path;
@@ -221,6 +224,22 @@ public class BaseService<T extends Service> implements Service {
             return;
         }
 
+        // our FW tries to start each auto-started service twice
+        // I won't dare to change it until I have time to fix issues that I caused, but
+        // TODO: we should figure out why BaseService:start is called more than once
+        // once from the io.quarkus.test.bootstrap.QuarkusScenarioBootstrap.launchService
+        // and once from the io.quarkus.test.bootstrap.QuarkusScenarioBootstrap.beforeEach
+        // it doesn't matter for normal apps, but CLI app can launch and stop
+        // so it won't be running on the next "start()"
+        // so here, I am making sure that we remember the first start
+        if (isThisStartedCliApp(context)) {
+            return;
+        } else {
+            // we always need to remember this in case during the build we
+            // recognize this is a CLI app, which happens later
+            rememberThisAppStarted(context);
+        }
+
         Log.debug(this, "Starting service (%s)", getDisplayName());
         onPreStartActions.forEach(a -> a.handle(this));
         doStart();
@@ -352,6 +371,9 @@ public class BaseService<T extends Service> implements Service {
     }
 
     private void waitUntilServiceIsStarted() {
+        if (isThisCliApp(this.context)) {
+            return;
+        }
         try {
             Duration startupCheckInterval = getConfiguration()
                     .getAsDuration(SERVICE_STARTUP_CHECK_POLL_INTERVAL, SERVICE_STARTUP_CHECK_POLL_INTERVAL_DEFAULT);
