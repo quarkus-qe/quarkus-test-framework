@@ -1,5 +1,7 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.utils.TestExecutionProperties.rememberThisIsCliApp;
+
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -52,6 +54,7 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
             if (property.contains(QUARKUS_ARGS_PROPERTY_NAME)) {
                 propertiesIt.remove();
                 args = property.replace("-D" + QUARKUS_ARGS_PROPERTY_NAME + "=", "").split(" ");
+                rememberThisIsCliApp(this.getContext());
                 break;
             }
         }

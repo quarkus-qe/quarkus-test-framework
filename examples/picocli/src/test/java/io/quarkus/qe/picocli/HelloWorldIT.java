@@ -1,7 +1,5 @@
 package io.quarkus.qe.picocli;
 
-import static java.util.concurrent.CompletableFuture.runAsync;
-
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.RestService;
@@ -15,12 +13,10 @@ public class HelloWorldIT {
 
     @QuarkusApplication
     static final RestService app = new RestService()
-            .withProperty("quarkus.args", "helloWorld -n " + NAME)
-            .setAutoStart(false);
+            .withProperty("quarkus.args", "helloWorld -n " + NAME);
 
     @Test
     public void verifyHelloWorldFormatted() {
-        runAsync(app::start);
         String expectedOutput = String.format("Hello %s!", NAME);
         app.logs().assertContains(expectedOutput);
     }
