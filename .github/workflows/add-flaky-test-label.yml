@@ -30,6 +30,13 @@ jobs:
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |
           gh pr edit "$(cat pr-number)" --add-label 'triage/flaky-test'
+      - name: Install JDK 21 for JBang
+        uses: actions/setup-java@v4
+        if: ${{ hashFiles('**/pr-number') != '' }}
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          check-latest: true
       - name: 'Comment on PR about flaky tests'
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |
