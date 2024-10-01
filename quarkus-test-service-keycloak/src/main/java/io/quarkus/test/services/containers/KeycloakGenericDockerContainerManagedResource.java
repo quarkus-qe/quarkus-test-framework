@@ -1,5 +1,7 @@
 package io.quarkus.test.services.containers;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
@@ -38,6 +40,8 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
         }
 
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+        container.withCreateContainerCmdModifier(cmd -> Optional.ofNullable(cmd.getHostConfig())
+                .ifPresent(config -> config.withMemory(convertMiBtoBytes(model.getMemoryLimitMiB()))));
 
         if (isReusable()) {
             Log.info(model.getContext().getOwner(), "Running container on Reusable mode");
@@ -65,5 +69,10 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
 
     private boolean isPrivileged() {
         return model.getContext().getOwner().getConfiguration().isTrue(PRIVILEGED_MODE);
+    }
+
+    static long convertMiBtoBytes(long valueInMiB) {
+        final var exponentMiB = 20;
+        return (long) (valueInMiB * Math.pow(2, exponentMiB));
     }
 }

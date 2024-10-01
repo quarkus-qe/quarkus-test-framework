@@ -18,6 +18,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     private int restPort;
     private String[] command;
     private String expectedLog;
+    private long memoryLimitMiB;
 
     @Override
     protected String getImage() {
@@ -44,6 +45,10 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         return expectedLog;
     }
 
+    protected Long getMemoryLimitMiB() {
+        return memoryLimitMiB;
+    }
+
     @Override
     public void init(Annotation annotation) {
         KeycloakContainer metadata = (KeycloakContainer) annotation;
@@ -51,6 +56,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         this.restPort = metadata.port();
         this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.command = metadata.command();
+        this.memoryLimitMiB = metadata.memoryLimitMiB();
     }
 
     @Override
