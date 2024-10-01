@@ -22,5 +22,7 @@ public @interface KeycloakContainer {
 
     String[] command() default {};
 
+    long memoryLimitMiB() default 1000;
+
     Class<? extends ManagedResourceBuilder> builder() default KeycloakContainerManagedResourceBuilder.class;
 }
