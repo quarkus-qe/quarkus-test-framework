@@ -232,7 +232,7 @@ jobs:
         shell: bash
         run: tar -xzf maven-repo.tgz -C ~
       - name: Set up Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.11.0
+        uses: manusa/actions-setup-minikube@v2.12.0
         with:
           minikube version: 'v1.33.1'
           kubernetes version: 'v1.30.0'
@@ -284,7 +284,7 @@ jobs:
         shell: bash
         run: tar -xzf maven-repo.tgz -C ~
       - name: Set up Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.11.0
+        uses: manusa/actions-setup-minikube@v2.12.0
         with:
           minikube version: 'v1.33.1'
           kubernetes version: 'v1.30.0'
