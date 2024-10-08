@@ -25,7 +25,6 @@ import java.util.stream.Stream;
 
 import org.apache.commons.lang3.StringUtils;
 
-import io.quarkus.builder.Version;
 import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
 import io.quarkus.maven.dependency.ArtifactCoords;
 import io.quarkus.maven.dependency.ArtifactDependency;
@@ -217,11 +216,18 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             requiresCustomBuild = true;
             this.forcedDependencies = Stream.of(forcedDependencies).map(d -> {
                 String groupId = StringUtils.defaultIfEmpty(resolveProperty(d.groupId()), QUARKUS_GROUP_ID_DEFAULT);
-                String version = StringUtils.defaultIfEmpty(resolveProperty(d.version()), Version.getVersion());
+                String version = getVersion(d);
                 ArtifactCoords artifactCoords = ArtifactCoords.jar(groupId, d.artifactId(), version);
                 return new ArtifactDependency(artifactCoords, DEPENDENCY_SCOPE_DEFAULT, DEPENDENCY_DIRECT_FLAG);
             }).collect(Collectors.toList());
         }
+    }
+
+    private static String getVersion(Dependency dependency) {
+        if (dependency.version() == null || dependency.version().isEmpty()) {
+            return null;
+        }
+        return resolveProperty(dependency.version());
     }
 
     protected void configureLogging() {

@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.services.quarkus.QuarkusMavenPluginBuildHelper.findJvmArtifact;
 import static io.quarkus.test.services.quarkus.QuarkusMavenPluginBuildHelper.findNativeBuildExecutable;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -32,10 +33,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     static final String NATIVE_RUNNER = "-runner";
     static final String EXE = ".exe";
     static final String TARGET = "target";
-
-    private static final String JVM_RUNNER = "-runner.jar";
-    private static final String QUARKUS_APP = "quarkus-app";
-    private static final String QUARKUS_RUN = "quarkus-run.jar";
 
     private final ServiceLoader<QuarkusApplicationManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(QuarkusApplicationManagedResourceBinding.class);
@@ -119,8 +116,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                 // custom native executable has different name, therefore we can safely re-use it
                 artifactLocation = findNativeBuildExecutable(targetFolder, requiresCustomBuild(), getApplicationFolder());
             } else if (!requiresCustomBuild()) {
-                artifactLocation = findTargetFile(targetFolder, JVM_RUNNER)
-                        .or(() -> findTargetFile(targetFolder.resolve(QUARKUS_APP), QUARKUS_RUN));
+                artifactLocation = findJvmArtifact(targetFolder);
             }
         }
 
@@ -139,6 +135,9 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
                                 """);
                         return buildArtifactUsingQuarkusBootstrap();
                     });
+        }
+        if (!getForcedDependencies().isEmpty()) {
+            return new QuarkusMavenPluginBuildHelper(this, getTargetFolderForLocalArtifacts()).jvmModeBuild();
         }
         return buildArtifactUsingQuarkusBootstrap();
     }
