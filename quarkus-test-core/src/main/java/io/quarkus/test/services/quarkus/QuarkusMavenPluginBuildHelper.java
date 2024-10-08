@@ -48,6 +48,9 @@ import io.smallrye.common.os.OS;
 
 class QuarkusMavenPluginBuildHelper {
 
+    private static final String JVM_RUNNER = "-runner.jar";
+    private static final String QUARKUS_APP = "quarkus-app";
+    private static final String QUARKUS_RUN = "quarkus-run.jar";
     private static final String CUSTOM_RUNNER_DIR = "custom-build";
     private static final Set<String> FAILSAFE_BUILD_LIFECYCLE_PHASES = Set.of("verify", "install", "deploy",
             "integration-test");
@@ -145,17 +148,41 @@ class QuarkusMavenPluginBuildHelper {
         return mavenBuildProjectRoot;
     }
 
+    Path jvmModeBuild() {
+        return buildArtifact(Mode.JVM).orElseThrow(() -> new RuntimeException("""
+                Failed to build JAR artifact, the most likely reason is that Quarkus Maven plugin is missing.
+                Please add 'quarkus-maven-plugin' to your project.
+                """));
+    }
+
     Optional<Path> buildNativeExecutable() {
+        return buildArtifact(Mode.NATIVE);
+    }
+
+    private Optional<Path> buildArtifact(Mode mode) {
         Objects.requireNonNull(targetFolderForLocalArtifacts);
         var mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
 
         // build artifact with Quarkus Maven Plugin
         try {
-            new Command(getBuildNativeExecutableCmd()).onDirectory(mavenBuildProjectRoot).runAndWait();
+            new Command(getBuildCmd(mode)).onDirectory(mavenBuildProjectRoot).runAndWait();
         } catch (IOException | InterruptedException e) {
-            throw new RuntimeException("Failed to build native executable: " + e.getMessage());
+            throw new RuntimeException("Failed to build artifact: " + e.getMessage());
         }
 
+        if (mode == Mode.JVM) {
+            return findJvmArtifact(mavenBuildProjectRoot.resolve(TARGET)).map(Path::of);
+        } else {
+            return findNativeExecutable(mavenBuildProjectRoot);
+        }
+    }
+
+    static Optional<String> findJvmArtifact(Path targetFolder) {
+        return findTargetFile(targetFolder, JVM_RUNNER)
+                .or(() -> findTargetFile(targetFolder.resolve(QUARKUS_APP), QUARKUS_RUN));
+    }
+
+    private Optional<Path> findNativeExecutable(Path mavenBuildProjectRoot) {
         return findTargetFile(mavenBuildProjectRoot.resolve(TARGET), nativeRunnerName())
                 .map(Path::of)
                 .flatMap(this::moveToPermanentLocation);
@@ -195,15 +222,20 @@ class QuarkusMavenPluginBuildHelper {
         // runtime properties provided at build time are currently available during the build time and so are custom props
         // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
         resourceBuilder.createSnapshotOfBuildProperties();
-        return resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties();
+        return resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties()
+                || !forcedDependencies.isEmpty();
     }
 
-    private String[] getBuildNativeExecutableCmd() {
+    private String[] getBuildCmd(Mode mode) {
         Stream<String> cmdStream = Stream.of(mvnCmd(), "-B", "--no-transfer-progress", "clean", "install",
-                "-Dquarkus.build.skip=false", "-Dnative", "-DskipTests", "-DskipITs", "-Dcheckstyle.skip",
+                "-Dquarkus.build.skip=false");
+        if (mode == Mode.NATIVE) {
+            cmdStream = Stream.concat(cmdStream, Stream.of("-Dnative"));
+        }
+        cmdStream = Stream.concat(cmdStream, Stream.of("-DskipTests", "-DskipITs", "-Dcheckstyle.skip",
                 toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
                 toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
-                toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion()));
+                toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion())));
         var cmdLineBuildArgs = getCmdLineBuildArgs();
         if (!cmdLineBuildArgs.isEmpty()) {
             cmdStream = Stream.concat(cmdStream, cmdLineBuildArgs.stream());
@@ -377,7 +409,7 @@ class QuarkusMavenPluginBuildHelper {
                     }
                     newDependency.appendChild(groupId);
                     // <version>
-                    if (!forcedDependency.getVersion().isEmpty()) {
+                    if (forcedDependency.getVersion() != null && !forcedDependency.getVersion().isEmpty()) {
                         Element version = pomDocument.createElement("version");
                         version.setTextContent(forcedDependency.getVersion());
                         newDependency.appendChild(version);
@@ -493,5 +525,10 @@ class QuarkusMavenPluginBuildHelper {
         } else {
             return NATIVE_RUNNER;
         }
+    }
+
+    private enum Mode {
+        JVM,
+        NATIVE
     }
 }
