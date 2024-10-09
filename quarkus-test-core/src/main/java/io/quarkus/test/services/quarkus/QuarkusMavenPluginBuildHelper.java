@@ -9,6 +9,7 @@ import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLUGIN_VE
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getPluginVersion;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getVersion;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
+import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.toMvnSystemProperty;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
@@ -357,9 +358,9 @@ class QuarkusMavenPluginBuildHelper {
             // 2. copy them to the new source dir
             if (!testDirAppClassesPaths.isEmpty()) {
                 String normalizedTestSourceDirPath = testSourceDir.toAbsolutePath().normalize().toString();
-                if (!normalizedTestSourceDirPath.endsWith("/")) {
+                if (!normalizedTestSourceDirPath.endsWith(SLASH)) {
                     // this prevents situation when test app file sub-path starts with a '/'
-                    normalizedTestSourceDirPath += "/";
+                    normalizedTestSourceDirPath += SLASH;
                 }
                 for (Path appFilePath : testDirAppClassesPaths) {
                     String normalizedAppFileDirPath = appFilePath.getParent().toAbsolutePath().normalize().toString();
