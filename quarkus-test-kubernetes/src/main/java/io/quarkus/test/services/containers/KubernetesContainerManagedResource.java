@@ -1,5 +1,6 @@
 package io.quarkus.test.services.containers;
 
+import static io.quarkus.test.configuration.Configuration.Property.KUBERNETES_DEPLOYMENT_SERVICE_PROPERTY;
 import static java.util.regex.Pattern.quote;
 
 import java.util.Arrays;
@@ -12,15 +13,13 @@ import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.URILike;
 
 public class KubernetesContainerManagedResource implements ManagedResource {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "kubernetes.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "kubernetes.template";
-    private static final String USE_INTERNAL_SERVICE_AS_URL_PROPERTY = "kubernetes.use-internal-service-as-url";
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/kubernetes-deployment-template.yml";
 
     private static final String DEPLOYMENT = "kubernetes.yml";
@@ -90,14 +89,15 @@ public class KubernetesContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
-                DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+        String deploymentFile = getConfiguration()
+                .getOrDefault(Configuration.Property.KUBERNETES_DEPLOYMENT_TEMPLATE_PROPERTY,
+                        DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
         client.applyServiceProperties(model.getContext().getOwner(), deploymentFile, this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
 
     private String replaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        String customServiceName = getConfiguration().get(KUBERNETES_DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getName());
@@ -111,6 +111,11 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
     private boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
-                .equals(model.getContext().getOwner().getConfiguration().get(USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
+                .equals(getConfiguration()
+                        .get(Configuration.Property.KUBERNETES_USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
+    }
+
+    private Configuration getConfiguration() {
+        return model.getContext().getOwner().getConfiguration();
     }
 }
