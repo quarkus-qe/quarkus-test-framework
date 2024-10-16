@@ -33,38 +33,6 @@ jobs:
           name: maven-repo-current-fw${{matrix.java}}
           path: maven-repo-current-fw.tgz
           retention-days: 1
-  quarkus-main-build:
-    name: Quarkus main build
-    runs-on: ubuntu-latest
-    needs: validate-format
-    strategy:
-      matrix:
-        java: [ 17 ]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Reclaim Disk Space
-        run: .github/ci-prerequisites.sh
-      - name: Install required tools
-        run: sudo apt update && sudo apt install pigz
-      - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: ${{ matrix.java }}
-          check-latest: true
-          cache: 'maven'
-      - name: Build Quarkus main
-        run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
-      - name: Tar Maven Repo
-        shell: bash
-        run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
-      - name: Persist Maven Repo
-        uses: actions/upload-artifact@v4
-        with:
-          name: maven-repo${{matrix.java}}
-          path: maven-repo.tgz
-          retention-days: 1
   linux-build-jvm-released:
     name: Linux - JVM build - Released Versions
     runs-on: ubuntu-latest
@@ -125,7 +93,7 @@ jobs:
   linux-build-jvm-latest:
     name: Linux - JVM build - Latest Version
     runs-on: ubuntu-latest
-    needs: quarkus-main-build
+    needs: validate-format
     strategy:
       matrix:
         quarkus-version: ["999-SNAPSHOT"]
@@ -143,28 +111,21 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Download Maven Repo
-        uses: actions/download-artifact@v4
-        with:
-          name: maven-repo${{matrix.java}}
-          path: .
-      - name: Extract Maven Repo
-        shell: bash
-        run: tar -xzf maven-repo.tgz -C ~
-      - name: Build Quarkus CLI
-        run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B --no-transfer-progress -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Set up Maven settings.xml # we need to do this because of CLI and external app tests does not propagate '-s' option
+        run: cp .github/quarkus-snapshots-mvn-settings.xml ~/.m2/settings.xml
+      - name: Download Quarkus CLI
+        run: mvn org.apache.maven.plugins:maven-dependency-plugin:get -Dartifact=io.quarkus:quarkus-cli:999-SNAPSHOT:jar:runner
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          java -jar ~/.m2/repository/io/quarkus/quarkus-cli/999-SNAPSHOT/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
       - name: Build in JVM mode
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -256,7 +217,7 @@ jobs:
   windows-build-jvm-latest:
     name: Windows - JVM build - Latest Version
     runs-on: windows-latest
-    needs: quarkus-main-build
+    needs: validate-format
     strategy:
       matrix:
         java: [ 17 ]
@@ -272,18 +233,10 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Download Maven Repo
-        uses: actions/download-artifact@v4
-        with:
-          name: maven-repo${{matrix.java}}
-          path: .
-      - name: Extract Maven Repo
-        shell: bash
-        run: tar -xzf maven-repo.tgz -C ~
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
