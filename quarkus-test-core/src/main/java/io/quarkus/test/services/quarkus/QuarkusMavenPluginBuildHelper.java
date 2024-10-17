@@ -9,6 +9,7 @@ import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLUGIN_VE
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getPluginVersion;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getVersion;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
+import static io.quarkus.test.utils.MavenUtils.MVN_REPOSITORY_LOCAL;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.toMvnSystemProperty;
 import static java.util.stream.Collectors.toSet;
@@ -237,6 +238,12 @@ class QuarkusMavenPluginBuildHelper {
                 toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
                 toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
                 toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion())));
+
+        // Need to add local maven repo due to differences in `getCmdLineBuildArgs` as by default it's not picked on Windows
+        if (OS.WINDOWS.isCurrent() && System.getProperty(MVN_REPOSITORY_LOCAL) != null) {
+            cmdStream = Stream.concat(cmdStream,
+                    Stream.of(toMvnSystemProperty(MVN_REPOSITORY_LOCAL, System.getProperty(MVN_REPOSITORY_LOCAL))));
+        }
         var cmdLineBuildArgs = getCmdLineBuildArgs();
         if (!cmdLineBuildArgs.isEmpty()) {
             cmdStream = Stream.concat(cmdStream, cmdLineBuildArgs.stream());
