@@ -12,15 +12,13 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 import io.quarkus.test.services.URILike;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
-    private static final String DEPLOYMENT_SERVICE_PROPERTY = "openshift.service";
-    private static final String DEPLOYMENT_TEMPLATE_PROPERTY = "openshift.template";
-    private static final String USE_INTERNAL_SERVICE_AS_URL_PROPERTY = "openshift.use-internal-service-as-url";
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/openshift-deployment-template.yml";
     private static final String DEPLOYMENT = "openshift.yml";
 
@@ -114,8 +112,13 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return client;
     }
 
+    private Configuration getConfiguration() {
+        return model.getContext().getOwner().getConfiguration();
+    }
+
     protected String replaceDeploymentContent(String content) {
-        String customServiceName = model.getContext().getOwner().getConfiguration().get(DEPLOYMENT_SERVICE_PROPERTY);
+        String customServiceName = getConfiguration()
+                .get(Configuration.Property.OPENSHIFT_DEPLOYMENT_SERVICE_PROPERTY);
         if (StringUtils.isNotEmpty(customServiceName)) {
             // replace it by the service owner name
             content = content.replaceAll(quote(customServiceName), model.getContext().getOwner().getName());
@@ -130,7 +133,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     }
 
     private void applyDeployment() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
+        String deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
                 getTemplateByDefault());
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::replaceDeploymentContent,
@@ -139,8 +142,9 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
-                .equals(model.getContext().getOwner().getConfiguration()
-                        .getOrDefault(USE_INTERNAL_SERVICE_AS_URL_PROPERTY, "" + useInternalServiceByDefault()));
+                .equals(getConfiguration()
+                        .getOrDefault(Configuration.Property.OPENSHIFT_USE_INTERNAL_SERVICE_AS_URL_PROPERTY,
+                                "" + useInternalServiceByDefault()));
     }
 
 }
