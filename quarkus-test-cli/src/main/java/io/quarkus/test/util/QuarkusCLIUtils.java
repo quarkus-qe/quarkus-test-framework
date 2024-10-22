@@ -196,8 +196,10 @@ public abstract class QuarkusCLIUtils {
 
     public static Properties loadPropertiesFromFile(File file) throws IOException {
         Properties properties = new Properties();
-        properties.load(new FileInputStream(file));
-        return properties;
+        try (FileInputStream is = new FileInputStream(file)) {
+            properties.load(is);
+            return properties;
+        }
     }
 
     public static File getPropertiesFile(QuarkusCliRestService app) {
@@ -312,13 +314,15 @@ public abstract class QuarkusCLIUtils {
     public static Model getPom(QuarkusCliRestService app, String subdir) throws IOException, XmlPullParserException {
         File pomfile = app.getFileFromApplication(subdir, POM_FILE);
         MavenXpp3Reader mavenReader = new MavenXpp3Reader();
-        XmlStreamReader streamReader = new XmlStreamReader(pomfile);
-        return mavenReader.read(streamReader);
+        try (XmlStreamReader streamReader = new XmlStreamReader(pomfile)) {
+            return mavenReader.read(streamReader);
+        }
     }
 
     public static void savePom(QuarkusCliRestService app, Model model) throws IOException {
-        OutputStream output = new FileOutputStream(app.getFileFromApplication(POM_FILE));
-        new MavenXpp3Writer().write(output, model);
+        try (OutputStream output = new FileOutputStream(app.getFileFromApplication(POM_FILE))) {
+            new MavenXpp3Writer().write(output, model);
+        }
     }
 
     /**

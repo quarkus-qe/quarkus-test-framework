@@ -5,7 +5,6 @@ import static org.apache.maven.surefire.shared.lang3.StringUtils.isBlank;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
@@ -22,14 +21,16 @@ public abstract class YamlPropertiesHandler {
         yaml.dump(properties, new FileWriter(yamlFile));
     }
 
-    public static Properties readYamlFileIntoProperties(File yamlFile) throws FileNotFoundException {
+    public static Properties readYamlFileIntoProperties(File yamlFile) throws IOException {
         Yaml yaml = new Yaml();
-        Map<String, Object> obj = yaml.load(new FileInputStream(yamlFile));
+        try (FileInputStream is = new FileInputStream(yamlFile)) {
+            Map<String, Object> obj = yaml.load(is);
 
-        Properties properties = new Properties();
-        properties.putAll(getFlattenedMap(obj));
+            Properties properties = new Properties();
+            properties.putAll(getFlattenedMap(obj));
 
-        return properties;
+            return properties;
+        }
     }
 
     private static Map<String, Object> getFlattenedMap(Map<String, Object> source) {
