@@ -3,10 +3,12 @@ package io.quarkus.test.logging;
 import java.io.Closeable;
 import java.util.Collections;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
-import org.apache.maven.shared.utils.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.utils.AwaitilityUtils;
 
@@ -16,30 +18,28 @@ public abstract class LoggingHandler implements Closeable {
     private static final String ANY = ".*";
 
     private final List<String> logs = new CopyOnWriteArrayList<>();
-    private Thread innerThread;
-    private boolean running = false;
+    private Timer timer = null;
 
     protected abstract void handle();
 
     public void startWatching() {
+        if (timer != null) {
+            return;
+        }
+
         logs.clear();
-        running = true;
-        innerThread = new Thread(this::run);
-        innerThread.setDaemon(true);
-        innerThread.start();
+
+        timer = new Timer();
+        timer.schedule(new LoggingHandlerTask(), 0, TIMEOUT_IN_MILLIS);
     }
 
     public void stopWatching() {
-        flush();
-        running = false;
-        logs.clear();
-        if (innerThread != null) {
-            try {
-                innerThread.interrupt();
-            } catch (Exception ignored) {
-
-            }
+        if (timer == null) {
+            return;
         }
+        timer.cancel();
+        flush();
+        logs.clear();
     }
 
     public List<String> logs() {
@@ -57,20 +57,7 @@ public abstract class LoggingHandler implements Closeable {
 
     @Override
     public void close() {
-        if (running) {
-            stopWatching();
-        }
-    }
-
-    protected void run() {
-        while (running) {
-            try {
-                handle();
-                Thread.sleep(TIMEOUT_IN_MILLIS);
-            } catch (Exception ignored) {
-
-            }
-        }
+        stopWatching();
     }
 
     protected void onLine(String line) {
@@ -100,4 +87,15 @@ public abstract class LoggingHandler implements Closeable {
         return true;
     }
 
+    private final class LoggingHandlerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            try {
+                handle();
+            } catch (Exception exception) {
+                Log.debug("Exception thrown by logging handler", exception.getMessage());
+            }
+        }
+    }
 }

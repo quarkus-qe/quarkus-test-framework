@@ -40,43 +40,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
-    <profiles>
-        <profile>
-            <id>deploy-to-openshift-using-extension</id>
-            <dependencies>
-                <dependency>
-                    <groupId>io.quarkus</groupId>
-                    <artifactId>quarkus-openshift</artifactId>
-                </dependency>
-            </dependencies>
-        </profile>
-        <profile>
-            <id>skip-build-on-windows</id>
-            <activation>
-                <os>
-                    <family>windows</family>
-                </os>
-            </activation>
-            <properties>
-                <!-- Skip build to see if we still experience race on Windows -->
-                <quarkus.build.skip>true</quarkus.build.skip>
-            </properties>
-        </profile>
-    </profiles>
 </project>

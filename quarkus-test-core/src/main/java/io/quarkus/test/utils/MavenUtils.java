@@ -133,7 +133,7 @@ public final class MavenUtils {
         }
     }
 
-    private static String withQuarkusProfile(ServiceContext serviceContext) {
+    public static String withQuarkusProfile(ServiceContext serviceContext) {
         return withProperty(QUARKUS_PROFILE, serviceContext.getTestContext().getRequiredTestClass().getSimpleName());
     }
 
@@ -155,7 +155,7 @@ public final class MavenUtils {
         return null;
     }
 
-    private static void withProperties(List<String> args) {
+    public static void withProperties(List<String> args) {
 
         PropagatePropertiesStrategy strategy = PropagatePropertiesStrategy.fromValue(PROPAGATE_PROPERTIES_STRATEGY.get());
 

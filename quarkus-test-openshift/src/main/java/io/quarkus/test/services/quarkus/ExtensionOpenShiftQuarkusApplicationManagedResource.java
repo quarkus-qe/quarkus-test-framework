@@ -2,38 +2,31 @@ package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
-import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
-import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
-import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
-import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
-import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
-import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
-import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
-import static io.quarkus.test.utils.MavenUtils.installParentPomsIfNeeded;
-import static io.quarkus.test.utils.MavenUtils.mvnCommand;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
-import static org.junit.jupiter.api.Assertions.fail;
+import static io.quarkus.test.utils.MavenUtils.withQuarkusProfile;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.configuration.PropertyLookup;
-import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.MavenUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 
 public class ExtensionOpenShiftQuarkusApplicationManagedResource
         extends OpenShiftQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
-    private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-openshift-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
     private static final String QUARKUS_PLUGIN_ROUTE_EXPOSE = "-Dquarkus.openshift.route.expose=true";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
@@ -60,7 +53,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     @Override
     protected void doInit() {
         cloneProjectToServiceAppFolder();
-        copyComputedPropertiesIntoAppFolder();
         deployProjectUsingMavenCommand();
         exposeManagementRoute();
     }
@@ -89,31 +81,33 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         return false;
     }
 
-    @Override
-    public void validate() {
-        super.validate();
-
-        if (model.requiresCustomBuild()) {
-            fail("Custom source classes or forced dependencies is not supported by `UsingOpenShiftExtension`");
-        }
-    }
-
-    protected void withAdditionalArguments(List<String> args) {
+    protected void withAdditionalArguments(List<String> args, QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
 
     }
 
-    private void copyComputedPropertiesIntoAppFolder() {
-        // always copy computed properties to app folder as system properties are not propagated to OpenShift
-        Path computedPropertiesPath = model.getComputedApplicationProperties();
-        if (Files.exists(computedPropertiesPath)) {
-            var computedProperties = PropertiesUtils.toMap(computedPropertiesPath);
-            if (!computedProperties.isEmpty()) {
-                Path appPropertiesPath = model.getApplicationFolder().resolve(APPLICATION_PROPERTIES_PATH);
+    private void copyServicePropertiesIntoAppFolder(QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
+        quarkusMvnPluginHelper.withProjectDirectoryCustomizer(projectDirectory -> {
+            // always copy service properties to app folder as system properties are not propagated to OpenShift
+            var runtimeSvcProperties = model.getContext().getOwner().getProperties().entrySet().stream()
+                    .filter(e -> !model.isBuildProperty(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+            if (!runtimeSvcProperties.isEmpty()) {
+                model.setCustomBuildRequired();
+                Path appPropertiesPath = projectDirectory.resolve(APPLICATION_PROPERTIES_PATH);
                 createApplicationPropertiesIfNotExists(appPropertiesPath);
-                PropertiesUtils.fromMap(computedProperties, appPropertiesPath);
+
+                var allProperties = new HashMap<String, String>();
+                Path computedPropertiesPath = model.getComputedApplicationProperties();
+                if (Files.exists(computedPropertiesPath)) {
+                    allProperties.putAll(PropertiesUtils.toMap(computedPropertiesPath));
+                }
+                allProperties.putAll(runtimeSvcProperties);
+
+                PropertiesUtils.fromMap(allProperties, appPropertiesPath);
+                model.createSnapshotOfBuildProperties();
             }
-        }
-        model.createSnapshotOfBuildProperties();
+        });
     }
 
     private static void createApplicationPropertiesIfNotExists(Path appPropertiesPath) {
@@ -131,14 +125,19 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private void deployProjectUsingMavenCommand() {
-        installParentPomsIfNeeded();
-
         String namespace = client.project();
 
-        List<String> args = mvnCommand(model.getContext());
-        args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
-                QUARKUS_PLUGIN_DEPLOY, QUARKUS_PLUGIN_ROUTE_EXPOSE, SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE,
-                ENSURE_QUARKUS_BUILD));
+        // deploy-to-openshift-using-extension used to activate profile that wasn't active during initial build
+        // so we need to make sure that extension is always present in case users relied on that
+        var openshiftExtension = List.of(new Dependency("io.quarkus", "quarkus-openshift", null));
+        var quarkusMvnPluginHelper = new QuarkusMavenPluginBuildHelper(this.model,
+                this.model.getTargetFolderForLocalArtifacts(), this.model.getArtifactSuffix(), openshiftExtension);
+        copyServicePropertiesIntoAppFolder(quarkusMvnPluginHelper);
+        List<String> args = new ArrayList<>();
+        MavenUtils.withProperties(args);
+        args.add(QUARKUS_PLUGIN_DEPLOY);
+        args.add(QUARKUS_PLUGIN_ROUTE_EXPOSE);
+        args.add(withQuarkusProfile(model.getContext()));
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());
@@ -149,17 +148,13 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         withDeploymentTarget(args);
         withEnvVars(args);
         withBaseImageProperties(args);
-        withAdditionalArguments(args);
+        withAdditionalArguments(args, quarkusMvnPluginHelper);
 
-        try {
-            new Command(args).onDirectory(model.getApplicationFolder()).runAndWait();
-        } catch (Exception e) {
-            fail("Failed to run maven command. Caused by " + e.getMessage());
-        }
+        quarkusMvnPluginHelper.buildOrReuseArtifact(new HashSet<>(args));
     }
 
     private void withDeploymentTarget(List<String> args) {
-        final String deploymentTarget = model.getComputedProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET);
+        final String deploymentTarget = model.getContext().getOwner().getProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET, null);
         if (deploymentTarget == null || deploymentTarget.isBlank()) {
             args.add(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET_OPENSHIFT);
         }
@@ -203,10 +198,6 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
         return withProperty(QUARKUS_CONTAINER_NAME, model.getContext().getName());
     }
 
-    private String withJarFileName() {
-        return withProperty("quarkus.openshift.jar-file-name", "quarkus-run.jar");
-    }
-
     private String withContainerImageGroup(String namespace) {
         return withProperty(QUARKUS_CONTAINER_IMAGE_GROUP, namespace);
     }
@@ -240,7 +231,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private boolean isKnativeDeployment() {
-        return KNATIVE.equals(model.getComputedProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET));
+        return KNATIVE.equals(model.getContext().getOwner().getProperty(QUARKUS_KUBERNETES_DEPLOYMENT_TARGET, null));
     }
 
     protected void cloneProjectToServiceAppFolder() {

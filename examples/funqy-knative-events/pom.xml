@@ -10,10 +10,6 @@
     <artifactId>examples-funqy-knative-events</artifactId>
     <packaging>jar</packaging>
     <name>Quarkus - Test Framework - Examples - Funqy - Knative Events</name>
-    <properties>
-        <!-- Skip Quarkus build as this module have only Openshift tests and app have fixed build time properties -->
-        <quarkus.build.skip>true</quarkus.build.skip>
-    </properties>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
@@ -37,20 +33,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>quarkus-maven-plugin</artifactId>
-                <version>${quarkus.platform.version}</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-        </plugins>
-    </build>
 </project>

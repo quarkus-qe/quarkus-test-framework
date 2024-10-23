@@ -24,24 +24,26 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManaged
     }
 
     @Override
-    protected void withAdditionalArguments(List<String> args) {
-        copyDockerfileToSources();
+    protected void withAdditionalArguments(List<String> args, QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
+        copyDockerfileToSources(quarkusMvnPluginHelper);
 
         args.add(withProperty(QUARKUS_OPENSHIFT_BUILD_STRATEGY, DOCKER));
     }
 
-    private void copyDockerfileToSources() {
-        String dockerfileName = DockerUtils.getDockerfile(getLaunchMode());
-        Path dockerfileTargetFile = model.getApplicationFolder().resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName);
-        Path dockerfileTargetFolder = dockerfileTargetFile.getParent();
-        if (!Files.exists(dockerfileTargetFolder)) {
-            FileUtils.createDirectory(dockerfileTargetFolder);
-        }
+    private void copyDockerfileToSources(QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
+        quarkusMvnPluginHelper.withProjectDirectoryCustomizer(projectDirectory -> {
+            String dockerfileName = DockerUtils.getDockerfile(getLaunchMode());
+            Path dockerfileTargetFile = projectDirectory.resolve(DOCKERFILE_SOURCE_FOLDER + dockerfileName);
+            Path dockerfileTargetFolder = dockerfileTargetFile.getParent();
+            if (!Files.exists(dockerfileTargetFolder)) {
+                FileUtils.createDirectory(dockerfileTargetFolder);
+            }
 
-        if (!Files.exists(dockerfileTargetFile)) {
-            String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(getLaunchMode()))
-                    .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
-            FileUtils.copyContentTo(dockerFileContent, dockerfileTargetFile);
-        }
+            if (!Files.exists(dockerfileTargetFile)) {
+                String dockerFileContent = FileUtils.loadFile(DockerUtils.getDockerfile(getLaunchMode()))
+                        .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
+                FileUtils.copyContentTo(dockerFileContent, dockerfileTargetFile);
+            }
+        });
     }
 }

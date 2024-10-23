@@ -37,6 +37,23 @@
         <module>management</module>
         <module>debug</module>
     </modules>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>io.quarkus.qe</groupId>
+                <artifactId>quarkus-test-preparer</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>prepare-pom-mojo</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
     <profiles>
         <profile>
             <!-- makes it possible to start and keep alive app, containers, OCP namespace as long as you need -->

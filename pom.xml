@@ -265,6 +265,11 @@
                     <artifactId>jacoco-maven-plugin</artifactId>
                     <version>${jacoco-maven-plugin.version}</version>
                 </plugin>
+                <plugin>
+                    <groupId>io.quarkus.qe</groupId>
+                    <artifactId>quarkus-test-preparer</artifactId>
+                    <version>${project.version}</version>
+                </plugin>
             </plugins>
         </pluginManagement>
         <plugins>
@@ -391,6 +396,11 @@
             </plugin>
         </plugins>
     </build>
+
+    <modules>
+        <module>plugins/test-preparer</module>
+    </modules>
+
     <profiles>
         <profile>
             <id>framework</id>

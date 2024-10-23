@@ -233,10 +233,13 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
+      - name: Set up Maven settings.xml # we need to do this because of CLI and external app tests does not propagate '-s' option
+        shell: bash
+        run: cp .github/quarkus-snapshots-mvn-settings.xml ~/.m2/settings.xml
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector

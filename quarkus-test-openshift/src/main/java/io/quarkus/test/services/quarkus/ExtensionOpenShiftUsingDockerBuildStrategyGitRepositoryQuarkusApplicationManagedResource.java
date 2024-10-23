@@ -22,7 +22,7 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyGitRepositoryQuarkusAppli
     }
 
     @Override
-    protected void withAdditionalArguments(List<String> args) {
+    protected void withAdditionalArguments(List<String> args, QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
         String[] mvnArgs = StringUtils.split(getModel().getMavenArgsWithVersion(), " ");
         args.addAll(Arrays.asList(mvnArgs));
     }

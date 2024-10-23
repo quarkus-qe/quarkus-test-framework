@@ -29,6 +29,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
                 <!-- Skip unit tests as we only want to run ITs -->
                 <!-- This will allow us to have unit tests for apps created via CLI in src/test/java -->
                 <!-- Which makes them better maintainable from IDE than Java classes in resources -->

@@ -1,38 +1,32 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.utils.DockerUtils.CONTAINER_REGISTRY_URL_PROPERTY;
-import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
-import static io.quarkus.test.utils.MavenUtils.DISPLAY_VERSION;
-import static io.quarkus.test.utils.MavenUtils.ENSURE_QUARKUS_BUILD;
-import static io.quarkus.test.utils.MavenUtils.PACKAGE_GOAL;
-import static io.quarkus.test.utils.MavenUtils.SKIP_CHECKSTYLE;
-import static io.quarkus.test.utils.MavenUtils.SKIP_ITS;
-import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
-import static io.quarkus.test.utils.MavenUtils.installParentPomsIfNeeded;
-import static io.quarkus.test.utils.MavenUtils.mvnCommand;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
+import static io.quarkus.test.utils.MavenUtils.withQuarkusProfile;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.bootstrap.inject.KubectlClient;
-import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.MavenUtils;
 import io.quarkus.test.utils.PropertiesUtils;
 
 public class ExtensionKubernetesQuarkusApplicationManagedResource
         extends KubernetesQuarkusApplicationManagedResource<ProdQuarkusApplicationManagedResourceBuilder> {
 
-    private static final String USING_EXTENSION_PROFILE = "-Pdeploy-to-kubernetes-using-extension";
     private static final String QUARKUS_PLUGIN_DEPLOY = "-Dquarkus.kubernetes.deploy=true";
     private static final String USING_SERVICE_TYPE_NODE_PORT = "-Dquarkus.kubernetes.service-type=NodePort";
     private static final String QUARKUS_CONTAINER_NAME = "quarkus.application.name";
@@ -51,7 +45,6 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
     @Override
     protected void doInit() {
         cloneProjectToServiceAppFolder();
-        copyBuildPropertiesIntoAppFolder();
         deployProjectUsingMavenCommand();
     }
 
@@ -78,44 +71,56 @@ public class ExtensionKubernetesQuarkusApplicationManagedResource
 
     }
 
-    private void copyBuildPropertiesIntoAppFolder() {
-        Map<String, String> buildProperties = model.getBuildProperties();
-        if (buildProperties.isEmpty()) {
-            return;
-        }
+    private void copyBuildPropertiesIntoAppFolder(QuarkusMavenPluginBuildHelper quarkusMvnPluginHelper) {
+        quarkusMvnPluginHelper.withProjectDirectoryCustomizer(projectDirectory -> {
+            // always copy service properties to app folder as system properties are not propagated to OpenShift
+            var runtimeSvcProperties = model.getContext().getOwner().getProperties().entrySet().stream()
+                    .filter(e -> !model.isBuildProperty(e.getKey()))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        Path applicationPropertiesPath = model.getComputedApplicationProperties();
-        if (Files.exists(applicationPropertiesPath)) {
-            buildProperties.putAll(PropertiesUtils.toMap(applicationPropertiesPath));
-        }
+            if (!runtimeSvcProperties.isEmpty()) {
+                model.setCustomBuildRequired();
+                Path appPropertiesPath = projectDirectory.resolve(RESOURCES_FOLDER);
 
-        PropertiesUtils.fromMap(buildProperties, getContext().getServiceFolder().resolve(RESOURCES_FOLDER));
-        model.createSnapshotOfBuildProperties();
+                var allProperties = new HashMap<String, String>();
+                Path computedPropertiesPath = model.getComputedApplicationProperties();
+                if (Files.exists(computedPropertiesPath)) {
+                    allProperties.putAll(PropertiesUtils.toMap(computedPropertiesPath));
+                }
+                allProperties.putAll(runtimeSvcProperties);
+
+                PropertiesUtils.fromMap(allProperties, appPropertiesPath);
+                model.createSnapshotOfBuildProperties();
+            }
+        });
     }
 
     private void deployProjectUsingMavenCommand() {
-        installParentPomsIfNeeded();
-
         String namespace = client.namespace();
 
-        List<String> args = mvnCommand(model.getContext());
-        args.addAll(Arrays.asList(USING_EXTENSION_PROFILE, BATCH_MODE, DISPLAY_VERSION, PACKAGE_GOAL,
-                QUARKUS_PLUGIN_DEPLOY, USING_SERVICE_TYPE_NODE_PORT,
-                SKIP_TESTS, SKIP_ITS, SKIP_CHECKSTYLE, ENSURE_QUARKUS_BUILD));
+        // deploy-to-kubernetes-using-extension used to activate profile that wasn't active during initial build
+        // so we need to make sure that extension is always present in case users relied on that
+        var openshiftExtension = List.of(new Dependency("io.quarkus", "quarkus-kubernetes", null));
+        var quarkusMvnPluginHelper = new QuarkusMavenPluginBuildHelper(this.model,
+                this.model.getTargetFolderForLocalArtifacts(), this.model.getArtifactSuffix(), openshiftExtension);
+        copyBuildPropertiesIntoAppFolder(quarkusMvnPluginHelper);
+        List<String> args = new ArrayList<>();
+        MavenUtils.withProperties(args);
         propagateContainerRegistryIfSet(args);
+        args.add(QUARKUS_PLUGIN_DEPLOY);
+        args.add(USING_SERVICE_TYPE_NODE_PORT);
+        args.add(withQuarkusProfile(model.getContext()));
         args.add(withContainerName());
         args.add(withKubernetesClientNamespace(namespace));
         args.add(withKubernetesClientTrustCerts());
         args.add(withLabelsForWatching());
         args.add(withLabelsForScenarioId());
-        withEnvVars(args, model.getContext().getOwner().getProperties());
+
         withAdditionalArguments(args);
 
-        try {
-            new Command(args).onDirectory(model.getContext().getServiceFolder()).runAndWait();
-        } catch (Exception e) {
-            fail("Failed to run maven command. Caused by " + e.getMessage());
-        }
+        withEnvVars(args, model.getContext().getOwner().getProperties());
+
+        quarkusMvnPluginHelper.buildOrReuseArtifact(new HashSet<>(args));
     }
 
     private void propagateContainerRegistryIfSet(List<String> args) {
