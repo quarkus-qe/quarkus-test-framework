@@ -11,8 +11,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @Inherited
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith(DisabledOnFipsAndJava17Condition.class)
-public @interface DisabledOnFipsAndJava17 {
+@ExtendWith(DisabledOnFipsAndNativeCondition.class)
+public @interface DisabledOnFipsAndNative {
     /**
      * Why is the annotated test class or test method disabled.
      */
