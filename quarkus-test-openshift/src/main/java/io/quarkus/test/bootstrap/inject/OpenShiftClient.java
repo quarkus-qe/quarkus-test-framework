@@ -102,7 +102,7 @@ public final class OpenShiftClient {
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
     private static final String IMAGE_STREAM_TIMEOUT = "imagestream.install.timeout";
     private static final String OPERATOR_INSTALL_TIMEOUT = "operator.install.timeout";
-    private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
+    private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(7);
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
     private static final int SPECS_SECRET_NAME_LIMIT = 63;

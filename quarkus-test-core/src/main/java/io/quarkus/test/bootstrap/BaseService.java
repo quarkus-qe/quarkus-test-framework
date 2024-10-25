@@ -34,7 +34,7 @@ import io.quarkus.test.utils.TestExecutionProperties;
 public class BaseService<T extends Service> implements Service {
 
     public static final String SERVICE_STARTUP_TIMEOUT = "startup.timeout";
-    public static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(5);
+    public static final Duration SERVICE_STARTUP_TIMEOUT_DEFAULT = Duration.ofMinutes(7);
     public static final String DELETE_FOLDER_ON_EXIT = "delete.folder.on.exit";
 
     private static final String SERVICE_STARTUP_CHECK_POLL_INTERVAL = "startup.check-poll-interval";
