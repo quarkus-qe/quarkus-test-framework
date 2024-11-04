@@ -68,9 +68,9 @@
                         <executions>
                             <execution>
                                 <configuration>
-                                    <systemProperties>
+                                    <systemPropertyVariables>
                                         <quarkus.ssl.native>${quarkus.ssl.native}</quarkus.ssl.native>
-                                    </systemProperties>
+                                    </systemPropertyVariables>
                                 </configuration>
                             </execution>
                         </executions>
