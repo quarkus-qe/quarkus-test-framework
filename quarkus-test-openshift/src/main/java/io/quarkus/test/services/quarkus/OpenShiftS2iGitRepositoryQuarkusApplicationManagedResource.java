@@ -24,7 +24,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
     private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository");
     private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup("s2i.openshift.base-native-image",
-            "quay.io/quarkus/ubi-quarkus-graalvmce-s2i:jdk-17");
+            "quay.io/quarkus/ubi-quarkus-graalvmce-s2i:jdk-21");
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
