@@ -13,7 +13,7 @@ import io.quarkus.test.services.QuarkusApplication;
 public class BuildTimeGreetingResourceIT {
 
     @QuarkusApplication
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.consul-config.enabled", "false")
             .withProperty("quarkus.http.root-path", "/root"); // property to force build app at test time.
 

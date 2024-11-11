@@ -13,8 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.FileLoggingHandler;
@@ -57,7 +55,7 @@ public class QuarkusCliClient {
             args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
         }
         args.addAll(Arrays.asList(extraArgs));
-        return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
+        return runCliAndWait(serviceFolder, args.toArray(new String[0]));
     }
 
     public Result buildApplicationOnNative(Path serviceFolder, String... extraArgs) {
@@ -68,7 +66,7 @@ public class QuarkusCliClient {
             args.add("-D" + QUARKUS_VERSION_PROPERTY_NAME + "=" + QuarkusProperties.getVersion());
         }
         args.addAll(Arrays.asList(extraArgs));
-        return runCliAndWait(serviceFolder, args.toArray(new String[args.size()]));
+        return runCliAndWait(serviceFolder, args.toArray(new String[0]));
     }
 
     public Process runOnDev(Path servicePath, File logOutput, Map<String, String> arguments) {
@@ -77,7 +75,7 @@ public class QuarkusCliClient {
         cmd.addAll(arguments.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue())
                 .toList());
-        return runCli(servicePath, logOutput, cmd.toArray(new String[cmd.size()]));
+        return runCli(servicePath, logOutput, cmd.toArray(new String[0]));
     }
 
     public QuarkusCliRestService createApplicationAt(String name, String targetFolderName) {
@@ -115,14 +113,14 @@ public class QuarkusCliClient {
         }
         // Extensions
         if (request.extensions != null && request.extensions.length > 0) {
-            args.add("-x=" + Stream.of(request.extensions).collect(Collectors.joining(",")));
+            args.add("-x=" + String.join(",", request.extensions));
         }
         // Extra args
         if (request.extraArgs != null && request.extraArgs.length > 0) {
             args.addAll(Arrays.asList(request.extraArgs));
         }
 
-        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
+        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[0]));
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
         return service;
@@ -200,7 +198,7 @@ public class QuarkusCliClient {
             args.addAll(Arrays.asList(request.extraArgs));
         }
 
-        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[args.size()]));
+        Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[0]));
         assertTrue(result.isSuccessful(), "The extension was not created. Output: " + result.getOutput());
 
         return service;

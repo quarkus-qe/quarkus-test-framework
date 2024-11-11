@@ -5,7 +5,7 @@ import java.util.Map;
 
 public final class InterchangeableCertificate implements Certificate.PemCertificate {
 
-    private volatile CertificateOptions certRequestOptions;
+    private final CertificateOptions certRequestOptions;
     private volatile Certificate.PemCertificate delegate;
 
     private InterchangeableCertificate(PemCertificate delegate, CertificateOptions certRequestOptions) {

@@ -18,14 +18,14 @@ public class DevModeOracleDatabaseIT extends AbstractSqlDatabaseIT {
     static final int ORACLE_PORT = 1521;
 
     @Container(image = "${oracle.image}", port = ORACLE_PORT, expectedLog = "DATABASE IS READY TO USE!")
-    static DefaultService database = new DefaultService()
+    static final DefaultService database = new DefaultService()
             .withProperty("APP_USER", ORACLE_USER)
             .withProperty("APP_USER_PASSWORD", ORACLE_PASSWORD)
             .withProperty("ORACLE_PASSWORD", ORACLE_PASSWORD)
             .withProperty("ORACLE_DATABASE", ORACLE_DATABASE);
 
     @DevModeQuarkusApplication
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.hibernate-orm.sql-load-script", "import-in-test.sql")
             .withProperty("quarkus.datasource.username", ORACLE_USER)
             .withProperty("quarkus.datasource.password", ORACLE_PASSWORD)

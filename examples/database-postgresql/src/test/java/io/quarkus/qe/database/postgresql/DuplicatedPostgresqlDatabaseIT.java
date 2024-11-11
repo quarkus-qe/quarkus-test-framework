@@ -15,7 +15,7 @@ public class DuplicatedPostgresqlDatabaseIT {
     private static final int POSTGRESQL_PORT = 5432;
 
     @Container(image = "${postgresql.image}", port = POSTGRESQL_PORT, expectedLog = "is ready")
-    static PostgresqlService database = new PostgresqlService();
+    static final PostgresqlService database = new PostgresqlService();
 
     @QuarkusApplication
     static RestService app = new RestService()

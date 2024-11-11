@@ -23,7 +23,7 @@ public class DevModeGreetingResourceIT {
     static final String HELLO_IN_SPANISH = "Hola";
 
     @DevModeQuarkusApplication
-    static DevModeQuarkusService app = new DevModeQuarkusService();
+    static final DevModeQuarkusService app = new DevModeQuarkusService();
 
     @Test
     @Order(1)

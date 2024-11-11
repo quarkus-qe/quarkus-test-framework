@@ -22,7 +22,7 @@ public class OpenShiftUsingExtensionAndServerlessFunqyKnEventsIT {
             "Start::defaultChain::configChain::annotatedChain::lastChainLink");
 
     @QuarkusApplication
-    static FunqyKnativeEventsService service = new OpenShiftExtensionFunqyKnativeEventsService()
+    static final FunqyKnativeEventsService service = new OpenShiftExtensionFunqyKnativeEventsService()
             .withDefaultBroker()
             .withTrigger().name("annotatedchain").defaultBroker().filterCloudEventType("annotated").endTrigger()
             .withTrigger().name("configChain").defaultBroker().filterCloudEventType("defaultChain.output").endTrigger()

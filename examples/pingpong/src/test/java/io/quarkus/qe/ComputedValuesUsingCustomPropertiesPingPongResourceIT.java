@@ -16,7 +16,7 @@ public class ComputedValuesUsingCustomPropertiesPingPongResourceIT {
 
     @Test
     public void shouldGetComputedValuesFromCustomPropertiesFile() {
-        assertEquals("C", pingpong.getProperty("property.exists.only.in.custom.properties").get());
+        assertEquals("C", pingpong.getProperty("property.exists.only.in.custom.properties").orElseThrow());
     }
 
 }
