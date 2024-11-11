@@ -10,7 +10,7 @@ import io.quarkus.test.services.QuarkusApplication;
 public class MySqlDatabaseIT extends AbstractMysqlReusableInstance {
 
     @QuarkusApplication
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);

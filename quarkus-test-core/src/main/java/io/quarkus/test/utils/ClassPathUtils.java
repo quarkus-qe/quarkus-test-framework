@@ -44,7 +44,7 @@ public final class ClassPathUtils {
             fail("Can't load source classes location. Caused by " + ex.getMessage());
         }
 
-        return classes.toArray(new Class<?>[classes.size()]);
+        return classes.toArray(new Class<?>[0]);
     }
 
     private static String normalizeClassName(String path) {

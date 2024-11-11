@@ -160,13 +160,14 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         return properties;
     }
 
-    private void addFileToContainer(String filePath) {
-        if (Files.exists(Path.of(TARGET, filePath))) {
+    private void addFileToContainer(String path) {
+        Path filePath = Path.of(TARGET, path);
+        if (Files.exists(filePath)) {
             // Mount file if it's a file
-            innerContainer.withCopyFileToContainer(MountableFile.forHostPath(Path.of(TARGET, filePath)), filePath);
+            innerContainer.withCopyFileToContainer(MountableFile.forHostPath(filePath), path);
         } else {
             // then file is in the classpath
-            innerContainer.withClasspathResourceMapping(filePath, filePath, BindMode.READ_ONLY);
+            innerContainer.withClasspathResourceMapping(path, path, BindMode.READ_ONLY);
         }
     }
 

@@ -26,7 +26,7 @@ public class TodoDemoIT {
     private static final String NO_SUFFIX = "-Dquarkus.package.jar.add-runner-suffix=false";
 
     @Container(image = "${postgresql.image}", port = 5432, expectedLog = "is ready")
-    static PostgresqlService database = new PostgresqlService()
+    static final PostgresqlService database = new PostgresqlService()
             // store data in /tmp/psql as in OpenShift we don't have permissions to /var/lib/postgresql/data
             .withProperty("PGDATA", "/tmp/psql");
 

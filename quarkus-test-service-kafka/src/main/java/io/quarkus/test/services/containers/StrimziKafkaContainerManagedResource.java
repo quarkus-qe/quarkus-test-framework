@@ -163,7 +163,7 @@ public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerMana
             model.getContext().put(KafkaService.KAFKA_SSL_PROPERTIES, Map.copyOf(configPropertyIterator));
         }
 
-        return effectiveUserKafkaConfigResources.toArray(new String[effectiveUserKafkaConfigResources.size()]);
+        return effectiveUserKafkaConfigResources.toArray(new String[0]);
     }
 
     private boolean useDefaultTrustStore() {

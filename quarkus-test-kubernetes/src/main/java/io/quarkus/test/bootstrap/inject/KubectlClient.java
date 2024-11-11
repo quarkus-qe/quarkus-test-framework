@@ -114,7 +114,7 @@ public final class KubectlClient {
             new Command(KUBECTL, "apply", "-f", file.toAbsolutePath().toString(), "-n", currentNamespace)
                     .runAndWait();
         } catch (Exception e) {
-            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " for " + service.getName() + ". Caused by "
+            fail("Failed to apply resource " + file.toAbsolutePath() + " for " + service.getName() + ". Caused by "
                     + e.getMessage());
         }
     }
@@ -271,7 +271,7 @@ public final class KubectlClient {
                 client.close();
             }
         } else {
-            deleteResourcesByLabel(LABEL_SCENARIO_ID, getScenarioId());
+            deleteResources(getScenarioId());
         }
     }
 
@@ -282,9 +282,9 @@ public final class KubectlClient {
     /**
      * Delete test resources.
      */
-    private void deleteResourcesByLabel(String labelName, String labelValue) {
+    private void deleteResources(String labelValue) {
         try {
-            String label = String.format("%s=%s", labelName, labelValue);
+            String label = String.format("%s=%s", KubectlClient.LABEL_SCENARIO_ID, labelValue);
             new Command(KUBECTL, "delete", "-n", currentNamespace, "all", "-l", label).runAndWait();
         } catch (Exception e) {
             fail("Project failed to be deleted. Caused by " + e.getMessage());
@@ -560,17 +560,12 @@ public final class KubectlClient {
                 .toString();
     }
 
-    private boolean setCurrentSessionNamespace(String namespaceName) {
-        boolean done = false;
+    private void setCurrentSessionNamespace(String namespaceName) {
         try {
             new Command(KUBECTL, "config", "set-context", "--current", "--namespace=" + namespaceName).runAndWait();
-            done = true;
         } catch (Exception e) {
             Log.warn("Namespace " + namespaceName
                     + " failed to be set as current session namespace. Caused by: " + e.getMessage() + ". Trying again.");
         }
-
-        return done;
     }
-
 }

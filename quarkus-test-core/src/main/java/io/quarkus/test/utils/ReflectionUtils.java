@@ -17,6 +17,7 @@ public final class ReflectionUtils {
 
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T getStaticFieldValue(Field field) {
         try {
             field.setAccessible(true);
@@ -53,6 +54,7 @@ public final class ReflectionUtils {
         return fields;
     }
 
+    @SuppressWarnings("unchecked")
     public static <T> T createInstance(Class<T> clazz, Object... args) {
         for (Constructor<?> constructor : clazz.getDeclaredConstructors()) {
             if (constructor.getParameterCount() == args.length) {

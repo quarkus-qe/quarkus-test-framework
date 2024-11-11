@@ -30,10 +30,10 @@ public class OpenTelemetryJaegerTlsIT {
     private static final String OPERATION = "GET " + CLIENT_ENDPOINT;
 
     @JaegerContainer(tls = true)
-    static JaegerService jaeger = new JaegerService();
+    static final JaegerService jaeger = new JaegerService();
 
     @QuarkusApplication
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.otel.exporter.otlp.traces.tls-configuration-name", "jaeger")
             .withProperty("quarkus.otel.exporter.otlp.traces.endpoint", () -> jaeger.getCollectorUrl(Protocol.HTTPS))
             .withProperty("quarkus.tls.jaeger.key-store.pem.0.cert", () -> getClientCert().certPath())

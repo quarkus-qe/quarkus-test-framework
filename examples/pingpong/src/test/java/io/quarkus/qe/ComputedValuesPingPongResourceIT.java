@@ -18,8 +18,8 @@ public class ComputedValuesPingPongResourceIT {
     @Test
     public void shouldGetComputedValues() {
         assertFalse(pingpong.getProperty("property.not.exists").isPresent());
-        assertEquals("A", pingpong.getProperty("property.without.profile").get());
-        assertEquals("B", pingpong.getProperty("property.with.profile").get());
+        assertEquals("A", pingpong.getProperty("property.without.profile").orElseThrow());
+        assertEquals("B", pingpong.getProperty("property.with.profile").orElseThrow());
     }
 
 }

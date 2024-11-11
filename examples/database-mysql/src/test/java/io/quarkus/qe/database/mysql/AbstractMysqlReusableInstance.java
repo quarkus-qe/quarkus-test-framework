@@ -15,7 +15,7 @@ public abstract class AbstractMysqlReusableInstance extends AbstractSqlDatabaseI
      **/
 
     @Container(image = "${mysql.image}", port = 3306, expectedLog = "port: 3306  MySQL Community Server")
-    public static MySqlService database = new MySqlService();
+    public static final MySqlService database = new MySqlService();
 
     static Integer containerPort;
 
@@ -33,6 +33,5 @@ public abstract class AbstractMysqlReusableInstance extends AbstractSqlDatabaseI
 
     private void setContainerPort() {
         containerPort = database.getURI().getPort();
-        ;
     }
 }

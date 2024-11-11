@@ -92,7 +92,7 @@ public final class AwaitilityUtils {
      */
     @SuppressWarnings("unchecked")
     public static <T> T untilIsNotNull(Supplier<T> supplier, AwaitilitySettings settings) {
-        return until(supplier, (Matcher<T>) Matchers.<T> notNullValue(), settings);
+        return until(supplier, (Matcher<T>) Matchers.notNullValue(), settings);
     }
 
     /**
