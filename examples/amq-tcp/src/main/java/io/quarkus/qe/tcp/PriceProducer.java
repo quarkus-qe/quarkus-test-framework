@@ -11,6 +11,7 @@ import jakarta.jms.ConnectionFactory;
 import jakarta.jms.JMSContext;
 import jakarta.jms.Session;
 
+import io.quarkus.logging.Log;
 import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 
@@ -41,7 +42,7 @@ public class PriceProducer implements Runnable {
         try (JMSContext context = connectionFactory.createContext(Session.AUTO_ACKNOWLEDGE)) {
             context.createProducer().send(context.createQueue("prices"), Integer.toString(random.nextInt(PRICES_MAX)));
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.error("Failed to send message to queue 'prices'", e);
         }
     }
 }

@@ -14,7 +14,7 @@ public class SqlServerContainerAnnotationBinding implements AnnotationBinding {
     }
 
     @Override
-    public ManagedResourceBuilder createBuilder(Field field) throws Exception {
+    public ManagedResourceBuilder createBuilder(Field field) {
         SqlServerContainer metadata = field.getAnnotation(SqlServerContainer.class);
         ManagedResourceBuilder builder = new SqlServerManagedResourceBuilder();
         builder.init(metadata);

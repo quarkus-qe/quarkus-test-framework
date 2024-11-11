@@ -74,8 +74,8 @@ public class OperatorManagedResource implements ManagedResource {
 
     private void applyCRD(CustomResourceDefinition crd) {
         ServiceContext serviceContext = model.getContext();
-        Path crdFileDefinition = serviceContext.getServiceFolder().resolve(crd.getName());
-        String content = FileUtils.loadFile(crd.getFile());
+        Path crdFileDefinition = serviceContext.getServiceFolder().resolve(crd.name());
+        String content = FileUtils.loadFile(crd.file());
         FileUtils.copyContentTo(content, crdFileDefinition);
 
         client.apply(crdFileDefinition);
@@ -83,7 +83,7 @@ public class OperatorManagedResource implements ManagedResource {
     }
 
     private boolean customResourcesAreReady() {
-        return crdsToWatch.stream().allMatch(crd -> client.isCustomResourceReady(crd.getName(), crd.getType()));
+        return crdsToWatch.stream().allMatch(crd -> client.isCustomResourceReady(crd.name(), crd.type()));
     }
 
     private void installOperator() {

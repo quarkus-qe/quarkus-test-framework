@@ -19,7 +19,7 @@ public class RemoteDevModeGreetingResourceIT {
     static final String HELLO_IN_SPANISH = "Hola";
 
     @RemoteDevModeQuarkusApplication
-    static DevModeQuarkusService app = new DevModeQuarkusService();
+    static final DevModeQuarkusService app = new DevModeQuarkusService();
 
     @Test
     public void shouldUpdateResourcesAndSources() {

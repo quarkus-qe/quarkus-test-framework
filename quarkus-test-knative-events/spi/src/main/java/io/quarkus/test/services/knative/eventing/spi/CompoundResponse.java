@@ -31,7 +31,7 @@ public abstract class CompoundResponse<T> {
     }
 
     public final ForwardResponseDTO<T> join() {
-        return new ForwardResponseDTO<T>(getJoinedResponse());
+        return new ForwardResponseDTO<>(getJoinedResponse());
     }
 
     protected abstract void addResponse(T response);

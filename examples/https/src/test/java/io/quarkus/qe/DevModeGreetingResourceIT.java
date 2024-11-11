@@ -11,7 +11,7 @@ import io.quarkus.test.services.DevModeQuarkusApplication;
 @QuarkusScenario
 public class DevModeGreetingResourceIT {
     @DevModeQuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureHttpServer = true, useTlsRegistry = false))
-    static DevModeQuarkusService app = new DevModeQuarkusService();
+    static final DevModeQuarkusService app = new DevModeQuarkusService();
 
     @Test
     public void shouldOpenDevUi() {

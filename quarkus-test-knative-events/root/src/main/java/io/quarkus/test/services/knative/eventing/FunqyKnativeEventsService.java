@@ -296,7 +296,7 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
                 throw new IllegalStateException("Cluster endpoint is missing. Please expose Funqy function 'clusterEntrypoint'"
                         + " that forwards messages to the broker.");
             }
-            return new ForwardResponseValidator<T>() {
+            return new ForwardResponseValidator<>() {
                 @Override
                 public ForwardResponseValidator<T> assertBody(Matcher<T> matcher) {
                     assertTrue(matcher.matches(response.as(ForwardResponseDTO.class).getResponse()));

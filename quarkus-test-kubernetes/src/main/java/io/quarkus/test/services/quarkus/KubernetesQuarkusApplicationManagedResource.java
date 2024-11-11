@@ -83,7 +83,7 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
             return false;
         }
 
-        return super.isRunning() && routeIsReachable(Protocol.HTTP);
+        return super.isRunning() && routeIsReachable();
     }
 
     @Override
@@ -115,8 +115,8 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
         }
     }
 
-    private boolean routeIsReachable(Protocol protocol) {
-        var uri = getURI(protocol);
+    private boolean routeIsReachable() {
+        var uri = getURI(Protocol.HTTP);
 
         return given().baseUri(uri.getRestAssuredStyleUri())
                 .basePath("/")

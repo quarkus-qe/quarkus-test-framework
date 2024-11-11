@@ -13,7 +13,7 @@ import io.quarkus.test.services.DevModeQuarkusApplication;
 public class DevModeOracleDevServiceDatabaseIT extends AbstractSqlDatabaseIT {
 
     @DevModeQuarkusApplication
-    static RestService app = new RestService();
+    static final RestService app = new RestService();
 
     @Override
     protected RestService getApp() {
