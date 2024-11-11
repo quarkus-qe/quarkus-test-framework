@@ -18,7 +18,7 @@ public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
     static final int MYSQL_PORT = 3306;
 
     @Container(image = "${mysql.image}", port = MYSQL_PORT, expectedLog = "ready for connections")
-    static DefaultService database = new DefaultService()
+    static final DefaultService database = new DefaultService()
             .withProperty("MYSQL_ROOT_USER", MYSQL_USER)
             .withProperty("MYSQL_ROOT_PASSWORD", MYSQL_PASSWORD)
             .withProperty("MYSQL_USER", MYSQL_USER)
@@ -26,7 +26,7 @@ public class DevModeMySqlDatabaseIT extends AbstractSqlDatabaseIT {
             .withProperty("MYSQL_DATABASE", MYSQL_DATABASE);
 
     @DevModeQuarkusApplication
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.hibernate-orm.sql-load-script", "import-in-test.sql")
             .withProperty("quarkus.datasource.username", MYSQL_USER)
             .withProperty("quarkus.datasource.password", MYSQL_PASSWORD)

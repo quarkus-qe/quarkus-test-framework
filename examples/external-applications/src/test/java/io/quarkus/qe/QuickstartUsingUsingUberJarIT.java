@@ -19,7 +19,7 @@ public class QuickstartUsingUsingUberJarIT {
     static final RestService app = new RestService();
 
     @Test
-    public void test() throws InterruptedException {
+    public void test() {
         app.given()
                 .get("/hello")
                 .then()

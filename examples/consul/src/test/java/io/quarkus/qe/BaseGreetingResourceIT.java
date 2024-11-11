@@ -22,7 +22,7 @@ public abstract class BaseGreetingResourceIT {
     static ConsulService consul;
 
     @QuarkusApplication
-    static RestService app = new RestService().withProperty("quarkus.consul-config.agent.host-port",
+    static final RestService app = new RestService().withProperty("quarkus.consul-config.agent.host-port",
             () -> consul.getConsulEndpoint());
 
     @Test

@@ -8,7 +8,7 @@ import io.quarkus.test.services.DevModeQuarkusApplication;
 public class DevModeSecurityResourceIT extends BaseSecurityResourceIT {
     @DevModeQuarkusApplication
     static final RestService app = new RestService()
-            .withProperty("quarkus.oidc.auth-server-url", () -> keycloak.getRealmUrl())
+            .withProperty("quarkus.oidc.auth-server-url", keycloak::getRealmUrl)
             .withProperty("quarkus.oidc.client-id", CLIENT_ID_DEFAULT)
             .withProperty("quarkus.oidc.credentials.secret", CLIENT_SECRET_DEFAULT);
 

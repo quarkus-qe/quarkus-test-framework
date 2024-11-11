@@ -152,7 +152,7 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
 
     private String getSchemaRegistryUrl() {
         String path = StringUtils.defaultIfBlank(model.getRegistryPath(), model.getVendor().getRegistry().getPath());
-        String containerIp = schemaRegistry.getContainerIpAddress();
+        String containerIp = schemaRegistry.getHost();
         return String.format("http://%s:%s%s", containerIp, schemaRegistry.getMappedPort(getKafkaRegistryPort()), path);
     }
 

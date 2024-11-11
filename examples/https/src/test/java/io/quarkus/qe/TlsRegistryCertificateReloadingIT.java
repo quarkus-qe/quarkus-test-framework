@@ -23,7 +23,7 @@ public class TlsRegistryCertificateReloadingIT {
     @QuarkusApplication(ssl = true, certificates = @Certificate(clientCertificates = {
             @Certificate.ClientCertificate(cnAttribute = CLIENT_CN_1)
     }, configureTruststore = true, configureHttpServer = true, configureKeystore = true, prefix = CERT_PREFIX))
-    static RestService app = new RestService()
+    static final RestService app = new RestService()
             .withProperty("quarkus.http.ssl.client-auth", "request")
             .withProperty("quarkus.http.insecure-requests", "DISABLED")
             .withProperty("quarkus.tls.reload-period", "2s");

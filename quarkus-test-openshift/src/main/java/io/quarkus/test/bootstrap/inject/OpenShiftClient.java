@@ -172,7 +172,7 @@ public final class OpenShiftClient {
         try {
             new Command(OC, "apply", "-f", file.toAbsolutePath().toString(), "-n", project).runAndWait();
         } catch (Exception e) {
-            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
+            fail("Failed to apply resource " + file.toAbsolutePath() + " . Caused by " + e.getMessage());
         }
     }
 
@@ -195,7 +195,7 @@ public final class OpenShiftClient {
         try {
             new Command(OC, "delete", "-f", file.toAbsolutePath().toString(), "-n", project).runAndWait();
         } catch (Exception e) {
-            fail("Failed to apply resource " + file.toAbsolutePath().toString() + " . Caused by " + e.getMessage());
+            fail("Failed to apply resource " + file.toAbsolutePath() + " . Caused by " + e.getMessage());
         }
     }
 
@@ -536,7 +536,7 @@ public final class OpenShiftClient {
         groupModel.setMetadata(new ObjectMeta());
         groupModel.getMetadata().setName(service.getName());
         groupModel.setSpec(new OperatorGroupSpec());
-        groupModel.getSpec().setTargetNamespaces(Arrays.asList(currentNamespace));
+        groupModel.getSpec().setTargetNamespaces(Collections.singletonList(currentNamespace));
         // call createOr and if it exists the update will be done
         client.resource(groupModel).unlock().createOr(NonDeletingOperation::update);
 
@@ -718,7 +718,7 @@ public final class OpenShiftClient {
                 isClientReady = false;
             }
         } else {
-            deleteResourcesByLabel(LABEL_SCENARIO_ID, getScenarioId());
+            deleteResources(getScenarioId());
         }
     }
 
@@ -757,9 +757,9 @@ public final class OpenShiftClient {
     /**
      * Delete test resources.
      */
-    private void deleteResourcesByLabel(String labelName, String labelValue) {
+    private void deleteResources(String labelValue) {
         try {
-            String label = String.format("%s=%s", labelName, labelValue);
+            String label = String.format("%s=%s", OpenShiftClient.LABEL_SCENARIO_ID, labelValue);
             new Command(OC, "delete", "-n", currentNamespace, "all", "-l", label).runAndWait();
         } catch (Exception e) {
             fail("Project failed to be deleted. Caused by " + e.getMessage());

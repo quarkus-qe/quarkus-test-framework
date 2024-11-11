@@ -4,7 +4,7 @@ import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -121,7 +121,8 @@ public final class DockerUtils {
      * @param imageId docker image ID.
      */
     public static void stopContainersByImage(String imageId) {
-        List<Container> containers = dockerClient().listContainersCmd().withAncestorFilter(Arrays.asList(imageId)).exec();
+        List<Container> containers = dockerClient().listContainersCmd()
+                .withAncestorFilter(Collections.singletonList(imageId)).exec();
         for (Container container : containers) {
             dockerClient().stopContainerCmd(container.getId()).exec();
         }
@@ -183,7 +184,7 @@ public final class DockerUtils {
         try {
             new Command(DOCKER, "build", "-f", dockerFile.toString(), "-t", getUniqueName(service), ".").runAndWait();
         } catch (Exception e) {
-            fail("Failed to build image " + service.getServiceFolder().toAbsolutePath().toString() + " . Caused by "
+            fail("Failed to build image " + service.getServiceFolder().toAbsolutePath() + " . Caused by "
                     + e.getMessage());
         }
     }

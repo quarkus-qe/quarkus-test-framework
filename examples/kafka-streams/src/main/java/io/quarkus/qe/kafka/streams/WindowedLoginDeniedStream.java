@@ -45,7 +45,7 @@ public class WindowedLoginDeniedStream {
 
         builder.stream(LOGIN_ATTEMPTS_TOPIC, Consumed.with(Serdes.String(), loginAttemptSerde))
                 .groupByKey()
-                .windowedBy(TimeWindows.of(Duration.ofSeconds(windowsLoginSec)))
+                .windowedBy(TimeWindows.ofSizeWithNoGrace(Duration.ofSeconds(windowsLoginSec)))
                 .aggregate(LoginAggregation::new,
                         (id, value, aggregation) -> aggregation.updateFrom(value),
                         Materialized.<String, LoginAggregation, WindowStore<Bytes, byte[]>> as(LOGIN_AGGREGATION_STORE)

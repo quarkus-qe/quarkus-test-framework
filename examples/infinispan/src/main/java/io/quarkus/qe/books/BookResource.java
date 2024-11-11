@@ -25,8 +25,7 @@ public class BookResource {
     @Path("/{title}")
     @Produces(MediaType.APPLICATION_JSON)
     public Book getBook(@PathParam("title") String title) {
-        Book found = cache.get(title);
-        return found;
+        return cache.get(title);
     }
 
     @POST

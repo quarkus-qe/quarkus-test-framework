@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.stream.Collectors;
 
 public final class SureFireCommunicationHelper {
 
@@ -56,7 +55,7 @@ public final class SureFireCommunicationHelper {
             var exitTmpDirs = tmpFiles
                     .filter(Files::isDirectory)
                     .filter(SureFireCommunicationHelper::isExitTmpDir)
-                    .collect(Collectors.toList());
+                    .toList();
             if (exitTmpDirs.isEmpty()) {
                 throw new IllegalStateException("Exit directory is missing");
             }
