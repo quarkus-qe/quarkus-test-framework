@@ -7,7 +7,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 
 @OpenShiftScenario(deployment = OpenShiftDeploymentStrategy.UsingContainerRegistry)
 public class OpenShiftContainerRegistryQuickstartUsingDefaultsIT extends QuickstartUsingDefaultsIT {
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", branch = "3.15", contextDir = "getting-started")
     static final RestService app = new RestService();
 
     @Override
