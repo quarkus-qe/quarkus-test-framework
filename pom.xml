@@ -301,7 +301,7 @@
                     <dependency>
                         <artifactId>quarkus-ide-config</artifactId>
                         <groupId>io.quarkus</groupId>
-                        <version>${quarkus.platform.version}</version>
+                        <version>3.15.1</version>
                     </dependency>
                 </dependencies>
                 <configuration>

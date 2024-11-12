@@ -34,7 +34,7 @@ jobs:
           path: maven-repo-current-fw.tgz
           retention-days: 1
   quarkus-main-build:
-    name: Quarkus main build
+    name: Quarkus 3.15 build
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -55,7 +55,7 @@ jobs:
           cache: 'maven'
       - name: Build Quarkus main
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone -b 3.15 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -66,12 +66,12 @@ jobs:
           path: maven-repo.tgz
           retention-days: 1
   linux-build-jvm-released:
-    name: Linux - JVM build - Released Versions
+    name: Linux - JVM build - 3.15.1
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
       matrix:
-        quarkus-version: ["current"]
+        quarkus-version: ["3.15.1"]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -118,12 +118,12 @@ jobs:
           name: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}
           path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
   linux-build-jvm-latest:
-    name: Linux - JVM build - Latest Version
+    name: Linux - JVM build - Latest 3.15 Version
     runs-on: ubuntu-latest
     needs: quarkus-main-build
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.15.999-SNAPSHOT"]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -148,12 +148,12 @@ jobs:
         run: tar -xzf maven-repo.tgz -C ~
       - name: Build Quarkus CLI
         run: |
-          git clone https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B --no-transfer-progress -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone -b 3.15 https://github.com/quarkusio/quarkus.git && cd quarkus/devtools/cli && mvn -B --no-transfer-progress -s ../../../.github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Install Quarkus CLI
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-999-SNAPSHOT-runner.jar "\$@"
+          java -jar $PWD/quarkus/devtools/cli/target/quarkus-cli-3.15.999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
@@ -186,7 +186,7 @@ jobs:
     needs: validate-format
     strategy:
       matrix:
-        quarkus-version: [ "current" ]
+        quarkus-version: [ "3.15.1" ]
         java: [ 17 ]
         examples: [
           'examples/pingpong,examples/restclient,examples/greetings,examples/blocking-reactive-model,examples/https,examples/grpc,examples/consul,examples/infinispan,examples/microprofile,examples/keycloak,examples/kafka,examples/kafka-registry,examples/kafka-streams',
@@ -245,7 +245,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.15.999-SNAPSHOT"]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
