@@ -13,7 +13,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 @DisabledOnOs(value = OS.WINDOWS, disabledReason = "Windows does not support long file paths")
 public class DevModeQuickstartUsingDefaultsIT {
 
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", devMode = true)
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", branch = "3.15", contextDir = "getting-started", devMode = true)
     static final RestService app = new RestService();
 
     @Test
