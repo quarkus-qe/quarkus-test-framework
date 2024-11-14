@@ -17,6 +17,11 @@ public final class TestExecutionProperties {
     private static final TestExecutionProperties INSTANCE = new TestExecutionProperties();
     private static final String CLI_APP_PROPERTY_KEY = "ts-internal.is-cli-app";
     private static final String APP_STARTED_KEY = "ts-internal.app-started";
+    /**
+     * You can enforce custom artifact build by setting this property for 'app' service with
+     * this 'ts.app.custom-build.required=true' or for all the services within a test class with 'ts.global.required=true'.
+     */
+    private static final PropertyLookup REQUIRE_CUSTOM_BUILD = new PropertyLookup("custom-build.required", "false");
 
     private final String serviceName;
     private final String buildNumber;
@@ -76,4 +81,7 @@ public final class TestExecutionProperties {
         context.put(APP_STARTED_KEY, Boolean.TRUE.toString());
     }
 
+    public static boolean isCustomBuildRequired(ServiceContext context) {
+        return Boolean.parseBoolean(REQUIRE_CUSTOM_BUILD.get(context));
+    }
 }

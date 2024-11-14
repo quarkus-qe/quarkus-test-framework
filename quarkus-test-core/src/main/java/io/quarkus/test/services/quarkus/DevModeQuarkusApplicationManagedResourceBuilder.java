@@ -35,6 +35,6 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     }
 
     protected void build() {
-        new QuarkusMavenPluginBuildHelper(this, null).prepareApplicationFolder();
+        new QuarkusMavenPluginBuildHelper(this).prepareApplicationFolder();
     }
 }

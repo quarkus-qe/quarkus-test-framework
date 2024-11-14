@@ -66,6 +66,7 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         setArtifactSuffix(metadata.artifact());
         initAppClasses(new Class[0]);
         setPropertiesFile(metadata.properties());
+        setS2iScenario();
     }
 
     @Override
