@@ -67,7 +67,7 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
     @Override
     protected void build() {
         try {
-            new QuarkusMavenPluginBuildHelper(this, null).prepareApplicationFolder();
+            new QuarkusMavenPluginBuildHelper(this).prepareApplicationFolder();
 
             // Create mutable jar
             installParentPomsIfNeeded();

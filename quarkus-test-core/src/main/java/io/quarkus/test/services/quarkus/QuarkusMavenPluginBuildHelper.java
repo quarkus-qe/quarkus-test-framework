@@ -1,17 +1,17 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder.EXE;
-import static io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder.NATIVE_RUNNER;
 import static io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder.TARGET;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_GROUP_ID;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_VERSION;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLUGIN_VERSION;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getPluginVersion;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.getVersion;
+import static io.quarkus.test.services.quarkus.model.QuarkusProperties.isNativeEnabled;
 import static io.quarkus.test.utils.FileUtils.findTargetFile;
 import static io.quarkus.test.utils.MavenUtils.MVN_REPOSITORY_LOCAL;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.toMvnSystemProperty;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
@@ -19,14 +19,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -42,14 +40,20 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
 
-import io.quarkus.maven.dependency.Dependency;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.TestExecutionProperties;
 import io.smallrye.common.os.OS;
 
-class QuarkusMavenPluginBuildHelper {
+public final class QuarkusMavenPluginBuildHelper {
 
+    private static final int LOOKUP_PARENT_DIR_LIMIT = 5;
+    private static final Set<String> IGNORED_BUILD_ARGS = Set.of("maven.failsafe.debug", "quarkus.build.skip", "reruns");
+    private static final String NATIVE_RUNNER = "-runner";
+    private static final String EXE = ".exe";
+    private static final String TARGET_POM = "quarkus-app-pom.xml";
     private static final String JVM_RUNNER = "-runner.jar";
     private static final String QUARKUS_APP = "quarkus-app";
     private static final String QUARKUS_RUN = "quarkus-run.jar";
@@ -67,21 +71,58 @@ class QuarkusMavenPluginBuildHelper {
     private final boolean buildWithAllClasses;
     private final Path targetFolderForLocalArtifacts;
     private final QuarkusApplicationManagedResourceBuilder resourceBuilder;
+    private final String artifactSuffix;
+    private final Mode mode;
+    // dependencies that may already be present but if they are not, we must add them
+    // this is to make build backports compatible for what used to be 'deploy-to-openshift-using-extension' we activated
+    // ideally we drop this and users activate OpenShift profile when they need it
+    private final List<Dependency> requiredDependencies;
+
+    QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder) {
+        this(resourceBuilder, null, null);
+    }
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
-            Path targetFolderForLocalArtifacts) {
+            Path targetFolderForLocalArtifacts, String artifactSuffix) {
+        this(resourceBuilder, targetFolderForLocalArtifacts, artifactSuffix, List.of());
+    }
+
+    QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
+            Path targetFolderForLocalArtifacts, String artifactSuffix, List<Dependency> requiredDependencies) {
+        requireNonNull(resourceBuilder);
+        if (!requiredDependencies.isEmpty()) {
+            var newPomAsString = requireNonNull(FileUtils.loadFile(getPomFileCreatedByOurPlugin()));
+            this.requiredDependencies = requiredDependencies.stream()
+                    .filter(d -> !newPomAsString.contains("<artifactId>" + d.artifactId() + "</artifactId>"))
+                    .toList();
+        } else {
+            this.requiredDependencies = List.of();
+        }
         this.resourceBuilder = resourceBuilder;
         this.appFolder = resourceBuilder.getApplicationFolder();
         this.appClassNames = Arrays.stream(resourceBuilder.getAppClasses()).map(Class::getName).collect(toUnmodifiableSet());
         this.buildWithAllClasses = resourceBuilder.isBuildWithAllClasses();
         this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
-
+        this.artifactSuffix = artifactSuffix;
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
+        this.mode = isNativeEnabled(resourceBuilder.getContext()) ? Mode.NATIVE : Mode.JVM;
     }
 
-    private static Set<String> findMavenCommandLineArgs() {
-        Set<String> mvnArgs = new HashSet<>();
+    public static void deleteNativeExecutablesInPermanentLocation() {
+        var customNativeExecutablePath = Path.of(TARGET).resolve(CUSTOM_RUNNER_DIR);
+        if (Files.exists(customNativeExecutablePath)) {
+            try {
+                FileUtils.deletePath(customNativeExecutablePath);
+            } catch (Exception ex) {
+                Log.warn("Could not delete folder with custom native executables. Caused by " + ex.getMessage());
+            }
+        }
+    }
+
+    private static List<String> findMavenCommandLineArgs() {
+        List<String> mvnArgs = new ArrayList<>();
         ProcessHandle processHandle = ProcessHandle.current();
+        boolean isMvnSettings = false;
         do {
             if (processHandle.info().arguments().isPresent()) {
                 String[] args = processHandle.info().arguments().get();
@@ -91,11 +132,20 @@ class QuarkusMavenPluginBuildHelper {
                         // this is probably not necessary, but let's stay on the safe side
                         continue;
                     }
+                    if (isMvnSettings) {
+                        isMvnSettings = false;
+                        mvnArgs.add("-s");
+                        mvnArgs.add(getMvnSettingsPath(arg));
+                    }
                     if (keepArgs && arg.startsWith("-D")) {
-                        mvnArgs.add(arg);
+                        if (isNotIgnoredArgument(arg)) {
+                            mvnArgs.add(arg);
+                        }
                     } else if (LAUNCHER.equals(arg) || FAILSAFE_BUILD_LIFECYCLE_PHASES.contains(arg)) {
                         // order is important here - we only want to propagate mvn args
                         keepArgs = true;
+                    } else if ("-s".equals(arg)) {
+                        isMvnSettings = true;
                     }
                 }
                 if (keepArgs) {
@@ -107,6 +157,34 @@ class QuarkusMavenPluginBuildHelper {
         throw new IllegalStateException("Failed to detect mvn command line arguments");
     }
 
+    private static String getMvnSettingsPath(String arg) {
+        var path = Path.of(arg).toAbsolutePath();
+        if (!Files.exists(path)) {
+            var parentFolder = Path.of(".").toAbsolutePath();
+            // relative settings.xml path could be relative to the root but not the working dir
+            for (int i = 0; i < LOOKUP_PARENT_DIR_LIMIT; i++) {
+                var pathRelativeToFolder = parentFolder.resolve(arg).toAbsolutePath();
+                if (!Files.exists(pathRelativeToFolder)) {
+                    parentFolder = parentFolder.getParent();
+                    if (parentFolder == null) {
+                        break;
+                    }
+                } else {
+                    path = pathRelativeToFolder;
+                    break;
+                }
+            }
+            if (!Files.exists(path)) {
+                throw new RuntimeException("Failed to find Maven settings file for relative path: " + arg);
+            }
+        }
+        return path.toString();
+    }
+
+    private static boolean isNotIgnoredArgument(String arg) {
+        return IGNORED_BUILD_ARGS.stream().noneMatch(a -> ("-D" + a).equalsIgnoreCase(arg));
+    }
+
     void prepareApplicationFolder() {
         prepareMavenProject(appFolder);
         resourceBuilder.copyResourcesToAppFolder();
@@ -116,29 +194,48 @@ class QuarkusMavenPluginBuildHelper {
         // create new project root
         FileUtils.recreateDirectory(mavenBuildProjectRoot);
 
-        // add pom.xml copy to new project root
-        FileUtils.copyFileTo(Path.of(POM_XML).toFile(), mavenBuildProjectRoot);
+        // copy POM file created by our POM preparer plugin to the new project root
+        var pomFileCreatedByOurPlugin = getPomFileCreatedByOurPlugin();
+        FileUtils.copyFileTo(pomFileCreatedByOurPlugin, mavenBuildProjectRoot);
         Path newPom = mavenBuildProjectRoot.resolve(POM_XML);
+        if (!isS2iScenario()) {
+            mavenBuildProjectRoot.resolve(TARGET_POM).toFile().renameTo(newPom.toFile());
+        }
 
+        boolean pomAdjusted = false;
         // adjust pom.xml
         Document pomDocument = getDocument(newPom);
         Node projectElement = pomDocument.getElementsByTagName("project").item(0);
-        setCorrectProjectParentRelativePath(projectElement, mavenBuildProjectRoot);
         if (OS.WINDOWS.isCurrent()) {
             // it's necessary to keep executable name small as I experienced LNK1104 error on Windows from long path
             // see also: https://learn.microsoft.com/en-us/windows/win32/fileio/maximum-file-path-limitation
             setProjectBuildNameToApp(projectElement, pomDocument);
+            pomAdjusted = true;
         }
         // add forced dependencies
         if (!forcedDependencies.isEmpty()) {
             addForcedDependenciesToNewPom(pomDocument, projectElement);
+            pomAdjusted = true;
         }
-        // update pom.xml file
-        try {
-            Transformer transformer = TransformerFactory.newInstance().newTransformer();
-            transformer.transform(new DOMSource(pomDocument), new StreamResult(newPom.toFile()));
-        } catch (TransformerException e) {
-            throw new RuntimeException("Failed to persist enhanced POM file: " + e.getMessage());
+        if (!requiredDependencies.isEmpty()) {
+            var newPomAsString = requireNonNull(FileUtils.loadFile(newPom.toFile()));
+            var requiredMissingDependencies = requiredDependencies.stream()
+                    .filter(d -> !newPomAsString.contains("<artifactId>" + d.artifactId() + "</artifactId>"))
+                    .toList();
+            if (!requiredMissingDependencies.isEmpty()) {
+                addDependenciesToNewPom(pomDocument, projectElement, requiredMissingDependencies);
+                pomAdjusted = true;
+            }
+        }
+
+        if (pomAdjusted) {
+            // update pom.xml file
+            try {
+                Transformer transformer = TransformerFactory.newInstance().newTransformer();
+                transformer.transform(new DOMSource(pomDocument), new StreamResult(newPom.toFile()));
+            } catch (TransformerException e) {
+                throw new RuntimeException("Failed to persist enhanced POM file: " + e.getMessage());
+            }
         }
 
         // add application classes to src/main/..
@@ -150,33 +247,106 @@ class QuarkusMavenPluginBuildHelper {
         return mavenBuildProjectRoot;
     }
 
-    Path jvmModeBuild() {
-        return buildArtifact(Mode.JVM).orElseThrow(() -> new RuntimeException("""
-                Failed to build JAR artifact, the most likely reason is that Quarkus Maven plugin is missing.
-                Please add 'quarkus-maven-plugin' to your project.
-                """));
+    private File getPomFileCreatedByOurPlugin() {
+        var pomFileCreatedByOurPlugin = Path.of(TARGET).resolve(isS2iScenario() ? POM_XML : TARGET_POM).toFile();
+        if (!pomFileCreatedByOurPlugin.exists()) {
+            throw new RuntimeException("Could not find '%s' POM file, please add 'io.quarkus.qe:quarkus-test-preparer' plugin");
+        }
+        return pomFileCreatedByOurPlugin;
     }
 
-    Optional<Path> buildNativeExecutable() {
-        return buildArtifact(Mode.NATIVE);
+    private boolean isS2iScenario() {
+        return resourceBuilder.isS2iScenario();
     }
 
-    private Optional<Path> buildArtifact(Mode mode) {
-        Objects.requireNonNull(targetFolderForLocalArtifacts);
-        var mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
+    private Path buildOrReuseJar() {
+        return buildOrReuseArtifact(List.of()).orElseThrow(() -> new RuntimeException("Failed to build JAR artifact"));
+    }
 
-        // build artifact with Quarkus Maven Plugin
+    private Path buildOrReuseNativeExecutable() {
+        return buildOrReuseArtifact(List.of()).orElseThrow(() -> new RuntimeException("Failed to build native executable"));
+    }
+
+    Path buildOrReuseArtifact() {
+        return switch (mode) {
+            case JVM -> buildOrReuseJar();
+            case NATIVE -> buildOrReuseNativeExecutable();
+        };
+    }
+
+    Optional<Path> buildOrReuseArtifact(Collection<String> additionalArgs) {
+        requireNonNull(targetFolderForLocalArtifacts);
+
+        final Path mavenBuildProjectRoot;
+        if (isS2iScenario()) {
+            // no adjustments it would be too complex, and we couldn't gain anything there
+            mavenBuildProjectRoot = appFolder;
+        } else {
+            mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
+        }
+
+        final boolean isCustomBuildRequired = TestExecutionProperties.isCustomBuildRequired(resourceBuilder.getContext());
+        if (isCustomBuildRequired) {
+            return buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs);
+        }
+        return getArtifact().or(() -> buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs));
+    }
+
+    private Optional<Path> getArtifact() {
+        Optional<String> artifactLocation = Optional.empty();
+        final Path targetFolder = targetFolderForLocalArtifacts;
+        if (artifactSuffix != null) {
+            var possiblyArtifact = findTargetFile(targetFolder, artifactSuffix).map(Path::of);
+            if (possiblyArtifact.isPresent()) {
+                return possiblyArtifact;
+            }
+            throw new IllegalStateException(String.format("Folder %s doesn't contain '%s'", targetFolder, artifactSuffix));
+        }
+        resourceBuilder.createSnapshotOfBuildPropertiesIfNotExists();
+        if (!resourceBuilder.buildPropertiesChanged()) {
+            if (mode == Mode.NATIVE) {
+                // custom native executable has different name, therefore we can safely re-use it
+                artifactLocation = findNativeBuildExecutable(targetFolder, isCustomBuildRequired(), appFolder);
+            } else if (!isCustomBuildRequired()) {
+                artifactLocation = findJvmArtifact(targetFolder);
+            }
+        }
+
+        return artifactLocation.map(Path::of);
+    }
+
+    private Optional<Path> buildArtifactWithQuarkusMvnPlugin(Path mavenBuildProjectRoot, Collection<String> additionalArgs) {
         try {
-            new Command(getBuildCmd(mode)).onDirectory(mavenBuildProjectRoot).runAndWait();
+            new Command(getBuildCmd(additionalArgs)).onDirectory(mavenBuildProjectRoot).runAndWait();
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException("Failed to build artifact: " + e.getMessage());
         }
 
         if (mode == Mode.JVM) {
-            return findJvmArtifact(mavenBuildProjectRoot.resolve(TARGET)).map(Path::of);
+            return findAndMoveJvmArtifact(mavenBuildProjectRoot).map(Path::of);
         } else {
             return findNativeExecutable(mavenBuildProjectRoot);
         }
+    }
+
+    private Optional<String> findAndMoveJvmArtifact(Path mavenBuildProjectRoot) {
+        return findJvmArtifact(mavenBuildProjectRoot.resolve(TARGET))
+                .map(jarPathStr -> {
+                    // moves to permanent location when custom build not required
+                    if (!isCustomBuildRequired()) {
+                        var testProjectTargetQuarkusApp = Path.of(TARGET).resolve(QUARKUS_APP);
+                        if (!Files.exists(testProjectTargetQuarkusApp)) {
+                            var jarPath = Path.of(jarPathStr);
+                            var quarkusAppFolder = jarPath.getParent();
+                            FileUtils.copyDirectoryTo(quarkusAppFolder, testProjectTargetQuarkusApp);
+
+                            // use moved artifact mainly so that we know it works
+                            var jarName = jarPath.toFile().getName();
+                            return testProjectTargetQuarkusApp.resolve(jarName).toAbsolutePath().toString();
+                        }
+                    }
+                    return jarPathStr;
+                });
     }
 
     static Optional<String> findJvmArtifact(Path targetFolder) {
@@ -197,6 +367,9 @@ class QuarkusMavenPluginBuildHelper {
     private Optional<Path> moveToPermanentLocation(Path tempNativeExecutablePath) {
         // find permanent re-usable location of our native executable
         final Path permanentNativeExecutablePath;
+        // runtime properties provided at build time are currently available during the build time and so are custom props
+        // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
+        resourceBuilder.createSnapshotOfBuildProperties();
         if (isCustomBuildRequired()) {
             String uniqueAppName = getUniqueAppName(appFolder);
             Path customExecutableTargetDir = targetFolderForLocalArtifacts.resolve(CUSTOM_RUNNER_DIR).resolve(uniqueAppName);
@@ -221,23 +394,23 @@ class QuarkusMavenPluginBuildHelper {
     }
 
     private boolean isCustomBuildRequired() {
-        // runtime properties provided at build time are currently available during the build time and so are custom props
-        // therefore we can't allow re-using of native executable with application specific properties (e.g. "withProperty")
-        resourceBuilder.createSnapshotOfBuildProperties();
-        return resourceBuilder.requiresCustomBuild() || resourceBuilder.hasAppSpecificConfigProperties()
-                || !forcedDependencies.isEmpty();
+        return resourceBuilder.requiresCustomBuild() || !forcedDependencies.isEmpty() || !requiredDependencies.isEmpty()
+                || resourceBuilder.areApplicationPropertiesEnhanced();
     }
 
-    private String[] getBuildCmd(Mode mode) {
-        Stream<String> cmdStream = Stream.of(mvnCmd(), "-B", "--no-transfer-progress", "clean", "install",
-                "-Dquarkus.build.skip=false");
+    private String[] getBuildCmd(Collection<String> additionalArgs) {
+        Stream<String> cmdStream = Stream.of(mvnCmd(), "-B", "--no-transfer-progress", "clean", "install");
         if (mode == Mode.NATIVE) {
             cmdStream = Stream.concat(cmdStream, Stream.of("-Dnative"));
         }
-        cmdStream = Stream.concat(cmdStream, Stream.of("-DskipTests", "-DskipITs", "-Dcheckstyle.skip",
-                toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
-                toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
-                toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion())));
+        cmdStream = Stream.concat(cmdStream, Stream.of("-DskipTests", "-DskipITs", "-Dcheckstyle.skip"));
+
+        if (!isS2iScenario()) {
+            cmdStream = Stream.concat(cmdStream, Stream.of(
+                    toMvnSystemProperty(PLATFORM_VERSION.getPropertyKey(), getVersion()),
+                    toMvnSystemProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()),
+                    toMvnSystemProperty(PLUGIN_VERSION.getPropertyKey(), getPluginVersion())));
+        }
 
         // Need to add local maven repo due to differences in `getCmdLineBuildArgs` as by default it's not picked on Windows
         if (OS.WINDOWS.isCurrent() && System.getProperty(MVN_REPOSITORY_LOCAL) != null) {
@@ -248,46 +421,10 @@ class QuarkusMavenPluginBuildHelper {
         if (!cmdLineBuildArgs.isEmpty()) {
             cmdStream = Stream.concat(cmdStream, cmdLineBuildArgs.stream());
         }
+
+        cmdStream = Stream.concat(cmdStream, additionalArgs.stream());
+
         return cmdStream.toArray(String[]::new);
-    }
-
-    private void setCorrectProjectParentRelativePath(Node projectElement, Path newPomDir) {
-        // this only works for parent POM located on the file system
-        var projectChildElements = projectElement.getChildNodes();
-        for (int i = 0; i < projectChildElements.getLength(); i++) {
-            Node projectChildNode = projectChildElements.item(i);
-            if ("parent".equals(projectChildNode.getNodeName())) {
-                var parentChildNodes = projectChildNode.getChildNodes();
-                for (int j = 0; j < parentChildNodes.getLength(); j++) {
-                    var parentChildNode = parentChildNodes.item(j);
-                    if ("relativePath".equals(parentChildNode.getNodeName())) {
-                        String relativeDirPath = parentChildNode.getTextContent();
-                        if (relativeDirPath != null && !relativeDirPath.isBlank()) {
-                            relativeDirPath = relativeDirPath.trim();
-                            if (relativeDirPath.endsWith(POM_XML)) {
-                                // point to dir and not a POM file
-                                relativeDirPath = relativeDirPath.substring(0, relativeDirPath.length() - POM_XML.length());
-                            }
-                        } else {
-                            // set default relative path
-                            relativeDirPath = "..";
-                        }
-                        Path parentPomDirPath = Path.of(relativeDirPath).toAbsolutePath();
-                        String newPomToParentDirPath = parentPomDirPath.relativize(newPomDir.toAbsolutePath()).toString();
-
-                        // one/two/three => ../../..
-                        String splitBySeparator = Pattern.quote(File.separator);
-                        String newRelativePath = Arrays.stream(newPomToParentDirPath.split(splitBySeparator))
-                                .map(w -> "..")
-                                .collect(Collectors.joining(File.separator));
-
-                        parentChildNode.setTextContent(newRelativePath + File.separator + POM_XML);
-                        break;
-                    }
-                }
-                break;
-            }
-        }
     }
 
     private void addEnhancedAppPropsAndMetaInf(Path mavenBuildProjectRoot) {
@@ -317,6 +454,10 @@ class QuarkusMavenPluginBuildHelper {
     private void addAppClassesToSrcMain(Path mavenBuildProjectRoot) {
         // copy original project root src directory to new project root
         Path mainSourceDir = Path.of("src").resolve("main");
+        if (!Files.exists(mainSourceDir)) {
+            mainSourceDir.toFile().mkdirs();
+        }
+
         Path newMainSourceDir = mavenBuildProjectRoot.resolve("src").resolve("main");
         // it's important to copy only src/main for when we remove non-application classes
         // compilation of test dir could lead to error due to missing classes
@@ -397,29 +538,33 @@ class QuarkusMavenPluginBuildHelper {
     }
 
     private void addForcedDependenciesToNewPom(Document pomDocument, Node projectElement) {
+        addDependenciesToNewPom(pomDocument, projectElement, forcedDependencies);
+    }
+
+    private static void addDependenciesToNewPom(Document pomDocument, Node projectElement, List<Dependency> dependencies) {
         var projectChildElements = projectElement.getChildNodes();
         for (int i = 0; i < projectChildElements.getLength(); i++) {
             Node childNode = projectChildElements.item(i);
             if ("dependencies".equals(childNode.getNodeName())) {
-                for (Dependency forcedDependency : forcedDependencies) {
+                for (Dependency dependency : dependencies) {
                     // <dependency>
                     Element newDependency = pomDocument.createElement("dependency");
                     Element artifactId = pomDocument.createElement("artifactId");
                     // <artifactId>
-                    artifactId.setTextContent(forcedDependency.getArtifactId());
+                    artifactId.setTextContent(dependency.artifactId());
                     newDependency.appendChild(artifactId);
                     // <groupId>
                     Element groupId = pomDocument.createElement("groupId");
-                    if (forcedDependency.getGroupId().isEmpty()) {
+                    if (dependency.groupId().isEmpty()) {
                         groupId.setTextContent("io.quarkus");
                     } else {
-                        groupId.setTextContent(forcedDependency.getGroupId());
+                        groupId.setTextContent(dependency.groupId());
                     }
                     newDependency.appendChild(groupId);
                     // <version>
-                    if (forcedDependency.getVersion() != null && !forcedDependency.getVersion().isEmpty()) {
+                    if (dependency.version() != null && !dependency.version().isEmpty()) {
                         Element version = pomDocument.createElement("version");
-                        version.setTextContent(forcedDependency.getVersion());
+                        version.setTextContent(dependency.version());
                         newDependency.appendChild(version);
                     }
                     childNode.appendChild(newDependency);
@@ -429,10 +574,10 @@ class QuarkusMavenPluginBuildHelper {
         }
     }
 
-    private Set<String> getCmdLineBuildArgs() {
+    private List<String> getCmdLineBuildArgs() {
         // we don't look for command line args on Windows as arguments are not accessible via the 'ProcessHandle' API
         // TODO: if we ever extend native executable coverage on Windows, we must find a way how to access only original args
-        return OS.WINDOWS.isCurrent() ? Set.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties())
+        return OS.WINDOWS.isCurrent() ? List.copyOf(resourceBuilder.getBuildPropertiesSetAsSystemProperties())
                 : findMavenCommandLineArgs();
     }
 
@@ -539,4 +684,5 @@ class QuarkusMavenPluginBuildHelper {
         JVM,
         NATIVE
     }
+
 }

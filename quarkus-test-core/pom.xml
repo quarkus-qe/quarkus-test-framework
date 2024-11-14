@@ -16,13 +16,16 @@
         </dependency>
         <dependency>
             <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-bootstrap-core</artifactId>
+            <artifactId>quarkus-core-deployment</artifactId>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>io.quarkus</groupId>
-            <artifactId>quarkus-test-common</artifactId>
-            <scope>provided</scope>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven</groupId>
+            <artifactId>maven-model</artifactId>
         </dependency>
         <dependency>
             <groupId>org.awaitility</groupId>
@@ -31,11 +34,6 @@
         <dependency>
             <groupId>io.rest-assured</groupId>
             <artifactId>rest-assured</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.shrinkwrap</groupId>
-            <artifactId>shrinkwrap-depchain</artifactId>
-            <type>pom</type>
         </dependency>
         <dependency>
             <groupId>com.microsoft.playwright</groupId>
