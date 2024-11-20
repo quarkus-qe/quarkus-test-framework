@@ -25,6 +25,7 @@ import org.testcontainers.utility.MountableFile;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.TestContainersLoggingHandler;
@@ -37,6 +38,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     public static final String DOCKER_INNER_CONTAINER = DockerContainerManagedResource.class.getName() + "_inner";
     private static final String DELETE_IMAGE_ON_STOP_PROPERTY = "container.delete.image.on.stop";
     private static final String TARGET = "target";
+    private static final PropertyLookup CONTAINER_STARTUP_ATTEMPTS = new PropertyLookup("container-startup-attempts", "1");
 
     private final ServiceContext context;
 
@@ -65,6 +67,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
         innerContainer.withStartupTimeout(context.getOwner().getConfiguration()
                 .getAsDuration(SERVICE_STARTUP_TIMEOUT, SERVICE_STARTUP_TIMEOUT_DEFAULT));
         innerContainer.withEnv(resolveProperties());
+        innerContainer.withStartupAttempts(CONTAINER_STARTUP_ATTEMPTS.getAsInteger());
 
         loggingHandler = new TestContainersLoggingHandler(context.getOwner(), innerContainer);
         loggingHandler.startWatching();
