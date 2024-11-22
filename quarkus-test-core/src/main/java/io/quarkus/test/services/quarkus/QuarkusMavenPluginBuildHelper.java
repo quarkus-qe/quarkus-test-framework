@@ -285,10 +285,6 @@ public final class QuarkusMavenPluginBuildHelper {
             mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
         }
 
-        final boolean isCustomBuildRequired = TestExecutionProperties.isCustomBuildRequired(resourceBuilder.getContext());
-        if (isCustomBuildRequired) {
-            return buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs);
-        }
         return getArtifact().or(() -> buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs));
     }
 
@@ -394,8 +390,10 @@ public final class QuarkusMavenPluginBuildHelper {
     }
 
     private boolean isCustomBuildRequired() {
-        return resourceBuilder.requiresCustomBuild() || !forcedDependencies.isEmpty() || !requiredDependencies.isEmpty()
-                || resourceBuilder.areApplicationPropertiesEnhanced();
+        boolean customBuildRequiredImplicitly = resourceBuilder.requiresCustomBuild() || !forcedDependencies.isEmpty()
+                || !requiredDependencies.isEmpty() || resourceBuilder.areApplicationPropertiesEnhanced();
+        boolean customBuildRequiredExplicitly = TestExecutionProperties.isCustomBuildRequired(resourceBuilder.getContext());
+        return customBuildRequiredExplicitly || customBuildRequiredImplicitly;
     }
 
     private String[] getBuildCmd(Collection<String> additionalArgs) {
