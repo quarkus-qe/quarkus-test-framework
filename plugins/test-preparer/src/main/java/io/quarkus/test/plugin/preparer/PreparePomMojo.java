@@ -104,13 +104,13 @@ public class PreparePomMojo extends AbstractMojo {
                         "POM file property '" + propertyKey + "' is required but could not found");
             }
             newPomModel.getProperties().setProperty(propertyKey, propertyValue);
-            if (project.getProperties().getProperty(MAVEN_COMPILER_RELEASE) != null) {
-                newPomModel.getProperties().setProperty(MAVEN_COMPILER_RELEASE,
-                        project.getProperties().getProperty(MAVEN_COMPILER_RELEASE));
-            } else {
-                newPomModel.getProperties().setProperty(MAVEN_COMPILER_RELEASE, Integer.toString(Runtime.version().feature()));
-            }
         });
+        if (project.getProperties().getProperty(MAVEN_COMPILER_RELEASE) != null) {
+            newPomModel.getProperties().setProperty(MAVEN_COMPILER_RELEASE,
+                    project.getProperties().getProperty(MAVEN_COMPILER_RELEASE));
+        } else {
+            newPomModel.getProperties().setProperty(MAVEN_COMPILER_RELEASE, Integer.toString(Runtime.version().feature()));
+        }
     }
 
     private static void addCurrentProjectPlugins(Model newPomModel, Model rawCurrentProjectModel, MavenProject project) {
