@@ -44,6 +44,10 @@
             <artifactId>smallrye-mutiny-vertx-web-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>io.smallrye.reactive</groupId>
+            <artifactId>smallrye-mutiny-vertx-core</artifactId>
+        </dependency>
+        <dependency>
             <groupId>io.smallrye.certs</groupId>
             <artifactId>smallrye-certificate-generator</artifactId>
         </dependency>
