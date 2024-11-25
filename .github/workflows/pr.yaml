@@ -66,12 +66,12 @@ jobs:
           path: maven-repo.tgz
           retention-days: 1
   linux-build-jvm-released:
-    name: Linux - JVM build - 3.15.1
+    name: Linux - JVM build - 3.15.2
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
       matrix:
-        quarkus-version: ["3.15.1"]
+        quarkus-version: ["3.15.2"]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -186,7 +186,7 @@ jobs:
     needs: validate-format
     strategy:
       matrix:
-        quarkus-version: [ "3.15.1" ]
+        quarkus-version: [ "3.15.2" ]
         java: [ 17 ]
         examples: [
           'examples/pingpong,examples/restclient,examples/greetings,examples/blocking-reactive-model,examples/https,examples/grpc,examples/consul,examples/infinispan,examples/microprofile,examples/keycloak,examples/kafka,examples/kafka-registry,examples/kafka-streams',
