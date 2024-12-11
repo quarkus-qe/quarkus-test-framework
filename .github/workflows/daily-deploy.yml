@@ -26,7 +26,6 @@ jobs:
 
       - name: Maven release 999-SNAPSHOT
         run: |
-          mvn -B versions:set -DnewVersion=999-SNAPSHOT
           mvn -B -DskipTests -DskipITs \
             -DretryFailedDeploymentCount=3 \
             -Psnapshot,framework \
