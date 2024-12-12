@@ -1,5 +1,5 @@
-name: 'Release Quarkus QE Test Framework'
-description: 'Releases Quarkus QE Test Framework'
+name: 'Deploy Quarkus QE Test Framework'
+description: 'Deploys Quarkus QE Test Framework'
 inputs:
   repository-id:
     description: 'Must match a repository id present in of the POM file distributionManagement repositories'
@@ -33,17 +33,19 @@ runs:
       run: mvn -B versions:set -DnewVersion=$NEW_FRAMEWORK_VERSION
       env:
         NEW_FRAMEWORK_VERSION: ${{ inputs.release-version }}
-    - name: Maven release ${{ inputs.release-version }}
+    - name: Maven deploy ${{ inputs.release-version }}
       shell: bash
       run: |
         mvn -B -DskipTests -DskipITs \
           -DretryFailedDeploymentCount=3 \
-          -Prelease,framework \
+          -Pdeploy,framework \
+          -Prelease=$RELEASE \
           clean deploy
       env:
         MAVEN_USERNAME: ${{ inputs.ossrh-username }}
         MAVEN_PASSWORD: ${{ inputs.ossrh-token }}
         MAVEN_GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}
+        RELEASE: ${{ ! endsWith(inputs.release-version, 'SNAPSHOT') }}
     - name: Delete Local Artifacts From Cache
       shell: bash
       run: rm -r ~/.m2/repository/io/quarkus/qe

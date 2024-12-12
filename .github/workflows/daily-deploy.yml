@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/release
+      - uses: ./.github/actions/deploy
         with:
           repository-id: 'ossrh'
           release-version: '999-SNAPSHOT'
