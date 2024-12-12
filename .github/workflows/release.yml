@@ -13,6 +13,7 @@ jobs:
     if: ${{github.event.pull_request.merged == true}}
 
     steps:
+      - uses: actions/checkout@v4
       - uses: radcortez/project-metadata-action@master
         name: Retrieve project metadata
         id: metadata
