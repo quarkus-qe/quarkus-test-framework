@@ -6,6 +6,14 @@ inputs:
     required: true
   release-version:
     description: 'Version under which should this framework be released'
+  ossrh-username:
+    required: true
+  ossrh-token:
+    required: true
+  gpg-passphrase:
+    required: true
+  gpg-private-key:
+    required: true
 runs:
   using: "composite"
   steps:
@@ -18,7 +26,7 @@ runs:
         server-id: ${{ inputs.repository-id }}
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
-        gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+        gpg-private-key: ${{ inputs.gpg-private-key }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
     - name: Set Quarkus QE Test Framework version to ${{ inputs.release-version }}
       shell: bash
@@ -33,9 +41,9 @@ runs:
           -Prelease,framework \
           clean deploy
       env:
-        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
-        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
-        MAVEN_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+        MAVEN_USERNAME: ${{ inputs.ossrh-username }}
+        MAVEN_PASSWORD: ${{ inputs.ossrh-token }}
+        MAVEN_GPG_PASSPHRASE: ${{ inputs.gpg-passphrase }}
     - name: Delete Local Artifacts From Cache
       shell: bash
       run: rm -r ~/.m2/repository/io/quarkus/qe

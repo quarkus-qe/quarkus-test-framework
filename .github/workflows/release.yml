@@ -24,6 +24,10 @@ jobs:
         with:
           repository-id: 'oss.sonatype'
           release-version: ${{steps.metadata.outputs.current-version}}
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          ossrh-token: ${{ secrets.OSSRH_TOKEN }}
+          gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          ossrh-username: ${{ secrets.OSSRH_USERNAME }}
       - name: Configure Git
         shell: bash
         run: |
