@@ -42,7 +42,7 @@ jobs:
       - name: Maven release ${{steps.metadata.outputs.current-version}}
         run: |
           git checkout -b release
-          mvn -B release:prepare -Prelease,framework -DpushChanges=false -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=999-SNAPSHOT
+          mvn -B release:prepare -Prelease,framework,examples -DpushChanges=false -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=999-SNAPSHOT
           git checkout ${{github.base_ref}}
           git rebase release
           mvn -B release:perform -DskipITs -Prelease,framework
