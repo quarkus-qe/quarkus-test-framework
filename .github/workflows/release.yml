@@ -20,7 +20,7 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           metadata-file-path: '.github/project.yml'
-      - uses: ./.github/actions/release
+      - uses: ./.github/actions/deploy
         with:
           repository-id: 'oss.sonatype'
           release-version: ${{steps.metadata.outputs.current-version}}
