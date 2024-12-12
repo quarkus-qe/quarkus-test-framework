@@ -39,7 +39,7 @@ runs:
         mvn -B -DskipTests -DskipITs \
           -DretryFailedDeploymentCount=3 \
           -Pdeploy,framework \
-          -Prelease=$RELEASE \
+          -Drelease=$RELEASE \
           clean deploy
       env:
         MAVEN_USERNAME: ${{ inputs.ossrh-username }}
