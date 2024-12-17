@@ -28,6 +28,9 @@ items:
           - configMap:
               name: settings-mvn
             destinationDir: "/configuration"
+          - configMap:
+              name: etc-pki-java
+            destinationDir: "/etc/pki/java/"
       strategy:
         type: Source
         sourceStrategy:
