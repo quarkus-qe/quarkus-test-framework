@@ -61,9 +61,13 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
         return Collections.emptyMap();
     }
 
-    private void applyTemplate() {
-        String deploymentFile = model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
+    protected final String getTemplate() {
+        return model.getContext().getOwner().getConfiguration().getOrDefault(DEPLOYMENT_TEMPLATE_PROPERTY,
                 getDefaultTemplate());
+    }
+
+    private void applyTemplate() {
+        String deploymentFile = getTemplate();
 
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
                 this::internalReplaceDeploymentContent,
