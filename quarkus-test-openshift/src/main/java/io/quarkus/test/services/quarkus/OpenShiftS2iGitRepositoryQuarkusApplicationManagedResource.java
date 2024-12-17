@@ -6,6 +6,7 @@ import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static java.util.regex.Pattern.quote;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.apache.commons.lang3.StringUtils;
@@ -23,6 +24,8 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
     private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup("s2i.maven.remote.repository");
+    private static final PropertyLookup REPLACE_JAVA_CA_CERTS = new PropertyLookup("s2i.java.replace-ca-certs");
+    private static final String ETC_PKI_JAVA_CONFIG_MAP_NAME = "etc-pki-java";
     private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup("s2i.openshift.base-native-image",
             "quay.io/quarkus/ubi-quarkus-graalvmce-s2i:jdk-21");
 
@@ -102,13 +105,50 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
                 .resolve(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
         String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
 
+        boolean replaceJavaCaCerts = false;
         String remoteRepo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
         if (StringUtils.isNotEmpty(remoteRepo)) {
             content = content.replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), remoteRepo);
+            replaceJavaCaCerts = shouldReplaceJavaCaCerts(remoteRepo);
         }
+
+        prepareJavaCaCerts(replaceJavaCaCerts);
 
         FileUtils.copyContentTo(content, targetQuarkusSourceS2iSettingsMvnFilename);
         client.apply(targetQuarkusSourceS2iSettingsMvnFilename);
     }
 
+    private void prepareJavaCaCerts(boolean replaceJavaCaCerts) {
+        if (isDefaultTemplate() || templateInjectsEtcPkiJava()) {
+            Path javaCaCertsPath = Path.of("/etc/pki/java/cacerts");
+            if (replaceJavaCaCerts && Files.exists(javaCaCertsPath)) {
+                // propagate java ca certs from executor machines so that secured communication
+                // with remote repositories can use private certificate authority
+                client.createConfigMap(ETC_PKI_JAVA_CONFIG_MAP_NAME, javaCaCertsPath);
+            } else {
+                // build config doesn't support optional config mappings
+                // this does not overwrite default ca certs
+                client.createEmptyConfigMap(ETC_PKI_JAVA_CONFIG_MAP_NAME);
+            }
+        }
+    }
+
+    private boolean templateInjectsEtcPkiJava() {
+        // our custom templates will need to use remote repository as well
+        var template = FileUtils.loadFile(getTemplate());
+        return template != null && template.contains(ETC_PKI_JAVA_CONFIG_MAP_NAME);
+    }
+
+    private boolean shouldReplaceJavaCaCerts(String remoteRepo) {
+        String replaceJavaCaCertsAsString = REPLACE_JAVA_CA_CERTS.get(model.getContext());
+        if (replaceJavaCaCertsAsString == null || replaceJavaCaCertsAsString.isEmpty()) {
+            // property not set; by default recognize own repository so that we don't need to set it everywhere
+            return remoteRepo.contains(".quarkus-qe.");
+        }
+        return Boolean.parseBoolean(replaceJavaCaCertsAsString);
+    }
+
+    private boolean isDefaultTemplate() {
+        return getDefaultTemplate().equals(getTemplate());
+    }
 }

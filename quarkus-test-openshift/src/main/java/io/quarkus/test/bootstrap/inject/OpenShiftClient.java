@@ -67,6 +67,7 @@ import io.fabric8.kubernetes.client.dsl.NamespaceListVisitFromServerGetDeleteRec
 import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
+import io.fabric8.kubernetes.client.utils.KubernetesResourceUtil;
 import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
@@ -739,6 +740,30 @@ public final class OpenShiftClient {
 
     public boolean isAnyServicePodReady(String serviceName) {
         return client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, serviceName).resources().anyMatch(Resource::isReady);
+    }
+
+    public void createConfigMap(String configMapName, Path fileSystemPath) {
+        var configMapResource = client.configMaps().withName(configMapName);
+        if (configMapResource.get() == null) {
+            try {
+                var configMap = KubernetesResourceUtil.createConfigMapFromDirOrFiles(configMapName, fileSystemPath);
+                client.resource(configMap).create();
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create config map with name " + configMapName, e);
+            }
+        }
+    }
+
+    public void createEmptyConfigMap(String configMapName) {
+        var configMapResource = client.configMaps().withName(configMapName);
+        if (configMapResource.get() == null) {
+            var configMap = new ConfigMapBuilder()
+                    .editMetadata()
+                    .withName(configMapName)
+                    .endMetadata()
+                    .build();
+            client.resource(configMap).create();
+        }
     }
 
     private void addAnnotatedConfigMap(String configMapName, String annotationName, String annotationValue) {
