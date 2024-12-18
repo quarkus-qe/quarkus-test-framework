@@ -31,21 +31,21 @@ public class TodoDemoIT {
             .withProperty("PGDATA", "/tmp/psql");
 
     @GitRepositoryQuarkusApplication(repo = REPO, mavenArgs = DEFAULT_ARGS + UBER)
-    static final RestService app = new RestService()
+    static final RestService todoApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
     @GitRepositoryQuarkusApplication(repo = REPO, artifact = "todo-backend-1.0-SNAPSHOT-runner.jar", mavenArgs = DEFAULT_ARGS
             + UBER)
-    static final RestService explicit = new RestService()
+    static final RestService todoExplicitApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
     @GitRepositoryQuarkusApplication(repo = REPO, artifact = "todo-backend-1.0-SNAPSHOT.jar", mavenArgs = DEFAULT_ARGS + UBER
             + NO_SUFFIX)
-    static final RestService unsuffixed = new RestService()
+    static final RestService todoUnsuffixedApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
@@ -53,7 +53,7 @@ public class TodoDemoIT {
     @Test
     @Order(1)
     public void verify() {
-        app.given()
+        todoApp.given()
                 .contentType(ContentType.JSON)
                 .body("{\"title\": \"Use Quarkus\", \"order\": 1, \"url\": \"https://quarkus.io\"}")
                 .post("/api")
@@ -64,7 +64,7 @@ public class TodoDemoIT {
     @Test
     @Order(2)
     public void verifyExplicitArtifact() {
-        explicit.given()
+        todoExplicitApp.given()
                 .accept(ContentType.JSON)
                 .get("/api/1")
                 .then()
@@ -75,7 +75,7 @@ public class TodoDemoIT {
     @Test
     @Order(3)
     public void verifyNoSuffix() {
-        unsuffixed.given()
+        todoUnsuffixedApp.given()
                 .pathParam("id", 1)
                 .delete("/api/{id}")
                 .then()
