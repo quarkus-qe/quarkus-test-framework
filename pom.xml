@@ -69,7 +69,7 @@
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
         <postgresql.image>docker.io/postgres:16</postgresql.image>
         <mysql.image>docker.io/mysql:8.4</mysql.image>
-        <strimzi.testcontainers.version>0.107.0</strimzi.testcontainers.version>
+        <strimzi.testcontainers.version>0.109.1</strimzi.testcontainers.version>
         <infinispan.image>docker.io/infinispan/server:15.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
