@@ -8,10 +8,10 @@ import static java.util.stream.Collectors.toSet;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,6 +23,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
@@ -325,12 +326,15 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
             // gather build-time config keys from extensions deployment modules
             // this won't work for named config keys (without regex), but we can tweak that in the future if we need to
-            var deploymentBuildProps = Arrays
-                    .stream(FileUtils
-                            .loadFile("/deployment-build-props.txt")
-                            .split(System.lineSeparator()))
+            var deploymentBuildProps = IOUtils
+                    .readLines(QuarkusApplicationManagedResourceBuilder.class
+                            .getResourceAsStream("/deployment-build-props.txt"), StandardCharsets.UTF_8)
+                    .stream()
                     .map(String::trim)
                     .collect(toSet());
+            if (deploymentBuildProps.size() <= 1) {
+                throw new RuntimeException("deployment-build-props.txt couldn't be properly loaded");
+            }
             buildTimeConfigKeys.addAll(deploymentBuildProps);
 
             // handle relocations - if relocation processor is applied, we won't find original config property
