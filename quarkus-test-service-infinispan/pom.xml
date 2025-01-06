@@ -13,5 +13,9 @@
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-openshift</artifactId>
+        </dependency>
     </dependencies>
 </project>
