@@ -32,16 +32,13 @@ public class KeycloakService extends BaseService<KeycloakService> {
     public KeycloakService(String realmFile, String realmName, String realmBasePath) {
         this(realmName);
         this.realmBasePath = normalizeRealmBasePath(realmBasePath);
-        withProperty("KEYCLOAK_IMPORT", "resource::" + realmFile); // Required by keycloak 16 and lower
         withProperty("KEYCLOAK_REALM_IMPORT", "resource_with_destination::" + REALM_DEST_PATH + "|" + realmFile);
     }
 
     public KeycloakService(String realmName) {
         this.realm = realmName;
-        withProperty("KEYCLOAK_ADMIN", USER);
-        withProperty("KEYCLOAK_ADMIN_PASSWORD", PASSWORD);
-        withProperty("KEYCLOAK_USER", USER); // Required by keycloak 16 and lower
-        withProperty("KEYCLOAK_PASSWORD", PASSWORD); // Required by keycloak 16 and lower
+        withProperty("KC_BOOTSTRAP_ADMIN_USERNAME", USER);
+        withProperty("KC_BOOTSTRAP_ADMIN_PASSWORD", PASSWORD);
     }
 
     public String getRealmUrl() {
