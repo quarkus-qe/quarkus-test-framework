@@ -39,6 +39,9 @@ public class KeycloakService extends BaseService<KeycloakService> {
         this.realm = realmName;
         withProperty("KC_BOOTSTRAP_ADMIN_USERNAME", USER);
         withProperty("KC_BOOTSTRAP_ADMIN_PASSWORD", PASSWORD);
+        // TODO drop next variables as they were deprecated in KC 26 (possibly when we move to KC 28+)
+        withProperty("KEYCLOAK_ADMIN", USER);
+        withProperty("KEYCLOAK_ADMIN_PASSWORD", PASSWORD);
     }
 
     public String getRealmUrl() {
