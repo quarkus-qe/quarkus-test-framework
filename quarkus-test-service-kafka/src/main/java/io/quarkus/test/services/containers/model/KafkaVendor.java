@@ -3,7 +3,7 @@ package io.quarkus.test.services.containers.model;
 public enum KafkaVendor {
     CONFLUENT("confluentinc/cp-kafka", "7.6.1", 9092, KafkaRegistry.CONFLUENT),
     // When updating strimzi kafka also update version in examples-kafka pom
-    STRIMZI("quay.io/strimzi/kafka", "0.41.0-kafka-3.7.0", 9092, KafkaRegistry.APICURIO);
+    STRIMZI("quay.io/strimzi/kafka", "0.45.0-kafka-3.9.0", 9092, KafkaRegistry.APICURIO);
 
     private final String image;
     private final String defaultVersion;
