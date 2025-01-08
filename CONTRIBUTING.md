@@ -137,7 +137,9 @@ When creating new branch please ensure following items:
  - There are no pending PRs for relevant RHBQ or Quarkus stream
  - Pin external application branches, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/905
  - Pin CLI to concrete stream, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/918
+ - Use GH Action pr, based on previous stream branch, for example https://github.com/quarkus-qe/quarkus-test-framework/blob/37f099ad8851f05ebdf1a9284dc006c4849b7bf4/.github/workflows/pr.yaml
  - Update GH Actions to use the right Quarkus branch, see for example https://github.com/quarkus-qe/quarkus-test-framework/pull/920
+ - Change `quarkus.platform.version` property in parent pom.xml to use specific quarkus version, not snapshot
 
 ## The small print
 
