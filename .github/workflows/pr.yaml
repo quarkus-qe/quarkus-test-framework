@@ -33,63 +33,6 @@ jobs:
           name: maven-repo-current-fw${{matrix.java}}
           path: maven-repo-current-fw.tgz
           retention-days: 1
-  linux-build-jvm-released:
-    name: Linux - JVM build - Released Versions
-    runs-on: ubuntu-latest
-    needs: validate-format
-    strategy:
-      matrix:
-        quarkus-version: ["current"]
-        java: [ 17 ]
-    outputs:
-      has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Reclaim Disk Space
-        run: .github/ci-prerequisites.sh
-      - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: ${{ matrix.java }}
-          check-latest: true
-          cache: 'maven'
-      - name: Download Maven Repo
-        uses: actions/download-artifact@v4
-        with:
-          name: maven-repo-current-fw${{matrix.java}}
-          path: .
-      - name: Extract Maven Repo
-        shell: bash
-        run: tar -xzf maven-repo-current-fw.tgz -C ~
-      - name: Build in JVM mode
-        run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pexamples
-      - name: Detect flaky tests
-        id: flaky-test-detector
-        shell: bash
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
-        run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
-      - name: Rename flaky test run report to avoid file name conflicts
-        id: rename-flaky-test-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
-        shell: bash
-        run: mv target/flaky-run-report.json target/flaky-run-report-linux-jvm-released.json
-      - name: Archive flaky run report
-        id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report-linux-jvm-released.json') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: flaky-run-report-linux-jvm-released
-          path: target/flaky-run-report-linux-jvm-released.json
-      - name: Zip Artifacts
-        run: |
-          zip -R artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip '*-reports/*'
-      - name: Archive artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}
-          path: artifacts-quarkus${{ matrix.quarkus-version }}-linux-jvm${{ matrix.java }}.zip
   linux-build-jvm-latest:
     name: Linux - JVM build - Latest Version
     runs-on: ubuntu-latest
@@ -151,69 +94,6 @@ jobs:
         with:
           name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
-  linux-build-native-released:
-    name: Linux - Native build - Released Version
-    runs-on: ubuntu-latest
-    needs: validate-format
-    strategy:
-      matrix:
-        quarkus-version: [ "current" ]
-        java: [ 17 ]
-        examples: [
-          'examples/pingpong,examples/restclient,examples/greetings,examples/blocking-reactive-model,examples/https,examples/grpc,examples/consul,examples/infinispan,examples/microprofile,examples/keycloak,examples/kafka,examples/kafka-registry,examples/kafka-streams',
-          '!examples/pingpong,!examples/restclient,!examples/greetings,!examples/blocking-reactive-model,!examples/https,!examples/grpc,!examples/consul,!examples/infinispan,!examples/microprofile,!examples/keycloak,!examples/kafka,!examples/kafka-registry,!examples/kafka-streams'
-        ]
-    outputs:
-      has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Reclaim Disk Space
-        run: .github/ci-prerequisites.sh
-      - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: ${{ matrix.java }}
-          check-latest: true
-          cache: 'maven'
-      - name: Download Maven Repo
-        uses: actions/download-artifact@v4
-        with:
-          name: maven-repo-current-fw${{matrix.java}}
-          path: .
-      - name: Extract Maven Repo
-        shell: bash
-        run: tar -xzf maven-repo-current-fw.tgz -C ~
-      - name: Build
-        run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pexamples,native -pl '${{ matrix.examples }}'
-      - name: Detect flaky tests
-        id: flaky-test-detector
-        shell: bash
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
-        run: echo "has-flaky-tests=true" >> "$GITHUB_OUTPUT"
-      - name: Rename flaky test run report to avoid file name conflicts
-        id: rename-flaky-test-run-report
-        if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
-        shell: bash
-        run: mv target/flaky-run-report.json target/flaky-run-report-linux-native-released.json
-      - name: Archive flaky run report
-        id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report-linux-native-released.json') != '' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: flaky-run-report-linux-native-released
-          path: target/flaky-run-report-linux-native-released.json
-      - name: Zip Artifacts
-        if: failure()
-        run: |
-          zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
-      - name: Archive artifacts
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
-          path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   windows-build-jvm-latest:
     name: Windows - JVM build - Latest Version
     runs-on: windows-latest
@@ -269,23 +149,15 @@ jobs:
   detect-flaky-tests:
     name: Detect flaky tests
     runs-on: ubuntu-latest
-    needs: [linux-build-jvm-released, linux-build-jvm-latest, linux-build-native-released, windows-build-jvm-latest]
+    needs: [linux-build-jvm-latest, windows-build-jvm-latest]
     steps:
       - name: Create file with information about job with flaky test
-        if: needs.linux-build-jvm-released.outputs.has-flaky-tests == 'true' || needs.linux-build-jvm-latest.outputs.has-flaky-tests == 'true' || needs.linux-build-native-released.outputs.has-flaky-tests == 'true' || needs.windows-build-jvm-latest.outputs.has-flaky-tests == 'true'
+        if: needs.linux-build-jvm-latest.outputs.has-flaky-tests == 'true' || needs.windows-build-jvm-latest.outputs.has-flaky-tests == 'true'
         run: |
           job_name=""
           if $IS_LINUX_JVM_LATEST
           then
           job_name+=", 'Linux - JVM build - Latest Version'"
-          fi
-          if $IS_LINUX_JVM_RELEASED
-          then
-          job_name+=", 'Linux - JVM build - Released Versions'"
-          fi
-          if $IS_LINUX_NATIVE_RELEASED
-          then
-          job_name+=", 'Linux - Native build - Released Version'"
           fi
           if $IS_WINDOWS_JVM_LATEST
           then
@@ -294,8 +166,6 @@ jobs:
           echo "${job_name:2}" > jobs-with-flaky-tests
         env:
           IS_LINUX_JVM_LATEST: ${{ needs.linux-build-jvm-latest.outputs.has-flaky-tests == 'true' }}
-          IS_LINUX_JVM_RELEASED: ${{ needs.linux-build-jvm-released.outputs.has-flaky-tests == 'true' }}
-          IS_LINUX_NATIVE_RELEASED: ${{ needs.linux-build-native-released.outputs.has-flaky-tests == 'true' }}
           IS_WINDOWS_JVM_LATEST: ${{ needs.windows-build-jvm-latest.outputs.has-flaky-tests == 'true' }}
       - name: Archive 'jobs-with-flaky-tests' artifact
         if: ${{ hashFiles('**/jobs-with-flaky-tests') != '' }}
