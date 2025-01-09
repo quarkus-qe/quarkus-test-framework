@@ -13,7 +13,8 @@ public class KeycloakService extends BaseService<KeycloakService> {
 
     public static final String DEFAULT_REALM_BASE_PATH = "/realms";
     public static final String DEFAULT_REALM = "test-realm";
-    public static final String DEFAULT_REALM_FILE = "/keycloak-realm.json";
+    // The convention for importing realm is to have file name like `<realm-name>-realm.json`
+    public static final String DEFAULT_REALM_FILE = "/test-realm-realm.json";
     private static final String REALM_DEST_PATH = "/opt/keycloak/data/import";
     private static final String USER = "admin";
     private static final String PASSWORD = "admin";
@@ -25,7 +26,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
     /**
      * KeycloakService constructor, supported since Keycloak 18.
      *
-     * @param realmFile for example /keycloak-realm.json
+     * @param realmFile for example /test-realm-realm.json
      * @param realmName
      * @param realmBasePath such as "/realms" used by Keycloak 18 or "auth/realms" used by previous versions
      */
