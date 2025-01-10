@@ -26,8 +26,10 @@ import org.junit.jupiter.api.Test;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
+import io.quarkus.test.bootstrap.QuarkusVersionAwareCliClient;
 import io.quarkus.test.bootstrap.config.QuarkusConfigCommand;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.TestQuarkusCli;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
 import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
@@ -56,8 +58,8 @@ public class QuarkusCliClientIT {
         assertEquals(QuarkusProperties.getVersion(), cliClient.run("-v").getOutput());
     }
 
-    @Test
-    public void shouldCreateApplicationOnJvm() {
+    @TestQuarkusCli
+    public void shouldCreateApplicationOnJvm(QuarkusVersionAwareCliClient cliClient) {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
 
@@ -82,10 +84,10 @@ public class QuarkusCliClientIT {
                 "The application didn't build on Native. Output: " + result.getOutput());
     }
 
-    @Test
-    public void shouldCreateApplicationWithCodeStarter() {
+    @TestQuarkusCli
+    public void shouldCreateApplicationWithCodeStarter(QuarkusVersionAwareCliClient cliClient) {
         // Create application with Resteasy Jackson
-        QuarkusCliRestService app = cliClient.createApplication("app", defaults()
+        QuarkusCliRestService app = cliClient.createApplication("app", cliClient.getDefaultCreateApplicationRequest()
                 .withExtensions(REST_SPRING_WEB_EXTENSION, REST_JACKSON_EXTENSION));
 
         // Verify By default, it installs only "quarkus-resteasy"
@@ -96,8 +98,8 @@ public class QuarkusCliClientIT {
         untilAsserted(() -> app.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).and().body(is("Hello Spring")));
     }
 
-    @Test
-    public void shouldCreateExtension() {
+    @TestQuarkusCli
+    public void shouldCreateExtension(QuarkusVersionAwareCliClient cliClient) {
         // Create extension
         QuarkusCliDefaultService app = cliClient.createExtension("extension-abc");
 
@@ -106,8 +108,8 @@ public class QuarkusCliClientIT {
         assertTrue(result.isSuccessful(), "The extension build failed. Output: " + result.getOutput());
     }
 
-    @Test
-    public void shouldCreateApplicationUsingArtifactId() {
+    @TestQuarkusCli
+    public void shouldCreateApplicationUsingArtifactId(QuarkusVersionAwareCliClient cliClient) {
         QuarkusCliRestService app = cliClient.createApplication("com.mycompany:my-app");
         assertEquals("my-app", app.getServiceFolder().getFileName().toString(), "The application directory differs.");
 
@@ -131,8 +133,8 @@ public class QuarkusCliClientIT {
         assertTrue(response.contains("3.8"), "Quarkus is not running on 3.8");
     }
 
-    @Test
-    public void shouldAddAndRemoveExtensions() {
+    @TestQuarkusCli
+    public void shouldAddAndRemoveExtensions(QuarkusVersionAwareCliClient cliClient) {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
 
