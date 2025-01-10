@@ -37,6 +37,7 @@ public class QuarkusCliClient {
 
     public QuarkusCliClient(ScenarioContext context) {
         this.context = context;
+        this.context.getTestStore().put(QuarkusCliClient.class.getName(), this);
     }
 
     public Result run(Path servicePath, String... args) {
@@ -73,11 +74,11 @@ public class QuarkusCliClient {
 
     public QuarkusCliRestService createApplicationAt(String name, String targetFolderName) {
         Objects.requireNonNull(targetFolderName);
-        return createApplication(name, CreateApplicationRequest.defaults(), targetFolderName);
+        return createApplication(name, getDefaultCreateApplicationRequest(), targetFolderName);
     }
 
     public QuarkusCliRestService createApplication(String name) {
-        return createApplication(name, CreateApplicationRequest.defaults());
+        return createApplication(name, getDefaultCreateApplicationRequest());
     }
 
     public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request) {
@@ -165,7 +166,7 @@ public class QuarkusCliClient {
     }
 
     public QuarkusCliDefaultService createExtension(String name) {
-        return createExtension(name, CreateExtensionRequest.defaults());
+        return createExtension(name, getDefaultCreateExtensionRequest());
     }
 
     public QuarkusCliDefaultService createExtension(String name, CreateExtensionRequest request) {
@@ -253,7 +254,7 @@ public class QuarkusCliClient {
         return version.contains(QUARKUS_UPSTREAM_VERSION);
     }
 
-    private static String getFixedStreamVersion() {
+    protected static String getFixedStreamVersion() {
         var rawVersion = QuarkusProperties.getVersion();
         if (isUpstream(rawVersion)) {
             throw new IllegalStateException("Cannot set fixed stream version for '%s' as it doesn't exist" + rawVersion);
@@ -282,6 +283,10 @@ public class QuarkusCliClient {
         var result = run(args.toArray(String[]::new));
         assertTrue(result.isSuccessful(), "Extensions list command didn't work. Output: " + result.getOutput());
         return result;
+    }
+
+    public String getQuarkusVersion() {
+        return QuarkusProperties.getVersion();
     }
 
     public static class CreateApplicationRequest {
@@ -416,5 +421,17 @@ public class QuarkusCliClient {
         public static ListExtensionRequest withSetStream() {
             return new ListExtensionRequest(isUpstream() ? QUARKUS_UPSTREAM_VERSION : getFixedStreamVersion());
         }
+    }
+
+    ScenarioContext getScenarioContext() {
+        return context;
+    }
+
+    public CreateApplicationRequest getDefaultCreateApplicationRequest() {
+        return CreateApplicationRequest.defaults();
+    }
+
+    public CreateExtensionRequest getDefaultCreateExtensionRequest() {
+        return CreateExtensionRequest.defaults();
     }
 }
