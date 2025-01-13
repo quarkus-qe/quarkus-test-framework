@@ -18,6 +18,7 @@ public final class GitRepositoryResourceBuilderUtils {
         if (StringUtils.isNotEmpty(model.getGitBranch())) {
             GitUtils.checkoutBranch(model.getContext(), model.getGitBranch());
         }
+        GitUtils.showRepositoryState(model.getContext());
     }
 
     public static void mavenBuild(final GitRepositoryQuarkusApplicationManagedResourceBuilder model) {

@@ -37,4 +37,15 @@ public final class GitUtils {
             fail("Failed to checkout GIT branch " + branch + ". Caused by: " + e.getMessage());
         }
     }
+
+    public static void showRepositoryState(ServiceContext serviceContext) {
+        try {
+            new Command(Arrays.asList(GIT, "log", "-n1", "--oneline", "--no-abbrev-commit"))
+                    .outputToConsole()
+                    .onDirectory(serviceContext.getServiceFolder())
+                    .runAndWait();
+        } catch (Exception e) {
+            fail("Failed to show content of repository. Caused by: " + e.getMessage());
+        }
+    }
 }
