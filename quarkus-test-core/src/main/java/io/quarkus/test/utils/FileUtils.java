@@ -29,7 +29,7 @@ public final class FileUtils {
         try {
             Files.writeString(target, content);
         } catch (IOException e) {
-            fail("Failed when writing file " + target + ". Caused by " + e.getMessage());
+            fail("Failed when writing file " + target, e);
         }
 
         return target;
@@ -39,7 +39,7 @@ public final class FileUtils {
         try {
             return org.apache.commons.io.FileUtils.readFileToString(file, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            fail("Could not load file " + file + " . Caused by " + e.getMessage());
+            fail("Could not load file " + file, e);
         }
 
         return null;
@@ -51,7 +51,7 @@ public final class FileUtils {
                     FileUtils.class.getResourceAsStream(file),
                     StandardCharsets.UTF_8);
         } catch (IOException e) {
-            fail("Could not load file " + file + " . Caused by " + e.getMessage());
+            fail("Could not load file " + file, e);
         }
 
         return EMPTY;
@@ -80,7 +80,7 @@ public final class FileUtils {
         try {
             org.apache.commons.io.FileUtils.copyFileToDirectory(file, target.toFile());
         } catch (IOException e) {
-            fail("Could not copy project. Caused by " + e.getMessage());
+            fail("Could not copy project.", e);
         }
     }
 
@@ -96,7 +96,7 @@ public final class FileUtils {
         try {
             org.apache.commons.io.FileUtils.copyDirectory(source.toFile(), target.toFile());
         } catch (IOException e) {
-            fail("Could not copy project. Caused by " + e.getMessage());
+            fail("Could not copy project.", e);
         }
     }
 
