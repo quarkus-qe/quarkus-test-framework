@@ -1,6 +1,6 @@
 package io.quarkus.test.services.containers;
 
-import static io.quarkus.test.bootstrap.JaegerService.JAEGER_TRACE_URL_PROPERTY;
+import static io.quarkus.test.configuration.Configuration.Property.JAEGER_TRACE_URL_PROPERTY;
 import static java.util.regex.Pattern.quote;
 
 public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerManagedResource {
@@ -38,7 +38,7 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
         // We need to expose an additional endpoint for trace
         String traceServiceName = model.getContext().getName() + TRACE_SUFFIX;
         getClient().expose(traceServiceName, model.getTracePort());
-        model.getContext().put(JAEGER_TRACE_URL_PROPERTY, getClient().url(traceServiceName).toString());
+        model.getContext().put(JAEGER_TRACE_URL_PROPERTY.getName(), getClient().url(traceServiceName).toString());
     }
 
     @Override

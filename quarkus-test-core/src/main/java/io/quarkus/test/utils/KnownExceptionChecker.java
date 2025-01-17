@@ -1,10 +1,13 @@
 package io.quarkus.test.utils;
 
+import static io.quarkus.test.configuration.Configuration.Property.IGNORE_KNOWN_ISSUE;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 
 public final class KnownExceptionChecker {
@@ -37,7 +40,7 @@ public final class KnownExceptionChecker {
      * Read system property and assign desired handlers as enabled ones
      */
     static {
-        String enableHandlersParam = System.getProperty("ts.global.ignore-known-issue");
+        String enableHandlersParam = new PropertyLookup(IGNORE_KNOWN_ISSUE.getName()).get();
         if (enableHandlersParam != null && !enableHandlersParam.isEmpty()) {
             String[] splitParameters = enableHandlersParam.split(",");
             for (String enableHandler : splitParameters) {

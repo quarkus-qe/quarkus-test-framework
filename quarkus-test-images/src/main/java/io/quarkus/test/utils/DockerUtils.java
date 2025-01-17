@@ -1,5 +1,7 @@
 package io.quarkus.test.utils;
 
+import static io.quarkus.test.configuration.Configuration.Property.CONTAINER_PREFIX;
+import static io.quarkus.test.configuration.Configuration.Property.CONTAINER_REGISTRY_URL;
 import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -22,13 +24,11 @@ import com.github.dockerjava.core.DockerClientImpl;
 import com.github.dockerjava.zerodep.ZerodepDockerHttpClient;
 
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
 
 public final class DockerUtils {
 
-    public static final String CONTAINER_REGISTRY_URL_PROPERTY = "ts.container.registry-url";
-
-    private static final String CONTAINER_PREFIX = "ts.global.docker-container-prefix";
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
     private static final Integer DOCKER_PULL_TIMEOUT_SEC = 120;
@@ -149,7 +149,7 @@ public final class DockerUtils {
 
     public static String generateDockerContainerName() {
         String containerName = "" + (RANDOM.nextInt() & Integer.MAX_VALUE);
-        String dockerContainerPrefix = System.getProperty(CONTAINER_PREFIX);
+        String dockerContainerPrefix = new PropertyLookup(CONTAINER_PREFIX.getName()).get();
         if (Objects.nonNull(dockerContainerPrefix)) {
             containerName = dockerContainerPrefix + "-" + containerName;
         }
@@ -175,7 +175,7 @@ public final class DockerUtils {
     }
 
     private static void validateContainerRegistry() {
-        if (StringUtils.isEmpty(System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY))) {
+        if (StringUtils.isEmpty(getRegistryURL())) {
             fail("Container Registry URL is not provided, use -Dts.container.registry-url=XXX");
         }
     }
@@ -190,7 +190,7 @@ public final class DockerUtils {
     }
 
     private static String pushToContainerRegistryUrl(ServiceContext service) {
-        String containerRegistryUrl = System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY);
+        String containerRegistryUrl = getRegistryURL();
         try {
             String targetImage = containerRegistryUrl + "/" + getUniqueName(service);
             new Command(DOCKER, "tag", getUniqueName(service), targetImage).runAndWait();
@@ -202,6 +202,10 @@ public final class DockerUtils {
         }
 
         return null;
+    }
+
+    private static String getRegistryURL() {
+        return new PropertyLookup(CONTAINER_REGISTRY_URL.getName()).get();
     }
 
     private static String getUniqueName(ServiceContext service) {
