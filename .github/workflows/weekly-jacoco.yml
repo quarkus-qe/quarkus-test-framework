@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/prepare-quarkus-cli
       - name: Generate Jacoco Report
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
           cd coverage-report
           mvn -B package
       - name: Generate Jacoco Badge
