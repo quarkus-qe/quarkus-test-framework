@@ -77,7 +77,7 @@ public final class MavenUtils {
         command.addAll(Arrays.asList(BATCH_MODE, SKIP_PROGRESS));
         command.addAll(systemProperties);
         command.add(withProperty("debug", "false"));
-        if (QuarkusProperties.disableBuildAnalytics()) {
+        if (QuarkusProperties.disableBuildAnalytics(serviceContext)) {
             command.add(QuarkusProperties.createDisableBuildAnalyticsProperty());
         }
         command.add("quarkus:dev");

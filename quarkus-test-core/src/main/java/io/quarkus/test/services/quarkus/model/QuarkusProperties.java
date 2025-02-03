@@ -48,6 +48,13 @@ public final class QuarkusProperties {
         return defaultVersionIfEmpty(PLUGIN_VERSION.get());
     }
 
+    public static boolean disableBuildAnalytics(ServiceContext context) {
+        if (context == null) {
+            return disableBuildAnalytics();
+        }
+        return QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP.getAsBoolean(context);
+    }
+
     public static boolean disableBuildAnalytics() {
         return QUARKUS_ANALYTICS_DISABLED_LOCAL_PROP.getAsBoolean();
     }

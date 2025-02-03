@@ -200,9 +200,11 @@ public class BaseService<T extends Service> implements Service {
             return value;
         }
 
-        String computedValue = managedResourceBuilder.getComputedProperty(property);
-        if (StringUtils.isNotBlank(computedValue)) {
-            return computedValue;
+        if (managedResourceBuilder != null) {
+            String computedValue = managedResourceBuilder.getComputedProperty(property);
+            if (StringUtils.isNotBlank(computedValue)) {
+                return computedValue;
+            }
         }
 
         return defaultValue;
