@@ -71,6 +71,11 @@ public class PropertyLookup {
         return defaultValue;
     }
 
+    public Boolean getAsBoolean(ServiceContext context) {
+        String value = get(context);
+        return Boolean.TRUE.toString().equalsIgnoreCase(value);
+    }
+
     public Boolean getAsBoolean() {
         String value = get();
         return Boolean.TRUE.toString().equalsIgnoreCase(value);

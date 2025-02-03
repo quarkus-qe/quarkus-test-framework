@@ -124,7 +124,7 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
         command.add(withProperty(QUARKUS_LIVE_RELOAD_URL,
                 managedResource.getURI(Protocol.HTTP).toString()));
         command.add("quarkus:remote-dev");
-        if (QuarkusProperties.disableBuildAnalytics()) {
+        if (QuarkusProperties.disableBuildAnalytics(getContext())) {
             command.add(createDisableBuildAnalyticsProperty());
         }
 

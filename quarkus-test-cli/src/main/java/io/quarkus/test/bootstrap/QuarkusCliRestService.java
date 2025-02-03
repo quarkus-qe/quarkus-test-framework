@@ -68,10 +68,23 @@ public class QuarkusCliRestService extends RestService {
     }
 
     @Override
-    protected ServiceContext createServiceContext(ScenarioContext context) {
+    protected ServiceContext createServiceContext(ScenarioContext scenarioContext) {
+        final ServiceContext serviceContext;
         if (serviceFolder != null) {
-            return new ServiceContext(this, context, serviceFolder);
+            serviceContext = new ServiceContext(this, scenarioContext, serviceFolder);
+        } else {
+            serviceContext = super.createServiceContext(scenarioContext);
         }
-        return super.createServiceContext(context);
+        scenarioContext.getTestStore().put(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY, serviceContext);
+        return serviceContext;
+    }
+
+    @Override
+    public void close() {
+        var storedContext = context.getScenarioContext().getTestStore().get(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY);
+        if (storedContext == context) {
+            context.getScenarioContext().getTestStore().put(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY, null);
+        }
+        super.close();
     }
 }

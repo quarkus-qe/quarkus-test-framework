@@ -27,7 +27,12 @@ public class QuarkusCliClient {
 
     public static final String COMMAND_LOG_FILE = "quarkus-cli-command.out";
     public static final String DEV_MODE_LOG_FILE = "quarkus-cli-dev.out";
-
+    /**
+     * Test store property key used to internal (package-private) context propagation of a test service context.
+     * This is done because there are many public methods that would have to be changed and still in many scenarios it
+     * doesn't make sense to request a service context.
+     */
+    static final String CLI_SERVICE_CONTEXT_KEY = "io.quarkus.test.bootstrap#cli-service-context";
     private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final String DEV = "dev";
@@ -227,7 +232,12 @@ public class QuarkusCliClient {
         cmd.addAll(Arrays.asList(COMMAND.get().split(" ")));
         cmd.addAll(Arrays.asList(args));
 
-        if (commandSendsAnalytics(cmd) && QuarkusProperties.disableBuildAnalytics()) {
+        // nullable service context, this relies on the fact that CLI services are used in
+        // following order: create service, use QuarkusCliClient to run CLI
+        // and in the end, we have build-time analytics disabled everywhere except for one module
+        // so there is little space for failure; TL;DR; this is not perfect if someone comes with a new order
+        ServiceContext serviceContext = (ServiceContext) context.getTestStore().get(CLI_SERVICE_CONTEXT_KEY);
+        if (commandSendsAnalytics(cmd) && QuarkusProperties.disableBuildAnalytics(serviceContext)) {
             cmd.add(createDisableBuildAnalyticsProperty());
         }
 
