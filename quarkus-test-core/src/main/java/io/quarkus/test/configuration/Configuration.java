@@ -225,6 +225,10 @@ public final class Configuration {
             return name;
         }
 
+        public String getGlobalScopeName() {
+            return getName(GLOBAL_SCOPE);
+        }
+
         public static Optional<Property> getByName(String requested) {
             return Arrays.stream(Property.values())
                     .filter(property -> property.name.equals(requested))

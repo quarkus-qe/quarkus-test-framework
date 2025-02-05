@@ -104,7 +104,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }}
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -147,7 +147,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }}
       - name: Zip Artifacts
         if: failure()
         run: |

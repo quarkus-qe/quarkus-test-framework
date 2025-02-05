@@ -176,7 +176,7 @@ public final class DockerUtils {
 
     private static void validateContainerRegistry() {
         if (StringUtils.isEmpty(getRegistryURL())) {
-            fail("Container Registry URL is not provided, use -Dts.container.registry-url=XXX");
+            fail("Container Registry URL is not provided, use -Dts.global.container.registry-url=XXX");
         }
     }
 

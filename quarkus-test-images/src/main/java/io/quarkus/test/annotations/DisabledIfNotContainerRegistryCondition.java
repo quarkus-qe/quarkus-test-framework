@@ -11,7 +11,7 @@ public class DisabledIfNotContainerRegistryCondition extends CheckIfSystemProper
 
     @Override
     protected String getSystemPropertyName(ExtensionContext context) {
-        return CONTAINER_REGISTRY_URL.getName();
+        return CONTAINER_REGISTRY_URL.getGlobalScopeName();
     }
 
     @Override
