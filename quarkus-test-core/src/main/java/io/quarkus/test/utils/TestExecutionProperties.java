@@ -1,5 +1,7 @@
 package io.quarkus.test.utils;
 
+import static io.quarkus.test.configuration.Configuration.Property.CUSTOM_BUILD_REQUIRED;
+
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.configuration.PropertyLookup;
@@ -19,9 +21,10 @@ public final class TestExecutionProperties {
     private static final String APP_STARTED_KEY = "ts-internal.app-started";
     /**
      * You can enforce custom artifact build by setting this property for 'app' service with
-     * this 'ts.app.custom-build.required=true' or for all the services within a test class with 'ts.global.required=true'.
+     * this 'ts.app.custom-build.required=true' or for all the services within a test class
+     * with 'ts.global.custom-build.required=true'.
      */
-    private static final PropertyLookup REQUIRE_CUSTOM_BUILD = new PropertyLookup("custom-build.required", "false");
+    private static final PropertyLookup REQUIRE_CUSTOM_BUILD = new PropertyLookup(CUSTOM_BUILD_REQUIRED.toString(), "false");
 
     private final String serviceName;
     private final String buildNumber;
