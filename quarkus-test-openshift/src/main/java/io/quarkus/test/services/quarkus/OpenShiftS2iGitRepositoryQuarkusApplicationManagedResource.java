@@ -32,7 +32,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final String ETC_PKI_JAVA_CONFIG_MAP_NAME = "etc-pki-java";
     private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup(
             S2I_BASE_NATIVE_IMAGE.getName(),
-            "quay.io/quarkus/ubi-quarkus-graalvmce-s2i:jdk-21");
+            "quay.io/quarkus/ubi9-quarkus-graalvmce-s2i:jdk-21");
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
