@@ -31,10 +31,12 @@ public final class DockerUtils {
 
     private static final String DOCKERFILE = "Dockerfile";
     private static final String DOCKERFILE_TEMPLATE = "/Dockerfile.%s";
+    private static final String DOCKERFILE_COMPATIBILITY_TEMPLATE = "/Dockerfile-compatibility.%s";
     private static final Integer DOCKER_PULL_TIMEOUT_SEC = 120;
     private static final String DOCKER = "docker";
     private static final Object LOCK = new Object();
     private static final Random RANDOM = new Random();
+    private static final String TEST_UBI8_COMPATIBILITY = "test-ubi8-compatibility";
 
     private static DockerClient dockerClientInstance;
 
@@ -43,6 +45,9 @@ public final class DockerUtils {
     }
 
     public static String getDockerfile(LaunchMode mode) {
+        if (testUbi8Compatibility()) {
+            return String.format(DOCKERFILE_COMPATIBILITY_TEMPLATE, mode.getName());
+        }
         return String.format(DOCKERFILE_TEMPLATE, mode.getName());
     }
 
@@ -221,5 +226,9 @@ public final class DockerUtils {
         }
 
         return target;
+    }
+
+    private static boolean testUbi8Compatibility() {
+        return Boolean.getBoolean(TEST_UBI8_COMPATIBILITY);
     }
 }
