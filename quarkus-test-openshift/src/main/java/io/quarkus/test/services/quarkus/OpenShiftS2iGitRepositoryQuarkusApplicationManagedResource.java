@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.configuration.PropertyLookup;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusSnapshotCondition;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
@@ -131,10 +132,12 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
             if (replaceJavaCaCerts && Files.exists(javaCaCertsPath)) {
                 // propagate java ca certs from executor machines so that secured communication
                 // with remote repositories can use private certificate authority
+                Log.info("Creating '%s' config map with 'cacerts' file".formatted(ETC_PKI_JAVA_CONFIG_MAP_NAME));
                 client.createConfigMap(ETC_PKI_JAVA_CONFIG_MAP_NAME, javaCaCertsPath);
             } else {
                 // build config doesn't support optional config mappings
                 // this does not overwrite default ca certs
+                Log.info("Creating empty '%s' config map".formatted(ETC_PKI_JAVA_CONFIG_MAP_NAME));
                 client.createEmptyConfigMap(ETC_PKI_JAVA_CONFIG_MAP_NAME);
             }
         }
