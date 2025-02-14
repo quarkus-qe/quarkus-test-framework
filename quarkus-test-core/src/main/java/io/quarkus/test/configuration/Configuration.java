@@ -161,7 +161,7 @@ public final class Configuration {
         OPENSHIFT_DEPLOYMENT_SERVICE_PROPERTY("openshift.service"),
         OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY("openshift.template"),
         OPENSHIFT_USE_INTERNAL_SERVICE_AS_URL_PROPERTY("openshift.use-internal-service-as-url"),
-        OPENSHIFT_DELETE_AFTERWARDS("openshift.delete.namespace.after.all"),
+        OPENSHIFT_DELETE_AFTERWARDS("openshift.delete.project.after.all"),
         OPENSHIFT_PRINT_ON_ERROR("openshift.print.info.on.error"),
         OPENSHIFT_EPHEMERAL_NAMESPACES("openshift.ephemeral.namespaces.enabled"),
 
