@@ -39,7 +39,7 @@ public class ExtensionOpenShiftUsingDockerBuildStrategyQuarkusApplicationManaged
         }
 
         if (!Files.exists(dockerfileTargetFile)) {
-            String dockerFileContent = FileUtils.loadFile(dockerfileName)
+            String dockerFileContent = DockerUtils.loadDockerFileContent(getLaunchMode())
                     .replaceAll(quote("${ARTIFACT_PARENT}"), "target");
             FileUtils.copyContentTo(dockerFileContent, dockerfileTargetFile);
         }

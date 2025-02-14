@@ -44,11 +44,24 @@ public final class DockerUtils {
 
     }
 
+    /**
+     * @return Docker file name as expected by Quarkus
+     */
     public static String getDockerfile(LaunchMode mode) {
-        if (testUbi8Compatibility()) {
-            return String.format(DOCKERFILE_COMPATIBILITY_TEMPLATE, mode.getName());
-        }
         return String.format(DOCKERFILE_TEMPLATE, mode.getName());
+    }
+
+    /**
+     * @return loaded Docker file content from 'quarkus-test-images'
+     */
+    public static String loadDockerFileContent(LaunchMode mode) {
+        final String dockerFileNameInResources;
+        if (testUbi8Compatibility()) {
+            dockerFileNameInResources = String.format(DOCKERFILE_COMPATIBILITY_TEMPLATE, mode.getName());
+        } else {
+            dockerFileNameInResources = String.format(DOCKERFILE_TEMPLATE, mode.getName());
+        }
+        return FileUtils.loadFile(dockerFileNameInResources);
     }
 
     public static String createImageAndPush(ServiceContext service, LaunchMode mode, Path artifact) {
@@ -56,7 +69,7 @@ public final class DockerUtils {
 
         Path target = getTargetFolder(mode, artifact);
 
-        String dockerfileContent = FileUtils.loadFile(getDockerfile(mode))
+        String dockerfileContent = loadDockerFileContent(mode)
                 .replaceAll(quote("${ARTIFACT_PARENT}"), target.toString());
 
         Path dockerfilePath = FileUtils.copyContentTo(dockerfileContent, service.getServiceFolder().resolve(DOCKERFILE));
