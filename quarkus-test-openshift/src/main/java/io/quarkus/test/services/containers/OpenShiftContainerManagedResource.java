@@ -2,20 +2,25 @@ package io.quarkus.test.services.containers;
 
 import static java.util.regex.Pattern.quote;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 
+import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.bootstrap.inject.OpenShiftUtils;
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.logging.OpenShiftLoggingHandler;
 import io.quarkus.test.services.URILike;
+import io.quarkus.test.utils.FileUtils;
 
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
@@ -135,9 +140,18 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     private void applyDeployment() {
         String deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
                 getTemplateByDefault());
-        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(), deploymentFile,
+        Path templateFile = model.getContext().getServiceFolder().resolve(DEPLOYMENT);
+        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(),
+                deploymentFile,
                 this::replaceDeploymentContent,
-                model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+                templateFile);
+        List<HasMetadata> metadata = client.loadYamlFromFile(templateFile);
+        Deployment deployment = OpenShiftUtils.getDeployment(metadata).orElseThrow();
+        for (ContainerManagedResourceBuilder.MountConfig mount : model.getMounts()) {
+            client.addMount(deployment, mount.from, mount.to);
+        }
+        String yaml = OpenShiftUtils.toYaml(metadata);
+        client.apply(FileUtils.copyContentTo(yaml, templateFile));
     }
 
     private boolean useInternalServiceAsUrl() {

@@ -24,7 +24,6 @@ import static io.quarkus.test.utils.PropertiesUtils.TARGET;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -55,7 +54,6 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
-import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
@@ -69,7 +67,6 @@ import io.fabric8.kubernetes.client.dsl.NonDeletingOperation;
 import io.fabric8.kubernetes.client.dsl.PodResource;
 import io.fabric8.kubernetes.client.dsl.Resource;
 import io.fabric8.kubernetes.client.utils.KubernetesResourceUtil;
-import io.fabric8.kubernetes.client.utils.Serialization;
 import io.fabric8.openshift.api.model.ImageStream;
 import io.fabric8.openshift.api.model.Route;
 import io.fabric8.openshift.api.model.operatorhub.v1.OperatorGroup;
@@ -219,6 +216,11 @@ public final class OpenShiftClient {
         String content = FileUtils.loadFile(file);
         content = enrichTemplate(service, update.apply(content), extraTemplateProperties);
         apply(FileUtils.copyContentTo(content, target));
+    }
+
+    public List<HasMetadata> loadYamlFromFile(Path file) {
+        String content = FileUtils.loadFile(file.toFile());
+        return loadYaml(content);
     }
 
     /**
@@ -873,15 +875,7 @@ public final class OpenShiftClient {
             }
         }
 
-        KubernetesList list = new KubernetesList();
-        list.setItems(objs);
-        try {
-            ByteArrayOutputStream os = new ByteArrayOutputStream();
-            os.write(Serialization.asYaml(list).getBytes());
-            template = os.toString();
-        } catch (IOException e) {
-            fail("Failed adding properties into OpenShift template. Caused by " + e.getMessage());
-        }
+        template = OpenShiftUtils.toYaml(objs);
 
         return template;
     }
@@ -898,7 +892,7 @@ public final class OpenShiftClient {
         return serviceName == null || !serviceName.endsWith("-management");
     }
 
-    private String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
+    private static String createAppPropsForPropsThatRequireDottedFormat(Map<String, String> configProperties) {
         return configProperties
                 .entrySet()
                 .stream()
@@ -976,6 +970,10 @@ public final class OpenShiftClient {
         return environment;
     }
 
+    private static boolean isQuarkusProperty(String propertyKey) {
+        return propertyKey.startsWith("quarkus.");
+    }
+
     private EnvVar getEnvVarByKey(String key, Container container) {
         return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
@@ -1006,6 +1004,8 @@ public final class OpenShiftClient {
                 }
 
                 propertyValue = joinMountPathAndFileName(mountPath, filename);
+                LOG.warn("Property " + entry.getKey() + " was used to copy file to " + propertyValue
+                        + ". Please consider using @Mount instead");
             } else if (isResourceWithDestinationPath(propertyValue)) {
                 String path = propertyValue.replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
                 if (!propertyValue.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
@@ -1026,6 +1026,8 @@ public final class OpenShiftClient {
                 if (!volumes.containsKey(propertyValue)) {
                     volumes.put(propertyValue, new CustomVolume(configMapName, fileNameNormalized, CONFIG_MAP));
                 }
+                LOG.warn("Property " + entry.getKey() + " was used to copy file to " + propertyValue
+                        + ". Please consider using @Mount instead");
             } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
                 String path = entry.getValue().replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
                 int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
@@ -1085,18 +1087,18 @@ public final class OpenShiftClient {
             // Configure all the containers to map the volume
             deployment.getSpec().getTemplate().getSpec().getContainers()
                     .forEach(container -> container.getVolumeMounts()
-                            .add(createVolumeMount(volume)));
+                            .add(createVolumeMount(volume.getKey(), volume.getValue())));
         }
 
         return output;
     }
 
-    private VolumeMount createVolumeMount(Entry<String, CustomVolume> volume) {
-        VolumeMountBuilder volumeMountBuilder = new VolumeMountBuilder().withName(volume.getValue().getName())
-                .withReadOnly(true).withMountPath(volume.getKey());
+    private static VolumeMount createVolumeMount(String path, CustomVolume volume) {
+        VolumeMountBuilder volumeMountBuilder = new VolumeMountBuilder().withName(volume.getName())
+                .withReadOnly(true).withMountPath(path);
 
-        if (!volume.getValue().getSubFolderRegExp().isEmpty()) {
-            volumeMountBuilder.withSubPathExpr(volume.getValue().getSubFolderRegExp());
+        if (!volume.getSubFolderRegExp().isEmpty()) {
+            volumeMountBuilder.withSubPathExpr(volume.getSubFolderRegExp());
         }
 
         return volumeMountBuilder.build();
@@ -1118,7 +1120,7 @@ public final class OpenShiftClient {
         }
     }
 
-    private String getFileName(String path) {
+    private static String getFileName(String path) {
         if (!path.contains(SLASH)) {
             return path;
         }
@@ -1139,7 +1141,7 @@ public final class OpenShiftClient {
         return mountPath;
     }
 
-    private String getFileContent(String path) {
+    private static String getFileContent(String path) {
         String filePath = getFilePath(path);
         if (Files.exists(Path.of(filePath))) {
             // from file system
@@ -1150,7 +1152,7 @@ public final class OpenShiftClient {
         return FileUtils.loadFile(filePath);
     }
 
-    private String getFilePath(String path) {
+    private static String getFilePath(String path) {
         try (Stream<Path> binariesFound = Files
                 .find(TARGET, Integer.MAX_VALUE,
                         (file, basicFileAttributes) -> file.toString().contains(path))) {
@@ -1162,7 +1164,7 @@ public final class OpenShiftClient {
         return path;
     }
 
-    private String normalizeConfigMapName(String mountPath, String fileName) {
+    private static String normalizeConfigMapName(String mountPath, String fileName) {
         // /some/mount/path/file-name => some-mount-path-file-name
         var newName = StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
                 .replaceAll(Pattern.quote("."), "-")
@@ -1256,13 +1258,40 @@ public final class OpenShiftClient {
         return load.items();
     }
 
-    private String generateRandomProjectName() {
+    private static String generateRandomProjectName() {
         return ThreadLocalRandom.current().ints(PROJECT_NAME_SIZE, 'a', 'z' + 1)
                 .collect(() -> new StringBuilder("ts-"), StringBuilder::appendCodePoint, StringBuilder::append)
                 .toString();
     }
 
-    private static boolean isQuarkusProperty(String propertyKey) {
-        return propertyKey.startsWith("quarkus.");
+    public void addMount(Deployment deployment, String from, String to) {
+        final String mountPath;
+        final String newName;
+
+        if (to.endsWith(SLASH)) {
+            // we put file to folder
+            mountPath = to;
+            newName = from;
+        } else {
+            //The file should be renamed
+            newName = getFileName(to);
+            mountPath = to.substring(0, to.indexOf(newName));
+        }
+
+        LOG.info("Copying file " + from + " to folder " + mountPath + " with name " + newName);
+        String configMapName = normalizeConfigMapName(mountPath, newName);
+
+        // Update config map
+        createOrUpdateConfigMap(configMapName, newName, getFileContent(from));
+        var volumeName = joinMountPathAndFileName(mountPath, newName);
+        // Add the volume
+        CustomVolume volume = new CustomVolume(configMapName, newName, CONFIG_MAP);
+
+        deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume.getVolume());
+        // Configure all the containers in the deployment to map the volume
+        // TODO: find a way to map the volume to only one container in the deployment
+        deployment.getSpec().getTemplate().getSpec().getContainers()
+                .forEach(container -> container.getVolumeMounts()
+                        .add(createVolumeMount(volumeName, volume)));
     }
 }

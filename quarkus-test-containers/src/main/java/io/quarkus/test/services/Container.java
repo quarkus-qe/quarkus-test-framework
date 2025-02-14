@@ -26,4 +26,6 @@ public @interface Container {
     boolean portDockerHostToLocalhost() default false;
 
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
+
+    Mount[] mounts() default {};
 }

@@ -3,6 +3,7 @@ package io.quarkus.qe;
 import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -14,7 +15,9 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.Container;
 import io.quarkus.test.services.GitRepositoryQuarkusApplication;
+import io.quarkus.test.services.Mount;
 import io.restassured.http.ContentType;
+import io.restassured.response.Response;
 
 @DisabledOnNative(reason = "This scenario is using uber-jar, so it's incompatible with Native")
 @QuarkusScenario
@@ -50,6 +53,10 @@ public class TodoDemoIT {
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
+    @Container(image = "docker.io/nginxinc/nginx-unprivileged:alpine", port = 8090, expectedLog = "Configuration complete; ready for start up", mounts = {
+            @Mount(from = "nginx.conf", to = "/etc/nginx/nginx.conf") })
+    static RestService nginx = new RestService();
+
     @Test
     @Order(1)
     public void verify() {
@@ -80,5 +87,13 @@ public class TodoDemoIT {
                 .delete("/api/{id}")
                 .then()
                 .statusCode(HttpStatus.SC_NO_CONTENT);
+    }
+
+    @Test
+    void verifyContainer() {
+        Response proxied = nginx.given().get();
+        Assertions.assertEquals(HttpStatus.SC_OK, proxied.statusCode());
+        Assertions.assertTrue(proxied.body().asString().contains("Example domain"),
+                "Expected response was not found in " + proxied.body().asString());
     }
 }
