@@ -1,6 +1,9 @@
 package io.quarkus.test.services.containers;
 
 import java.lang.annotation.Annotation;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.ServiceLoader;
 
@@ -20,6 +23,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String image;
     private String expectedLog;
     private String[] command;
+    private List<MountConfig> mounts = new ArrayList<>();
     private Integer port;
     private boolean portDockerHostToLocalhost;
 
@@ -48,6 +52,9 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         Container metadata = (Container) annotation;
         init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(),
                 metadata.portDockerHostToLocalhost());
+        this.mounts = Arrays.stream(metadata.mounts()).sequential()
+                .map(mount -> new MountConfig(mount.from(), mount.to()))
+                .toList();
     }
 
     protected void init(String image, String[] command, String expectedLog, int port, boolean portDockerHostToLocalhost) {
@@ -74,5 +81,19 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
             return new LocalhostManagedResource(new GenericDockerContainerManagedResource(this));
         }
         return new GenericDockerContainerManagedResource(this);
+    }
+
+    public List<MountConfig> getMounts() {
+        return mounts;
+    }
+
+    class MountConfig {
+        final String from;
+        final String to;
+
+        MountConfig(String from, String to) {
+            this.from = from;
+            this.to = to;
+        }
     }
 }
