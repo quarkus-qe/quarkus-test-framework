@@ -191,6 +191,8 @@ public final class Configuration {
         LOG_NOCOLOR("log.nocolor"),
         CONTAINER_STARTUP_ATTEMPTS("container-startup-attempts"),
         JAEGER_TRACE_URL_PROPERTY("jaeger.trace.url"),
+        GRAFANA_COLLECTOR_URL_PROPERTY("grafana.collector.url"),
+        GRAFANA_REST_URL_PROPERTY("grafana.rest.url"),
         KAFKA_REGISTRY_URL_PROPERTY("kafka.registry.url"),
         KAFKA_SSL_PROPERTIES("kafka.ssl.properties"),
         SKIP_BEFORE_AND_AFTER("debug.skip-before-and-after-methods"),

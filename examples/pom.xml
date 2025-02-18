@@ -36,6 +36,7 @@
         <module>picocli</module>
         <module>management</module>
         <module>debug</module>
+        <module>grafana</module>
     </modules>
 
     <build>
