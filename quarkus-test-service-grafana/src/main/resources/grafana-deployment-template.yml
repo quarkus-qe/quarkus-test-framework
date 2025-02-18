@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: List
+items:
+  - apiVersion: apps/v1
+    kind: Deployment
+    metadata:
+      name: '${SERVICE_NAME}'
+    spec:
+      selector:
+        matchLabels:
+          app: '${SERVICE_NAME}'
+      serviceName: '${SERVICE_NAME}'
+      replicas: 1
+      template:
+        metadata:
+          labels:
+            app: '${SERVICE_NAME}'
+        spec:
+          volumes:
+            - name: "grafana-data"
+          containers:
+            - image: '${IMAGE}'
+              name: '${SERVICE_NAME}'
+              volumeMounts:
+                - mountPath: /data
+                  name: grafana-data
+              ports:
+                - containerPort: ${WEB_UI_PORT}
+                  protocol: TCP
+                - containerPort: ${REST_API_PORT}
+                  protocol: TCP
+                - containerPort: ${OTLP_GRPC_PORT}
+                  protocol: TCP
+      triggers:
+        - type: ConfigChange
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: '${SERVICE_NAME}-web'
+      labels:
+        app: '${SERVICE_NAME}'
+    spec:
+      ports:
+        - name: '${SERVICE_NAME}-web'
+          port: ${WEB_UI_PORT}
+          protocol: TCP
+          targetPort: ${WEB_UI_PORT}
+      selector:
+        app: '${SERVICE_NAME}'
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: '${SERVICE_NAME}-rest'
+      labels:
+        app: '${SERVICE_NAME}'
+    spec:
+      ports:
+        - name: '${SERVICE_NAME}-rest'
+          port: ${REST_API_PORT}
+          protocol: TCP
+          targetPort: ${REST_API_PORT}
+      selector:
+        app: '${SERVICE_NAME}'
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: '${SERVICE_NAME}-collector'
+      labels:
+        app: '${SERVICE_NAME}'
+    spec:
+      ports:
+        - name: '${SERVICE_NAME}-collector'
+          port: ${OTLP_GRPC_PORT}
+          protocol: TCP
+          targetPort: ${OTLP_GRPC_PORT}
+      selector:
+        app: '${SERVICE_NAME}'

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.quarkus.qe</groupId>
+        <artifactId>quarkus-test-parent</artifactId>
+        <version>999-SNAPSHOT</version>
+    </parent>
+    <artifactId>quarkus-test-service-grafana</artifactId>
+    <name>Quarkus - Test Framework - Service - Grafana</name>
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-containers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-openshift</artifactId>
+            <optional>true</optional>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+</project>
