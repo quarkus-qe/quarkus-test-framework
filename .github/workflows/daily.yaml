@@ -77,8 +77,19 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
-        java: [ 17 ]
+        include:
+          - quarkus-version: "999-SNAPSHOT"
+            java: 17
+            extra-maven-args: ''
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21 # test 'quarkus-container-image-jib' with Java 21 as it should use 'openjdk-21-runtime' instead
+            extra-maven-args: '-pl examples/pingpong/'
+          - quarkus-version: "999-SNAPSHOT"
+            java: 17 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 17
+            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-jvm-image=registry.access.redhat.com/ubi8/openjdk-17-runtime:latest'
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
+            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-jvm-image=registry.access.redhat.com/ubi8/openjdk-21-runtime:latest'
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -104,7 +115,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -120,8 +131,15 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
-        java: [ 21 ]
+        include:
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21
+          - quarkus-version: "999-SNAPSHOT"
+            java: 17 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 17
+            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-17'
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
+            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21'
     steps:
       - uses: actions/checkout@v4
       - name: Reclaim Disk Space
@@ -147,7 +165,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }}
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
       - name: Zip Artifacts
         if: failure()
         run: |
