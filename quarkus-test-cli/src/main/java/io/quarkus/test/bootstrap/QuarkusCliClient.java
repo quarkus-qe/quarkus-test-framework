@@ -65,6 +65,11 @@ public class QuarkusCliClient {
         List<String> args = new ArrayList<>();
         args.add(BUILD);
         args.add("--native");
+        PropertyLookup nativeBuilderImageProperty = new PropertyLookup("quarkus.native.builder-image");
+        String nativeBuilderImage = nativeBuilderImageProperty.get();
+        if (nativeBuilderImage != null && !nativeBuilderImage.isEmpty()) {
+            args.add("-D" + nativeBuilderImageProperty.getPropertyKey() + "=" + nativeBuilderImage);
+        }
         args.addAll(Arrays.asList(extraArgs));
         return runCliAndWait(serviceFolder, args.toArray(new String[0]));
     }
