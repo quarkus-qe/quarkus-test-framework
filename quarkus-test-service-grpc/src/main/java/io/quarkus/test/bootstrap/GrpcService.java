@@ -1,9 +1,15 @@
 package io.quarkus.test.bootstrap;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 import javax.net.ssl.SSLException;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
@@ -83,9 +89,18 @@ public class GrpcService extends RestService {
                 }
             }
             sslContextBuilder.trustManager(new File(clientCert.truststorePath()));
-            var certFile = new File(clientCert.certPath());
-            var keyFile = new File(clientCert.keyPath());
-            sslContextBuilder.keyManager(certFile, keyFile);
+            if (clientCert.isEncrypted()) {
+                try (var keyFile = IOUtils.toInputStream(clientCert.loadAndDecryptKeyCertificate().toString(), UTF_8);
+                        var certFile = FileUtils.openInputStream(new File(clientCert.certPath()))) {
+                    sslContextBuilder.keyManager(certFile, keyFile);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to create SSL context", e);
+                }
+            } else {
+                var certFile = new File(clientCert.certPath());
+                var keyFile = new File(clientCert.keyPath());
+                sslContextBuilder.keyManager(certFile, keyFile);
+            }
         }
 
         Objects.requireNonNull(certBuilder, """

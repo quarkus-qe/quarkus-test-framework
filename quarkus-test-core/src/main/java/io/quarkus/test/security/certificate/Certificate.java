@@ -1,5 +1,6 @@
 package io.quarkus.test.security.certificate;
 
+import static io.quarkus.test.services.Certificate.Format.ENCRYPTED_PEM;
 import static io.quarkus.test.services.Certificate.Format.PEM;
 import static io.quarkus.test.services.Certificate.Format.PKCS12;
 import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
@@ -46,6 +47,10 @@ public interface Certificate {
     String prefix();
 
     String format();
+
+    default boolean isPemCertificate() {
+        return format().equals(PEM.toString()) || format().equals(ENCRYPTED_PEM.toString());
+    }
 
     String password();
 
@@ -142,9 +147,10 @@ public interface Certificate {
                         var clientCertLocation = getPathOrNull(pemCertsFile.clientCertFile());
                         var clientKeyLocation = getPathOrNull(pemCertsFile.clientKeyFile());
                         var clientTrustStore = getPathOrNull(pemCertsFile.trustFile());
+                        boolean encrypted = o.format() == io.quarkus.test.services.Certificate.Format.ENCRYPTED_PEM;
                         generatedClientCerts
                                 .add(new ClientCertificateImpl(cn, null, clientTrustStore, clientKeyLocation,
-                                        clientCertLocation));
+                                        clientCertLocation, encrypted, o.password()));
                     } else {
                         // ca-cert
                         serverTrustStoreLocation = getPathOrNull(pemCertsFile.trustStore());
@@ -256,13 +262,16 @@ public interface Certificate {
 
     private static void configurePemConfigurationProperties(CertificateOptions options, Map<String, String> props,
             String keyLocation, String certLocation, String serverTrustStoreLocation) {
-        if (options.format() == PEM && options.tlsRegistryEnabled()) {
+        if ((options.format() == PEM || options.format() == ENCRYPTED_PEM) && options.tlsRegistryEnabled()) {
             var keyStorePropertyPrefix = tlsConfigPropPrefix(options, "key-store");
             if (keyLocation != null) {
                 props.put(keyStorePropertyPrefix + "pem-1.key", keyLocation);
             }
             if (certLocation != null) {
                 props.put(keyStorePropertyPrefix + "pem-1.cert", certLocation);
+            }
+            if (options.format() == ENCRYPTED_PEM) {
+                props.put(keyStorePropertyPrefix + "pem-1.password", options.password());
             }
             var trustStorePropertyPrefix = tlsConfigPropPrefix(options, "trust-store");
             if (serverTrustStoreLocation != null) {
@@ -325,7 +334,7 @@ public interface Certificate {
             String serverTrustStoreLocation) {
         if (o.truststoreProps()) {
             if (o.tlsRegistryEnabled()) {
-                if (o.format() != PEM) {
+                if (o.format() != PEM && o.format() != ENCRYPTED_PEM) {
                     var propPrefix = tlsConfigPropPrefix(o, "trust-store");
                     props.put(propPrefix + "path", serverTrustStoreLocation);
                     props.put(propPrefix + "password", o.password());

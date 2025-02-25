@@ -12,6 +12,7 @@ public @interface Certificate {
     String DEFAULT_CONFIG = "<<default-config>>";
 
     enum Format {
+        ENCRYPTED_PEM,
         PEM,
         JKS,
         PKCS12
