@@ -9,7 +9,6 @@ import java.util.Objects;
 
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.security.certificate.PemClientCertificate;
-import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.TestExecutionProperties;
 import io.restassured.RestAssured;
@@ -136,11 +135,16 @@ public class RestService extends BaseService<RestService> {
 
         var certificate = certificateBuilder.certificates().get(0);
 
-        boolean isPemCertificate = Certificate.Format.PEM.toString().equals(certificate.format());
+        boolean isPemCertificate = certificate.isPemCertificate();
         if (isPemCertificate && clientCertificateCn != null) {
             var clientCert = (PemClientCertificate) certificate.getClientCertificateByCn(clientCertificateCn);
-            options.setPemKeyCertOptions(
-                    new PemKeyCertOptions().addCertPath(clientCert.certPath()).addKeyPath(clientCert.keyPath()));
+            PemKeyCertOptions pemKeyCertOptions = new PemKeyCertOptions().addCertPath(clientCert.certPath());
+            if (clientCert.isEncrypted()) {
+                pemKeyCertOptions.addKeyValue(clientCert.loadAndDecryptKeyCertificate());
+            } else {
+                pemKeyCertOptions.addKeyPath(clientCert.keyPath());
+            }
+            options.setPemKeyCertOptions(pemKeyCertOptions);
             options.setPemTrustOptions(new PemTrustOptions().addCertPath(clientCert.truststorePath()));
         } else {
             final String keystorePath;
