@@ -123,6 +123,9 @@ public interface Certificate {
         boolean withClientCerts = cnAttrs.length > 0;
         String cn = withClientCerts ? cnAttrs[0] : "localhost";
         final CertificateRequest request = createCertificateRequest(o.prefix(), o.format(), o.password(), withClientCerts, cn);
+        if (o.format() == ENCRYPTED_PEM && !withClientCerts) {
+            throw new RuntimeException("You configured ENCRYPTED_PEM but didn't provide any client certificates. ");
+        }
         try {
             var certFile = generator.generate(request).get(0);
             if (certFile instanceof Pkcs12CertificateFiles pkcs12CertFile) {
