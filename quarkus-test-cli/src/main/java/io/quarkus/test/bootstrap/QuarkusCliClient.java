@@ -157,6 +157,15 @@ public class QuarkusCliClient {
     public Result updateApplication(UpdateApplicationRequest request, Path serviceFolder) {
         List<String> args = new ArrayList<>(List.of("update"));
 
+        // apply updates
+        if (request.applyUpdates) {
+            args.add("-y");
+        }
+
+        if (!request.additionalArguments.isEmpty()) {
+            args.addAll(request.additionalArguments);
+        }
+
         // stream
         if (isNotEmpty(request.stream)) {
             args.add("--stream=" + request.stream);
@@ -360,6 +369,8 @@ public class QuarkusCliClient {
     public static class UpdateApplicationRequest {
         private String stream;
         private String platformVersion;
+        private boolean applyUpdates = true;
+        private List<String> additionalArguments = new ArrayList<>();
 
         public UpdateApplicationRequest withStream(String stream) {
             this.stream = stream;
@@ -368,6 +379,24 @@ public class QuarkusCliClient {
 
         public UpdateApplicationRequest withPlatformVersion(String platformVersion) {
             this.platformVersion = platformVersion;
+            return this;
+        }
+
+        /**
+         * Allows to enable or disable Quarkus CLI update command '-y' option.
+         * If you need to test the long option ('--yes'), just set 'no' and apply it with additional arguments.
+         *
+         * @param applyUpdates if updates should be applied without confirmation
+         * @return this
+         */
+        public UpdateApplicationRequest withApplyUpdates(boolean applyUpdates) {
+            this.applyUpdates = applyUpdates;
+            return this;
+        }
+
+        public UpdateApplicationRequest withAdditionalArguments(String... arguments) {
+            Objects.requireNonNull(arguments);
+            additionalArguments.addAll(Arrays.asList(arguments));
             return this;
         }
 
