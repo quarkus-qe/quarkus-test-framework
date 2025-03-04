@@ -233,7 +233,16 @@ public abstract class QuarkusCLIUtils {
      */
     public static DefaultArtifactVersion getQuarkusAppVersion(QuarkusCliRestService app)
             throws IOException, XmlPullParserException {
-        return new DefaultArtifactVersion(getPom(app).getProperties().getProperty("quarkus.platform.version"));
+        String quarkusVersion = getPom(app).getProperties().getProperty("quarkus.platform.version");
+        /*
+         * DefaultArtifactVersion cannot properly parse versions X.Y.Z.z
+         * There is such a quarkus version 3.15.3.1, which requires tripping to be properly parsed
+         * In these cases, drop the last number from the version
+         */
+        if (quarkusVersion.matches("\\d+\\.\\d+\\.\\d+\\.\\d+")) {
+            return new DefaultArtifactVersion(quarkusVersion.substring(0, quarkusVersion.lastIndexOf(".")));
+        }
+        return new DefaultArtifactVersion(quarkusVersion);
     }
 
     public static void addDependenciesToPom(QuarkusCliRestService app, List<Dependency> dependencies)
