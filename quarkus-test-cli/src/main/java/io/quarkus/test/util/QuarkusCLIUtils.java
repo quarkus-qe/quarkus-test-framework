@@ -25,6 +25,7 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
+import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -233,7 +234,14 @@ public abstract class QuarkusCLIUtils {
      */
     public static DefaultArtifactVersion getQuarkusAppVersion(QuarkusCliRestService app)
             throws IOException, XmlPullParserException {
-        return new DefaultArtifactVersion(getPom(app).getProperties().getProperty("quarkus.platform.version"));
+        String version = getPom(app).getProperties().getProperty("quarkus.platform.version");
+        int countOfDotsInVersion = StringUtils.countMatches(version, ".");
+        if (countOfDotsInVersion > 2) {
+            // cases like 3.15.3.1 need to be transformed to 3.15.3, 4 digit version is not supported
+            // Look at DefaultArtifactVersionTest.java#L74 in https://github.com/apache/maven repo
+            version = version.substring(0, version.lastIndexOf("."));
+        }
+        return new DefaultArtifactVersion(version);
     }
 
     public static void addDependenciesToPom(QuarkusCliRestService app, List<Dependency> dependencies)
