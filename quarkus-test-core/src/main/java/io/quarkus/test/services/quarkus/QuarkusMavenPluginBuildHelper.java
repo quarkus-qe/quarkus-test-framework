@@ -250,7 +250,8 @@ public final class QuarkusMavenPluginBuildHelper {
     private File getPomFileCreatedByOurPlugin() {
         var pomFileCreatedByOurPlugin = Path.of(TARGET).resolve(isS2iScenario() ? POM_XML : TARGET_POM).toFile();
         if (!pomFileCreatedByOurPlugin.exists()) {
-            throw new RuntimeException("Could not find '%s' POM file, please add 'io.quarkus.qe:quarkus-test-preparer' plugin");
+            throw new RuntimeException(("Could not find '%s' POM file, please add 'io.quarkus.qe:quarkus-test-preparer'"
+                    + " plugin").formatted(pomFileCreatedByOurPlugin));
         }
         return pomFileCreatedByOurPlugin;
     }
