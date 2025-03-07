@@ -72,6 +72,26 @@ Now, we can add the core dependency in the `pom.xml` file:
 </dependency>
 ```
 
+And also build plugin that prepares Quarkus application:
+
+```xml
+<build>
+    <plugins>
+        <plugin>
+            <groupId>io.quarkus.qe</groupId>
+            <artifactId>quarkus-test-preparer</artifactId>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>prepare-pom-mojo</goal>
+                    </goals>
+                </execution>
+            </executions>
+        </plugin>
+    </plugins>
+</build>
+```
+
 And finally, let's write our first scenario:
 
 ```java
