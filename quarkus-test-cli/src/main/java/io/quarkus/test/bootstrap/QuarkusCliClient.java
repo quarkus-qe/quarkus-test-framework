@@ -464,7 +464,7 @@ public class QuarkusCliClient {
         }
 
         public static ListExtensionRequest withSetStream() {
-            return new ListExtensionRequest(isUpstream() ? QUARKUS_UPSTREAM_VERSION : getFixedStreamVersion());
+            return new ListExtensionRequest(isUpstream() ? "3.20.999-SNAPSHOT" : getFixedStreamVersion());
         }
     }
 
