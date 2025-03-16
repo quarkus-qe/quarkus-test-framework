@@ -1,6 +1,7 @@
 package io.quarkus.test.services.containers;
 
 import static io.quarkus.test.bootstrap.BaseService.SERVICE_STARTUP_TIMEOUT_DEFAULT;
+import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
@@ -140,6 +141,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
                 String destinationPath = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
                 String fileName = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
                 addFileToContainer(destinationPath, fileName);
+                value = value.replace(DESTINATION_TO_FILENAME_SEPARATOR, "");
             } else if (isResourceWithDestinationPath(entry.getValue())) {
                 value = entry.getValue().replace(RESOURCE_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
                 if (!value.matches(RESOURCE_WITH_DESTINATION_PREFIX_MATCHER)) {
@@ -151,6 +153,7 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
                 String destinationPath = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
                 String fileName = value.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
                 addFileToContainer(destinationPath, fileName);
+                value = value.replace(DESTINATION_TO_FILENAME_SEPARATOR, "");
             } else if (isSecret(entry.getValue())) {
                 value = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 addFileToContainer(value);
