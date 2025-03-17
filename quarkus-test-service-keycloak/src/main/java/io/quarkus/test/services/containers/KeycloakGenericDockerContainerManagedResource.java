@@ -4,8 +4,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.DockerUtils;
 
 public class KeycloakGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
@@ -16,6 +18,15 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
         super(model);
 
         this.model = model;
+    }
+
+    @Override
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTP) {
+            return createURI(protocol.getValue(), getInnerContainer().getHost(), getMappedPort(model.getPort()));
+        } else {
+            return createURI(protocol.getValue(), getInnerContainer().getHost(), getMappedPort(model.getSecuredPort()));
+        }
     }
 
     @Override
@@ -50,6 +61,7 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
         }
 
         container.withExposedPorts(model.getPort());
+        container.withExposedPorts(model.getSecuredPort());
 
         return container;
     }

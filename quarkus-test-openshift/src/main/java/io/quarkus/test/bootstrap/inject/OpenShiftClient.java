@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -114,6 +115,8 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
+    private static URL openShiftUrl;
+
     private final String currentNamespace;
     private final OpenShiftClientImpl client;
     private final KnativeClient kn;
@@ -133,6 +136,7 @@ public final class OpenShiftClient {
         }
         isClientReady = true;
         kn = client.adapt(KnativeClient.class);
+        openShiftUrl = client.getOpenshiftUrl();
     }
 
     private static OpenShiftClientImpl createClient(OpenShiftConfig config) {
@@ -328,6 +332,37 @@ public final class OpenShiftClient {
                     "--name=" + routeName,
                     "-n", currentNamespace,
                     "-l" + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
+        } catch (Exception e) {
+            fail("Service failed to be exposed. Caused by " + e.getMessage());
+        }
+    }
+
+    /**
+     * Expose the service and port using route passthrough.
+     *
+     * @param service
+     * @param port
+     */
+    public void exposeThroughPassthrough(Service service, int port) {
+        exposeThroughPassthrough(service.getName(), port);
+    }
+
+    /**
+     * Expose the service and port using route passthrough.
+     *
+     * @param serviceName
+     * @param port
+     */
+    public void exposeThroughPassthrough(String serviceName, int port) {
+        Route route = client.routes().withName(serviceName).get();
+        if (route != null) {
+            // already exposed.
+            return;
+        }
+
+        try {
+            new Command(OC, "create", "route", "passthrough", "--service", serviceName, "--port=" + port, "-n",
+                    currentNamespace).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
         }
@@ -1051,6 +1086,17 @@ public final class OpenShiftClient {
                 volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
 
                 propertyValue = joinMountPathAndFileName(mountPath, filename);
+            } else if (entry.getKey().matches("quarkus\\.tls.*trust-store.*path")) {
+                String path = entry.getValue();
+                String mountPath = getMountPath(path);
+                String filename = getFileName(path);
+                String secretName = normalizeConfigMapName(mountPath, filename);
+
+                // Push secret file
+                doCreateSecretFromFile(secretName, getFilePath(path));
+                volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
+
+                propertyValue = joinMountPathAndFileName(mountPath, filename);
             } else if (isQuarkusRuntime && isMountSecret(propertyValue)) {
                 // mount existing secret
                 var secretNameToMountPath = getMountSecret(propertyValue);
@@ -1297,5 +1343,9 @@ public final class OpenShiftClient {
 
     public io.fabric8.openshift.client.OpenShiftClient getFabric8Client() {
         return client;
+    }
+
+    public static URL getOpenShiftUrl() {
+        return openShiftUrl;
     }
 }
