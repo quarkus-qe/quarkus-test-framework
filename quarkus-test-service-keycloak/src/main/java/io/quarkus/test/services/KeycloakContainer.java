@@ -18,6 +18,8 @@ public @interface KeycloakContainer {
 
     int port() default 8080;
 
+    int securedPort() default 8443;
+
     String expectedLog() default "started in";
 
     String[] command() default {};
