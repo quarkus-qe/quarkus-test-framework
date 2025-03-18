@@ -565,6 +565,9 @@ quarkus.knative.readiness-probe.tcp-socket-action
 quarkus.kubernetes.liveness-probe.tcp-socket-action
 quarkus.pulsar.devservices.shared
 quarkus.openshift.init-tasks."init-tasks".wait-for-container.image
+quarkus.openshift.init-tasks."init-tasks".wait-for-container.image-pull-policy
+quarkus.openshift.init-tasks.flyway.wait-for-container.image
+quarkus.openshift.init-tasks.flyway.wait-for-container.image-pull-policy
 quarkus.kubernetes.sidecars."sidecars".ports."ports".tls
 quarkus.smallrye-openapi.info-version
 quarkus.openshift.ports."ports".host-port
