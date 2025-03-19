@@ -25,6 +25,7 @@ import io.quarkus.test.utils.FileUtils;
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/openshift-deployment-template.yml";
+    private static final String SECURE_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/openshift-secured-deployment-template.yml";
     private static final String DEPLOYMENT = "openshift.yml";
 
     private static final int HTTP_PORT = 80;
@@ -98,11 +99,18 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     protected void exposeService() {
         if (!useInternalServiceAsUrl()) {
             client.expose(model.getContext().getOwner(), model.getPort());
+            if (model.getSecuredPort() != -1) {
+                client.exposeThroughPassthrough(model.getContext().getOwner().getName() + "-secured", model.getSecuredPort());
+            }
         }
     }
 
     protected String getTemplateByDefault() {
-        return DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
+        if (model.getSecuredPort() == -1) {
+            return DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
+        } else {
+            return SECURE_DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
+        }
     }
 
     protected boolean useInternalServiceByDefault() {
@@ -133,6 +141,8 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
                 .replaceAll(quote("${INTERNAL_INGRESS_PORT}"), "" + model.getPort())
+                .replaceAll(quote("${INTERNAL_SECURED_PORT}"), "" + model.getSecuredPort())
+                .replaceAll(quote("${INTERNAL_SECURED_INGRESS_PORT}"), "" + model.getSecuredPort())
                 .replaceAll(quote("${ARGS}"), args)
                 .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project());
     }
@@ -154,7 +164,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         client.apply(FileUtils.copyContentTo(yaml, templateFile));
     }
 
-    private boolean useInternalServiceAsUrl() {
+    public boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
                 .equals(getConfiguration()
                         .getOrDefault(Configuration.Property.OPENSHIFT_USE_INTERNAL_SERVICE_AS_URL_PROPERTY,
