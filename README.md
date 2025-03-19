@@ -80,6 +80,7 @@ And also build plugin that prepares Quarkus application:
         <plugin>
             <groupId>io.quarkus.qe</groupId>
             <artifactId>quarkus-test-preparer</artifactId>
+            <version>${quarkus.qe.framework.version}</version>
             <executions>
                 <execution>
                     <goals>
