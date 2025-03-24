@@ -5,6 +5,8 @@ public enum Protocol {
     HTTPS("https", 8443),
     GRPC("grpc", 9000),
     MANAGEMENT("management", 9000), //can be either http or https
+    WS("ws", 8080),
+    WSS("wss", 8443),
     NONE(null, -1);
 
     private final String value;
