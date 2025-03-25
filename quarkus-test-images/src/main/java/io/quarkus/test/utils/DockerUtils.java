@@ -27,6 +27,13 @@ import io.quarkus.test.services.quarkus.model.LaunchMode;
 public final class DockerUtils {
 
     public static final String CONTAINER_REGISTRY_URL_PROPERTY = "ts.container.registry-url";
+    /**
+     * A new system property name used in Quarkus 1.6.z in order to align property lookup.
+     * Our Jenkins jobs use this new property everywhere, but other users can still use the old property if they like.
+     * The new property is not supposed to work with {@link io.quarkus.test.annotations.DisabledIfNotContainerRegistry}
+     * in this release.
+     */
+    public static final String CONTAINER_REGISTRY_URL_NEW_PROPERTY = "ts.global.container.registry-url";
 
     private static final String CONTAINER_PREFIX = "ts.global.docker-container-prefix";
     private static final String DOCKERFILE = "Dockerfile";
@@ -40,6 +47,14 @@ public final class DockerUtils {
 
     private DockerUtils() {
 
+    }
+
+    public static String getContainerRegistryUrl() {
+        String containerRegistry = System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY);
+        if (StringUtils.isNotEmpty(containerRegistry)) {
+            return containerRegistry;
+        }
+        return System.getProperty(CONTAINER_REGISTRY_URL_NEW_PROPERTY);
     }
 
     public static String getDockerfile(LaunchMode mode) {
@@ -175,7 +190,7 @@ public final class DockerUtils {
     }
 
     private static void validateContainerRegistry() {
-        if (StringUtils.isEmpty(System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY))) {
+        if (StringUtils.isEmpty(getContainerRegistryUrl())) {
             fail("Container Registry URL is not provided, use -Dts.container.registry-url=XXX");
         }
     }
@@ -190,7 +205,7 @@ public final class DockerUtils {
     }
 
     private static String pushToContainerRegistryUrl(ServiceContext service) {
-        String containerRegistryUrl = System.getProperty(CONTAINER_REGISTRY_URL_PROPERTY);
+        String containerRegistryUrl = getContainerRegistryUrl();
         try {
             String targetImage = containerRegistryUrl + "/" + getUniqueName(service);
             new Command(DOCKER, "tag", getUniqueName(service), targetImage).runAndWait();
