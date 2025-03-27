@@ -334,6 +334,37 @@ public final class OpenShiftClient {
     }
 
     /**
+     * Expose the service and port using route passthrough.
+     *
+     * @param service
+     * @param port
+     */
+    public void exposeThroughPassthrough(Service service, int port) {
+        exposeThroughPassthrough(service.getName(), port);
+    }
+
+    /**
+     * Expose the service and port using route passthrough.
+     *
+     * @param serviceName
+     * @param port
+     */
+    public void exposeThroughPassthrough(String serviceName, int port) {
+        Route route = client.routes().withName(serviceName).get();
+        if (route != null) {
+            // already exposed.
+            return;
+        }
+
+        try {
+            new Command(OC, "create", "route", "passthrough", "--service", serviceName, "--port=" + port, "-n",
+                    currentNamespace).runAndWait();
+        } catch (Exception e) {
+            fail("Service failed to be exposed. Caused by " + e.getMessage());
+        }
+    }
+
+    /**
      * Create a service for deployment.
      * Usually done automatically, or inside yamls, so this method should be used only in a very special cases,
      * eg: https://github.com/quarkusio/quarkus/issues/34645

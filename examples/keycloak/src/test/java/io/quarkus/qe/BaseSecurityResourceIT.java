@@ -5,6 +5,10 @@ import static io.quarkus.test.bootstrap.KeycloakService.DEFAULT_REALM_BASE_PATH;
 import static io.quarkus.test.bootstrap.KeycloakService.DEFAULT_REALM_FILE;
 import static org.hamcrest.Matchers.equalTo;
 
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.keycloak.authorization.client.AuthzClient;
@@ -19,15 +23,16 @@ public abstract class BaseSecurityResourceIT {
     static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
     static final String NORMAL_USER = "test-normal-user";
 
-    @KeycloakContainer(command = { "start-dev", "--import-realm" })
-    static final KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
+    @KeycloakContainer(command = { "start", "--import-realm", "--hostname-strict=false" })
+    static final KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH,
+            true);
 
     private AuthzClient authzClient;
 
     protected abstract RestService getApp();
 
     @BeforeEach
-    public void setup() {
+    public void setup() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         initAuthzClient();
     }
 
@@ -41,7 +46,7 @@ public abstract class BaseSecurityResourceIT {
                 .body(equalTo("Hello, user test-normal-user"));
     }
 
-    private void initAuthzClient() {
+    private void initAuthzClient() throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         authzClient = keycloak.createAuthzClient(CLIENT_ID_DEFAULT, CLIENT_SECRET_DEFAULT);
     }
 
