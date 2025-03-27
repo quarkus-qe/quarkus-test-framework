@@ -89,13 +89,13 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
 
     @Override
     public URILike getURI(Protocol protocol) {
-        if (protocol == Protocol.HTTPS && !model.isSslEnabled()) {
+        if ((protocol == Protocol.HTTPS || protocol == Protocol.WSS) && !model.isSslEnabled()) {
             fail("SSL was not enabled. Use: `@QuarkusApplication(ssl = true)`");
         } else if (protocol == Protocol.GRPC && !model.isGrpcEnabled()) {
             fail("gRPC was not enabled. Use: `@QuarkusApplication(grpc = true)`");
         }
         int port = switch (protocol) {
-            case HTTPS -> assignedHttpsPort;
+            case HTTPS, WSS -> assignedHttpsPort;
             case GRPC -> assignedGrpcPort;
             default -> assignedHttpPort;
         };
