@@ -98,7 +98,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         final ServiceContext context = model.getContext();
         final boolean isServerless = client.isServerlessService(context.getName());
         final boolean isServingCertSslScenario = isServingCertificateScenario(context) && model.isSslEnabled();
-        if (protocol == Protocol.HTTPS && !isServerless && !isServingCertSslScenario) {
+        if ((protocol == Protocol.HTTPS || protocol == Protocol.WSS) && !isServerless && !isServingCertSslScenario) {
             fail("SSL is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.GRPC) {
             fail("gRPC is not supported for OpenShift tests yet");
@@ -118,7 +118,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
                     () -> client.url(context.getOwner()).withPort(port),
                     AwaitilitySettings.defaults().withService(getContext().getOwner()));
         }
-        return uri;
+        return this.uri.withScheme(protocol.getValue());
     }
 
     public boolean isRunning() {
