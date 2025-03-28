@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.util.List;
 
 import org.apache.http.HttpStatus;
+import org.junit.jupiter.api.Assertions;
 
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
@@ -118,7 +119,30 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
                     () -> client.url(context.getOwner()).withPort(port),
                     AwaitilitySettings.defaults().withService(getContext().getOwner()));
         }
-        return this.uri.withScheme(protocol.getValue());
+        if (isServingCertSslScenario) {
+            if (uriHasNotHttpsProtocol()) {
+                Assertions.fail("Certificate serving scenario must use HTTPS protocol, but got " + this.uri);
+            }
+            return this.uri;
+        } else if (isServerless) {
+            // serverless uses internal URL and it must always use HTTPS protocol no matter of what bare-metal tests
+            if (uriHasNotHttpsProtocol()) {
+                Assertions.fail("Serverless scenarios must always use HTTPS protocol, but got " + this.uri);
+            }
+            return this.uri;
+        } else if (Protocol.WS == protocol || Protocol.HTTP == protocol) {
+            // grpc, wss and https are unreachable at this point
+            return this.uri.withScheme(protocol.getValue());
+        } else if (Protocol.MANAGEMENT == protocol) {
+            // management when not on a separate interface must be HTTP url same as any application endpoint
+            return this.uri.withScheme(Protocol.HTTP.getValue());
+        }
+        // protocol NONE has no scheme
+        return this.uri;
+    }
+
+    private boolean uriHasNotHttpsProtocol() {
+        return !this.uri.toString().toLowerCase().startsWith(Protocol.HTTPS.getValue());
     }
 
     public boolean isRunning() {
