@@ -44,7 +44,7 @@ jobs:
         run: |
           git checkout -b release
           mvn clean install -DskipITs -DskipTests -Pframework # make sure test-preparer plugin is in local repo
-          mvn -B release:prepare -Prelease,framework,examples -DskipTests -DskipITs -Darguments="-Dmaven.test.skip" -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}-SNAPSHOT
+          mvn -B release:prepare -Prelease,framework,examples -DskipTests -DskipITs -Darguments="-Dmaven.test.skip" -DpushChanges=false -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}-SNAPSHOT
           git checkout ${{github.base_ref}}
           git rebase release
           mvn -B release:perform -DskipTests -DskipITs -Darguments="-Dmaven.test.skip" -Dmaven.test.skip -Prelease,framework
