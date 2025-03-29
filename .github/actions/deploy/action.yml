@@ -49,4 +49,3 @@ runs:
     - name: Delete Local Artifacts From Cache
       shell: bash
       run: rm -r ~/.m2/repository/io/quarkus/qe
-
