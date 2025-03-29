@@ -43,6 +43,7 @@ jobs:
       - name: Maven release ${{steps.metadata.outputs.current-version}}
         run: |
           git checkout -b release
+          mvn clean install -DskipITs -DskipTests -Pframework # make sure test-preparer plugin is in local repo
           mvn -B release:prepare -Prelease,framework,examples -DautoVersionSubmodules -DreleaseVersion=${{steps.metadata.outputs.current-version}} -DdevelopmentVersion=${{steps.metadata.outputs.next-version}}-SNAPSHOT -DskipTests -DskipITs
           git checkout ${{github.base_ref}}
           git rebase release
