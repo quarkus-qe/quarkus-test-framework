@@ -74,7 +74,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
      * since config/kraft/server.properties contains node.id=1, we have to use this value
      */
     public ExtendedStrimziKafkaContainer enableKraftMode() {
-        return (ExtendedStrimziKafkaContainer) super.withNodeId(1).withBrokerId(1).withKraft();
+        return (ExtendedStrimziKafkaContainer) super.withNodeId(1).withBrokerId(1);
     }
 
     public void configureScram(String name, String password) {
