@@ -13,7 +13,7 @@ items:
         from:
           kind: DockerImage
           # Hardcoded image is used only here, tests use one from KeycloakContainer
-          name: quay.io/keycloak/keycloak:26.0
+          name: quay.io/keycloak/keycloak:26.1
 - apiVersion: apps/v1
   kind: Deployment
   metadata:
