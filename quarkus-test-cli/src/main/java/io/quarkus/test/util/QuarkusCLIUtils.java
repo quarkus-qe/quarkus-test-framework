@@ -15,9 +15,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import org.apache.maven.artifact.versioning.DefaultArtifactVersion;
 import org.apache.maven.model.Dependency;
@@ -25,7 +28,6 @@ import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
-import org.codehaus.plexus.util.StringUtils;
 import org.codehaus.plexus.util.xml.XmlStreamReader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
@@ -41,6 +43,7 @@ public abstract class QuarkusCLIUtils {
     public static final String POM_FILE = "pom.xml";
     private static final String ANSI_BOLD_TEXT_ESCAPE_SEQ = "[1m";
     private static final char ESCAPE_CHARACTER = 27;
+    private static final int NUMBER_OF_SUPPORTED_MAVEN_VERSIONS = 3;
 
     /**
      * This constant stands for number of fields in groupId:artifactId:version string, when separated via ":".
@@ -234,14 +237,33 @@ public abstract class QuarkusCLIUtils {
      */
     public static DefaultArtifactVersion getQuarkusAppVersion(QuarkusCliRestService app)
             throws IOException, XmlPullParserException {
-        String version = getPom(app).getProperties().getProperty("quarkus.platform.version");
-        int countOfDotsInVersion = StringUtils.countMatches(version, ".");
-        if (countOfDotsInVersion > 2) {
-            // cases like 3.15.3.1 need to be transformed to 3.15.3, 4 digit version is not supported
-            // Look at DefaultArtifactVersionTest.java#L74 in https://github.com/apache/maven repo
-            version = version.substring(0, version.lastIndexOf("."));
+        return getQuarkusAppVersion(getPom(app).getProperties().getProperty("quarkus.platform.version"));
+    }
+
+    public static DefaultArtifactVersion getQuarkusAppVersion(String quarkusPlatformVersion) {
+        Objects.requireNonNull(quarkusPlatformVersion);
+        String[] versionParts = quarkusPlatformVersion.split("\\.");
+        final String normalizedVersion;
+        if (versionParts.length > NUMBER_OF_SUPPORTED_MAVEN_VERSIONS) {
+            String fourthPart = versionParts[NUMBER_OF_SUPPORTED_MAVEN_VERSIONS];
+            if (fourthPart.isEmpty()) {
+                throw new IllegalStateException("Quarkus platform version has incorrect format as it ends with a dot: "
+                        + quarkusPlatformVersion);
+            }
+            boolean isQualifier = !Character.isDigit(fourthPart.charAt(0));
+            if (isQualifier) {
+                // this is qualifier like "redhat" or "temporary-redhat" which is fine
+                normalizedVersion = quarkusPlatformVersion;
+            } else {
+                // cases like 3.15.3.1 need to be transformed to 3.15.3, 4 digit version is not supported
+                // Look at DefaultArtifactVersionTest.java#L74 in https://github.com/apache/maven repo
+                normalizedVersion = Arrays.stream(versionParts).filter(part -> part != fourthPart)
+                        .collect(Collectors.joining("."));
+            }
+        } else {
+            normalizedVersion = quarkusPlatformVersion;
         }
-        return new DefaultArtifactVersion(version);
+        return new DefaultArtifactVersion(normalizedVersion);
     }
 
     public static void addDependenciesToPom(QuarkusCliRestService app, List<Dependency> dependencies)
