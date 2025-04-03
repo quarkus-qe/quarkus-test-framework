@@ -118,17 +118,13 @@ public final class Configuration {
     private static EnumMap<Property, String> loadPropertiesFrom(String propertiesFile, String scope) {
         try (InputStream input = Configuration.class.getClassLoader().getResourceAsStream(propertiesFile)) {
             Properties prop = new Properties();
-            prop.load(input);
+            if (input != null) { // this can happen if file doesn't exist
+                prop.load(input);
+            }
             return loadPropertiesFrom(prop, scope);
         } catch (Exception exception) {
-            if (exception instanceof NullPointerException && exception.getMessage().equals("inStream parameter is null")) {
-                System.err.println("No properties file: " + propertiesFile);
-            } else {
-                throw new IllegalStateException(exception);
-            }
+            throw new IllegalStateException(exception);
         }
-
-        return new EnumMap<>(Property.class);
     }
 
     private static EnumMap<Property, String> loadPropertiesFrom(Properties prop, String scope) {
