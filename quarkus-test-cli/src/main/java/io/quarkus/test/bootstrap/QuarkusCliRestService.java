@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.junit.jupiter.api.extension.ExtensionContextException;
+
 public class QuarkusCliRestService extends RestService {
 
     private final QuarkusCliClient cliClient;
@@ -83,7 +85,12 @@ public class QuarkusCliRestService extends RestService {
     public void close() {
         var storedContext = context.getScenarioContext().getTestStore().get(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY);
         if (storedContext == context) {
-            context.getScenarioContext().getTestStore().put(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY, null);
+            try {
+                context.getScenarioContext().getTestStore().put(QuarkusCliClient.CLI_SERVICE_CONTEXT_KEY, null);
+            } catch (ExtensionContextException ex) {
+                // we can't detect if the store is closed when calling this from NamespacedHierarchicalStore.close
+                // details in https://github.com/quarkus-qe/quarkus-test-suite/issues/2376
+            }
         }
         super.close();
     }
