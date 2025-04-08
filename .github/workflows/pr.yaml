@@ -34,7 +34,7 @@ jobs:
           path: maven-repo-current-fw.tgz
           retention-days: 1
   linux-build-jvm-latest:
-    name: Linux - JVM build - Latest Version
+    name: Linux JVM
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -84,7 +84,7 @@ jobs:
           name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
   linux-build-native-latest:
-    name: Linux - Native build - Latest Version
+    name: Linux Native
     runs-on: ubuntu-latest
     needs: validate-format
     strategy:
@@ -134,7 +134,7 @@ jobs:
           name: artifacts-latest-linux-native{{ matrix.java }}
           path: artifacts-latest-linux-native${{ matrix.java }}.zip
   windows-build-jvm-latest:
-    name: Windows - JVM build - Latest Version
+    name: Windows JVM
     runs-on: windows-latest
     needs: validate-format
     strategy:
@@ -196,15 +196,15 @@ jobs:
           job_name=""
           if $IS_LINUX_JVM_LATEST
           then
-          job_name+=", 'Linux - JVM build - Latest Version'"
+          job_name+=", 'Linux JVM'"
           fi
           if $IS_LINUX_NATIVE_LATEST
           then
-          job_name+=", 'Linux - Native build - Latest Version'"
+          job_name+=", 'Linux Native'"
           fi
           if $IS_WINDOWS_JVM_LATEST
           then
-          job_name+=", 'Windows - JVM build - Latest Version'"
+          job_name+=", 'Windows JVM'"
           fi
           echo "${job_name:2}" > jobs-with-flaky-tests
         env:

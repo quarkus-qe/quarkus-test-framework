@@ -5,7 +5,7 @@ on:
     - cron: '0 23 * * *'
 jobs:
   linux-build-jvm-latest:
-    name: Daily - Linux - JVM build - Latest Version
+    name: Linux JVM
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -38,7 +38,7 @@ jobs:
           name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
   linux-build-native:
-    name: Daily - Linux - Native build
+    name: Linux Native
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -73,7 +73,7 @@ jobs:
           name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   kubernetes-build-jvm-latest:
-    name: Daily - Kubernetes - JVM - Latest version
+    name: Kubernetes JVM
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -127,7 +127,7 @@ jobs:
           name: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   kubernetes-build-native-latest:
-    name: Daily - Kubernetes - Native build - Latest version
+    name: Kubernetes Native
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -177,7 +177,7 @@ jobs:
           name: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
   windows-build-jvm-latest:
-    name: Daily - Windows - JVM build - Latest Version
+    name: Windows JVM
     runs-on: windows-latest
     strategy:
       matrix:
@@ -209,7 +209,7 @@ jobs:
           name: artifacts-latest-windows-jvm${{ matrix.java }}
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
   windows-build-native-latest:
-    name: Daily - Windows - Native build - Latest Version
+    name: Windows Native
     runs-on: windows-latest
     strategy:
       matrix:
