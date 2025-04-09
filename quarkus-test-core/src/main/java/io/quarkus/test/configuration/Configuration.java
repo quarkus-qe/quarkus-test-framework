@@ -203,7 +203,8 @@ public final class Configuration {
         S2I_MAVEN_REMOTE_REPOSITORY("s2i.maven.remote.repository"),
         S2I_REPLACE_CA_CERTS("s2i.java.replace-ca-certs"),
         S2I_BASE_NATIVE_IMAGE("s2i.openshift.base-native-image"),
-        CUSTOM_BUILD_REQUIRED("custom-build.required");
+        CUSTOM_BUILD_REQUIRED("custom-build.required"),
+        OCP_SUBJECT_ALTERNATIVE_NAME("openshift.subject.alternative.name");
 
         private final String name;
 

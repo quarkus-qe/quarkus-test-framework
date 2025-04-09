@@ -200,4 +200,8 @@ public abstract class DockerContainerManagedResource implements ManagedResource 
     private boolean isSecret(String key) {
         return key.startsWith(SECRET_PREFIX);
     }
+
+    public GenericContainer<?> getInnerContainer() {
+        return innerContainer;
+    }
 }
