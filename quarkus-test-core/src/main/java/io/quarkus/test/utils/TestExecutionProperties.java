@@ -5,7 +5,6 @@ import static io.quarkus.test.configuration.Configuration.Property.CUSTOM_BUILD_
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.configuration.PropertyLookup;
-import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public final class TestExecutionProperties {
 
@@ -14,8 +13,6 @@ public final class TestExecutionProperties {
      * This is just a way to propagate the information within framework, users don't need to be concern with it.
      */
     public static final String MANAGEMENT_INTERFACE_ENABLED = "ts-internal.management.interface";
-    private static final String DEFAULT_SERVICE_NAME = "quarkus_test_framework";
-    private static final String DEFAULT_BUILD_NUMBER = "777-default";
     private static final TestExecutionProperties INSTANCE = new TestExecutionProperties();
     private static final String CLI_APP_PROPERTY_KEY = "ts-internal.is-cli-app";
     private static final String APP_STARTED_KEY = "ts-internal.app-started";
@@ -26,26 +23,12 @@ public final class TestExecutionProperties {
      */
     private static final PropertyLookup REQUIRE_CUSTOM_BUILD = new PropertyLookup(CUSTOM_BUILD_REQUIRED.toString(), "false");
 
-    private final String serviceName;
-    private final String buildNumber;
-    private final String versionNumber;
     private final boolean openshift;
     private final boolean kubernetes;
 
     private TestExecutionProperties() {
-        serviceName = new PropertyLookup("service-name", DEFAULT_SERVICE_NAME).get();
-        buildNumber = new PropertyLookup("build.number", DEFAULT_BUILD_NUMBER).get();
-        versionNumber = new PropertyLookup("version-number", QuarkusProperties.getVersion()).get();
         openshift = new PropertyLookup("openshift").getAsBoolean();
         kubernetes = new PropertyLookup("kubernetes").getAsBoolean();
-    }
-
-    public static String getServiceName() {
-        return INSTANCE.serviceName;
-    }
-
-    public static String getVersionNumber() {
-        return INSTANCE.versionNumber;
     }
 
     public static boolean isKubernetesPlatform() {
@@ -58,10 +41,6 @@ public final class TestExecutionProperties {
 
     public static boolean isBareMetalPlatform() {
         return !isKubernetesPlatform() && !isOpenshiftPlatform();
-    }
-
-    public static String getBuildNumber() {
-        return INSTANCE.buildNumber;
     }
 
     public static boolean useManagementSsl(Service service) {
