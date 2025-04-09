@@ -76,7 +76,7 @@ public class QuarkusCliClient {
 
     public Process runOnDev(Path servicePath, File logOutput, Map<String, String> arguments) {
         List<String> cmd = new ArrayList<>();
-        cmd.add("dev");
+        cmd.add(DEV);
         cmd.addAll(arguments.entrySet().stream()
                 .map(e -> "-D" + e.getKey() + "=" + e.getValue())
                 .toList());
@@ -254,6 +254,15 @@ public class QuarkusCliClient {
         if (commandSendsAnalytics(cmd) && QuarkusProperties.disableBuildAnalytics(serviceContext)) {
             cmd.add(createDisableBuildAnalyticsProperty());
         }
+
+        // limit logs for build command
+        if (cmd.stream().anyMatch(commandPart -> BUILD.equalsIgnoreCase(commandPart))) {
+            cmd.addAll(List.of("--", "--batch-mode", "--no-transfer-progress"));
+        }
+
+        // TODO limit logs for dev command
+        // quarkus dev doesn't support passing additional parameters to the build system
+        // https://github.com/quarkusio/quarkus/issues/47247
 
         Log.info(String.join(" ", cmd));
         try {
