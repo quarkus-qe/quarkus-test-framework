@@ -398,7 +398,7 @@ public final class QuarkusMavenPluginBuildHelper {
     }
 
     private String[] getBuildCmd(Collection<String> additionalArgs) {
-        Stream<String> cmdStream = Stream.of(mvnCmd(), "-B", "--no-transfer-progress", "clean", "install");
+        Stream<String> cmdStream = Stream.of(mvnCmd(), "clean", "install");
         if (mode == Mode.NATIVE) {
             cmdStream = Stream.concat(cmdStream, Stream.of("-Dnative"));
         }
