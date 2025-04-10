@@ -257,7 +257,7 @@ public class QuarkusCliClient {
 
         // limit logs for build command
         if (cmd.stream().anyMatch(commandPart -> BUILD.equalsIgnoreCase(commandPart))) {
-            cmd.addAll(List.of("--", "--batch-mode", "--no-transfer-progress"));
+            cmd.addAll(List.of("--batch-mode"));
         }
 
         // TODO limit logs for dev command
