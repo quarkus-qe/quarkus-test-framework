@@ -23,7 +23,7 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
         run: |
-          mvn -V -B --no-transfer-progress -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+          mvn -V -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo-current-fw.tgz -C ~ .m2/repository
@@ -57,7 +57,7 @@ jobs:
       - uses: ./.github/actions/prepare-quarkus-cli
       - name: Build in JVM mode
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -107,7 +107,7 @@ jobs:
       - uses: ./.github/actions/prepare-quarkus-cli
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -155,7 +155,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
