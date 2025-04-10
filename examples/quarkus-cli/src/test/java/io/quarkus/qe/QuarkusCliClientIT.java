@@ -72,6 +72,26 @@ public class QuarkusCliClientIT {
         app.given().get().then().statusCode(HttpStatus.SC_OK);
     }
 
+    @Tag("QUARKUS-1071")
+    @TestQuarkusCli
+    public void shouldCreateApplicationWithGradleOnJvm(QuarkusVersionAwareCliClient cliClient) {
+        // Create application
+        QuarkusCliRestService app = cliClient.createApplication("app",
+                cliClient.getDefaultCreateApplicationRequest().withExtraArgs("--gradle"));
+
+        // Should build on Jvm
+        final String repository = System.getProperty("maven.repo.local");
+        final QuarkusCliClient.Result result;
+        if (repository == null) {
+            result = app.buildOnJvm();
+        } else {
+            app.withProperty("maven.repo.local", repository);
+            result = app.buildOnJvm("-Dmaven.repo.local=" + repository);
+        }
+
+        assertTrue(result.isSuccessful(), "The application didn't build on JVM. Output: " + result.getOutput());
+    }
+
     @Test
     @EnabledOnNative
     public void shouldBuildApplicationOnNativeUsingDocker() {
