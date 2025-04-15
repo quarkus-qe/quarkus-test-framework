@@ -13,15 +13,7 @@ import io.quarkus.test.bootstrap.tls.GenerateCertOptions;
 import io.quarkus.test.bootstrap.tls.GenerateQuarkusCaOptions;
 import io.quarkus.test.bootstrap.tls.QuarkusTlsCommand;
 import io.quarkus.test.scenarios.QuarkusScenario;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
-import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersions;
 
-@DisabledOnQuarkusVersions({
-        // disable on 3.9-3.13
-        @DisabledOnQuarkusVersion(version = "3\\.(9|10|11|12|13)\\..*", reason = "https://github.com/quarkusio/quarkus/issues/42752"),
-        // disable on 3.14.0 and 3.14.1 as the fix is going to be backported to the next release
-        @DisabledOnQuarkusVersion(version = "3\\.14\\.(0|1)", reason = "https://github.com/quarkusio/quarkus/issues/42752")
-})
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Tag("quarkus-cli")
 @QuarkusScenario
