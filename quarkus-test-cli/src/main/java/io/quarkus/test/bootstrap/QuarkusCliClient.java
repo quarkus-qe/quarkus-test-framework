@@ -251,18 +251,14 @@ public class QuarkusCliClient {
         // and in the end, we have build-time analytics disabled everywhere except for one module
         // so there is little space for failure; TL;DR; this is not perfect if someone comes with a new order
         ServiceContext serviceContext = (ServiceContext) context.getTestStore().get(CLI_SERVICE_CONTEXT_KEY);
-        if (commandSendsAnalytics(cmd) && QuarkusProperties.disableBuildAnalytics(serviceContext)) {
+        if (isBuildOrDevCommand(cmd) && QuarkusProperties.disableBuildAnalytics(serviceContext)) {
             cmd.add(createDisableBuildAnalyticsProperty());
         }
 
         // limit logs for build command
-        if (cmd.stream().anyMatch(commandPart -> BUILD.equalsIgnoreCase(commandPart))) {
+        if (isBuildOrDevCommand(cmd)) {
             cmd.addAll(List.of("--batch-mode"));
         }
-
-        // TODO limit logs for dev command
-        // quarkus dev doesn't support passing additional parameters to the build system
-        // https://github.com/quarkusio/quarkus/issues/47247
 
         Log.info(String.join(" ", cmd));
         try {
@@ -276,7 +272,7 @@ public class QuarkusCliClient {
         }
     }
 
-    private static boolean commandSendsAnalytics(List<String> commands) {
+    private static boolean isBuildOrDevCommand(List<String> commands) {
         return commands.stream().anyMatch(cmd -> BUILD.equalsIgnoreCase(cmd) || DEV.equalsIgnoreCase(cmd));
     }
 
