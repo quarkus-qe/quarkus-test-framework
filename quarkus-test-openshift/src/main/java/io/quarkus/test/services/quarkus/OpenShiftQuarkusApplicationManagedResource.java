@@ -204,16 +204,18 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
                 var mountSecretVal = buildMountSecretProp(SERVING_CERTS_SECRET_NAME, "/etc/tls");
                 var mountSecretKey = createSecretPropertyKey();
                 ctx.withTestScopeConfigProperty(mountSecretKey, mountSecretVal);
-                // configure TLS registry with mounted secret
-                if (config.tlsConfigName() == null) {
-                    ctx.withTestScopeConfigProperty("quarkus.tls.key-store.pem.acme.cert", "/etc/tls/tls.crt");
-                    ctx.withTestScopeConfigProperty("quarkus.tls.key-store.pem.acme.key", "/etc/tls/tls.key");
-                } else {
-                    ctx.withTestScopeConfigProperty("quarkus.tls." + config.tlsConfigName() + ".key-store.pem.acme.cert",
-                            "/etc/tls/tls.crt");
-                    ctx.withTestScopeConfigProperty("quarkus.tls." + config.tlsConfigName() + ".key-store.pem.acme.key",
-                            "/etc/tls/tls.key");
-                    ctx.withTestScopeConfigProperty("quarkus.http.tls-configuration-name", config.tlsConfigName());
+                if (!config.useKeyStoreProvider()) {
+                    // configure TLS registry with mounted secret
+                    if (config.tlsConfigName() == null) {
+                        ctx.withTestScopeConfigProperty("quarkus.tls.key-store.pem.acme.cert", "/etc/tls/tls.crt");
+                        ctx.withTestScopeConfigProperty("quarkus.tls.key-store.pem.acme.key", "/etc/tls/tls.key");
+                    } else {
+                        ctx.withTestScopeConfigProperty("quarkus.tls." + config.tlsConfigName() + ".key-store.pem.acme.cert",
+                                "/etc/tls/tls.crt");
+                        ctx.withTestScopeConfigProperty("quarkus.tls." + config.tlsConfigName() + ".key-store.pem.acme.key",
+                                "/etc/tls/tls.key");
+                        ctx.withTestScopeConfigProperty("quarkus.http.tls-configuration-name", config.tlsConfigName());
+                    }
                 }
             }
             if (config.injectCABundle()) {

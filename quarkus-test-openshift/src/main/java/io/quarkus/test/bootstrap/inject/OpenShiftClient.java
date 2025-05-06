@@ -1294,4 +1294,8 @@ public final class OpenShiftClient {
                 .forEach(container -> container.getVolumeMounts()
                         .add(createVolumeMount(volumeName, volume)));
     }
+
+    public io.fabric8.openshift.client.OpenShiftClient getFabric8Client() {
+        return client;
+    }
 }
