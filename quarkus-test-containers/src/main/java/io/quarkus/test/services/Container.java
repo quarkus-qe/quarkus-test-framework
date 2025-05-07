@@ -15,6 +15,8 @@ public @interface Container {
 
     int port();
 
+    int securePort() default -1;
+
     String expectedLog() default "";
 
     String[] command() default {};
