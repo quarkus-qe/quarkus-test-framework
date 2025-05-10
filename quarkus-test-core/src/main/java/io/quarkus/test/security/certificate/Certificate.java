@@ -33,7 +33,6 @@ import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.condition.OS;
 
-import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.TestExecutionProperties;
 import io.smallrye.certs.CertificateGenerator;
 import io.smallrye.certs.CertificateRequest;
@@ -509,7 +508,10 @@ public interface Certificate {
 
     private static String moveFileIfRequired(String newPath, String currentPath) {
         if (newPath != null) {
-            FileUtils.copyFileTo(currentPath, Path.of(newPath));
+            var fileMoved = new File(newPath).renameTo(new File(currentPath));
+            if (!fileMoved) {
+                throw new IllegalStateException("Failed to move certificate file '" + newPath + "' to '" + currentPath + "'");
+            }
             return newPath;
         }
         return currentPath;
