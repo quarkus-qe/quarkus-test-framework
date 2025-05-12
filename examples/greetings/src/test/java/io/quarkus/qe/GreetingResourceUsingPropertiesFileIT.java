@@ -19,6 +19,16 @@ public class GreetingResourceUsingPropertiesFileIT {
     static final RestService joseApp = new RestService().withProperties("jose.properties");
     @QuarkusApplication
     static final RestService manuelApp = new RestService().withProperties("manuel.properties");
+    @QuarkusApplication(properties = "jose.properties")
+    static final RestService fileApp = new RestService();
+    @QuarkusApplication
+    static final RestService victorApp = new RestService();
+    /*
+     * This app can not be built:
+     *
+     * @QuarkusApplication(properties = "non-existing.properties")
+     * static final RestService failApp = new RestService();
+     */
 
     @Test
     public void shouldSayJose() {
@@ -30,4 +40,13 @@ public class GreetingResourceUsingPropertiesFileIT {
         manuelApp.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello, I'm " + MANUEL_NAME));
     }
 
+    @Test
+    public void shouldAlsoSayJose() {
+        fileApp.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello, I'm " + JOSE_NAME));
+    }
+
+    @Test
+    public void shouldSayVictor() {
+        victorApp.given().get("/greeting").then().statusCode(HttpStatus.SC_OK).body(is("Hello, I'm victor"));
+    }
 }

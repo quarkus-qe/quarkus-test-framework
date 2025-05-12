@@ -278,6 +278,11 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                 needsEnhancedApplicationProperties = true;
             }
             map.putAll(sourceAppPropsMap);
+        } else if (!propertiesFile.equalsIgnoreCase(APPLICATION_PROPERTIES)) {
+            // This branch means, that the user added custom file name, but the file doesn't exist.
+            // I presume, that situation, where user explicitly adds default file name(ie `application.properties`)
+            // but the file doesn't exist, is too rare to be considered seriously.
+            throw new IllegalStateException("Requested properties file " + sourceApplicationProperties + " doesn't exist");
         }
 
         // Then add the service properties
