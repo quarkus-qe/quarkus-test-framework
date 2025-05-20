@@ -506,14 +506,14 @@ public interface Certificate {
         }
     }
 
-    private static String moveFileIfRequired(String newPath, String currentPath) {
+    private static String moveFileIfRequired(String newPath, String targetPath) {
         if (newPath != null) {
-            var fileMoved = new File(newPath).renameTo(new File(currentPath));
+            var fileMoved = new File(newPath).renameTo(new File(targetPath));
             if (!fileMoved) {
-                throw new IllegalStateException("Failed to move certificate file '" + newPath + "' to '" + currentPath + "'");
+                throw new IllegalStateException("Failed to move certificate file '" + newPath + "' to '" + targetPath + "'");
             }
             return newPath;
         }
-        return currentPath;
+        return targetPath;
     }
 }
