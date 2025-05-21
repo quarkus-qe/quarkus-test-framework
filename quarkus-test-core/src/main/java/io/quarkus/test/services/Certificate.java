@@ -160,6 +160,12 @@ public @interface Certificate {
          */
         boolean addServiceCertificate() default false;
 
+        /**
+         * By default, when the service certificate is added, we configure the TLS registry
+         * with PEM certificate paths. However, when we want to test Quarkus TLS Registry KeyStore provider,
+         * we shouldn't configure the PEM certificates paths, so that the provider is used.
+         */
+        boolean useKeyStoreProvider() default false;
     }
 
 }

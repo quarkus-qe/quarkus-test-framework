@@ -2,7 +2,8 @@ package io.quarkus.test.security.certificate;
 
 import io.quarkus.test.bootstrap.ServiceContext;
 
-public record ServingCertificateConfig(boolean injectCABundle, boolean addServiceCertificate, String tlsConfigName) {
+public record ServingCertificateConfig(boolean injectCABundle, boolean addServiceCertificate, String tlsConfigName,
+        boolean useKeyStoreProvider) {
 
     public static final String SERVING_CERTIFICATE_KEY = "serving-certificate-config-key";
 
@@ -25,6 +26,7 @@ public record ServingCertificateConfig(boolean injectCABundle, boolean addServic
 
         private boolean injectCABundle = false;
         private boolean addServiceCertificate = false;
+        private boolean useKeyStoreProvider = false;
         private String tlsConfigName = null;
 
         private ServingCertificateConfigBuilder() {
@@ -45,9 +47,14 @@ public record ServingCertificateConfig(boolean injectCABundle, boolean addServic
             return this;
         }
 
+        ServingCertificateConfigBuilder withUseKeyStoreProvider(boolean useKeyStoreProvider) {
+            this.useKeyStoreProvider = useKeyStoreProvider;
+            return this;
+        }
+
         ServingCertificateConfig build() {
             if (injectCABundle || addServiceCertificate) {
-                return new ServingCertificateConfig(injectCABundle, addServiceCertificate, tlsConfigName);
+                return new ServingCertificateConfig(injectCABundle, addServiceCertificate, tlsConfigName, useKeyStoreProvider);
             }
             return null;
         }

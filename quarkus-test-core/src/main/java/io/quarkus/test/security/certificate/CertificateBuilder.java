@@ -75,6 +75,9 @@ public interface CertificateBuilder {
                     if (servingCertificate.injectCABundle()) {
                         svcCertConfigBuilder.withInjectCABundle(true);
                     }
+                    if (servingCertificate.useKeyStoreProvider()) {
+                        svcCertConfigBuilder.withUseKeyStoreProvider(true);
+                    }
                 }
                 if (!DEFAULT_CONFIG.equals(cert.tlsConfigName())) {
                     svcCertConfigBuilder.withTlsConfigName(cert.tlsConfigName());
