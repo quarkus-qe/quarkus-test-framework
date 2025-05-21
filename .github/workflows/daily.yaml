@@ -26,7 +26,7 @@ jobs:
       - uses: ./.github/actions/prepare-quarkus-cli
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -61,7 +61,7 @@ jobs:
              QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
           fi
 
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -115,7 +115,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -165,7 +165,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
       - name: Zip Artifacts
         if: failure()
         run: |
@@ -195,7 +195,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
@@ -249,7 +249,7 @@ jobs:
       - name: Build in Native mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.native.container-build=false -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         shell: bash
         if: failure()
