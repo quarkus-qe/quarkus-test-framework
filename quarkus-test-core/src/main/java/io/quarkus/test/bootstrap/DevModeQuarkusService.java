@@ -28,6 +28,7 @@ public class DevModeQuarkusService extends RestService {
     private static final String TESTS_ARE_PASSING = "tests are passing";
     private static final String TESTS_IS_PASSING = "test is passing";
     private static final String RUNNING_TESTS_FOR_1ST_TIME = "Running tests for the first time";
+    private static final int WAITING_TIMEOUT_BEFORE_CLICKING_ON_BTN_MILLIS = 2000;
     /**
      * Following hooks are currently logged by {@link io.quarkus.deployment.dev.testing.TestConsoleHandler}.
      * They should only be present if {@link #RUNNING_TESTS_FOR_1ST_TIME} is also logged, but testing for all of them
@@ -54,6 +55,13 @@ public class DevModeQuarkusService extends RestService {
                 try (Browser browser = playwright.chromium().launch()) {
                     Page page = browser.newContext().newPage();
                     page.navigate(getContinuousTestingPath());
+                    try {
+                        Thread.sleep(WAITING_TIMEOUT_BEFORE_CLICKING_ON_BTN_MILLIS);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(
+                                "Failed waiting for %d milliseconds".formatted(WAITING_TIMEOUT_BEFORE_CLICKING_ON_BTN_MILLIS),
+                                e);
+                    }
                     page.locator(START_CONTINUOUS_TESTING_BTN_CSS_ID).click();
 
                     // wait till enabling of continuous testing is finished
