@@ -22,7 +22,7 @@ public class DevModeQuarkusService extends RestService {
 
     private static final int WAITING_TIMEOUT_SEC = 15;
     private static final String DEV_UI_CONTINUOUS_TESTING_PATH = "/q/dev-ui/continuous-testing";
-    private static final String START_CONTINUOUS_TESTING_BTN_CSS_ID = "#start-cnt-testing-btn";
+    private static final String START_CONTINUOUS_TESTING_BTN_CSS_ID = "#start-continuous-testing-btn";
     private static final String NO_TESTS_FOUND = "No tests found";
     private static final String TESTS_PAUSED = "Tests paused";
     private static final String TESTS_ARE_PASSING = "tests are passing";
@@ -54,8 +54,9 @@ public class DevModeQuarkusService extends RestService {
                 try (Browser browser = playwright.chromium().launch()) {
                     Page page = browser.newContext().newPage();
                     page.navigate(getContinuousTestingPath());
-                    page.locator(START_CONTINUOUS_TESTING_BTN_CSS_ID).click();
-
+                    var locatorOptions = new Page.LocatorOptions();
+                    locatorOptions.setHasText("Start");
+                    page.locator(START_CONTINUOUS_TESTING_BTN_CSS_ID, locatorOptions).click();
                     // wait till enabling of continuous testing is finished
                     untilAsserted(() -> logs().assertContains(NO_TESTS_FOUND, TESTS_IS_PASSING, TESTS_ARE_PASSING),
                             usingTimeout(ofSeconds(WAITING_TIMEOUT_SEC)));
