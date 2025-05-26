@@ -33,7 +33,6 @@ public final class MavenUtils {
     public static final String DISPLAY_ERRORS = "-e";
     public static final String BATCH_MODE = "-B";
     public static final String DISPLAY_VERSION = "-V";
-    public static final String SKIP_PROGRESS = "--no-transfer-progress";
     public static final String SKIP_CHECKSTYLE = "-Dcheckstyle.skip";
     public static final String QUARKUS_PROFILE = "quarkus.profile";
     public static final String QUARKUS_PROPERTY_PREFIX = "quarkus";
@@ -56,9 +55,7 @@ public final class MavenUtils {
         List<String> command = mvnCommand(serviceContext);
         command.addAll(extraMavenArgs);
         command.add(DISPLAY_ERRORS);
-        command.add(BATCH_MODE);
         command.add(DISPLAY_VERSION);
-        command.add(SKIP_PROGRESS);
         command.add(PACKAGE_GOAL);
         try {
             new Command(command)
@@ -74,7 +71,10 @@ public final class MavenUtils {
     public static List<String> devModeMavenCommand(ServiceContext serviceContext, List<String> systemProperties) {
         List<String> command = mvnCommand(serviceContext);
         command.addAll(Arrays.asList(SKIP_CHECKSTYLE, SKIP_ITS));
-        command.addAll(Arrays.asList(BATCH_MODE, SKIP_PROGRESS));
+
+        //TODO: remove, when https://github.com/quarkusio/quarkus/issues/47308 is fixed
+        command.addAll(Arrays.asList(BATCH_MODE, "--no-transfer-progress"));
+
         command.addAll(systemProperties);
         command.add(withProperty("debug", "false"));
         if (QuarkusProperties.disableBuildAnalytics(serviceContext)) {
@@ -89,8 +89,6 @@ public final class MavenUtils {
         List<String> args = new ArrayList<>();
         args.add(MVN_COMMAND);
         args.add(DISPLAY_ERRORS);
-        args.add(SKIP_PROGRESS);
-        args.add(BATCH_MODE);
         args.add(withQuarkusProfile(serviceContext));
         withMavenRepositoryLocalIfSet(args);
         withProperties(args);
@@ -119,7 +117,7 @@ public final class MavenUtils {
 
     private static void installParentPom(Path relativePath) {
         List<String> args = new ArrayList<>();
-        args.addAll(asList(MVN_COMMAND, DISPLAY_ERRORS, BATCH_MODE, SKIP_PROGRESS, INSTALL_GOAL, SKIP_CHECKSTYLE, SKIP_TESTS,
+        args.addAll(asList(MVN_COMMAND, DISPLAY_ERRORS, INSTALL_GOAL, SKIP_CHECKSTYLE, SKIP_TESTS,
                 SKIP_ITS, "-pl", "."));
         withMavenRepositoryLocalIfSet(args);
         withProperties(args);
