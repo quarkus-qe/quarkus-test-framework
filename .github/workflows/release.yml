@@ -22,7 +22,6 @@ jobs:
           metadata-file-path: '.github/project.yml'
       - uses: ./.github/actions/deploy
         with:
-          repository-id: 'oss.sonatype'
           release-version: ${{steps.metadata.outputs.current-version}}
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           ossrh-token: ${{ secrets.OSSRH_TOKEN }}

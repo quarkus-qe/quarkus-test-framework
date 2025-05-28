@@ -13,7 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/deploy
         with:
-          repository-id: 'ossrh'
           release-version: '999-SNAPSHOT'
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           ossrh-token: ${{ secrets.OSSRH_TOKEN }}
