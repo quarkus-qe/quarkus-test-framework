@@ -1,9 +1,6 @@
 name: 'Deploy Quarkus QE Test Framework'
 description: 'Deploys Quarkus QE Test Framework'
 inputs:
-  repository-id:
-    description: 'Must match a repository id present in of the POM file distributionManagement repositories'
-    required: true
   release-version:
     description: 'Version under which should this framework be released'
   ossrh-username:
@@ -23,7 +20,7 @@ runs:
         distribution: 'temurin'
         java-version: 17
         check-latest: true
-        server-id: ${{ inputs.repository-id }}
+        server-id: 'central'
         server-username: MAVEN_USERNAME
         server-password: MAVEN_PASSWORD
         gpg-private-key: ${{ inputs.gpg-private-key }}
