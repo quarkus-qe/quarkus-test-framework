@@ -14,6 +14,9 @@ items:
         - name: "http"
           port: ${INTERNAL_INGRESS_PORT}
           targetPort: ${INTERNAL_PORT}
+        - name: "https"
+          port: "8443"
+          targetPort: ${TLS_PORT}
       selector:
         app.kubernetes.io/name: "${SERVICE_NAME}"
       type: "ClusterIP"
@@ -101,6 +104,9 @@ items:
               ports:
                 - containerPort: ${INTERNAL_PORT}
                   name: "http"
+                  protocol: "TCP"
+                - containerPort: ${TLS_PORT}
+                  name: "https"
                   protocol: "TCP"
       triggers:
         - imageChangeParams:

@@ -333,6 +333,15 @@ public final class OpenShiftClient {
         }
     }
 
+    public void createTlsPassthroughRoute(String serviceName, String routeName, int port) {
+        try {
+            new Command(OC, "create", "route", "passthrough",
+                    routeName, "--service=" + serviceName, "--port=" + port).runAndWait();
+        } catch (Exception e) {
+            fail("Failed to create TLS passthrought route. Caused by " + e.getMessage());
+        }
+    }
+
     /**
      * Create a service for deployment.
      * Usually done automatically, or inside yamls, so this method should be used only in a very special cases,

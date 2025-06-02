@@ -69,6 +69,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private Set<String> detectedBuildTimeProperties;
     private boolean needsEnhancedApplicationProperties = false;
     private boolean s2iScenario = false;
+    private int ocpTlsPort = 0;
 
     protected abstract void build();
 
@@ -118,6 +119,14 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void setCustomBuildRequired() {
         this.requiresCustomBuild = true;
+    }
+
+    protected int getOcpTlsPort() {
+        return ocpTlsPort;
+    }
+
+    protected void setOcpTlsPort(int ocpTlsPort) {
+        this.ocpTlsPort = ocpTlsPort;
     }
 
     @Override

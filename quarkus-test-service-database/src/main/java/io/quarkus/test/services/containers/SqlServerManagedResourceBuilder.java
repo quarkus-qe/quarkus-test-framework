@@ -24,7 +24,7 @@ public final class SqlServerManagedResourceBuilder extends ContainerManagedResou
         if (annotation instanceof SqlServerContainer sqlServerContainer) {
             tlsEnabled = sqlServerContainer.tlsEnabled();
             init(sqlServerContainer.image(), new String[0], sqlServerContainer.expectedLog(), sqlServerContainer.port(),
-                    tlsEnabled);
+                    sqlServerContainer.ocpTlsPort(), tlsEnabled);
         } else {
             throw new IllegalStateException("Expected annotation SqlServerContainer, but got: " + annotation);
         }

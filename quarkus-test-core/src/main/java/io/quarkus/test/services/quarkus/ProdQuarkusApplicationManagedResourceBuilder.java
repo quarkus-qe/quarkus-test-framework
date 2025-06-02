@@ -46,6 +46,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         setGrpcEnabled(metadata.grpc());
         initAppClasses(metadata.classes());
         initForcedDependencies(metadata.dependencies());
+        setOcpTlsPort(metadata.ocpTlsPort());
         setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
     }
 

@@ -71,6 +71,11 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
                 this::internalReplaceDeploymentContent,
                 addExtraTemplateProperties(),
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
+        if (model.getOcpTlsPort() != 0) {
+            client.createTlsPassthroughRoute(model.getContext().getName(),
+                    model.getContext().getName() + "-tls",
+                    model.getOcpTlsPort());
+        }
     }
 
     private String internalReplaceDeploymentContent(String content) {
@@ -86,6 +91,7 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
         content = content.replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + getInternalPort())
                 .replaceAll(quote("${INTERNAL_INGRESS_PORT}"), "" + ingressInternalPort)
+                .replaceAll(quote("${TLS_PORT}"), "" + model.getOcpTlsPort())
                 .replace("${MANAGEMENT_PORT}", "" + model.getManagementPort());
 
         return replaceDeploymentContent(content);

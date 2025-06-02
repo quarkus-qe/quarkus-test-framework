@@ -25,6 +25,7 @@ import io.quarkus.test.utils.FileUtils;
 public class OpenShiftContainerManagedResource implements ManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/openshift-deployment-template.yml";
+    private static final String DEPLOYMENT_TLS_TEMPLATE_PROPERTY_DEFAULT = "/openshift-deployment-with-tls-template.yml";
     private static final String DEPLOYMENT = "openshift.yml";
 
     private static final int HTTP_PORT = 80;
@@ -51,7 +52,15 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
             return;
         }
 
-        applyDeployment();
+        String deploymentFile;
+        if (model.getOcpTlsPort() != 0) {
+            deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_TLS_TEMPLATE_PROPERTY,
+                    getTlsTemplateByDefault());
+        } else {
+            deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
+                    getTemplateByDefault());
+        }
+        applyDeployment(deploymentFile);
         exposeService();
 
         client.scaleTo(model.getContext().getOwner(), 1);
@@ -105,6 +114,10 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         return DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT;
     }
 
+    protected String getTlsTemplateByDefault() {
+        return DEPLOYMENT_TLS_TEMPLATE_PROPERTY_DEFAULT;
+    }
+
     protected boolean useInternalServiceByDefault() {
         return false;
     }
@@ -131,15 +144,14 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         String args = Arrays.stream(model.getCommand()).map(cmd -> "\"" + cmd + "\"").collect(Collectors.joining(", "));
         return content.replaceAll(quote("${IMAGE}"), model.getImage())
                 .replaceAll(quote("${SERVICE_NAME}"), model.getContext().getName())
+                .replaceAll(quote("${TLS_PORT}"), "" + model.getOcpTlsPort())
                 .replaceAll(quote("${INTERNAL_PORT}"), "" + model.getPort())
                 .replaceAll(quote("${INTERNAL_INGRESS_PORT}"), "" + model.getPort())
                 .replaceAll(quote("${ARGS}"), args)
                 .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project());
     }
 
-    private void applyDeployment() {
-        String deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
-                getTemplateByDefault());
+    private void applyDeployment(String deploymentFile) {
         Path templateFile = model.getContext().getServiceFolder().resolve(DEPLOYMENT);
         client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(),
                 deploymentFile,
