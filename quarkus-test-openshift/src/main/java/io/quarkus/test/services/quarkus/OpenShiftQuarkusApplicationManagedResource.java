@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.CA_BUNDLE_CONFIGMAP_NAME;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.SERVING_CERTS_SECRET_NAME;
@@ -19,7 +20,9 @@ import static io.quarkus.test.utils.AwaitilityUtils.untilIsNotNull;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
@@ -45,7 +48,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
     private boolean init;
     private boolean running;
 
-    private URILike uri;
+    private Map<Protocol, URILike> uri = new HashMap<>();
 
     public OpenShiftQuarkusApplicationManagedResource(T model) {
         super(model.getContext());
@@ -90,7 +93,7 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         }
 
         client.scaleTo(model.getContext().getOwner(), 0);
-        uri = null;
+        uri.clear();
         running = false;
     }
 
@@ -99,50 +102,63 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         final ServiceContext context = model.getContext();
         final boolean isServerless = client.isServerlessService(context.getName());
         final boolean isServingCertSslScenario = isServingCertificateScenario(context) && model.isSslEnabled();
-        if ((protocol == Protocol.HTTPS || protocol == Protocol.WSS) && !isServerless && !isServingCertSslScenario) {
-            fail("SSL is not supported for OpenShift tests yet");
+        final boolean isTlsSecuredProtocol = (protocol == Protocol.HTTPS || protocol == Protocol.WSS);
+        if (isTlsSecuredProtocol && !model.isSslEnabled() && !isServerless && !isServingCertSslScenario) {
+            fail("SSL is not enabled");
         } else if (protocol == Protocol.GRPC) {
             fail("gRPC is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.MANAGEMENT && model.useSeparateManagementInterface()) {
             if (model.useManagementSsl()) {
-                fail("SSL is not supported for OpenShift tests yet");
+                fail("SSL is not supported for management on OpenShift tests yet");
             }
             return client.url(context.getOwner().getName() + "-management").withPort(EXTERNAL_PORT);
         }
-        if (this.uri == null) {
+
+        // service scenarios only works on HTTPS and also on some places are rewriting HTTP to HTTPS
+        // but framework has HTTP hardcoded on some places, so redirect HTTP to HTTPS
+        if (isServingCertSslScenario && protocol == Protocol.HTTP) {
+            protocol = Protocol.HTTPS;
+        }
+
+        if (!this.uri.containsKey(protocol)) {
             if (isServingCertSslScenario) {
-                this.uri = getInternalServiceHttpsUrl(context);
-                return this.uri;
+                this.uri.put(protocol, getInternalServiceHttpsUrl(context));
+                return this.uri.get(protocol);
             }
-            final int port = isServerless ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
-            this.uri = untilIsNotNull(
-                    () -> client.url(context.getOwner()).withPort(port),
+            final int port = (isServerless || isTlsSecuredProtocol) ? EXTERNAL_SSL_PORT : EXTERNAL_PORT;
+            String serviceName = isTlsSecuredProtocol && !isServerless
+                    ? context.getOwner().getName() + TLS_ROUTE_SUFFIX
+                    : context.getOwner().getName();
+            URILike uri = untilIsNotNull(
+                    () -> client.url(serviceName).withPort(port),
                     AwaitilitySettings.defaults().withService(getContext().getOwner()));
+            this.uri.put(protocol, uri);
         }
         if (isServingCertSslScenario) {
             if (uriHasNotHttpsProtocol()) {
                 Assertions.fail("Certificate serving scenario must use HTTPS protocol, but got " + this.uri);
             }
-            return this.uri;
+            return this.uri.get(protocol);
         } else if (isServerless) {
             // serverless uses internal URL and it must always use HTTPS protocol no matter of what bare-metal tests
             if (uriHasNotHttpsProtocol()) {
                 Assertions.fail("Serverless scenarios must always use HTTPS protocol, but got " + this.uri);
             }
-            return this.uri;
-        } else if (Protocol.WS == protocol || Protocol.HTTP == protocol) {
-            // grpc, wss and https are unreachable at this point
-            return this.uri.withScheme(protocol.getValue());
+            return this.uri.get(protocol);
+        } else if (Protocol.WS == protocol || Protocol.HTTP == protocol
+                || isTlsSecuredProtocol) {
+            // grpc is unreachable at this point
+            return this.uri.get(protocol).withScheme(protocol.getValue());
         } else if (Protocol.MANAGEMENT == protocol) {
             // management when not on a separate interface must be HTTP url same as any application endpoint
-            return this.uri.withScheme(Protocol.HTTP.getValue());
+            return this.uri.get(protocol).withScheme(Protocol.HTTP.getValue());
         }
         // protocol NONE has no scheme
-        return this.uri;
+        return this.uri.get(protocol);
     }
 
     private boolean uriHasNotHttpsProtocol() {
-        return !this.uri.toString().toLowerCase().startsWith(Protocol.HTTPS.getValue());
+        return this.uri.values().stream().anyMatch(uri -> uri.getScheme().equals("http"));
     }
 
     public boolean isRunning() {
