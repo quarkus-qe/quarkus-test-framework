@@ -52,10 +52,15 @@ import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretVolumeSource;
+import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -98,6 +103,7 @@ public final class OpenShiftClient {
     public static final String LABEL_SCENARIO_ID = "scenarioId";
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             OPENSHIFT_EPHEMERAL_NAMESPACES.getName(), Boolean.TRUE.toString());
+    public static final String TLS_ROUTE_SUFFIX = "-tls";
 
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
 
@@ -105,6 +111,7 @@ public final class OpenShiftClient {
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
     private static final int SPECS_SECRET_NAME_LIMIT = 63;
+    private static final int DEFAULT_SECRET_MODE = 420;
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
     private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
@@ -150,6 +157,14 @@ public final class OpenShiftClient {
      */
     public String project() {
         return currentNamespace;
+    }
+
+    /**
+     * Return host part of the URL for route, that is not yet created.
+     */
+    public String predictRouteHost(String appName) {
+        String openshiftUrl = client.getMasterUrl().getHost().replace("api", "apps");
+        return appName + "-" + currentNamespace + "." + openshiftUrl;
     }
 
     /**
@@ -330,6 +345,58 @@ public final class OpenShiftClient {
                     "-l" + LABEL_SCENARIO_ID + "=" + getScenarioId()).runAndWait();
         } catch (Exception e) {
             fail("Service failed to be exposed. Caused by " + e.getMessage());
+        }
+    }
+
+    /**
+     * Expose port on a deployment.
+     * Changes the deployment spec to make the specific port exposed.
+     */
+    public void exposeDeploymentPort(String deploymentName, String portName, int port) {
+        Deployment deployment = client.apps().deployments().withName(deploymentName).get();
+
+        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getPorts().add(
+                new ContainerPort(port, "", 0, portName, "TCP"));
+
+        Log.info("Exposing port %d with name %s on deployment %s", port, portName, deploymentName);
+        client.apps().deployments().withName(deploymentName).patch(deployment);
+    }
+
+    /**
+     * Expose specific port on a service.
+     *
+     * @param serviceName Name of the service to alter
+     * @param portName Name of the new port
+     * @param port Internal ingress port
+     * @param targetPort Port on the deployment to be targeted
+     */
+    public void exposeServicePort(String serviceName, String portName, int port, int targetPort) {
+        io.fabric8.kubernetes.api.model.Service service = client.services().withName(serviceName).get();
+
+        // we cannot instantiate the ServicePort inline, because constructor sets all of its value,
+        // but we need to leave some empty
+        ServicePort servicePort = new ServicePort();
+        servicePort.setName(portName);
+        servicePort.setPort(port);
+        servicePort.setProtocol("TCP");
+        servicePort.setTargetPort(new IntOrString(targetPort));
+
+        service.getSpec().getPorts().add(servicePort);
+
+        Log.info("Exposing port %d to target port %d with name %s on service %s", port, targetPort, portName, serviceName);
+        client.services().withName(serviceName).patch(service);
+    }
+
+    /**
+     * Create route with TLS passthought type.
+     * Should be used for exposing custom TLS setup on a pod.
+     */
+    public void createTlsPassthroughRoute(String serviceName, String routeName, int port) {
+        try {
+            new Command(OC, "create", "route", "passthrough",
+                    routeName, "--service=" + serviceName, "--port=" + port).runAndWait();
+        } catch (Exception e) {
+            fail("Failed to create TLS passthrought route. Caused by " + e.getMessage());
         }
     }
 
@@ -743,6 +810,31 @@ public final class OpenShiftClient {
         if (secret.get() != null) {
             secret.delete();
         }
+    }
+
+    public void mountSecretToDeployment(String deploymentName, String secretName, String mountPath) {
+        Deployment deployment = client.apps().deployments().withName(deploymentName).get();
+
+        SecretVolumeSource secretVolumeSource = new SecretVolumeSource();
+        secretVolumeSource.setSecretName(secretName);
+        secretVolumeSource.setDefaultMode(DEFAULT_SECRET_MODE);
+
+        Volume volume = new Volume();
+        volume.setName(secretName);
+        volume.setSecret(secretVolumeSource);
+
+        deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume);
+
+        VolumeMount volumeMount = new VolumeMount();
+        volumeMount.setName(secretName);
+        volumeMount.setReadOnly(true);
+        volumeMount.setMountPath(mountPath);
+
+        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts().add(volumeMount);
+
+        Log.info("Mounting secret %s to mount path %s on deployment %s", secretName, mountPath, deploymentName);
+
+        client.apps().deployments().withName(deploymentName).patch(deployment);
     }
 
     public boolean isAnyServicePodReady(String serviceName) {
@@ -1229,7 +1321,7 @@ public final class OpenShiftClient {
         return namespace;
     }
 
-    private void doCreateSecretFromFile(String name, String filePath) {
+    public void doCreateSecretFromFile(String name, String filePath) {
         if (client.secrets().withName(name).get() == null) {
             try {
                 new Command(OC, "create", "secret", "generic", name, "--from-file=" + filePath,
