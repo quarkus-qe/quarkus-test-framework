@@ -22,10 +22,9 @@ jobs:
       - name: 'Download Flaky Run Reports'
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |
-          gh run download $WORKFLOW_ID -n flaky-run-report-linux-jvm-released || true
-          gh run download $WORKFLOW_ID -n flaky-run-report-linux-jvm-latest || true
-          gh run download $WORKFLOW_ID -n flaky-run-report-linux-native-released || true
-          gh run download $WORKFLOW_ID -n flaky-run-report-windows-jvm-latest || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-linux-build-jvm-latest || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-linux-build-native-latest || true
+          gh run download $WORKFLOW_ID -n flaky-run-report-windows-build-jvm-latest || true
       - name: 'Add "triage/flaky-test" label'
         if: ${{ hashFiles('**/pr-number') != '' }}
         run: |

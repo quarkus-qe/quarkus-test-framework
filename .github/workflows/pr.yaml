@@ -67,14 +67,14 @@ jobs:
         id: rename-flaky-test-run-report
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         shell: bash
-        run: mv target/flaky-run-report.json target/flaky-run-report-linux-jvm-latest.json
+        run: mv target/flaky-run-report.json target/flaky-run-report-linux-build-jvm-latest.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report-linux-jvm-latest.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-linux-build-jvm-latest.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: flaky-run-report-linux-jvm-latest
-          path: target/flaky-run-report-linux-jvm-latest.json
+          name: flaky-run-report-linux-build-jvm-latest
+          path: target/flaky-run-report-linux-build-jvm-latest.json
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
@@ -117,21 +117,21 @@ jobs:
         id: rename-flaky-test-run-report
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         shell: bash
-        run: mv target/flaky-run-report.json target/flaky-run-report-linux-native-latest.json
+        run: mv target/flaky-run-report.json target/flaky-run-report-linux-build-native-latest.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report-linux-native-latest.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-linux-build-native-latest.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: flaky-run-report-linux-native-latest
-          path: target/flaky-run-report-linux-native-latest.json
+          name: flaky-run-report-linux-build-native-latest
+          path: target/flaky-run-report-linux-build-native-latest.json
       - name: Zip Artifacts
         run: |
           zip -R artifacts-latest-linux-native{{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: artifacts-latest-linux-native{{ matrix.java }}
+          name: artifacts-latest-linux-native${{ matrix.java }}
           path: artifacts-latest-linux-native${{ matrix.java }}.zip
   windows-build-jvm-latest:
     name: Windows JVM
@@ -165,14 +165,14 @@ jobs:
         id: rename-flaky-test-run-report
         if: ${{ hashFiles('**/flaky-run-report.json') != '' }}
         shell: bash
-        run: mv target/flaky-run-report.json target/flaky-run-report-windows-jvm-latest.json
+        run: mv target/flaky-run-report.json target/flaky-run-report-windows-build-jvm-latest.json
       - name: Archive flaky run report
         id: archive-flaky-run-report
-        if: ${{ hashFiles('**/flaky-run-report-windows-jvm-latest.json') != '' }}
+        if: ${{ hashFiles('**/flaky-run-report-windows-build-jvm-latest.json') != '' }}
         uses: actions/upload-artifact@v4
         with:
-          name: flaky-run-report-windows-jvm-latest
-          path: target/flaky-run-report-windows-jvm-latest.json
+          name: flaky-run-report-windows-build-jvm-latest
+          path: target/flaky-run-report-windows-build-jvm-latest.json
       - name: Zip Artifacts
         shell: bash
         if: failure()
