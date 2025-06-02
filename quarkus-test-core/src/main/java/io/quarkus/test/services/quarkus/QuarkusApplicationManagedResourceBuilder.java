@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.security.certificate.ServingCertificateConfig.SERVING_CERTIFICATE_KEY;
 import static io.quarkus.test.utils.PropertiesUtils.resolveProperty;
 import static io.quarkus.test.utils.TestExecutionProperties.isKubernetesPlatform;
 import static io.quarkus.test.utils.TestExecutionProperties.isOpenshiftPlatform;
@@ -48,12 +47,15 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     public static final int HTTP_PORT_DEFAULT = 8080;
     public static final int MANAGEMENT_PORT_DEFAULT = 9000;
+    public static final int HTTPS_PORT_DEFAULT = 8443;
 
     protected static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
 
     private static final Path TEST_RESOURCES_FOLDER = Paths.get("src", "test", "resources");
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
+
+    protected CertificateBuilder certificateBuilder;
 
     private Class<?>[] appClasses;
     /**
@@ -67,10 +69,10 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean sslEnabled = false;
     private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
-    private CertificateBuilder certificateBuilder;
     private Set<String> detectedBuildTimeProperties;
     private boolean needsEnhancedApplicationProperties = false;
     private boolean s2iScenario = false;
+    private int ocpTlsPort = HTTPS_PORT_DEFAULT;
 
     protected abstract void build();
 
@@ -120,6 +122,14 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void setCustomBuildRequired() {
         this.requiresCustomBuild = true;
+    }
+
+    protected int getOcpTlsPort() {
+        return ocpTlsPort;
+    }
+
+    protected void setOcpTlsPort(int ocpTlsPort) {
+        this.ocpTlsPort = ocpTlsPort;
     }
 
     @Override
@@ -229,20 +239,6 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void configureLogging() {
         context.getOwner().withProperty("quarkus.log.console.format", "%d{HH:mm:ss,SSS} %s%e%n");
-    }
-
-    protected void configureCertificates() {
-        if (certificateBuilder != null) {
-            getContext().put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
-            certificateBuilder
-                    .certificates()
-                    .forEach(certificate -> certificate
-                            .configProperties()
-                            .forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v)));
-            if (certificateBuilder.servingCertificateConfig() != null) {
-                getContext().put(SERVING_CERTIFICATE_KEY, certificateBuilder.servingCertificateConfig());
-            }
-        }
     }
 
     protected void setCertificateBuilder(CertificateBuilder certificateBuilder) {

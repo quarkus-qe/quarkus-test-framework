@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.security.certificate.CertificateBuilder;
+import io.quarkus.test.security.certificate.QuarkusApplicationCertificateConfigurator;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusApplicationManagedResourceBuilder {
@@ -29,7 +30,9 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
-        configureCertificates();
+        if (certificateBuilder != null) {
+            QuarkusApplicationCertificateConfigurator.configureCertificates(certificateBuilder, getContext());
+        }
         build();
         return new DevModeLocalhostQuarkusApplicationManagedResource(this);
     }
