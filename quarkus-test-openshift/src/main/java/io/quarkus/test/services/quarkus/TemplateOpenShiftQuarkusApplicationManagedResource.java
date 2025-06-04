@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.bootstrap.inject.OpenShiftClient.INTERNAL_HTTPS_PORT;
 import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.getInternalHttpsPort;
@@ -76,11 +75,11 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
 
         if (model.isSslEnabled()) {
             client.exposeDeploymentPort(model.getContext().getName(), "https", model.getOcpTlsPort());
-            client.exposeServicePort(model.getContext().getName(), "https",
-                    INTERNAL_HTTPS_PORT, model.getOcpTlsPort());
-            client.createTlsPassthroughRoute(model.getContext().getName(),
+            client.createService(model.getContext().getName(),
+                    model.getContext().getName() + TLS_ROUTE_SUFFIX, model.getOcpTlsPort());
+            client.createTlsPassthroughRoute(model.getContext().getName() + TLS_ROUTE_SUFFIX,
                     model.getContext().getName() + TLS_ROUTE_SUFFIX,
-                    INTERNAL_HTTPS_PORT);
+                    model.getOcpTlsPort());
         }
     }
 

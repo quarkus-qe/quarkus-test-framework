@@ -19,10 +19,4 @@ public @interface SqlServerContainer {
      * Encrypt connections to SQL Server.
      */
     boolean tlsEnabled() default false;
-
-    /**
-     * Enable TLS pass-through route on OpenShift. If yes state port to forward TLS traffic to.
-     * If set to 0, TLS will be disabled.
-     */
-    int ocpTlsPort() default 0;
 }
