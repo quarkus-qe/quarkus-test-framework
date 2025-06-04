@@ -52,10 +52,13 @@ import io.fabric8.knative.client.KnativeClient;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
+import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVar;
 import io.fabric8.kubernetes.api.model.HasMetadata;
+import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -98,6 +101,8 @@ public final class OpenShiftClient {
     public static final String LABEL_SCENARIO_ID = "scenarioId";
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             OPENSHIFT_EPHEMERAL_NAMESPACES.getName(), Boolean.TRUE.toString());
+    public static final int INTERNAL_HTTPS_PORT = 8443;
+    public static final String TLS_ROUTE_SUFFIX = "-tls";
 
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
 
@@ -333,6 +338,49 @@ public final class OpenShiftClient {
         }
     }
 
+    /**
+     * Expose port on a deployment.
+     * Changes the deployment spec to make the specific port exposed.
+     */
+    public void exposeDeploymentPort(String deploymentName, String portName, int port) {
+        Deployment deployment = client.apps().deployments().withName(deploymentName).get();
+
+        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getPorts().add(
+                new ContainerPort(port, "", 0, portName, "TCP"));
+
+        Log.info("Exposing port %d with name %s on deployment %s", port, portName, deploymentName);
+        client.apps().deployments().withName(deploymentName).patch(deployment);
+    }
+
+    /**
+     * Expose specific port on a service.
+     *
+     * @param serviceName Name of the service to alter
+     * @param portName Name of the new port
+     * @param port Internal ingress port
+     * @param targetPort Port on the deployment to be targeted
+     */
+    public void exposeServicePort(String serviceName, String portName, int port, int targetPort) {
+        io.fabric8.kubernetes.api.model.Service service = client.services().withName(serviceName).get();
+
+        // we cannot instantiate the ServicePort inline, because constructor sets all of its value,
+        // but we need to leave some empty
+        ServicePort servicePort = new ServicePort();
+        servicePort.setName(portName);
+        servicePort.setPort(port);
+        servicePort.setProtocol("TCP");
+        servicePort.setTargetPort(new IntOrString(targetPort));
+
+        service.getSpec().getPorts().add(servicePort);
+
+        Log.info("Exposing port %d to target port %d with name %s on service %s", port, targetPort, portName, serviceName);
+        client.services().withName(serviceName).patch(service);
+    }
+
+    /**
+     * Create route with TLS passthought type.
+     * Should be used for exposing custom TLS setup on a pod.
+     */
     public void createTlsPassthroughRoute(String serviceName, String routeName, int port) {
         try {
             new Command(OC, "create", "route", "passthrough",

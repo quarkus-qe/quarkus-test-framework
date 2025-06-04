@@ -46,6 +46,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     public static final String QUARKUS_HTTP_SSL_PORT_PROPERTY = "quarkus.http.ssl-port";
     public static final int HTTP_PORT_DEFAULT = 8080;
     public static final int MANAGEMENT_PORT_DEFAULT = 9000;
+    public static final int HTTPS_PORT_DEFAULT = 8443;
 
     protected static final Path RESOURCES_FOLDER = Paths.get("src", "main", "resources");
 
@@ -69,7 +70,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private Set<String> detectedBuildTimeProperties;
     private boolean needsEnhancedApplicationProperties = false;
     private boolean s2iScenario = false;
-    private int ocpTlsPort = 0;
+    private int ocpTlsPort = HTTPS_PORT_DEFAULT;
 
     protected abstract void build();
 
