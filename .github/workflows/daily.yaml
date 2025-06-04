@@ -135,9 +135,6 @@ jobs:
           - quarkus-version: "999-SNAPSHOT"
             java: 21
           - quarkus-version: "999-SNAPSHOT"
-            java: 17 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 17
-            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-17'
-          - quarkus-version: "999-SNAPSHOT"
             java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
             extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21'
     steps:
