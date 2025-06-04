@@ -75,7 +75,7 @@
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
         <consul.image>docker.io/bitnami/consul:1.19.1</consul.image>
         <reruns>2</reruns>
-        <flaky-run-reporter.version>0.1.5</flaky-run-reporter.version>
+        <flaky-run-reporter.version>0.1.6</flaky-run-reporter.version>
     </properties>
     <repositories>
         <repository>
