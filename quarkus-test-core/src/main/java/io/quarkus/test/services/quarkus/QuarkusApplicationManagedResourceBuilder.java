@@ -54,6 +54,8 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private static final String APPLICATION_PROPERTIES = "application.properties";
     private static final String QUARKUS_GROUP_ID_DEFAULT = "io.quarkus";
 
+    protected CertificateBuilder certificateBuilder;
+
     private Class<?>[] appClasses;
     /**
      * Whether build consist of all source classes or only some of them.
@@ -66,7 +68,6 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean sslEnabled = false;
     private boolean grpcEnabled = false;
     private Map<String, String> propertiesSnapshot;
-    private CertificateBuilder certificateBuilder;
     private Set<String> detectedBuildTimeProperties;
     private boolean needsEnhancedApplicationProperties = false;
     private boolean s2iScenario = false;

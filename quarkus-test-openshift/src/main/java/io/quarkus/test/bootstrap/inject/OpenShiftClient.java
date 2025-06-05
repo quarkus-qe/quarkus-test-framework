@@ -58,7 +58,9 @@ import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretVolumeSource;
 import io.fabric8.kubernetes.api.model.ServicePort;
+import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -109,6 +111,7 @@ public final class OpenShiftClient {
     private static final int PROJECT_NAME_SIZE = 10;
     private static final int PROJECT_CREATION_RETRIES = 5;
     private static final int SPECS_SECRET_NAME_LIMIT = 63;
+    private static final int DEFAULT_SECRET_MODE = 420;
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
     private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
@@ -801,6 +804,31 @@ public final class OpenShiftClient {
         }
     }
 
+    public void mountSecretToDeployment(String deploymentName, String secretName, String mountPath) {
+        Deployment deployment = client.apps().deployments().withName(deploymentName).get();
+
+        SecretVolumeSource secretVolumeSource = new SecretVolumeSource();
+        secretVolumeSource.setSecretName(secretName);
+        secretVolumeSource.setDefaultMode(DEFAULT_SECRET_MODE);
+
+        Volume volume = new Volume();
+        volume.setName(secretName);
+        volume.setSecret(secretVolumeSource);
+
+        deployment.getSpec().getTemplate().getSpec().getVolumes().add(volume);
+
+        VolumeMount volumeMount = new VolumeMount();
+        volumeMount.setName(secretName);
+        volumeMount.setReadOnly(true);
+        volumeMount.setMountPath(mountPath);
+
+        deployment.getSpec().getTemplate().getSpec().getContainers().get(0).getVolumeMounts().add(volumeMount);
+
+        Log.info("Mounting secret %s to mount path %s on deployment %s", secretName, mountPath, deploymentName);
+
+        client.apps().deployments().withName(deploymentName).patch(deployment);
+    }
+
     public boolean isAnyServicePodReady(String serviceName) {
         return client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, serviceName).resources().anyMatch(Resource::isReady);
     }
@@ -1285,7 +1313,7 @@ public final class OpenShiftClient {
         return namespace;
     }
 
-    private void doCreateSecretFromFile(String name, String filePath) {
+    public void doCreateSecretFromFile(String name, String filePath) {
         if (client.secrets().withName(name).get() == null) {
             try {
                 new Command(OC, "create", "secret", "generic", name, "--from-file=" + filePath,

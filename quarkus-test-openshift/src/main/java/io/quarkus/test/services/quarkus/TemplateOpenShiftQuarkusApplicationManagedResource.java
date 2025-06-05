@@ -4,6 +4,10 @@ import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.getInternalHttpsPort;
 import static io.quarkus.test.security.certificate.ServingCertificateConfig.isServingCertificateScenario;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.KEYSTORE_MOUNT_PATH;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.PROPERTY_KEYSTORE_SECRET_NAME;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.PROPERTY_TRUSTSTORE_SECRET_NAME;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.TRUSTSTORE_MOUNT_PATH;
 import static java.util.regex.Pattern.quote;
 
 import java.util.Collections;
@@ -13,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.security.certificate.CertificateBuilder;
 
 public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T extends QuarkusApplicationManagedResourceBuilder>
         extends OpenShiftQuarkusApplicationManagedResource<T> {
@@ -80,6 +85,15 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
             client.createTlsPassthroughRoute(model.getContext().getName() + TLS_ROUTE_SUFFIX,
                     model.getContext().getName() + TLS_ROUTE_SUFFIX,
                     model.getOcpTlsPort());
+
+            // if certificate builder is set, there should be secrets set
+            if (model.getContext().get(CertificateBuilder.INSTANCE_KEY) != null) {
+                String appName = model.getContext().getName();
+                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),
+                        KEYSTORE_MOUNT_PATH);
+                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME),
+                        TRUSTSTORE_MOUNT_PATH);
+            }
         }
     }
 
