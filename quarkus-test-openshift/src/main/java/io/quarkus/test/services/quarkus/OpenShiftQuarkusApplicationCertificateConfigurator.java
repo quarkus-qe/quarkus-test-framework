@@ -8,11 +8,12 @@ import java.util.Map;
 import org.apache.commons.io.FilenameUtils;
 
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
+import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.security.certificate.Certificate;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 
-public class OpenShiftQuarkusApplicationManagedResourceBuilder extends ProdQuarkusApplicationManagedResourceBuilder {
+public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
     public static final String KEYSTORE_MOUNT_PATH = "/mnt/keystore/";
     public static final String TRUSTSTORE_MOUNT_PATH = "/mnt/truststore/";
 
@@ -22,17 +23,16 @@ public class OpenShiftQuarkusApplicationManagedResourceBuilder extends ProdQuark
     private static final String KEYSTORE_SECRET_SUFFIX = "-keystore";
     private static final String TRUSTSTORE_SECRET_SUFFIX = "-truststore";
 
-    @Override
-    protected void configureCertificates() {
-        OpenShiftClient client = getContext().get(OpenShiftExtensionBootstrap.CLIENT);
+    public static void configureCertificates(CertificateBuilder certificateBuilder, ServiceContext context) {
+        OpenShiftClient client = context.get(OpenShiftExtensionBootstrap.CLIENT);
 
-        String appName = getContext().getName();
+        String appName = context.getName();
 
         if (certificateBuilder != null && !certificateBuilder.certificates().isEmpty()) {
             if (certificateBuilder.certificates().size() > 1) {
                 fail("Apps on OpensShift currently support maximum of 1 certificate");
             }
-            getContext().put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
+            context.put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
 
             // create secrets on OCP
             Certificate certificate = certificateBuilder.certificates().get(0);
@@ -47,11 +47,11 @@ public class OpenShiftQuarkusApplicationManagedResourceBuilder extends ProdQuark
             configProperties.put("quarkus.tls.tls-server.key-store.p12.path", KEYSTORE_MOUNT_PATH + keystoreFilename);
             configProperties.put("quarkus.tls.tls-server.trust-store.p12.path", TRUSTSTORE_MOUNT_PATH + truststoreFilename);
 
-            configProperties.forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v));
+            configProperties.forEach(context::withTestScopeConfigProperty);
 
             // store secret names for future mounting
-            getContext().put(PROPERTY_KEYSTORE_SECRET_NAME, appName + KEYSTORE_SECRET_SUFFIX);
-            getContext().put(PROPERTY_TRUSTSTORE_SECRET_NAME, appName + TRUSTSTORE_SECRET_SUFFIX);
+            context.put(PROPERTY_KEYSTORE_SECRET_NAME, appName + KEYSTORE_SECRET_SUFFIX);
+            context.put(PROPERTY_TRUSTSTORE_SECRET_NAME, appName + TRUSTSTORE_SECRET_SUFFIX);
         }
     }
 }

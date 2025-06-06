@@ -54,7 +54,6 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
     public ManagedResource build(ServiceContext context) {
         setContext(context);
         configureLogging();
-        configureCertificates();
         managedResource = findManagedResource();
         build();
 

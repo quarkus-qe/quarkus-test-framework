@@ -4,10 +4,10 @@ import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.getInternalHttpsPort;
 import static io.quarkus.test.security.certificate.ServingCertificateConfig.isServingCertificateScenario;
-import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.KEYSTORE_MOUNT_PATH;
-import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.PROPERTY_KEYSTORE_SECRET_NAME;
-import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.PROPERTY_TRUSTSTORE_SECRET_NAME;
-import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationManagedResourceBuilder.TRUSTSTORE_MOUNT_PATH;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationCertificateConfigurator.KEYSTORE_MOUNT_PATH;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationCertificateConfigurator.PROPERTY_KEYSTORE_SECRET_NAME;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationCertificateConfigurator.PROPERTY_TRUSTSTORE_SECRET_NAME;
+import static io.quarkus.test.services.quarkus.OpenShiftQuarkusApplicationCertificateConfigurator.TRUSTSTORE_MOUNT_PATH;
 import static java.util.regex.Pattern.quote;
 
 import java.util.Collections;
@@ -87,6 +87,7 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
                     model.getOcpTlsPort());
 
             // if certificate builder is set, there should be secrets set
+            // properties are set to context by OpenShiftQuarkusApplicationCertificateConfigurator
             if (model.getContext().get(CertificateBuilder.INSTANCE_KEY) != null) {
                 String appName = model.getContext().getName();
                 client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),

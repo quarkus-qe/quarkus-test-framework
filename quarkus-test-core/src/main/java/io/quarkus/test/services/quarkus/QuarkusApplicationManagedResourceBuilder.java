@@ -1,6 +1,5 @@
 package io.quarkus.test.services.quarkus;
 
-import static io.quarkus.test.security.certificate.ServingCertificateConfig.SERVING_CERTIFICATE_KEY;
 import static io.quarkus.test.utils.PropertiesUtils.resolveProperty;
 import static io.quarkus.test.utils.TestExecutionProperties.isKubernetesPlatform;
 import static io.quarkus.test.utils.TestExecutionProperties.isOpenshiftPlatform;
@@ -238,20 +237,6 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected void configureLogging() {
         context.getOwner().withProperty("quarkus.log.console.format", "%d{HH:mm:ss,SSS} %s%e%n");
-    }
-
-    protected void configureCertificates() {
-        if (certificateBuilder != null) {
-            getContext().put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
-            certificateBuilder
-                    .certificates()
-                    .forEach(certificate -> certificate
-                            .configProperties()
-                            .forEach((k, v) -> getContext().withTestScopeConfigProperty(k, v)));
-            if (certificateBuilder.servingCertificateConfig() != null) {
-                getContext().put(SERVING_CERTIFICATE_KEY, certificateBuilder.servingCertificateConfig());
-            }
-        }
     }
 
     protected void setCertificateBuilder(CertificateBuilder certificateBuilder) {
