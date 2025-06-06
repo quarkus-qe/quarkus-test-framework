@@ -47,7 +47,7 @@ public interface CertificateRequestCustomizer {
                     certificateOptions.containerMountStrategy(), certificateOptions.createPkcs12TsForPem(),
                     serverTrustStoreLocation, serverKeyStoreLocation, keyLocation, certLocation,
                     certificateOptions.tlsRegistryEnabled(), certificateOptions.tlsConfigName(),
-                    certificateOptions.configureHttpServer());
+                    certificateOptions.configureHttpServer(), certificateOptions.additionalSubjectAlternativeName());
             return certificateOptions;
         }
 
