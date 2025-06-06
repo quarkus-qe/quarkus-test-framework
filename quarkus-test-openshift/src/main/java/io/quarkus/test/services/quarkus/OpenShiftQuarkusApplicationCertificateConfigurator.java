@@ -44,8 +44,9 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
 
             // override keystore and truststore location as they will be mounted elsewhere on OCP
             Map<String, String> configProperties = new HashMap<>(certificate.configProperties());
-            configProperties.put("quarkus.tls.tls-server.key-store.p12.path", KEYSTORE_MOUNT_PATH + keystoreFilename);
-            configProperties.put("quarkus.tls.tls-server.trust-store.p12.path", TRUSTSTORE_MOUNT_PATH + truststoreFilename);
+            overridePaths(configProperties,
+                    KEYSTORE_MOUNT_PATH + keystoreFilename,
+                    TRUSTSTORE_MOUNT_PATH + truststoreFilename);
 
             configProperties.forEach(context::withTestScopeConfigProperty);
 
@@ -53,5 +54,21 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
             context.put(PROPERTY_KEYSTORE_SECRET_NAME, appName + KEYSTORE_SECRET_SUFFIX);
             context.put(PROPERTY_TRUSTSTORE_SECRET_NAME, appName + TRUSTSTORE_SECRET_SUFFIX);
         }
+    }
+
+    /**
+     * Override keystore and truststore path to ones used in OCP.
+     */
+    private static void overridePaths(Map<String, String> configProperties, String keystorePath, String truststorePath) {
+        String keystorePropertyName = configProperties.keySet().stream()
+                .filter(string -> string.contains("key-store") && (string.endsWith("path") || string.endsWith("file")))
+                .findFirst().orElseThrow(() -> new RuntimeException("Cannot find key-store config property"));
+
+        String truststorePropertyName = configProperties.keySet().stream()
+                .filter(string -> string.contains("trust-store") && (string.endsWith("path") || string.endsWith("file")))
+                .findFirst().orElseThrow(() -> new RuntimeException("Cannot find trust-store config property"));
+
+        configProperties.put(keystorePropertyName, keystorePath);
+        configProperties.put(truststorePropertyName, truststorePath);
     }
 }
