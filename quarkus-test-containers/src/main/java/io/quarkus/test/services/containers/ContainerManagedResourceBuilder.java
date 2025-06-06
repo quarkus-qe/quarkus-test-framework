@@ -25,6 +25,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String[] command;
     private List<MountConfig> mounts = new ArrayList<>();
     private Integer port;
+    private Integer ocpTlsPort;
     private boolean portDockerHostToLocalhost;
 
     protected String getImage() {
@@ -43,6 +44,10 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return port;
     }
 
+    protected Integer getOcpTlsPort() {
+        return ocpTlsPort;
+    }
+
     protected ServiceContext getContext() {
         return context;
     }
@@ -50,18 +55,20 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
-        init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(),
+        init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(), metadata.ocpTlsPort(),
                 metadata.portDockerHostToLocalhost());
         this.mounts = Arrays.stream(metadata.mounts()).sequential()
                 .map(mount -> new MountConfig(mount.from(), mount.to()))
                 .toList();
     }
 
-    protected void init(String image, String[] command, String expectedLog, int port, boolean portDockerHostToLocalhost) {
+    protected void init(String image, String[] command, String expectedLog, int port, int ocpTlsPort,
+            boolean portDockerHostToLocalhost) {
         this.image = PropertiesUtils.resolveProperty(image);
         this.command = command;
         this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
         this.port = port;
+        this.ocpTlsPort = ocpTlsPort;
         this.portDockerHostToLocalhost = portDockerHostToLocalhost;
     }
 

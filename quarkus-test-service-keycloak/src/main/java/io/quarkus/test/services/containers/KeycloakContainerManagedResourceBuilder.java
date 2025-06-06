@@ -16,6 +16,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     private ServiceContext context;
     private String image;
     private int restPort;
+    private int ocpTlsPort;
     private String[] command;
     private String expectedLog;
     private long memoryLimitMiB;
@@ -28,6 +29,11 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     @Override
     protected Integer getPort() {
         return restPort;
+    }
+
+    @Override
+    protected Integer getOcpTlsPort() {
+        return ocpTlsPort;
     }
 
     @Override
@@ -54,6 +60,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         KeycloakContainer metadata = (KeycloakContainer) annotation;
         this.image = PropertiesUtils.resolveProperty(metadata.image());
         this.restPort = metadata.port();
+        this.ocpTlsPort = metadata.ocpTlsPort();
         this.expectedLog = PropertiesUtils.resolveProperty(metadata.expectedLog());
         this.command = metadata.command();
         this.memoryLimitMiB = metadata.memoryLimitMiB();
