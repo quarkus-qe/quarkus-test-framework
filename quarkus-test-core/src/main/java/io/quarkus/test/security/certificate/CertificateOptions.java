@@ -7,6 +7,7 @@ public record CertificateOptions(String prefix, io.quarkus.test.services.Certifi
         ClientCertificateRequest[] clientCertificates, Path localTargetDir,
         ContainerMountStrategy containerMountStrategy, boolean createPkcs12TsForPem,
         String serverTrustStoreLocation, String serverKeyStoreLocation, String keyLocation, String certLocation,
-        boolean tlsRegistryEnabled, String tlsConfigName, boolean configureHttpServer) {
+        boolean tlsRegistryEnabled, String tlsConfigName, boolean configureHttpServer,
+        String additionalSubjectAlternativeName) {
 
 }
