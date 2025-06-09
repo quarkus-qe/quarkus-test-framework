@@ -28,4 +28,10 @@ public @interface Container {
     Class<? extends ManagedResourceBuilder> builder() default ContainerManagedResourceBuilder.class;
 
     Mount[] mounts() default {};
+
+    /**
+     * Enable TLS pass-through route on OpenShift. If yes state port to forward TLS traffic to.
+     * If set to 0, TLS will be disabled.
+     */
+    int ocpTlsPort() default 0;
 }

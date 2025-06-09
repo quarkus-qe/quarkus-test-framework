@@ -25,4 +25,10 @@ public @interface KeycloakContainer {
     long memoryLimitMiB() default 1000;
 
     Class<? extends ManagedResourceBuilder> builder() default KeycloakContainerManagedResourceBuilder.class;
+
+    /**
+     * Enable TLS pass-through route on OpenShift. If yes state port to forward TLS traffic to.
+     * If set to 0, TLS will be disabled.
+     */
+    int ocpTlsPort() default 0;
 }
