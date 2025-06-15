@@ -1,0 +1,20 @@
+name: "Release Checker Tests"
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+    paths:
+      - .github/workflows/check-release-version.yml
+      - .github/check-release-version.sh
+      - .github/release-checker-tests/**
+jobs:
+  release-checker-tests:
+    runs-on: ubuntu-latest
+    steps:
+        - uses: actions/checkout@v4
+        - name: Run release check tests
+          run: |
+            cd .github
+            bash release-checker-tests/test-runner.sh
