@@ -15,6 +15,11 @@ public class OpenShiftQuarkusApplicationManagedResourceBinding implements Quarku
         OpenShiftScenario annotation = builder.getContext().getTestContext().getRequiredTestClass()
                 .getAnnotation(OpenShiftScenario.class);
 
+        if (builder.certificateBuilder != null && !builder.certificateBuilder.certificates().isEmpty()) {
+            OpenShiftQuarkusApplicationCertificateConfigurator.configureCertificates(
+                    builder.certificateBuilder, builder.getContext());
+        }
+
         return annotation.deployment().getManagedResource(builder);
     }
 

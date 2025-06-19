@@ -19,6 +19,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
     private static final String USER = "admin";
     private static final String PASSWORD = "admin";
     private static final int HTTP_80 = 80;
+    private static final int HTTPS_443 = 443;
 
     private String realmBasePath = "realms";
     private final String realm;
@@ -46,11 +47,15 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public String getRealmUrl() {
-        var host = getURI(Protocol.HTTP);
+        return getRealmUrl(Protocol.HTTP);
+    }
 
-        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
+    public String getRealmUrl(Protocol protocol) {
+        var host = getURI(protocol);
+
+        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80 (or 443).
         int port = host.getPort();
-        if (port == HTTP_80) {
+        if ((protocol == Protocol.HTTP && port == HTTP_80) || protocol == Protocol.HTTPS && port == HTTPS_443) {
             port = -1;
         }
         try {
@@ -68,8 +73,12 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {
+        return createAuthzClient(clientId, clientSecret, Protocol.HTTP);
+    }
+
+    public AuthzClient createAuthzClient(String clientId, String clientSecret, Protocol protocol) {
         return AuthzClient.create(new Configuration(
-                StringUtils.substringBefore(getRealmUrl(), "/realms"),
+                StringUtils.substringBefore(getRealmUrl(protocol), "/realms"),
                 realm,
                 clientId,
                 Collections.singletonMap("secret", clientSecret),

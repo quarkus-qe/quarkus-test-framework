@@ -1,5 +1,6 @@
 package io.quarkus.test.services.containers;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static java.util.regex.Pattern.quote;
 
 import java.nio.file.Path;
@@ -28,6 +29,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     private static final String DEPLOYMENT = "openshift.yml";
 
     private static final int HTTP_PORT = 80;
+    private static final int HTTPS_PORT = 443;
 
     private final ContainerManagedResourceBuilder model;
     private final OpenShiftClient client;
@@ -54,6 +56,15 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         applyDeployment();
         exposeService();
 
+        // setup TLS route if required
+        if (model.getOcpTlsPort() != 0) {
+            client.exposeDeploymentPort(model.getContext().getName(), "https", model.getOcpTlsPort());
+            client.createService(model.getContext().getName(),
+                    model.getContext().getName() + TLS_ROUTE_SUFFIX, model.getOcpTlsPort());
+            client.createTlsPassthroughRoute(model.getContext().getName() + TLS_ROUTE_SUFFIX,
+                    model.getContext().getName() + TLS_ROUTE_SUFFIX, model.getOcpTlsPort());
+        }
+
         client.scaleTo(model.getContext().getOwner(), 1);
         running = true;
 
@@ -75,6 +86,9 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     public URILike getURI(Protocol protocol) {
         if (useInternalServiceAsUrl()) {
             return createURI("http", getInternalServiceName(), model.getPort());
+        }
+        if (protocol == Protocol.HTTPS) {
+            return client.url(model.getContext().getOwner().getName() + TLS_ROUTE_SUFFIX).withPort(HTTPS_PORT);
         }
         return client.url(model.getContext().getOwner()).withPort(HTTP_PORT);
     }
