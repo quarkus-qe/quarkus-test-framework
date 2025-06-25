@@ -1,6 +1,7 @@
 package io.quarkus.test.security.certificate;
 
 import java.nio.file.Path;
+import java.util.List;
 
 public interface CertificateRequestCustomizer {
 
@@ -20,6 +21,8 @@ public interface CertificateRequestCustomizer {
         CertificateRequest withPemCertLocation(String certLocation);
 
         CertificateRequest withBaseDirForAllCerts(Path localTargetDir);
+
+        CertificateRequest withSubjectAlternativeNames(List<String> subjectAlternativeNames);
     }
 
     final class CertificateRequestImpl implements CertificateRequest {
@@ -32,6 +35,7 @@ public interface CertificateRequestCustomizer {
         private String serverKeyStoreLocation = null;
         private String keyLocation = null;
         private String certLocation = null;
+        private List<String> subjectAlternativeNames = null;
 
         CertificateRequestImpl(CertificateOptions originalOpts) {
             this.certificateOptions = originalOpts;
@@ -47,7 +51,7 @@ public interface CertificateRequestCustomizer {
                     certificateOptions.containerMountStrategy(), certificateOptions.createPkcs12TsForPem(),
                     serverTrustStoreLocation, serverKeyStoreLocation, keyLocation, certLocation,
                     certificateOptions.tlsRegistryEnabled(), certificateOptions.tlsConfigName(),
-                    certificateOptions.configureHttpServer());
+                    certificateOptions.configureHttpServer(), subjectAlternativeNames);
             return certificateOptions;
         }
 
@@ -90,6 +94,12 @@ public interface CertificateRequestCustomizer {
         @Override
         public CertificateRequest withBaseDirForAllCerts(Path localTargetDir) {
             this.localTargetDir = localTargetDir;
+            return this;
+        }
+
+        @Override
+        public CertificateRequest withSubjectAlternativeNames(List<String> subjectAlternativeNames) {
+            this.subjectAlternativeNames = subjectAlternativeNames;
             return this;
         }
 

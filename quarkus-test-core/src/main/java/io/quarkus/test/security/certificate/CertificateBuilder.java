@@ -58,7 +58,8 @@ public interface CertificateBuilder {
                     cert.password(), cert.configureKeystore(), cert.configureTruststore(),
                     cert.configureManagementInterface(),
                     clientCertReqs, createCertsTempDir(cert.prefix()), new DefaultContainerMountStrategy(cert.prefix()),
-                    false, null, null, null, null, cert.useTlsRegistry(), cert.tlsConfigName(), cert.configureHttpServer())));
+                    false, null, null, null, null, cert.useTlsRegistry(), cert.tlsConfigName(), cert.configureHttpServer(),
+                    null)));
         }
         return new CertificateBuilderImpl(List.copyOf(generatedCerts), svcCertConfigBuilder.build());
     }
