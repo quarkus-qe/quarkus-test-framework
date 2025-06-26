@@ -25,6 +25,7 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String[] command;
     private List<MountConfig> mounts = new ArrayList<>();
     private Integer port;
+    private Integer securedPort;
     private boolean portDockerHostToLocalhost;
 
     protected String getImage() {
@@ -43,6 +44,10 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return port;
     }
 
+    protected Integer getSecuredPort() {
+        return securedPort;
+    }
+
     protected ServiceContext getContext() {
         return context;
     }
@@ -50,8 +55,8 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
-        init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(),
-                metadata.portDockerHostToLocalhost());
+        init(metadata.image(), metadata.command(), metadata.expectedLog(),
+                metadata.port(), metadata.securePort(), metadata.portDockerHostToLocalhost());
         this.mounts = Arrays.stream(metadata.mounts()).sequential()
                 .map(mount -> new MountConfig(mount.from(), mount.to()))
                 .toList();
@@ -62,6 +67,17 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.command = command;
         this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
         this.port = port;
+        this.securedPort = -1;
+        this.portDockerHostToLocalhost = portDockerHostToLocalhost;
+    }
+
+    protected void init(String image, String[] command, String expectedLog, int port, int securedPort,
+            boolean portDockerHostToLocalhost) {
+        this.image = PropertiesUtils.resolveProperty(image);
+        this.command = command;
+        this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
+        this.port = port;
+        this.securedPort = securedPort;
         this.portDockerHostToLocalhost = portDockerHostToLocalhost;
     }
 

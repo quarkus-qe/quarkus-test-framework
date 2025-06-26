@@ -114,6 +114,11 @@ public @interface Certificate {
     String tlsConfigName() default DEFAULT_CONFIG;
 
     /**
+     * Set additional custom SAN (Subject Alternative Name).
+     */
+    String additionalSubjectAlternativeName() default "";
+
+    /**
      * Facilitates support for OpenShift serving certificates.
      */
     ServingCertificates[] servingCertificates() default {};

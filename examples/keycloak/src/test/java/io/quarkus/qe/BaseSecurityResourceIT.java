@@ -19,7 +19,7 @@ public abstract class BaseSecurityResourceIT {
     static final String CLIENT_SECRET_DEFAULT = "test-application-client-secret";
     static final String NORMAL_USER = "test-normal-user";
 
-    @KeycloakContainer(command = { "start-dev", "--import-realm" })
+    @KeycloakContainer(runKeycloakInProdMode = true)
     static final KeycloakService keycloak = new KeycloakService(DEFAULT_REALM_FILE, DEFAULT_REALM, DEFAULT_REALM_BASE_PATH);
 
     private AuthzClient authzClient;
