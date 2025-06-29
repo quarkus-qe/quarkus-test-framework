@@ -55,6 +55,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - uses: ./.github/actions/prepare-quarkus-cli
+      - uses: ./.github/actions/use-docker-mirror
       - name: Build in JVM mode
         run: |
           mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
@@ -105,6 +106,7 @@ jobs:
           check-latest: true
           cache: 'maven'
       - uses: ./.github/actions/prepare-quarkus-cli
+      - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
           mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
