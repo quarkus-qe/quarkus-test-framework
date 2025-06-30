@@ -41,4 +41,10 @@ public @interface QuarkusApplication {
      * Enable GRPC configuration. This property will map the gPRC service to a random port.
      */
     boolean grpc() default false;
+
+    /**
+     * This option only works with ssl() == true.
+     * Create TLS pass-through route on OpenShift to this specific port on app.
+     */
+    int ocpTlsPort() default 8443;
 }
