@@ -1,0 +1,20 @@
+name: 'Use Google and AWS Docker mirrors'
+description: 'We hit Docker pull rate limits in past and using mirrors helps'
+runs:
+  using: "composite"
+  steps:
+    - name: Configure Docker mirror
+      shell: bash
+      run: |
+        cat << EOF > ./daemon.json
+        {
+          "registry-mirrors": ["https://mirror.gcr.io", "https://public.ecr.aws/docker"]
+        }
+        EOF
+        sudo bash -c 'cp ./daemon.json /etc/docker/daemon.json'
+        sudo bash -c 'systemctl restart docker'
+        # exit if mirror hasn't been configured
+        docker info > docker-info
+        # print Docker info so that we can visually check it
+        cat docker-info
+        (cat docker-info | grep -q 'mirror.gcr.io') && (cat docker-info | grep -q 'public.ecr.aws') || exit 1

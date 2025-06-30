@@ -24,6 +24,7 @@ jobs:
           cache: 'maven'
         id: install-jdk
       - uses: ./.github/actions/prepare-quarkus-cli
+      - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
           mvn -B --no-transfer-progress -fae clean install -Pframework,examples,coverage -Dvalidate-format -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
@@ -55,6 +56,7 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
+      - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
           if [[ "${{ matrix.quarkus-version }}" != current ]]; then
