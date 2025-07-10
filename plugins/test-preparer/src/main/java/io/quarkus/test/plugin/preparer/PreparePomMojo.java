@@ -25,12 +25,17 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 // if you ever get checkstyle line length warning for the @Mojo, adjust checkstyle-suppressions.xml
 @Mojo(name = "prepare-pom-mojo", defaultPhase = PACKAGE, requiresDependencyCollection = COMPILE, requiresDependencyResolution = COMPILE, threadSafe = true)
 public class PreparePomMojo extends AbstractMojo {
 
+    private static final String MAVEN_COMPILER_PLUGIN = "maven-compiler-plugin";
     private static final boolean SKIP_INTEGRATION_TESTS = Boolean.getBoolean("skipITs");
+    // this needs to be system property, it is too early for FW configuration
+    private static final String PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACT = System
+            .getProperty("ts.compiler-plugin.paths.artifact-id", "hibernate-processor");
     private static final String TARGET_POM = "quarkus-app-pom.xml";
     private static final String MAVEN_COMPILER_RELEASE = "maven.compiler.release";
     private static final String PROPERTY_START = "\\${";
@@ -41,9 +46,9 @@ public class PreparePomMojo extends AbstractMojo {
      * does something unusually as it is unnecessary to propagate them.
      */
     private static final Set<String> IGNORED_PLUGINS = Set.of("maven-surefire-plugin", "maven-failsafe-plugin",
-            "maven-javadoc-plugin", "jacoco-maven-plugin", "maven-compiler-plugin", "maven-source-plugin",
+            "maven-javadoc-plugin", "jacoco-maven-plugin", "maven-source-plugin",
             "formatter-maven-plugin", "impsort-maven-plugin", "maven-checkstyle-plugin", "checkstyle",
-            "quarkus-maven-plugin");
+            "quarkus-maven-plugin", MAVEN_COMPILER_PLUGIN);
     private static final String IO_QUARKUS = "io.quarkus";
     private static final String IO_QUARKUS_QE = "io.quarkus.qe";
     private static final String FAILSAFE_PLUGIN_VERSION = "failsafe-plugin.version";
@@ -124,6 +129,9 @@ public class PreparePomMojo extends AbstractMojo {
         if (newPomModel.getBuild() == null) {
             newPomModel.setBuild(new Build());
         }
+
+        rawCurrentProjectModel.getBuild().getPlugins().forEach(p -> customizeMavenCompilerPlugin(p, newPomModel));
+
         rawCurrentProjectModel.getBuild().getPlugins().stream()
                 .filter(PreparePomMojo::isNotIgnoredPlugin)
                 .map(p -> project.getBuild().getPlugins().stream()
@@ -229,6 +237,30 @@ public class PreparePomMojo extends AbstractMojo {
 
     private static boolean isNotIgnoredPlugin(Plugin plugin) {
         return !IGNORED_PLUGINS.contains(plugin.getArtifactId());
+    }
+
+    private static void customizeMavenCompilerPlugin(Plugin plugin, Model newPomModel) {
+        if (MAVEN_COMPILER_PLUGIN.equals(plugin.getArtifactId())) {
+            var config = (Xpp3Dom) plugin.getConfiguration();
+            if (config != null) {
+                var annotationProcessPaths = config.getChild("annotationProcessorPaths");
+                if (annotationProcessPaths != null) {
+                    var path = annotationProcessPaths.getChild("path");
+                    if (path != null) {
+                        var artifactId = path.getChild("artifactId");
+                        boolean propagateConfig = PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACT
+                                .equalsIgnoreCase(artifactId.getValue());
+                        if (propagateConfig) {
+                            var mavenCompilerPlugin = newPomModel.getBuild().getPlugins().stream()
+                                    .filter(p -> MAVEN_COMPILER_PLUGIN.equalsIgnoreCase(p.getArtifactId()))
+                                    .findFirst().orElseThrow(() -> new IllegalStateException(
+                                            MAVEN_COMPILER_PLUGIN + " must be present in new POM model"));
+                            mavenCompilerPlugin.setConfiguration(config);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static void addCurrentProjectRepositories(Model newPomModel, Model rawCurrentProjectModel) {
