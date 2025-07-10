@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.ServiceLoader;
 import java.util.ServiceLoader.Provider;
@@ -26,6 +28,8 @@ import org.junit.jupiter.api.extension.TestWatcher;
 import io.quarkus.test.bootstrap.TestContext.TestContextImpl;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.DevModeQuarkusApplication;
+import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.ProdQuarkusApplicationManagedResourceBuilder;
 import io.quarkus.test.utils.KnownExceptionChecker;
 import io.quarkus.test.utils.ReflectionUtils;
@@ -60,14 +64,21 @@ public class QuarkusScenarioBootstrap
         extensions = initExtensions();
         extensions.forEach(ext -> ext.beforeAll(scenario));
 
+        // Fields with injected services using @LookupService
+        Map<String, Field> injectedAppNameToField = new HashMap<>();
+
         // Init services from test fields
-        ReflectionUtils.findAllFields(context.getRequiredTestClass()).forEach(field -> initResourceFromField(context, field));
+        ReflectionUtils.findAllFields(context.getRequiredTestClass())
+                .forEach(field -> initResourceFromField(context, field, injectedAppNameToField));
 
         // If no service was found, create one by default
         if (services.isEmpty() && CREATE_SERVICE_BY_DEFAULT.getAsBoolean()) {
             // Add One Quarkus Application
             services.add(createDefaultService());
         }
+
+        // Inject looked-up Quarkus applications
+        injectedAppNameToField.forEach((name, field) -> injectService(field, name, services));
 
         // Launch services
         services.forEach(this::launchService);
@@ -195,9 +206,9 @@ public class QuarkusScenarioBootstrap
         extensions.forEach(ext -> ext.onError(scenario, throwable));
     }
 
-    private void initResourceFromField(TestContext context, Field field) {
+    private void initResourceFromField(TestContext context, Field field, Map<String, Field> injectedAppNameToField) {
         if (field.isAnnotationPresent(LookupService.class)) {
-            initLookupService(context, field);
+            initLookupService(context, field, injectedAppNameToField);
         } else if (Service.class.isAssignableFrom(field.getType())) {
             initService(field);
         } else if (field.isAnnotationPresent(Inject.class)) {
@@ -250,7 +261,7 @@ public class QuarkusScenarioBootstrap
         return null;
     }
 
-    private void initLookupService(TestContext context, Field fieldToInject) {
+    private void initLookupService(TestContext context, Field fieldToInject, Map<String, Field> injectedAppNameToField) {
         Optional<Field> fieldService = ReflectionUtils.findAllFields(context.getRequiredTestClass())
                 .stream()
                 .filter(field -> field.getName().equals(fieldToInject.getName())
@@ -260,8 +271,21 @@ public class QuarkusScenarioBootstrap
             fail("Could not lookup service with name " + fieldToInject.getName());
         }
 
-        Service service = initService(fieldService.get());
-        ReflectionUtils.setStaticFieldValue(fieldToInject, service);
+        Field injectedField = fieldService.get();
+        if (injectedField.isAnnotationPresent(QuarkusApplication.class)
+                || injectedField.isAnnotationPresent(DevModeQuarkusApplication.class)) {
+            // postpone Quarkus application injection until (possible) containers are started
+            injectedAppNameToField.put(fieldToInject.getName(), fieldToInject);
+        } else {
+            // this can be for example database or Keycloak
+            Service service = initService(injectedField);
+            ReflectionUtils.setStaticFieldValue(fieldToInject, service);
+        }
+    }
+
+    private static void injectService(Field injectionPoint, String serviceName, List<Service> services) {
+        Service service = services.stream().filter(s -> serviceName.equals(s.getName())).findFirst().orElseThrow();
+        ReflectionUtils.setStaticFieldValue(injectionPoint, service);
     }
 
     private Object getParameter(String name, Class<?> clazz) {
