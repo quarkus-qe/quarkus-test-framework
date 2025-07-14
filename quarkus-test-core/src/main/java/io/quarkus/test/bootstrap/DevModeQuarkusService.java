@@ -51,7 +51,7 @@ public class DevModeQuarkusService extends RestService {
 
             // go to 'continuous-testing' page and click on 'Start' button which enables continuous testing
             try (Playwright playwright = Playwright.create()) {
-                try (Browser browser = playwright.chromium().launch()) {
+                try (Browser browser = playwright.firefox().launch()) {
                     Page page = browser.newContext().newPage();
                     page.navigate(getContinuousTestingPath());
                     var locatorOptions = new Page.LocatorOptions();
