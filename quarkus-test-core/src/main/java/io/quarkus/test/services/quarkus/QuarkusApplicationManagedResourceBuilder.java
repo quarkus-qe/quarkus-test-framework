@@ -27,7 +27,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
-import io.quarkus.runtime.LaunchMode;
 import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.security.certificate.CertificateBuilder;
@@ -322,8 +321,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             // this must always be set as Quarkus sets and config expansions would fail
             buildSystemProps.put("platform.quarkus.native.builder-image", "<<ignored>>");
 
-            var config = buildTimeConfigReader.initConfiguration(LaunchMode.NORMAL, buildSystemProps, new Properties(),
-                    Map.of());
+            var config = buildTimeConfigReader.initConfiguration(buildSystemProps, new Properties(), Map.of());
             var readResult = buildTimeConfigReader.readConfiguration(config);
             var buildTimeConfigKeys = new HashSet<String>();
             buildTimeConfigKeys.addAll(readResult.getAllBuildTimeValues().keySet());
