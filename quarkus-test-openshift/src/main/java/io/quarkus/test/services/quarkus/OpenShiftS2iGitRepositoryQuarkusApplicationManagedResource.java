@@ -146,7 +146,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
         String replaceJavaCaCertsAsString = REPLACE_JAVA_CA_CERTS.get(model.getContext());
         if (replaceJavaCaCertsAsString == null || replaceJavaCaCertsAsString.isEmpty()) {
             // property not set; by default recognize own repository so that we don't need to set it everywhere
-            return remoteRepo.contains(".quarkus-qe.");
+            return remoteRepo.contains("eng.redhat.com") || remoteRepo.contains("engineering.redhat.com");
         }
         return Boolean.parseBoolean(replaceJavaCaCertsAsString);
     }
