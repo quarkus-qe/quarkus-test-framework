@@ -18,6 +18,7 @@ import org.apache.maven.model.Build;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginExecution;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Writer;
 import org.apache.maven.plugin.AbstractMojo;
@@ -34,8 +35,8 @@ public class PreparePomMojo extends AbstractMojo {
     private static final String MAVEN_COMPILER_PLUGIN = "maven-compiler-plugin";
     private static final boolean SKIP_INTEGRATION_TESTS = Boolean.getBoolean("skipITs");
     // this needs to be system property, it is too early for FW configuration
-    private static final String PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACT = System
-            .getProperty("ts.compiler-plugin.paths.artifact-id", "hibernate-processor");
+    private static final Set<String> PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACTS = Set.of("hibernate-processor",
+            "hibernate-search-processor");
     private static final String TARGET_POM = "quarkus-app-pom.xml";
     private static final String MAVEN_COMPILER_RELEASE = "maven.compiler.release";
     private static final String PROPERTY_START = "\\${";
@@ -241,26 +242,36 @@ public class PreparePomMojo extends AbstractMojo {
 
     private static void customizeMavenCompilerPlugin(Plugin plugin, Model newPomModel) {
         if (MAVEN_COMPILER_PLUGIN.equals(plugin.getArtifactId())) {
-            var config = (Xpp3Dom) plugin.getConfiguration();
-            if (config != null) {
-                var annotationProcessPaths = config.getChild("annotationProcessorPaths");
-                if (annotationProcessPaths != null) {
-                    var path = annotationProcessPaths.getChild("path");
-                    if (path != null) {
-                        var artifactId = path.getChild("artifactId");
-                        boolean propagateConfig = PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACT
-                                .equalsIgnoreCase(artifactId.getValue());
-                        if (propagateConfig) {
-                            var mavenCompilerPlugin = newPomModel.getBuild().getPlugins().stream()
-                                    .filter(p -> MAVEN_COMPILER_PLUGIN.equalsIgnoreCase(p.getArtifactId()))
-                                    .findFirst().orElseThrow(() -> new IllegalStateException(
-                                            MAVEN_COMPILER_PLUGIN + " must be present in new POM model"));
-                            mavenCompilerPlugin.setConfiguration(config);
-                        }
+            boolean propagated = propagateAnnotationProcessors(newPomModel, plugin.getConfiguration());
+            if (!propagated) {
+                for (PluginExecution execution : plugin.getExecutions()) {
+                    propagated = propagateAnnotationProcessors(newPomModel, execution.getConfiguration());
+                    if (propagated) {
+                        break;
                     }
                 }
             }
         }
+    }
+
+    private static boolean propagateAnnotationProcessors(Model newPomModel, Object configObject) {
+        if (configObject instanceof Xpp3Dom config) {
+            var annotationProcessPaths = config.getChild("annotationProcessorPaths");
+            if (annotationProcessPaths != null) {
+                for (Xpp3Dom path : annotationProcessPaths.getChildren()) {
+                    var artifactId = path.getChild("artifactId");
+                    if (artifactId != null && PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACTS.contains(artifactId.getValue())) {
+                        var mavenCompilerPlugin = newPomModel.getBuild().getPlugins().stream()
+                                .filter(p -> MAVEN_COMPILER_PLUGIN.equalsIgnoreCase(p.getArtifactId()))
+                                .findFirst().orElseThrow(() -> new IllegalStateException(
+                                        MAVEN_COMPILER_PLUGIN + " must be present in new POM model"));
+                        mavenCompilerPlugin.setConfiguration(config);
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static void addCurrentProjectRepositories(Model newPomModel, Model rawCurrentProjectModel) {
