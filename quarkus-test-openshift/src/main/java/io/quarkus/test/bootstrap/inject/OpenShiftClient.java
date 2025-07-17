@@ -359,7 +359,7 @@ public final class OpenShiftClient {
                 new ContainerPort(port, "", 0, portName, "TCP"));
 
         Log.info("Exposing port %d with name %s on deployment %s", port, portName, deploymentName);
-        client.apps().deployments().withName(deploymentName).patch(deployment);
+        client.apps().deployments().resource(deployment).unlock().patch();
     }
 
     /**
@@ -834,7 +834,7 @@ public final class OpenShiftClient {
 
         Log.info("Mounting secret %s to mount path %s on deployment %s", secretName, mountPath, deploymentName);
 
-        client.apps().deployments().withName(deploymentName).patch(deployment);
+        client.apps().deployments().resource(deployment).unlock().patch();
     }
 
     public boolean isAnyServicePodReady(String serviceName) {
