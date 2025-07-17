@@ -36,8 +36,10 @@ import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
 import io.quarkus.test.utils.PropertiesUtils;
+import io.quarkus.test.utils.ReflectionUtils;
 import io.quarkus.test.utils.TestExecutionProperties;
 import io.smallrye.config.SecretKeys;
+import io.smallrye.config.SmallRyeConfig;
 
 public abstract class QuarkusApplicationManagedResourceBuilder implements ManagedResourceBuilder {
 
@@ -322,8 +324,23 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
             // this must always be set as Quarkus sets and config expansions would fail
             buildSystemProps.put("platform.quarkus.native.builder-image", "<<ignored>>");
 
-            var config = buildTimeConfigReader.initConfiguration(LaunchMode.NORMAL, buildSystemProps, new Properties(),
-                    Map.of());
+            SmallRyeConfig aConfig;
+            try {
+                // current signature
+                aConfig = (SmallRyeConfig) ReflectionUtils.invokeMethod(buildTimeConfigReader, "initConfiguration",
+                        buildSystemProps, new Properties(), Map.of());
+            } catch (Throwable t) {
+                try {
+                    // signature before 3.26
+                    aConfig = (SmallRyeConfig) ReflectionUtils.invokeMethod(buildTimeConfigReader, "initConfiguration",
+                            LaunchMode.NORMAL, buildSystemProps, new Properties(), Map.of());
+                } catch (Throwable t2) {
+                    throw new IllegalStateException(BuildTimeConfigurationReader.class.getName()
+                            + "#initConfiguration method signature has changed, please adapt this implementation");
+                }
+            }
+            var config = aConfig;
+
             var readResult = buildTimeConfigReader.readConfiguration(config);
             var buildTimeConfigKeys = new HashSet<String>();
             buildTimeConfigKeys.addAll(readResult.getAllBuildTimeValues().keySet());
