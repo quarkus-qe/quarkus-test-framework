@@ -5,12 +5,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-import org.junit.jupiter.api.extension.ExtensionContext;
-
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.utils.LogsVerifier;
 
-public interface Service extends ExtensionContext.Store.CloseableResource {
+public interface Service extends AutoCloseable {
 
     String getScenarioId();
 
