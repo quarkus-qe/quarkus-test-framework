@@ -15,6 +15,10 @@ public @interface Container {
 
     int port();
 
+    int tlsPort() default -1;
+
+    boolean ssl() default false;
+
     String expectedLog() default "";
 
     String[] command() default {};
