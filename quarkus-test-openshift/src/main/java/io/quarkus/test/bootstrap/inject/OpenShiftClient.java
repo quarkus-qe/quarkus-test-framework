@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -121,6 +122,8 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
+    private static URL openShiftUrl;
+
     private final String currentNamespace;
     private final OpenShiftClientImpl client;
     private final KnativeClient kn;
@@ -140,6 +143,7 @@ public final class OpenShiftClient {
         }
         isClientReady = true;
         kn = client.adapt(KnativeClient.class);
+        openShiftUrl = client.getOpenshiftUrl();
     }
 
     private static OpenShiftClientImpl createClient(OpenShiftConfig config) {
@@ -1389,5 +1393,9 @@ public final class OpenShiftClient {
 
     public io.fabric8.openshift.client.OpenShiftClient getFabric8Client() {
         return client;
+    }
+
+    public static URL getOpenShiftUrl() {
+        return openShiftUrl;
     }
 }

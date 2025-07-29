@@ -89,6 +89,13 @@ public interface Certificate {
                 null, false, null, false, null));
     }
 
+    static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password, Path targetDir,
+            ContainerMountStrategy containerMountStrategy, List<String> additionalSubjectAlternativeName) {
+        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
+                new ClientCertificateRequest[0], targetDir, containerMountStrategy, false, null, null, null, null, false,
+                null, false, additionalSubjectAlternativeName));
+    }
+
     static Certificate.PemCertificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
             boolean tlsRegistryEnabled, String tlsConfigName, ClientCertificateRequest[] clientCertRequests) {
         return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
@@ -226,7 +233,9 @@ public interface Certificate {
                 }
 
                 // mount truststore to the container
-                props.put(getRandomPropKey("truststore"), toSecretProperty(containerMountPath));
+                if (containerMountPath != null) {
+                    props.put(getRandomPropKey("truststore"), toSecretProperty(containerMountPath));
+                }
             }
             configureServerTrustStoreProps(o, props, serverTrustStoreLocation);
         }
@@ -238,7 +247,9 @@ public interface Certificate {
                 }
 
                 // mount keystore to the container
-                props.put(getRandomPropKey("keystore"), toSecretProperty(containerMountPath));
+                if (containerMountPath != null) {
+                    props.put(getRandomPropKey("keystore"), toSecretProperty(containerMountPath));
+                }
             }
             configureServerKeyStoreProps(o, props, serverKeyStoreLocation);
         }
