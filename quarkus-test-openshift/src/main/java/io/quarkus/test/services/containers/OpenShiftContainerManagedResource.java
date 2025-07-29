@@ -98,6 +98,13 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     protected void exposeService() {
         if (!useInternalServiceAsUrl()) {
             client.expose(model.getContext().getOwner(), model.getPort());
+            if (model.isSslEnabled()) {
+                client.exposeDeploymentPort(model.getContext().getName(), "https", model.getTlsPort());
+                client.createService(model.getContext().getName(),
+                        model.getContext().getName() + "-secured", model.getTlsPort());
+                client.createTlsPassthroughRoute(model.getContext().getOwner().getName() + "-secured",
+                        model.getContext().getOwner().getName() + "-secured", model.getTlsPort());
+            }
         }
     }
 
@@ -154,7 +161,7 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
         client.apply(FileUtils.copyContentTo(yaml, templateFile));
     }
 
-    private boolean useInternalServiceAsUrl() {
+    protected boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
                 .equals(getConfiguration()
                         .getOrDefault(Configuration.Property.OPENSHIFT_USE_INTERNAL_SERVICE_AS_URL_PROPERTY,
