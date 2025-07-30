@@ -2,7 +2,6 @@ package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.security.certificate.ServingCertificateConfig.SERVING_CERTIFICATE_KEY;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -35,38 +34,39 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
         }
 
         if (!certificateBuilder.certificates().isEmpty()) {
-            if (certificateBuilder.certificates().size() > 1) {
-                fail("Apps on OpensShift currently support maximum of 1 certificate");
-            }
             OpenShiftClient client = context.get(OpenShiftExtensionBootstrap.CLIENT);
             String appName = context.getName();
 
             context.put(CertificateBuilder.INSTANCE_KEY, certificateBuilder);
 
-            // inject OCP SANs into the certificate
-            // it expects to only have one certificate
-            certificateBuilder.regenerateCertificate(certificateBuilder.certificates().get(0).prefix(),
-                    certReq -> certReq.withSubjectAlternativeNames(generateSubjectAlternateNames(client, appName)));
+            // inject OCP SANs into the certificates
+            certificateBuilder.certificates().forEach(
+                    certificate -> certificateBuilder.regenerateCertificate(certificate.prefix(),
+                            certReq -> certReq.withSubjectAlternativeNames(generateSubjectAlternateNames(client, appName))));
 
             // create secrets on OCP
-            Certificate certificate = certificateBuilder.certificates().get(0);
-            client.doCreateSecretFromFile(appName + KEYSTORE_SECRET_SUFFIX, certificate.keystorePath());
-            client.doCreateSecretFromFile(appName + TRUSTSTORE_SECRET_SUFFIX, certificate.truststorePath());
-
-            String keystoreFilename = FilenameUtils.getName(certificate.keystorePath());
-            String truststoreFilename = FilenameUtils.getName(certificate.truststorePath());
-
             // override keystore and truststore location as they will be mounted elsewhere on OCP
+            // taking paths from first certificate. Usually there is only one certificate,
+            // and if there are more, mounting should be handled otherwise anyway.
+            Certificate certificate = certificateBuilder.certificates().get(0);
             Map<String, String> configProperties = new HashMap<>(certificate.configProperties());
-            overridePaths(configProperties,
-                    KEYSTORE_MOUNT_PATH + keystoreFilename,
-                    TRUSTSTORE_MOUNT_PATH + truststoreFilename);
+
+            if (certificate.keystorePath() != null) {
+                client.doCreateSecretFromFile(appName + KEYSTORE_SECRET_SUFFIX, certificate.keystorePath());
+                String keystoreFilename = FilenameUtils.getName(certificate.keystorePath());
+                overrideKeystorePaths(configProperties, KEYSTORE_MOUNT_PATH + keystoreFilename);
+                // store secret names for future mounting
+                context.put(PROPERTY_KEYSTORE_SECRET_NAME, appName + KEYSTORE_SECRET_SUFFIX);
+            }
+            if (certificate.truststorePath() != null) {
+                client.doCreateSecretFromFile(appName + TRUSTSTORE_SECRET_SUFFIX, certificate.truststorePath());
+                String truststoreFilename = FilenameUtils.getName(certificate.truststorePath());
+                overrideTruststorePaths(configProperties, TRUSTSTORE_MOUNT_PATH + truststoreFilename);
+                // store secret names for future mounting
+                context.put(PROPERTY_TRUSTSTORE_SECRET_NAME, appName + TRUSTSTORE_SECRET_SUFFIX);
+            }
 
             configProperties.forEach(context::withTestScopeConfigProperty);
-
-            // store secret names for future mounting
-            context.put(PROPERTY_KEYSTORE_SECRET_NAME, appName + KEYSTORE_SECRET_SUFFIX);
-            context.put(PROPERTY_TRUSTSTORE_SECRET_NAME, appName + TRUSTSTORE_SECRET_SUFFIX);
         }
         if (certificateBuilder.servingCertificateConfig() != null) {
             context.put(SERVING_CERTIFICATE_KEY, certificateBuilder.servingCertificateConfig());
@@ -76,7 +76,7 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
     /**
      * Override keystore and truststore path to ones used in OCP.
      */
-    private static void overridePaths(Map<String, String> configProperties, String keystorePath, String truststorePath) {
+    private static void overrideKeystorePaths(Map<String, String> configProperties, String keystorePath) {
         // it is not necessary to have keystore and/or truststore configured
         // but there can also be multiple properties using keystore or truststore (like HTTP and Management ports)
         // replace paths only for those, that are configured
@@ -84,7 +84,12 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
                 .filter(string -> string.contains("key-store") && (string.endsWith("path") || string.endsWith("file")))
                 .collect(Collectors.toSet());
         keystorePropertyNames.forEach(s -> configProperties.put(s, keystorePath));
+    }
 
+    private static void overrideTruststorePaths(Map<String, String> configProperties, String truststorePath) {
+        // it is not necessary to have keystore and/or truststore configured
+        // but there can also be multiple properties using keystore or truststore (like HTTP and Management ports)
+        // replace paths only for those, that are configured
         Set<String> truststorePropertyNames = configProperties.keySet().stream()
                 .filter(string -> string.contains("trust-store") && (string.endsWith("path") || string.endsWith("file")))
                 .collect(Collectors.toSet());
