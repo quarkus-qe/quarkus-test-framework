@@ -92,10 +92,14 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
         CertificateBuilder certificateBuilder = model.getContext().get(CertificateBuilder.INSTANCE_KEY);
         if (certificateBuilder != null && !certificateBuilder.certificates().isEmpty()) {
             String appName = model.getContext().getName();
-            client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),
-                    KEYSTORE_MOUNT_PATH);
-            client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME),
-                    TRUSTSTORE_MOUNT_PATH);
+            if (model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME) != null) {
+                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),
+                        KEYSTORE_MOUNT_PATH);
+            }
+            if (model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME) != null) {
+                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME),
+                        TRUSTSTORE_MOUNT_PATH);
+            }
         }
     }
 
