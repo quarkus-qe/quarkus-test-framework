@@ -8,7 +8,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.apache.commons.io.FilenameUtils;
 
@@ -77,16 +78,17 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
      */
     private static void overridePaths(Map<String, String> configProperties, String keystorePath, String truststorePath) {
         // it is not necessary to have keystore and/or truststore configured
+        // but there can also be multiple properties using keystore or truststore (like HTTP and Management ports)
         // replace paths only for those, that are configured
-        Optional<String> keystorePropertyName = configProperties.keySet().stream()
+        Set<String> keystorePropertyNames = configProperties.keySet().stream()
                 .filter(string -> string.contains("key-store") && (string.endsWith("path") || string.endsWith("file")))
-                .findFirst();
-        keystorePropertyName.ifPresent(s -> configProperties.put(s, keystorePath));
+                .collect(Collectors.toSet());
+        keystorePropertyNames.forEach(s -> configProperties.put(s, keystorePath));
 
-        Optional<String> truststorePropertyName = configProperties.keySet().stream()
+        Set<String> truststorePropertyNames = configProperties.keySet().stream()
                 .filter(string -> string.contains("trust-store") && (string.endsWith("path") || string.endsWith("file")))
-                .findFirst();
-        truststorePropertyName.ifPresent(s -> configProperties.put(s, truststorePath));
+                .collect(Collectors.toSet());
+        truststorePropertyNames.forEach(s -> configProperties.put(s, truststorePath));
     }
 
     /**

@@ -85,16 +85,17 @@ public abstract class TemplateOpenShiftQuarkusApplicationManagedResource<T exten
             client.createTlsPassthroughRoute(model.getContext().getName() + TLS_ROUTE_SUFFIX,
                     model.getContext().getName() + TLS_ROUTE_SUFFIX,
                     model.getOcpTlsPort());
+        }
 
-            // if certificate builder is set, there should be secrets set
-            // properties are set to context by OpenShiftQuarkusApplicationCertificateConfigurator
-            if (model.getContext().get(CertificateBuilder.INSTANCE_KEY) != null) {
-                String appName = model.getContext().getName();
-                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),
-                        KEYSTORE_MOUNT_PATH);
-                client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME),
-                        TRUSTSTORE_MOUNT_PATH);
-            }
+        // if certificate builder is set, there should be secrets set
+        // properties are set to context by OpenShiftQuarkusApplicationCertificateConfigurator
+        CertificateBuilder certificateBuilder = model.getContext().get(CertificateBuilder.INSTANCE_KEY);
+        if (certificateBuilder != null && !certificateBuilder.certificates().isEmpty()) {
+            String appName = model.getContext().getName();
+            client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_KEYSTORE_SECRET_NAME),
+                    KEYSTORE_MOUNT_PATH);
+            client.mountSecretToDeployment(appName, model.getContext().get(PROPERTY_TRUSTSTORE_SECRET_NAME),
+                    TRUSTSTORE_MOUNT_PATH);
         }
     }
 
