@@ -18,11 +18,17 @@ public @interface KeycloakContainer {
 
     int port() default 8080;
 
+    int tlsPort() default 8443;
+
     String expectedLog() default "started in";
 
-    String[] command() default {};
+    String[] command() default { "start", "--import-realm", "--hostname-strict=false" };
 
     long memoryLimitMiB() default 1000;
+
+    boolean runKeycloakInProdMode() default false;
+
+    Certificate.Format certificateFormat() default Certificate.Format.PKCS12;
 
     Class<? extends ManagedResourceBuilder> builder() default KeycloakContainerManagedResourceBuilder.class;
 }

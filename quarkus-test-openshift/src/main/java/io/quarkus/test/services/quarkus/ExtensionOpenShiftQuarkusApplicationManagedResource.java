@@ -226,6 +226,13 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             property = QUARKUS_KNATIVE_ENV_VARS;
         }
         for (Entry<String, String> envVar : envVars.entrySet()) {
+            if (envVar.getKey().matches("quarkus\\.tls.*trust-store.*path")
+                    || envVar.getKey().matches("quarkus\\.tls.*trust-store.*certs")) {
+                String includedResources = envVars.getOrDefault("quarkus.native.resources.includes", "");
+                includedResources = includedResources.isEmpty() ? envVar.getValue()
+                        : includedResources + "," + envVar.getValue();
+                args.add(withProperty("quarkus.native.resources.includes", includedResources));
+            }
             if (requiredByExtension(envVar.getKey())) {
                 args.add(withProperty(envVar.getKey(), envVar.getValue()));
             } else {

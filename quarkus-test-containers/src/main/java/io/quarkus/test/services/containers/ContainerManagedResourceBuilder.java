@@ -25,6 +25,8 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     private String[] command;
     private List<MountConfig> mounts = new ArrayList<>();
     private Integer port;
+    private Integer tlsPort;
+    private boolean sslEnabled = false;
     private boolean portDockerHostToLocalhost;
 
     protected String getImage() {
@@ -43,6 +45,14 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         return port;
     }
 
+    protected Integer getTlsPort() {
+        return tlsPort;
+    }
+
+    protected boolean isSslEnabled() {
+        return sslEnabled;
+    }
+
     protected ServiceContext getContext() {
         return context;
     }
@@ -50,8 +60,8 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
     @Override
     public void init(Annotation annotation) {
         Container metadata = (Container) annotation;
-        init(metadata.image(), metadata.command(), metadata.expectedLog(), metadata.port(),
-                metadata.portDockerHostToLocalhost());
+        init(metadata.image(), metadata.command(), metadata.expectedLog(),
+                metadata.port(), metadata.tlsPort(), metadata.ssl(), metadata.portDockerHostToLocalhost());
         this.mounts = Arrays.stream(metadata.mounts()).sequential()
                 .map(mount -> new MountConfig(mount.from(), mount.to()))
                 .toList();
@@ -62,6 +72,17 @@ public class ContainerManagedResourceBuilder implements ManagedResourceBuilder {
         this.command = command;
         this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
         this.port = port;
+        this.portDockerHostToLocalhost = portDockerHostToLocalhost;
+    }
+
+    protected void init(String image, String[] command, String expectedLog, int port, int tlsPort,
+            boolean sslEnabled, boolean portDockerHostToLocalhost) {
+        this.image = PropertiesUtils.resolveProperty(image);
+        this.command = command;
+        this.expectedLog = PropertiesUtils.resolveProperty(expectedLog);
+        this.port = port;
+        this.tlsPort = tlsPort;
+        this.sslEnabled = sslEnabled;
         this.portDockerHostToLocalhost = portDockerHostToLocalhost;
     }
 

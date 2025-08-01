@@ -4,13 +4,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
 
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.configuration.Configuration;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.URILike;
 import io.quarkus.test.utils.DockerUtils;
 
 public class KeycloakGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
 
     private final KeycloakContainerManagedResourceBuilder model;
+    private GenericContainer<?> container;
 
     protected KeycloakGenericDockerContainerManagedResource(KeycloakContainerManagedResourceBuilder model) {
         super(model);
@@ -19,8 +22,17 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
     }
 
     @Override
+    public URILike getURI(Protocol protocol) {
+        if (protocol == Protocol.HTTP) {
+            return createURI(protocol.getValue(), container.getHost(), getMappedPort(model.getPort()));
+        } else {
+            return createURI(protocol.getValue(), container.getHost(), getMappedPort(model.getTlsPort()));
+        }
+    }
+
+    @Override
     protected GenericContainer<?> initContainer() {
-        GenericContainer<?> container = new GenericContainer<>(model.getImage());
+        container = new GenericContainer<>(model.getImage());
 
         if (StringUtils.isNotBlank(model.getExpectedLog())) {
             container.waitingFor(new LogMessageWaitStrategy().withRegEx(".*" + model.getExpectedLog() + ".*\\s"));
@@ -50,6 +62,9 @@ public class KeycloakGenericDockerContainerManagedResource extends GenericDocker
         }
 
         container.withExposedPorts(model.getPort());
+        if (model.isSslEnabled()) {
+            container.withExposedPorts(model.getTlsPort());
+        }
 
         return container;
     }
