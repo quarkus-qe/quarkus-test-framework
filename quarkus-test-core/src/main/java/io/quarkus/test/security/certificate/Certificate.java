@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.condition.OS;
@@ -42,6 +43,13 @@ import io.smallrye.certs.PemCertificateFiles;
 import io.smallrye.certs.Pkcs12CertificateFiles;
 
 public interface Certificate {
+
+    String LOCAL_FS_CA_CERT_PATH = "local-filesystem-ca-cert-path";
+    String LOCAL_FS_TRUST_STORE_PATH = "local-filesystem-ts-path";
+    String KEYSTORE = "keystore";
+    String TRUSTSTORE = "truststore";
+    String TRUST_STORE = "trust-store";
+    String KEY_STORE = "key-store";
 
     String prefix();
 
@@ -58,6 +66,34 @@ public interface Certificate {
     String truststorePath();
 
     Map<String, String> configProperties();
+
+    default Map<String, String> getKeyStoreConfigProperties() {
+        return filterPropertiesByKey(containsString(KEYSTORE, KEY_STORE));
+    }
+
+    default Map<String, String> getTrustStoreConfigProperties() {
+        return filterPropertiesByKey(containsString(TRUSTSTORE, TRUST_STORE));
+    }
+
+    default Map<String, String> getPemMountProperties() {
+        return filterPropertiesByKey(e -> e.getKey().startsWith("crt-") || e.getKey().startsWith("key-"));
+    }
+
+    private Map<String, String> filterPropertiesByKey(Predicate<Map.Entry<String, String>> predicate) {
+        return configProperties().entrySet().stream().filter(predicate)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static Predicate<Map.Entry<String, String>> containsString(String... properties) {
+        return entry -> {
+            for (String property : properties) {
+                if (entry.getKey().contains(property)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+    }
 
     ClientCertificate getClientCertificateByCn(String cn);
 
@@ -91,9 +127,9 @@ public interface Certificate {
 
     static Certificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password, Path targetDir,
             ContainerMountStrategy containerMountStrategy, List<String> additionalSubjectAlternativeName) {
-        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, false, false,
-                new ClientCertificateRequest[0], targetDir, containerMountStrategy, false, null, null, null, null, false,
-                null, false, additionalSubjectAlternativeName));
+        return ofInterchangeable(new CertificateOptions(prefix, format, password, false, true, false,
+                new ClientCertificateRequest[0], targetDir, containerMountStrategy, false, null, null, null, null, true,
+                prefix, false, additionalSubjectAlternativeName));
     }
 
     static Certificate.PemCertificate of(String prefix, io.quarkus.test.services.Certificate.Format format, String password,
@@ -226,15 +262,17 @@ public interface Certificate {
 
         // 3. PREPARE QUARKUS APPLICATION CONFIGURATION PROPERTIES
         if (serverTrustStoreLocation != null) {
+            props.put(o.format() == PEM ? LOCAL_FS_CA_CERT_PATH : LOCAL_FS_TRUST_STORE_PATH, serverTrustStoreLocation);
             if (o.containerMountStrategy().mountToContainer()) {
                 var containerMountPath = o.containerMountStrategy().truststorePath(serverTrustStoreLocation);
-                if (o.containerMountStrategy().containerShareMountPathWithApp()) {
+                if (o.containerMountStrategy().containerShareMountTrustStorePathWithApp()) {
                     serverTrustStoreLocation = containerMountPath;
                 }
 
                 // mount truststore to the container
                 if (containerMountPath != null) {
-                    props.put(getRandomPropKey("truststore"), toSecretProperty(containerMountPath));
+                    props.put(getRandomPropKey(TRUSTSTORE),
+                            toSecretProperty(containerMountPath, o.containerMountStrategy().trustStoreRequiresAbsolutePath()));
                 }
             }
             configureServerTrustStoreProps(o, props, serverTrustStoreLocation);
@@ -242,13 +280,13 @@ public interface Certificate {
         if (serverKeyStoreLocation != null) {
             if (o.containerMountStrategy().mountToContainer()) {
                 var containerMountPath = o.containerMountStrategy().keystorePath(serverKeyStoreLocation);
-                if (o.containerMountStrategy().containerShareMountPathWithApp()) {
+                if (o.containerMountStrategy().containerShareMountKeyStorePathWithApp()) {
                     serverKeyStoreLocation = containerMountPath;
                 }
 
                 // mount keystore to the container
                 if (containerMountPath != null) {
-                    props.put(getRandomPropKey("keystore"), toSecretProperty(containerMountPath));
+                    props.put(getRandomPropKey(KEYSTORE), toSecretProperty(containerMountPath));
                 }
             }
             configureServerKeyStoreProps(o, props, serverKeyStoreLocation);
@@ -275,7 +313,7 @@ public interface Certificate {
     private static void configurePemConfigurationProperties(CertificateOptions options, Map<String, String> props,
             String keyLocation, String certLocation, String serverTrustStoreLocation) {
         if ((options.format() == PEM || options.format() == ENCRYPTED_PEM) && options.tlsRegistryEnabled()) {
-            var keyStorePropertyPrefix = tlsConfigPropPrefix(options, "key-store");
+            var keyStorePropertyPrefix = tlsConfigPropPrefix(options, KEY_STORE);
             if (keyLocation != null) {
                 props.put(keyStorePropertyPrefix + "pem-1.key", keyLocation);
             }
@@ -285,7 +323,7 @@ public interface Certificate {
             if (options.format() == ENCRYPTED_PEM) {
                 props.put(keyStorePropertyPrefix + "pem-1.password", options.password());
             }
-            var trustStorePropertyPrefix = tlsConfigPropPrefix(options, "trust-store");
+            var trustStorePropertyPrefix = tlsConfigPropPrefix(options, TRUST_STORE);
             if (serverTrustStoreLocation != null) {
                 props.put(trustStorePropertyPrefix + "certs", serverTrustStoreLocation);
             }
@@ -486,9 +524,13 @@ public interface Certificate {
     }
 
     private static String toSecretProperty(String path) {
+        return toSecretProperty(path, true);
+    }
+
+    private static String toSecretProperty(String path, boolean requireAbsolutePath) {
         var file = Path.of(path).toFile();
         String fileName = file.getName();
-        String pathToFile = file.getParentFile().getAbsolutePath();
+        String pathToFile = requireAbsolutePath ? file.getParentFile().getAbsolutePath() : file.getParentFile().getPath();
         return SECRET_WITH_DESTINATION_PREFIX + pathToFile + DESTINATION_TO_FILENAME_SEPARATOR + fileName;
     }
 
@@ -509,7 +551,7 @@ public interface Certificate {
         return certsDir;
     }
 
-    private static String createPkcs12TruststoreForPem(Path caCertPath, String password, String alias) {
+    static String createPkcs12TruststoreForPem(Path caCertPath, String password, String alias) {
         try {
             CertificateFactory fact = CertificateFactory.getInstance("X.509");
             try (FileInputStream is = new FileInputStream(caCertPath.toFile())) {

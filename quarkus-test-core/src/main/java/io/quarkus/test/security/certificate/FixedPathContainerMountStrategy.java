@@ -24,11 +24,6 @@ public record FixedPathContainerMountStrategy(String truststorePath, String keys
     }
 
     @Override
-    public boolean containerShareMountPathWithApp() {
-        return false;
-    }
-
-    @Override
     public boolean mountToContainer() {
         return true;
     }
