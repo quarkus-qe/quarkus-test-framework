@@ -1,13 +1,13 @@
 package io.quarkus.test.services.containers;
 
 import static io.quarkus.test.bootstrap.KeycloakService.KEYSTORE_PASSWORD;
-import static io.quarkus.test.bootstrap.inject.OpenShiftClient.getOpenShiftUrl;
+import static io.quarkus.test.utils.TestExecutionProperties.isKubernetesPlatform;
+import static io.quarkus.test.utils.TestExecutionProperties.isOpenshiftPlatform;
 
-import java.io.IOException;
+import java.io.File;
 import java.lang.annotation.Annotation;
-import java.nio.file.Files;
+import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,7 +15,11 @@ import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
 import io.quarkus.test.bootstrap.ManagedResource;
+import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.security.certificate.ContainerMountStrategy;
+import io.quarkus.test.security.certificate.DelegatingContainerMountStrategy;
 import io.quarkus.test.security.certificate.FixedPathContainerMountStrategy;
 import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.KeycloakContainer;
@@ -25,13 +29,12 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
 
     public static final String CERTIFICATE_CONTEXT_KEY = "io.quarkus.test.services.containers.keycloak.certificate";
     public static final String KEYCLOAK_PRODUCTION_MODE_KEY = "io.quarkus.test.services.keycloak.production.mode";
-
-    private static final String KEYSTORE_PREFIX = "keycloak";
-    private static final String MOUNTED_KEYSTORE_NAME = KEYSTORE_PREFIX + "-keystore";
+    public static final String KEYCLOAK = "keycloak";
+    private static final String MOUNTED_KEYSTORE_NAME = KEYCLOAK + "-keystore";
     private static final String KEYSTORE_DEST_PATH = "/opt/keycloak/conf/";
     private static final String MOUNTED_KEYSTORE_PATH = KEYSTORE_DEST_PATH + MOUNTED_KEYSTORE_NAME;
-    private static final String MOUNTED_KEY_PATH = KEYSTORE_DEST_PATH + "key/" + KEYSTORE_PREFIX + ".key";
-    private static final String MOUNTED_CERT_PATH = KEYSTORE_DEST_PATH + "cert/" + KEYSTORE_PREFIX + ".crt";
+    private static final String MOUNTED_KEY_PATH = KEYSTORE_DEST_PATH + "key/" + KEYCLOAK + ".key";
+    private static final String MOUNTED_CERT_PATH = KEYSTORE_DEST_PATH + "cert/" + KEYCLOAK + ".crt";
 
     private final ServiceLoader<KeycloakContainerManagedResourceBinding> managedResourceBindingsRegistry = ServiceLoader
             .load(KeycloakContainerManagedResourceBinding.class);
@@ -117,7 +120,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         context.put(KEYCLOAK_PRODUCTION_MODE_KEY, runKeycloakInProdMode);
 
         if (runKeycloakInProdMode) {
-            setUpProdKeycloak(context);
+            setUpProdKeycloak();
         }
         for (KeycloakContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(this)) {
@@ -128,45 +131,36 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         return new KeycloakGenericDockerContainerManagedResource(this);
     }
 
-    private void setUpProdKeycloak(ServiceContext context) {
-        String truststorePath = "";
+    private void setUpProdKeycloak() {
         if (certificateFormat.equals(Certificate.Format.JKS) || certificateFormat.equals(Certificate.Format.PKCS12)) {
-            var destinationStrategy = new FixedPathContainerMountStrategy(null,
+            var keyStoreDestinationStrategy = new FixedPathContainerMountStrategy(null,
                     MOUNTED_KEYSTORE_PATH + getSuffixOfStore(certificateFormat), null, null);
-
-            var cert = io.quarkus.test.security.certificate.Certificate.of(KEYSTORE_PREFIX, certificateFormat,
-                    KEYSTORE_PASSWORD, certTargetDir(), destinationStrategy, getSubjectAlternativeName());
-            truststorePath = cert.truststorePath();
-
-            cert.configProperties().forEach(context::withTestScopeConfigProperty);
-            context.put(CERTIFICATE_CONTEXT_KEY, cert);
-
+            var cert = generateCertificate(keyStoreDestinationStrategy);
+            cert.getKeyStoreConfigProperties().forEach(context::withTestScopeConfigProperty);
             enrichCommandByTlsCommands(false);
         } else if (certificateFormat.equals(Certificate.Format.PEM)) {
-            var destinationStrategy = new FixedPathContainerMountStrategy(null, null,
+            var keyStoreDestinationStrategy = new FixedPathContainerMountStrategy(null, null,
                     MOUNTED_KEY_PATH, MOUNTED_CERT_PATH);
-
-            var cert = io.quarkus.test.security.certificate.Certificate.of(KEYSTORE_PREFIX, certificateFormat,
-                    KEYSTORE_PASSWORD, certTargetDir(), destinationStrategy, getSubjectAlternativeName());
-            truststorePath = cert.truststorePath();
-
-            cert.configProperties().forEach(context::withTestScopeConfigProperty);
-            context.put(CERTIFICATE_CONTEXT_KEY, cert);
-
+            var cert = generateCertificate(keyStoreDestinationStrategy);
+            cert.getPemMountProperties().forEach(context::withTestScopeConfigProperty);
             enrichCommandByTlsCommands(true);
         } else {
             throw new IllegalArgumentException("Unsupported keystore format.");
         }
+    }
 
-        try {
-            // Need to copy the truststore to this location to enable some OpenShift Quarkus scenarios to work
-            // Scenarios are UsingOpenShiftExtensionAndDockerBuildStrategy and UsingOpenShiftExtension
-            Files.copy(Path.of(truststorePath),
-                    Path.of("target", "classes", Path.of(truststorePath).getFileName().toString()).toAbsolutePath(),
-                    StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to copy truststore. Full exception: " + e);
-        }
+    private io.quarkus.test.security.certificate.Certificate generateCertificate(
+            FixedPathContainerMountStrategy keyStoreDestinationStrategy) {
+        var trustStoreDestinationStrategy = new TrustStoreContainerMountStrategy();
+        var destinationStrategy = new DelegatingContainerMountStrategy(keyStoreDestinationStrategy,
+                trustStoreDestinationStrategy);
+
+        var cert = io.quarkus.test.security.certificate.Certificate.of(KEYCLOAK, certificateFormat,
+                KEYSTORE_PASSWORD, certTargetDir(), destinationStrategy, getSubjectAlternativeName());
+
+        context.put(CERTIFICATE_CONTEXT_KEY, cert);
+
+        return cert;
     }
 
     private void enrichCommandByTlsCommands(boolean isPemFormatUsed) {
@@ -183,12 +177,14 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     }
 
     private List<String> getSubjectAlternativeName() {
+        OpenShiftClient openShiftClient = context.get(OpenShiftExtensionBootstrap.CLIENT);
+        URL openShiftUrl = openShiftClient == null ? null : openShiftClient.getOpenShiftUrl();
         List<String> sans = new ArrayList<>();
-        if (getOpenShiftUrl() == null) {
+        if (openShiftUrl == null) {
             sans.add("localhost");
         } else {
             // The SAN allow only have wildcard for lowest level (most left side) of subdomain
-            sans.add(getOpenShiftUrl().getHost().replace("api.", "*.apps."));
+            sans.add(openShiftUrl.getHost().replace("api.", "*.apps."));
         }
         return sans;
     }
@@ -203,5 +199,50 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
             case JKS -> ".jks";
             default -> throw new IllegalArgumentException(format + " is not supported to get suffix.");
         };
+    }
+
+    private static final class TrustStoreContainerMountStrategy implements ContainerMountStrategy {
+
+        @Override
+        public String truststorePath(String currentLocation) {
+            if (mountToContainer()) {
+                return File.separator + "certs" + File.separator + getFileName(currentLocation);
+            }
+            return currentLocation;
+        }
+
+        private static String getFileName(String currentLocation) {
+            return currentLocation.substring(currentLocation.lastIndexOf(File.separator) + 1);
+        }
+
+        @Override
+        public String keystorePath(String currentLocation) {
+            return currentLocation;
+        }
+
+        @Override
+        public String keyPath(String currentLocation) {
+            return currentLocation;
+        }
+
+        @Override
+        public String certPath(String currentLocation) {
+            return currentLocation;
+        }
+
+        @Override
+        public boolean containerShareMountTrustStorePathWithApp() {
+            return true;
+        }
+
+        @Override
+        public boolean mountToContainer() {
+            return isOpenshiftPlatform() || isKubernetesPlatform();
+        }
+
+        @Override
+        public boolean trustStoreRequiresAbsolutePath() {
+            return !mountToContainer();
+        }
     }
 }

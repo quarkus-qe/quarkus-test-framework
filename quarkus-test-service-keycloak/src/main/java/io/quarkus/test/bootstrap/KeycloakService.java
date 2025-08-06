@@ -1,17 +1,21 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.security.certificate.Certificate.LOCAL_FS_CA_CERT_PATH;
+import static io.quarkus.test.security.certificate.Certificate.LOCAL_FS_TRUST_STORE_PATH;
 import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.CERTIFICATE_CONTEXT_KEY;
+import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.KEYCLOAK;
 import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.KEYCLOAK_PRODUCTION_MODE_KEY;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
-import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
-import static io.quarkus.test.utils.TestExecutionProperties.isBareMetalPlatform;
 
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,12 +27,9 @@ import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
-import org.apache.http.ssl.TrustStrategy;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 
-import io.quarkus.test.scenarios.OpenShiftDeploymentStrategy;
-import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.security.certificate.Certificate;
 
 public class KeycloakService extends BaseService<KeycloakService> {
@@ -45,6 +46,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
 
     private String realmBasePath = "realms";
     private final String realm;
+    private String pkcs12TruststoreForPem = null;
 
     /**
      * KeycloakService constructor, supported since Keycloak 18.
@@ -92,15 +94,26 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {
-        SSLConnectionSocketFactory sslConnectionSocketFactory;
+        final Certificate certificate = getPropertyFromContext(CERTIFICATE_CONTEXT_KEY);
+        final SSLConnectionSocketFactory sslConnectionSocketFactory;
+        final String trustStorePath;
+        if (certificate.isPemCertificate()) {
+            if (pkcs12TruststoreForPem == null) {
+                String cn = "localhost"; // TODO: this could differ for OCP but is probably not important for now
+                String caCertLocalPath = certificate.configProperties().get(LOCAL_FS_CA_CERT_PATH);
+                pkcs12TruststoreForPem = Certificate.createPkcs12TruststoreForPem(Path.of(caCertLocalPath),
+                        certificate.password(), cn);
+            }
+            trustStorePath = pkcs12TruststoreForPem;
+        } else {
+            trustStorePath = certificate.configProperties().get(LOCAL_FS_TRUST_STORE_PATH);
+        }
         try {
-            // Needed to disable the cert check as default setup not allowing self-sign certificates
-            TrustStrategy trustStrategy = (cert, authType) -> true;
             SSLContext sslContext = SSLContexts.custom()
-                    .loadTrustMaterial(null, trustStrategy)
+                    .loadTrustMaterial(new File(trustStorePath), certificate.password().toCharArray())
                     .build();
             sslConnectionSocketFactory = new SSLConnectionSocketFactory(sslContext, NoopHostnameVerifier.INSTANCE);
-        } catch (NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
+        } catch (CertificateException | IOException | NoSuchAlgorithmException | KeyStoreException | KeyManagementException e) {
             throw new IllegalStateException("Unable to create SSLConnectionSocketFactory to allow"
                     + " secured connection use self-signed certificates", e);
         }
@@ -124,58 +137,13 @@ public class KeycloakService extends BaseService<KeycloakService> {
         return realmBasePath;
     }
 
-    public String getTrustStore() {
-        Certificate certBuilder = getPropertyFromContext(CERTIFICATE_CONTEXT_KEY);
-        if (certBuilder == null) {
-            throw new IllegalArgumentException("Unable to load CertificateBuilder.");
-        }
-
-        String trustStore = certBuilder.truststorePath();
-        if (isBareMetalPlatform()) {
-            return trustStore;
-        } else {
-            var deploymentStrategy = context.getScenarioContext().getAnnotation(OpenShiftScenario.class).deployment();
-            if (deploymentStrategy.equals(OpenShiftDeploymentStrategy.Build)
-                    || deploymentStrategy.equals(OpenShiftDeploymentStrategy.UsingContainerRegistry)) {
-                return SECRET_PREFIX + Path.of(trustStore).getFileName().toString();
-            }
-            // Don't need to mount it to openshift for UsingOpenShiftExtensionAndDockerBuildStrategy and UsingOpenShiftExtension
-            // strategies as the key was copied to be present when building app
-            // as part of KeycloakContainerManagedResourceBuilder#setUpProdKeycloak
-            return Path.of(trustStore).getFileName().toString();
-        }
-    }
-
     public Map<String, String> getTlsProperties() {
         Certificate cert = getPropertyFromContext(CERTIFICATE_CONTEXT_KEY);
-        Map<String, String> properties = new HashMap<>();
         if (cert != null) {
-            final String additionalJdbcProperties = "quarkus.tls.oidc.trust-store.p12.";
-            properties.put("quarkus.oidc.tls.tls-configuration-name", "oidc");
-            properties.putAll(prepareTruststorePathProperty(cert));
+            Map<String, String> properties = new HashMap<>(cert.getTrustStoreConfigProperties());
+            properties.put("quarkus.oidc.tls.tls-configuration-name", KEYCLOAK);
             return properties;
         }
-        return properties;
-    }
-
-    private Map<String, String> prepareTruststorePathProperty(Certificate cert) {
-        final String tlsOidcPropertiesBase = "quarkus.tls.oidc.trust-store.";
-        switch (cert.format()) {
-            case "PEM" -> {
-                return Map.of(
-                        tlsOidcPropertiesBase + "pem.certs", getTrustStore());
-            }
-            case "PKCS12" -> {
-                return Map.of(
-                        tlsOidcPropertiesBase + "p12.path", getTrustStore(),
-                        tlsOidcPropertiesBase + "p12.password", cert.password());
-            }
-            case "JKS" -> {
-                return Map.of(
-                        tlsOidcPropertiesBase + "jks.path", getTrustStore(),
-                        tlsOidcPropertiesBase + "jks.password", cert.password());
-            }
-            default -> throw new IllegalArgumentException(cert.format() + " is not supported.");
-        }
+        return Map.of();
     }
 }

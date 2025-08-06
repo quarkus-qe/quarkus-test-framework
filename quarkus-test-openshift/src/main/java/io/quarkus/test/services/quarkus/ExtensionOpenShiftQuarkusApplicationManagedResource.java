@@ -12,6 +12,7 @@ import static io.quarkus.test.utils.MavenUtils.SKIP_TESTS;
 import static io.quarkus.test.utils.MavenUtils.installParentPomsIfNeeded;
 import static io.quarkus.test.utils.MavenUtils.mvnCommand;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.IOException;
@@ -226,12 +227,17 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             property = QUARKUS_KNATIVE_ENV_VARS;
         }
         for (Entry<String, String> envVar : envVars.entrySet()) {
-            if (envVar.getKey().matches("quarkus\\.tls.*trust-store.*path")
-                    || envVar.getKey().matches("quarkus\\.tls.*trust-store.*certs")) {
-                String includedResources = envVars.getOrDefault("quarkus.native.resources.includes", "");
-                includedResources = includedResources.isEmpty() ? envVar.getValue()
-                        : includedResources + "," + envVar.getValue();
-                args.add(withProperty("quarkus.native.resources.includes", includedResources));
+            if (envVar.getValue().startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
+                var result = client.createSecretForSecretWithDestinationPropertyInternal(envVar.getValue());
+                args.add(withProperty("quarkus.openshift.secret-volumes." + result.secretName() + ".secret-name",
+                        result.secretName()));
+                args.add(withProperty(
+                        "quarkus.openshift.secret-volumes." + result.secretName() + ".items.\"" + result.fileName() + "\".path",
+                        result.fileName()));
+                args.add(withProperty("quarkus.openshift.mounts." + result.secretName() + ".name",
+                        result.secretName()));
+                args.add(withProperty("quarkus.openshift.mounts." + result.secretName() + ".path",
+                        result.mountPath()));
             }
             if (requiredByExtension(envVar.getKey())) {
                 args.add(withProperty(envVar.getKey(), envVar.getValue()));

@@ -122,8 +122,6 @@ public final class OpenShiftClient {
 
     private static final String OC = "oc";
 
-    private static URL openShiftUrl;
-
     private final String currentNamespace;
     private final OpenShiftClientImpl client;
     private final KnativeClient kn;
@@ -143,7 +141,6 @@ public final class OpenShiftClient {
         }
         isClientReady = true;
         kn = client.adapt(KnativeClient.class);
-        openShiftUrl = client.getOpenshiftUrl();
     }
 
     private static OpenShiftClientImpl createClient(OpenShiftConfig config) {
@@ -1125,17 +1122,9 @@ public final class OpenShiftClient {
                 LOG.warn("Property " + entry.getKey() + " was used to copy file to " + propertyValue
                         + ". Please consider using @Mount instead");
             } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
-                String path = entry.getValue().replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
-                int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
-                final String mountPath = path.substring(0, separatorIdx);
-                final String filename = path.substring(separatorIdx + 1);
-                String secretName = normalizeConfigMapName(mountPath, filename);
-
-                // Push secret file
-                propertyValue = joinMountPathAndFileName(mountPath, filename);
-                String filePath = Files.exists(Path.of(propertyValue)) ? propertyValue : getFilePath(SLASH + filename);
-                doCreateSecretFromFile(secretName, filePath);
-                volumes.putIfAbsent(mountPath, new CustomVolume(secretName, "", SECRET));
+                var result = createSecretForSecretWithDestinationPropertyInternal(propertyValue);
+                propertyValue = result.propertyValue();
+                volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
             } else if (isSecret(propertyValue)) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
@@ -1325,6 +1314,23 @@ public final class OpenShiftClient {
         return namespace;
     }
 
+    public record SecretWithDestinationResult(String secretName, String propertyValue, String mountPath, String fileName) {
+    }
+
+    public SecretWithDestinationResult createSecretForSecretWithDestinationPropertyInternal(String propertyValue) {
+        String path = propertyValue.replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+        int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
+        final String mountPath = path.substring(0, separatorIdx);
+        final String filename = path.substring(separatorIdx + 1);
+        String secretName = normalizeConfigMapName(mountPath, filename);
+
+        // Push secret file
+        String newPropertyValue = joinMountPathAndFileName(mountPath, filename);
+        String filePath = Files.exists(Path.of(newPropertyValue)) ? newPropertyValue : getFilePath(SLASH + filename);
+        doCreateSecretFromFile(secretName, filePath);
+        return new SecretWithDestinationResult(secretName, newPropertyValue, mountPath, filename);
+    }
+
     public void doCreateSecretFromFile(String name, String filePath) {
         if (client.secrets().withName(name).get() == null) {
             try {
@@ -1395,7 +1401,7 @@ public final class OpenShiftClient {
         return client;
     }
 
-    public static URL getOpenShiftUrl() {
-        return openShiftUrl;
+    public URL getOpenShiftUrl() {
+        return client.getOpenshiftUrl();
     }
 }
