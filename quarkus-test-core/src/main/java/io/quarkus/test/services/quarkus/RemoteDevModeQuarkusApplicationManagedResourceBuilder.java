@@ -11,6 +11,8 @@ import static io.quarkus.test.utils.MavenUtils.withProperty;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +23,7 @@ import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.logging.Log;
+import io.quarkus.test.services.IsRunningCheck;
 import io.quarkus.test.services.RemoteDevModeQuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.FileUtils;
@@ -45,13 +48,33 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
     private String liveReloadPassword;
     private Path artifact;
     private QuarkusManagedResource managedResource;
+    private IsRunningCheck isRunningCheck;
 
     @Override
     public void init(Annotation annotation) {
         RemoteDevModeQuarkusApplication metadata = (RemoteDevModeQuarkusApplication) annotation;
+        isRunningCheck = instantiateIsRunningCheck(metadata);
         liveReloadPassword = metadata.password();
         setPropertiesFile(metadata.properties());
         initAppClasses(new Class<?>[0]);
+    }
+
+    private static IsRunningCheck instantiateIsRunningCheck(RemoteDevModeQuarkusApplication metadata) {
+        if (Modifier.isAbstract(metadata.isRunningCheck().getModifiers())
+                || Modifier.isInterface(metadata.isRunningCheck().getModifiers())) {
+            throw new IllegalArgumentException("Cannot instantiate abstract " + metadata.isRunningCheck().getName());
+        }
+        if (metadata.isRunningCheck() == IsRunningCheck.AlwaysFail.class) {
+            return new IsRunningCheck.AlwaysFail();
+        }
+        if (metadata.isRunningCheck() == IsRunningCheck.IsBasePathReachableCheck.class) {
+            return new IsRunningCheck.IsBasePathReachableCheck();
+        }
+        try {
+            return (IsRunningCheck) metadata.isRunningCheck().getConstructors()[0].newInstance();
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -133,5 +156,9 @@ public class RemoteDevModeQuarkusApplicationManagedResourceBuilder extends Artif
         return ProcessBuilderProvider.command(command)
                 .redirectErrorStream(true)
                 .directory(getApplicationFolder().toFile());
+    }
+
+    IsRunningCheck getIsRunningCheck() {
+        return isRunningCheck;
     }
 }
