@@ -35,8 +35,15 @@ public class RemoteDevModeLocalhostQuarkusApplicationManagedResource extends Loc
                 startRemoteDevProcess();
             }
 
+            Log.debug("Testing if logs contain expected output '%s'", EXPECTED_OUTPUT_FROM_REMOTE_DEV_DAEMON);
             if (getLoggingHandler().logsContains(EXPECTED_OUTPUT_FROM_REMOTE_DEV_DAEMON)) {
+                Log.debug("Logs contain expected output '%s'", EXPECTED_OUTPUT_FROM_REMOTE_DEV_DAEMON);
                 getLoggingHandler().flush();
+                return true;
+            }
+            Log.debug("Logs don't contain expected output '%s'", EXPECTED_OUTPUT_FROM_REMOTE_DEV_DAEMON);
+            if (model.getIsRunningCheck().isRunning(this::getURI)) {
+                Log.debug("'%s' check marked the resource as running", model.getIsRunningCheck().getClass().getName());
                 return true;
             }
         }
