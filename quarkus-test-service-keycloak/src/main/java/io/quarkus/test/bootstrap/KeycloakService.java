@@ -23,6 +23,7 @@ import java.util.Map;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.NoopHostnameVerifier;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.impl.client.HttpClients;
@@ -94,9 +95,23 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {
+        return AuthzClient.create(new Configuration(
+                StringUtils.substringBefore(getRealmUrl(), "/realms"),
+                realm,
+                clientId,
+                Collections.singletonMap("secret", clientSecret),
+                prepareHttpClientForAuthzClient()));
+    }
+
+    private HttpClient prepareHttpClientForAuthzClient() {
         final Certificate certificate = getPropertyFromContext(CERTIFICATE_CONTEXT_KEY);
         final SSLConnectionSocketFactory sslConnectionSocketFactory;
         final String trustStorePath;
+
+        if (certificate == null) {
+            return HttpClients.createDefault();
+        }
+
         if (certificate.isPemCertificate()) {
             if (pkcs12TruststoreForPem == null) {
                 String cn = "localhost"; // TODO: this could differ for OCP but is probably not important for now
@@ -117,12 +132,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
             throw new IllegalStateException("Unable to create SSLConnectionSocketFactory to allow"
                     + " secured connection use self-signed certificates", e);
         }
-        return AuthzClient.create(new Configuration(
-                StringUtils.substringBefore(getRealmUrl(), "/realms"),
-                realm,
-                clientId,
-                Collections.singletonMap("secret", clientSecret),
-                HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory).build()));
+        return HttpClients.custom().setSSLSocketFactory(sslConnectionSocketFactory).build();
     }
 
     private String normalizeRealmBasePath(String realmBasePath) {
