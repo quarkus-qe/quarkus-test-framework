@@ -28,6 +28,12 @@ public @interface KeycloakContainer {
 
     boolean runKeycloakInProdMode() default false;
 
+    /**
+     * Will expose Tls port on container or HTTPS route on OCP.
+     * But will not generate certificates, test needs to manage certificates on their own.
+     */
+    boolean exposeRawTls() default false;
+
     Certificate.Format certificateFormat() default Certificate.Format.PKCS12;
 
     Class<? extends ManagedResourceBuilder> builder() default KeycloakContainerManagedResourceBuilder.class;

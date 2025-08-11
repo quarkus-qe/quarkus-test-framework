@@ -4,7 +4,7 @@ import static io.quarkus.test.security.certificate.Certificate.LOCAL_FS_CA_CERT_
 import static io.quarkus.test.security.certificate.Certificate.LOCAL_FS_TRUST_STORE_PATH;
 import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.CERTIFICATE_CONTEXT_KEY;
 import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.KEYCLOAK;
-import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.KEYCLOAK_PRODUCTION_MODE_KEY;
+import static io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuilder.KEYCLOAK_TLS_ACTIVE_KEY;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 
 import java.io.File;
@@ -72,8 +72,8 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public String getRealmUrl() {
-        boolean runKeycloakInProdMode = getPropertyFromContext(KEYCLOAK_PRODUCTION_MODE_KEY);
-        var host = runKeycloakInProdMode ? getURI(Protocol.HTTPS) : getURI(Protocol.HTTP);
+        boolean keycloakTlsOn = getPropertyFromContext(KEYCLOAK_TLS_ACTIVE_KEY);
+        var host = keycloakTlsOn ? getURI(Protocol.HTTPS) : getURI(Protocol.HTTP);
 
         // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
         int port = host.getPort();

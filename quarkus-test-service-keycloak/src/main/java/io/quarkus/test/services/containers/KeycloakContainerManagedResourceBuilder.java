@@ -28,7 +28,7 @@ import io.quarkus.test.utils.PropertiesUtils;
 public class KeycloakContainerManagedResourceBuilder extends ContainerManagedResourceBuilder {
 
     public static final String CERTIFICATE_CONTEXT_KEY = "io.quarkus.test.services.containers.keycloak.certificate";
-    public static final String KEYCLOAK_PRODUCTION_MODE_KEY = "io.quarkus.test.services.keycloak.production.mode";
+    public static final String KEYCLOAK_TLS_ACTIVE_KEY = "io.quarkus.test.services.keycloak.tls.on";
     public static final String KEYCLOAK = "keycloak";
     private static final String MOUNTED_KEYSTORE_NAME = KEYCLOAK + "-keystore";
     private static final String KEYSTORE_DEST_PATH = "/opt/keycloak/conf/";
@@ -110,14 +110,15 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         this.certificateFormat = metadata.certificateFormat();
         // We want to set up sslEnable to same value as runKeycloakInProdMode as `isSslEnabled` is used to determine
         // if tls should be enabled
-        this.sslEnabled = metadata.runKeycloakInProdMode();
+        // but if we want to only enable tls and manage it manually, we can do it by exposing it raw
+        this.sslEnabled = metadata.runKeycloakInProdMode() || metadata.exposeRawTls();
     }
 
     @Override
     public ManagedResource build(ServiceContext context) {
         this.context = context;
 
-        context.put(KEYCLOAK_PRODUCTION_MODE_KEY, runKeycloakInProdMode);
+        context.put(KEYCLOAK_TLS_ACTIVE_KEY, sslEnabled);
 
         if (runKeycloakInProdMode) {
             setUpProdKeycloak();
