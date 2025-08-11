@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
+import io.quarkus.test.bootstrap.LocalhostManagedResource;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.ServiceContext;
@@ -24,6 +25,7 @@ import io.quarkus.test.security.certificate.FixedPathContainerMountStrategy;
 import io.quarkus.test.services.Certificate;
 import io.quarkus.test.services.KeycloakContainer;
 import io.quarkus.test.utils.PropertiesUtils;
+import io.smallrye.common.os.OS;
 
 public class KeycloakContainerManagedResourceBuilder extends ContainerManagedResourceBuilder {
 
@@ -48,6 +50,7 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     private long memoryLimitMiB;
     private boolean runKeycloakInProdMode;
     private boolean sslEnabled;
+    private boolean portDockerHostToLocalhost;
     private Certificate.Format certificateFormat;
 
     @Override
@@ -112,6 +115,8 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         // if tls should be enabled
         // but if we want to only enable tls and manage it manually, we can do it by exposing it raw
         this.sslEnabled = metadata.runKeycloakInProdMode() || metadata.exposeRawTls();
+        // There is need to forward port on windows runner when docker host is defined on specific IP not localhost
+        this.portDockerHostToLocalhost = OS.WINDOWS.isCurrent() && sslEnabled;
     }
 
     @Override
@@ -125,8 +130,15 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
         }
         for (KeycloakContainerManagedResourceBinding binding : managedResourceBindingsRegistry) {
             if (binding.appliesFor(this)) {
+                if (portDockerHostToLocalhost) {
+                    return new LocalhostManagedResource(binding.init(this));
+                }
                 return binding.init(this);
             }
+        }
+
+        if (portDockerHostToLocalhost) {
+            return new LocalhostManagedResource(new KeycloakGenericDockerContainerManagedResource(this));
         }
 
         return new KeycloakGenericDockerContainerManagedResource(this);
