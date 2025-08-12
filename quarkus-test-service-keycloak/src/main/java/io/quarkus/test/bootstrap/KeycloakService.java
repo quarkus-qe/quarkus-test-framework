@@ -44,6 +44,7 @@ public class KeycloakService extends BaseService<KeycloakService> {
     private static final String USER = "admin";
     private static final String PASSWORD = "admin";
     private static final int HTTP_80 = 80;
+    private static final int HTTPS_443 = 443;
 
     private String realmBasePath = "realms";
     private final String realm;
@@ -75,9 +76,9 @@ public class KeycloakService extends BaseService<KeycloakService> {
         boolean keycloakTlsOn = getPropertyFromContext(KEYCLOAK_TLS_ACTIVE_KEY);
         var host = keycloakTlsOn ? getURI(Protocol.HTTPS) : getURI(Protocol.HTTP);
 
-        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80.
+        // SMELL: Keycloak does not validate Token Issuers when URL contains the port 80 (or 443 for HTTPS).
         int port = host.getPort();
-        if (port == HTTP_80) {
+        if (port == HTTP_80 || port == HTTPS_443) {
             port = -1;
         }
         try {
