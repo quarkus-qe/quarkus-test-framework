@@ -201,8 +201,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
 
     private boolean routeIsReachable(Protocol protocol) {
         var url = getURI(protocol);
-        return given().relaxedHTTPSValidation().baseUri(url.getRestAssuredStyleUri()).basePath("/").port(url.getPort()).get()
-                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
+        return given().relaxedHTTPSValidation().baseUri(url.getRestAssuredStyleUri()).basePath("/").port(url.getPort())
+                .redirects().follow(false).get().getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 
     private void configureServingCertificates() {
