@@ -96,7 +96,7 @@ items:
                 - name: "JAVA_APP_JAR"
                   value: "/deployments/${ARTIFACT}"
               image: "${IMAGE_NAME}"
-              imagePullPolicy: "IfNotPresent"
+              imagePullPolicy: "Always"
               name: "${SERVICE_NAME}"
               ports:
                 - containerPort: ${INTERNAL_PORT}
