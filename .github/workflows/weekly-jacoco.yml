@@ -12,7 +12,7 @@ jobs:
         quarkus-version: ["999-SNAPSHOT"]
         java: [ 17 ]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
