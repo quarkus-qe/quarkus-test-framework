@@ -16,7 +16,9 @@ public class GrafanaContainerManagedResourceBuilder extends ContainerManagedReso
     private String image;
     // webUiPort
     private int port;
-    private int restPort;
+    private int lokiPort;
+    private int tempoPort;
+    private int prometheusPort;
     private int otlpGrpcPort;
     private String expectedLog;
 
@@ -44,8 +46,16 @@ public class GrafanaContainerManagedResourceBuilder extends ContainerManagedReso
         return otlpGrpcPort;
     }
 
-    protected int getRestPort() {
-        return restPort;
+    protected int getLokiPort() {
+        return lokiPort;
+    }
+
+    protected int getTempoPort() {
+        return tempoPort;
+    }
+
+    protected int getPrometheusPort() {
+        return prometheusPort;
     }
 
     @Override
@@ -53,7 +63,9 @@ public class GrafanaContainerManagedResourceBuilder extends ContainerManagedReso
         GrafanaContainer metadata = (GrafanaContainer) annotation;
         this.image = metadata.image();
         this.port = metadata.webUIPort();
-        this.restPort = metadata.restPort();
+        this.lokiPort = metadata.lokiPort();
+        this.tempoPort = metadata.tempoPort();
+        this.prometheusPort = metadata.prometheusPort();
         this.otlpGrpcPort = metadata.otlpGrpcPort();
         this.expectedLog = metadata.expectedLog();
     }

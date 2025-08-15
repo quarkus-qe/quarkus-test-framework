@@ -9,6 +9,10 @@
     </parent>
     <artifactId>examples-grafana</artifactId>
     <name>Quarkus - Test Framework - Examples - Grafana</name>
+    <properties>
+        <!-- skipping build as all the test classes require custom build anyway -->
+        <quarkus.build.skip>true</quarkus.build.skip>
+    </properties>
     <dependencies>
         <dependency>
             <groupId>io.quarkus</groupId>
