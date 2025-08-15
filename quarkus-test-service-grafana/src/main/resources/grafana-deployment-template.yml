@@ -27,7 +27,11 @@ items:
               ports:
                 - containerPort: ${WEB_UI_PORT}
                   protocol: TCP
-                - containerPort: ${REST_API_PORT}
+                - containerPort: ${LOKI_API_PORT}
+                  protocol: TCP
+                - containerPort: ${TEMPO_API_PORT}
+                  protocol: TCP
+                - containerPort: ${PROMETHEUS_API_PORT}
                   protocol: TCP
                 - containerPort: ${OTLP_GRPC_PORT}
                   protocol: TCP
@@ -50,15 +54,51 @@ items:
   - apiVersion: v1
     kind: Service
     metadata:
-      name: '${SERVICE_NAME}-rest'
+      name: '${SERVICE_NAME}-loki'
       labels:
         app: '${SERVICE_NAME}'
     spec:
       ports:
-        - name: '${SERVICE_NAME}-rest'
-          port: ${REST_API_PORT}
+        - name: '${SERVICE_NAME}-loki'
+          port: ${LOKI_API_PORT}
           protocol: TCP
-          targetPort: ${REST_API_PORT}
+          targetPort: ${LOKI_API_PORT}
+        - name: '${SERVICE_NAME}-tempo'
+          port: ${TEMPO_API_PORT}
+          protocol: TCP
+          targetPort: ${TEMPO_API_PORT}
+        - name: '${SERVICE_NAME}-prometheus'
+          port: ${PROMETHEUS_API_PORT}
+          protocol: TCP
+          targetPort: ${PROMETHEUS_API_PORT}
+      selector:
+        app: '${SERVICE_NAME}'
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: '${SERVICE_NAME}-tempo'
+      labels:
+        app: '${SERVICE_NAME}'
+    spec:
+      ports:
+        - name: '${SERVICE_NAME}-tempo'
+          port: ${TEMPO_API_PORT}
+          protocol: TCP
+          targetPort: ${TEMPO_API_PORT}
+      selector:
+        app: '${SERVICE_NAME}'
+  - apiVersion: v1
+    kind: Service
+    metadata:
+      name: '${SERVICE_NAME}-prometheus'
+      labels:
+        app: '${SERVICE_NAME}'
+    spec:
+      ports:
+        - name: '${SERVICE_NAME}-prometheus'
+          port: ${PROMETHEUS_API_PORT}
+          protocol: TCP
+          targetPort: ${PROMETHEUS_API_PORT}
       selector:
         app: '${SERVICE_NAME}'
   - apiVersion: v1

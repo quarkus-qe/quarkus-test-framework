@@ -25,7 +25,7 @@ public class LoggingResourceIT {
     @GrafanaContainer()
     static final GrafanaService grafana = new GrafanaService();
 
-    @QuarkusApplication
+    @QuarkusApplication(properties = "logging.properties", classes = LoggingResource.class)
     static final RestService app = new RestService()
             .withProperty("quarkus.otel.exporter.otlp.logs.endpoint", grafana::getOtlpCollectorUrl);
 
@@ -40,7 +40,7 @@ public class LoggingResourceIT {
         await().atMost(10, TimeUnit.SECONDS).untilAsserted(() -> {
             String response = given().when()
                     .queryParam("query", "{service_name=\"" + SERVICE_NAME + "\"}")
-                    .get(grafana.getRestUrl() + "/loki/api/v1/query_range")
+                    .get(grafana.getLokiUrl() + "/loki/api/v1/query_range")
                     .asString();
 
             assertTrue(response.contains(TESTING_LOG_LINE), "Server log should contain logged message");
