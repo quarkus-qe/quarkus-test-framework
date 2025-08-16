@@ -2,7 +2,6 @@ package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.utils.TestExecutionProperties.rememberThisIsCliApp;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -11,7 +10,6 @@ import java.util.List;
 import org.apache.commons.lang3.ArrayUtils;
 
 import io.quarkus.test.configuration.Configuration;
-import io.smallrye.common.os.OS;
 
 public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQuarkusApplicationManagedResource {
 
@@ -30,14 +28,12 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
         List<String> command = new LinkedList<>();
         // extract 'quarkus.args' and remove the args from system properties
         String[] cmdArgs = extractQuarkusArgs(systemProperties);
-        List<String> escapedPropertiesWithPipeCharacter = extractPropertiesContainingPipeCharacter(systemProperties);
         if (model.getArtifact().getFileName().toString().endsWith(".jar")) {
             command.add(JAVA);
 
             if (this.getContext().getOwner().getConfiguration().isTrue(Configuration.Property.JAVA_ENABLE_PREVIEW)) {
                 command.add(ENABLE_PREVIEW);
             }
-            command.addAll(escapedPropertiesWithPipeCharacter);
             command.addAll(systemProperties);
             var debugOptions = model.getContext().getTestContext().debugOptions();
             if (debugOptions != null && debugOptions.debug()) {
@@ -48,31 +44,11 @@ public class ProdLocalhostQuarkusApplicationManagedResource extends LocalhostQua
             command.add(model.getArtifact().toAbsolutePath().toString());
         } else {
             command.add(model.getArtifact().toAbsolutePath().toString());
-            command.addAll(escapedPropertiesWithPipeCharacter);
             command.addAll(systemProperties);
         }
         command.addAll(Arrays.asList(cmdArgs));
 
         return command;
-    }
-
-    private List<String> extractPropertiesContainingPipeCharacter(List<String> systemProperties) {
-        List<String> escapedProperties = new ArrayList<>();
-        if (!OS.WINDOWS.isCurrent()) {
-            return escapedProperties;
-        }
-
-        Iterator<String> propertiesIt = systemProperties.iterator();
-        while (propertiesIt.hasNext()) {
-            String property = propertiesIt.next();
-            if (property.contains("|")) {
-                int equalsIndex = property.indexOf('=');
-                escapedProperties.add(property.substring(0, equalsIndex) + "=\""
-                        + property.substring(equalsIndex + 1) + "\"");
-                propertiesIt.remove();
-            }
-        }
-        return escapedProperties;
     }
 
     private String[] extractQuarkusArgs(List<String> systemProperties) {
