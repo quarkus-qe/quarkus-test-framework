@@ -5,6 +5,7 @@ import static io.quarkus.test.services.Certificate.Format.PEM;
 import static io.quarkus.test.services.Certificate.Format.PKCS12;
 import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
+import static io.quarkus.test.utils.TestExecutionProperties.isBareMetalPlatform;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 import java.io.File;
@@ -72,6 +73,9 @@ public interface Certificate {
     }
 
     default Map<String, String> getTrustStoreConfigProperties() {
+        if (isBareMetalPlatform()) {
+            return filterPropertiesByKey(containsString(TRUST_STORE));
+        }
         return filterPropertiesByKey(containsString(TRUSTSTORE, TRUST_STORE));
     }
 
