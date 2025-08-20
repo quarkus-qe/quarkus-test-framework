@@ -852,6 +852,7 @@ quarkus.native.auto-service-loader-registration
 quarkus.openshift.liveness-probe.failure-threshold
 quarkus.smallrye-openapi.auto-add-server
 quarkus.snapstart.enable
+quarkus.snapstart.enabled
 quarkus.kubernetes.azure-disk-volumes."azure-disk-volumes".fs-type
 quarkus.keycloak.devservices.resource-aliases."alias-name"
 quarkus.lambda.mock-event-server.test-port
