@@ -1017,7 +1017,7 @@ quarkus.rabbitmq.devservices.queues."queue-name".auto-delete
 quarkus.kubernetes.env.secrets
 quarkus.openshift.sidecars."sidecars".mounts."mounts".sub-path
 quarkus.knative.rbac.service-accounts."service-accounts".use-as-default
-quarkus.hibernate-orm.validation.enabled
+quarkus.hibernate-orm.validation.mode
 quarkus.jib.base-image-layers-cache
 quarkus.knative.liveness-probe.http-action-path
 quarkus.openshift.sidecars."sidecars".resources.requests.cpu
