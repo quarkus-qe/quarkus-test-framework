@@ -6,6 +6,7 @@ import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Test;
 
 import io.quarkus.test.bootstrap.DevModeQuarkusService;
+import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.IsRunningCheck;
 import io.quarkus.test.services.RemoteDevModeQuarkusApplication;
@@ -19,7 +20,7 @@ public class RemoteDevModeGreetingResourceIT {
     static final String HELLO_IN_ENGLISH = "Hello";
     static final String HELLO_IN_SPANISH = "Hola";
 
-    @RemoteDevModeQuarkusApplication(isRunningCheck = IsRunningCheck.IsBasePathReachableCheck.class)
+    @RemoteDevModeQuarkusApplication(isRunningCheck = IsGreetingPathReachableCheck.class)
     static final DevModeQuarkusService app = new DevModeQuarkusService();
 
     @Test
@@ -40,5 +41,12 @@ public class RemoteDevModeGreetingResourceIT {
     @Test
     public void shouldLoadResources() {
         app.given().get("/greeting/file").then().statusCode(HttpStatus.SC_OK).body(is("found!"));
+    }
+
+    public static final class IsGreetingPathReachableCheck extends IsRunningCheck.IsPathReachableCheck {
+
+        public IsGreetingPathReachableCheck() {
+            super(Protocol.HTTP, "/greeting", VICTOR_NAME);
+        }
     }
 }
