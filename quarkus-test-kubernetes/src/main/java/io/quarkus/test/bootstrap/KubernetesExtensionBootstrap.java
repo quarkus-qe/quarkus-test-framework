@@ -66,6 +66,8 @@ public class KubernetesExtensionBootstrap implements ExtensionBootstrap {
     @Override
     public void onError(ScenarioContext context, Throwable throwable) {
         Map<String, String> logs = client.logs();
+        Path testLogsPath = logsTestFolder(context);
+        testLogsPath.toFile().mkdirs();
         for (Entry<String, String> podLog : logs.entrySet()) {
             FileUtils.copyContentTo(podLog.getValue(), logsTestFolder(context).resolve(podLog.getKey() + Log.LOG_SUFFIX));
         }
