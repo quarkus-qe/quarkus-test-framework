@@ -3,11 +3,13 @@ package io.quarkus.test.bootstrap.inject;
 import static io.quarkus.test.configuration.Configuration.Property.KUBERNETES_EPHEMERAL_NAMESPACES;
 import static io.quarkus.test.model.CustomVolume.VolumeType.CONFIG_MAP;
 import static io.quarkus.test.model.CustomVolume.VolumeType.SECRET;
+import static io.quarkus.test.utils.PropertiesUtils.DESTINATION_TO_FILENAME_SEPARATOR;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -67,7 +69,7 @@ public final class KubectlClient {
     private static final String RESOURCE_MNT_FOLDER = "/resource";
     private static final int NAMESPACE_NAME_SIZE = 10;
     private static final int NAMESPACE_CREATION_RETRIES = 5;
-
+    private static final int SPECS_SECRET_NAME_LIMIT = 63;
     private static final int DEPLOYMENT_CREATION_TIMEOUT = 30;
 
     private static final String KUBECTL = "kubectl";
@@ -394,6 +396,10 @@ public final class KubectlClient {
                 if (!volumes.containsKey(mountPath)) {
                     volumes.put(propertyValue, new CustomVolume(configMapName, fileNameNormalized, CONFIG_MAP));
                 }
+            } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
+                var result = createSecretForSecretWithDestinationPropertyInternal(propertyValue);
+                propertyValue = result.propertyValue();
+                volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
             } else if (isSecret(entry.getValue())) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
@@ -514,6 +520,21 @@ public final class KubectlClient {
                 .replaceAll(SLASH, "-");
     }
 
+    private static String normalizeConfigMapName(String mountPath, String fileName) {
+        // /some/mount/path/file-name => some-mount-path-file-name
+        var newName = StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
+                .replaceAll(Pattern.quote("."), "-")
+                .replaceAll(SLASH, "-");
+        if (newName.length() > SPECS_SECRET_NAME_LIMIT) {
+            newName = newName.substring(newName.length() - SPECS_SECRET_NAME_LIMIT);
+            while (newName.startsWith("-")) {
+                // must not start with '-something' as it's considered to be a flag
+                newName = newName.substring(1);
+            }
+        }
+        return newName;
+    }
+
     private boolean isResource(String key) {
         return key.startsWith(RESOURCE_PREFIX);
     }
@@ -569,5 +590,30 @@ public final class KubectlClient {
             Log.warn("Namespace " + namespaceName
                     + " failed to be set as current session namespace. Caused by: " + e.getMessage() + ". Trying again.");
         }
+    }
+
+    private record SecretWithDestinationResult(String secretName, String propertyValue, String mountPath, String fileName) {
+    }
+
+    private SecretWithDestinationResult createSecretForSecretWithDestinationPropertyInternal(String propertyValue) {
+        String path = propertyValue.replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
+        int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
+        final String mountPath = path.substring(0, separatorIdx);
+        final String filename = path.substring(separatorIdx + 1);
+        String secretName = normalizeConfigMapName(mountPath, filename);
+
+        // Push secret file
+        String newPropertyValue = joinMountPathAndFileName(mountPath, filename);
+        String filePath = Files.exists(Path.of(newPropertyValue)) ? newPropertyValue : getFilePath(SLASH + filename);
+        doCreateSecretFromFile(secretName, filePath);
+        return new SecretWithDestinationResult(secretName, newPropertyValue, mountPath, filename);
+    }
+
+    private static String joinMountPathAndFileName(String mountPath, String fileName) {
+        if (!mountPath.endsWith(SLASH)) {
+            // /some/mount/path => /some/mount/path/
+            mountPath += SLASH;
+        }
+        return mountPath + fileName;
     }
 }
