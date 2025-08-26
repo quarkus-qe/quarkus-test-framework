@@ -21,8 +21,18 @@ public class OracleService extends DatabaseService<OracleService> {
 
     @Override
     public String getJdbcUrl() {
+        return getJdbcUrl(getDatabase());
+    }
+
+    /**
+     * Creates JDBC URL pointing to the given database.
+     *
+     * @param databaseName database name
+     * @return JDBC URL
+     */
+    public String getJdbcUrl(String databaseName) {
         var host = getURI();
-        return "jdbc:" + getJdbcName() + ":thin:@" + host.getHost() + ":" + host.getPort() + "/" + getDatabase();
+        return "jdbc:" + getJdbcName() + ":thin:@" + host.getHost() + ":" + host.getPort() + "/" + databaseName;
     }
 
     @Override
