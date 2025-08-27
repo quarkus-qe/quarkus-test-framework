@@ -11,6 +11,7 @@ import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.logging.KubernetesLoggingHandler;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.logging.LoggingHandler;
 import io.quarkus.test.services.URILike;
 
@@ -117,11 +118,19 @@ public abstract class KubernetesQuarkusApplicationManagedResource<T extends Quar
 
     private boolean routeIsReachable() {
         var uri = getURI(Protocol.HTTP);
+        final int statusCode;
 
-        return given().baseUri(uri.getRestAssuredStyleUri())
-                .basePath("/")
-                .port(uri.getPort())
-                .get()
-                .getStatusCode() != HttpStatus.SC_SERVICE_UNAVAILABLE;
+        try {
+            statusCode = given().baseUri(uri.getRestAssuredStyleUri())
+                    .basePath("/")
+                    .port(uri.getPort())
+                    .get()
+                    .getStatusCode();
+        } catch (Exception e) {
+            Log.debug("Failed to reach Kubernetes route on %s: %s", uri, e);
+            return false;
+        }
+
+        return statusCode != HttpStatus.SC_SERVICE_UNAVAILABLE;
     }
 }
