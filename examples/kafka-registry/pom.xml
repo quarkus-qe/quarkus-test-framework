@@ -10,7 +10,7 @@
     <artifactId>examples-kafka-registry</artifactId>
     <name>Quarkus - Test Framework - Examples - Kafka with Registry</name>
     <properties>
-        <confluent.kafka-avro-serializer.version>7.5.1</confluent.kafka-avro-serializer.version>
+        <confluent.kafka-avro-serializer.version>7.9.2</confluent.kafka-avro-serializer.version>
     </properties>
 
     <dependencies>
