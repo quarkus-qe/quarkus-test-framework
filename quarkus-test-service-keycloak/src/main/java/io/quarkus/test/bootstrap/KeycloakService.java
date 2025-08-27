@@ -31,6 +31,7 @@ import org.apache.http.ssl.SSLContexts;
 import org.keycloak.authorization.client.AuthzClient;
 import org.keycloak.authorization.client.Configuration;
 
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.security.certificate.Certificate;
 
 public class KeycloakService extends BaseService<KeycloakService> {
@@ -96,12 +97,18 @@ public class KeycloakService extends BaseService<KeycloakService> {
     }
 
     public AuthzClient createAuthzClient(String clientId, String clientSecret) {
-        return AuthzClient.create(new Configuration(
-                StringUtils.substringBefore(getRealmUrl(), "/realms"),
-                realm,
-                clientId,
-                Collections.singletonMap("secret", clientSecret),
-                prepareHttpClientForAuthzClient()));
+        try {
+            return AuthzClient.create(new Configuration(
+                    StringUtils.substringBefore(getRealmUrl(), "/realms"),
+                    realm,
+                    clientId,
+                    Collections.singletonMap("secret", clientSecret),
+                    prepareHttpClientForAuthzClient()));
+        } catch (Exception exception) {
+            // this exception can silently occur in the JUnit callback method, and we need to know about it
+            Log.error("Failed to create AuthzClient: %s", exception);
+            throw exception;
+        }
     }
 
     private HttpClient prepareHttpClientForAuthzClient() {

@@ -1,0 +1,26 @@
+---
+apiVersion: "v1"
+kind: "List"
+items:
+- apiVersion: "apps/v1"
+  kind: "Deployment"
+  metadata:
+    name: "${SERVICE_NAME}"
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        deployment: "${SERVICE_NAME}"
+    template:
+      metadata:
+        labels:
+          deployment: "${SERVICE_NAME}"
+      spec:
+        containers:
+        - image: "${IMAGE}"
+          args: [${ARGS}]
+          name: "${SERVICE_NAME}"
+          ports:
+          - containerPort: ${INTERNAL_PORT}
+            name: "https"
+            protocol: "TCP"

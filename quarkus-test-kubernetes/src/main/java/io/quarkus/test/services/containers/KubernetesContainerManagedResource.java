@@ -88,10 +88,14 @@ public class KubernetesContainerManagedResource implements ManagedResource {
         return loggingHandler.logs();
     }
 
-    private void applyDeployment() {
-        String deploymentFile = getConfiguration()
+    protected String getTemplate() {
+        return getConfiguration()
                 .getOrDefault(Configuration.Property.KUBERNETES_DEPLOYMENT_TEMPLATE_PROPERTY,
                         DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT);
+    }
+
+    private void applyDeployment() {
+        String deploymentFile = getTemplate();
         client.applyServiceProperties(model.getContext().getOwner(), deploymentFile, this::replaceDeploymentContent,
                 model.getContext().getServiceFolder().resolve(DEPLOYMENT));
     }
@@ -109,7 +113,7 @@ public class KubernetesContainerManagedResource implements ManagedResource {
                 .replaceAll(quote("${ARGS}"), args);
     }
 
-    private boolean useInternalServiceAsUrl() {
+    protected boolean useInternalServiceAsUrl() {
         return Boolean.TRUE.toString()
                 .equals(getConfiguration()
                         .get(Configuration.Property.KUBERNETES_USE_INTERNAL_SERVICE_AS_URL_PROPERTY));
@@ -117,5 +121,13 @@ public class KubernetesContainerManagedResource implements ManagedResource {
 
     private Configuration getConfiguration() {
         return model.getContext().getOwner().getConfiguration();
+    }
+
+    protected KubectlClient getClient() {
+        return client;
+    }
+
+    protected ContainerManagedResourceBuilder getModel() {
+        return model;
     }
 }
