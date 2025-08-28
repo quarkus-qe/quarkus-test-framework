@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
@@ -590,6 +591,10 @@ public final class KubectlClient {
             Log.warn("Namespace " + namespaceName
                     + " failed to be set as current session namespace. Caused by: " + e.getMessage() + ". Trying again.");
         }
+    }
+
+    public URL getKubernetesUrl() {
+        return client.getMasterUrl();
     }
 
     private record SecretWithDestinationResult(String secretName, String propertyValue, String mountPath, String fileName) {

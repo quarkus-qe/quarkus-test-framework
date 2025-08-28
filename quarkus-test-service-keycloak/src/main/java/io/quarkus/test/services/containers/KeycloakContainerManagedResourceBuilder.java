@@ -14,11 +14,14 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
+import io.quarkus.test.bootstrap.KubernetesExtensionBootstrap;
 import io.quarkus.test.bootstrap.LocalhostManagedResource;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.ServiceContext;
+import io.quarkus.test.bootstrap.inject.KubectlClient;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.security.certificate.ContainerMountStrategy;
 import io.quarkus.test.security.certificate.DelegatingContainerMountStrategy;
 import io.quarkus.test.security.certificate.FixedPathContainerMountStrategy;
@@ -190,15 +193,24 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
     }
 
     private List<String> getSubjectAlternativeName() {
+        final List<String> sans;
+
         OpenShiftClient openShiftClient = context.get(OpenShiftExtensionBootstrap.CLIENT);
-        URL openShiftUrl = openShiftClient == null ? null : openShiftClient.getOpenShiftUrl();
-        List<String> sans = new ArrayList<>();
-        if (openShiftUrl == null) {
-            sans.add("localhost");
-        } else {
+        if (openShiftClient != null && openShiftClient.getOpenShiftUrl() != null) {
+            URL openShiftUrl = openShiftClient.getOpenShiftUrl();
             // The SAN allow only have wildcard for lowest level (most left side) of subdomain
-            sans.add(openShiftUrl.getHost().replace("api.", "*.apps."));
+            sans = List.of(openShiftUrl.getHost().replace("api.", "*.apps."));
+        } else {
+            KubectlClient kubectlClient = context.get(KubernetesExtensionBootstrap.CLIENT);
+            if (kubectlClient != null && kubectlClient.getKubernetesUrl() != null) {
+                URL kubernetesUrl = kubectlClient.getKubernetesUrl();
+                sans = List.of(kubernetesUrl.getHost());
+            } else {
+                sans = List.of("localhost");
+            }
         }
+
+        Log.debug("Configuring Subject Alternative Names: %s", sans);
         return sans;
     }
 
