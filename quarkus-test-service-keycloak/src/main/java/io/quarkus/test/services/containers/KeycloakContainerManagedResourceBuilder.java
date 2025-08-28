@@ -204,7 +204,9 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
             KubectlClient kubectlClient = context.get(KubernetesExtensionBootstrap.CLIENT);
             if (kubectlClient != null && kubectlClient.getKubernetesUrl() != null) {
                 URL kubernetesUrl = kubectlClient.getKubernetesUrl();
-                sans = List.of(kubernetesUrl.getHost());
+                String host = kubernetesUrl.getHost();
+                String formattedHost = isIPv4Address(host) ? "IP:" + host : host;
+                sans = List.of(formattedHost);
             } else {
                 sans = List.of("localhost");
             }
@@ -224,6 +226,10 @@ public class KeycloakContainerManagedResourceBuilder extends ContainerManagedRes
             case JKS -> ".jks";
             default -> throw new IllegalArgumentException(format + " is not supported to get suffix.");
         };
+    }
+
+    private static boolean isIPv4Address(String host) {
+        return host.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$");
     }
 
     private static final class TrustStoreContainerMountStrategy implements ContainerMountStrategy {
