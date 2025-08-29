@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.quarkus.qe</groupId>
     <artifactId>quarkus-test-parent</artifactId>
-    <version>999-SNAPSHOT</version>
+    <version>1.7.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkus - Test Framework - Parent</name>
     <description>Quarkus QE Test Framework is a library enabling the developers to easily deploy multiple Quarkus applications across different platforms in a single test.</description>
@@ -50,7 +50,7 @@
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
+        <quarkus.platform.version>3.26.0</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -77,31 +77,6 @@
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.6</flaky-run-reporter.version>
     </properties>
-    <repositories>
-        <repository>
-            <!-- repository where quarkus 999-snapshot is built -->
-            <id>quarkus-snapshots-central-repository</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>quarkus-snapshots-plugin-repository</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </pluginRepository>
-    </pluginRepositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
