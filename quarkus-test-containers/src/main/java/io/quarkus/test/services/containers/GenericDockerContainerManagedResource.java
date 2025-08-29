@@ -1,10 +1,5 @@
 package io.quarkus.test.services.containers;
 
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.commons.lang3.StringUtils;
 import org.testcontainers.containers.BindMode;
 import org.testcontainers.containers.GenericContainer;
@@ -62,14 +57,8 @@ public class GenericDockerContainerManagedResource extends DockerContainerManage
         }
 
         for (ContainerManagedResourceBuilder.MountConfig mount : model.getMounts()) {
-            try {
-                URL resource = this.getClass().getClassLoader().getResource(mount.from);
-                Path source = Paths.get(resource.toURI());
-                Log.info(model.getContext().getOwner(), "Mounting " + source + " to " + mount.to);
-                container.addFileSystemBind(source.toString(), mount.to, BindMode.READ_ONLY, SelinuxContext.SHARED);
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            }
+            Log.info(model.getContext().getOwner(), "Mounting " + mount.from + " to " + mount.to);
+            container.withClasspathResourceMapping(mount.from, mount.to, BindMode.READ_ONLY, SelinuxContext.SHARED);
         }
 
         container.withExposedPorts(model.getPort());
