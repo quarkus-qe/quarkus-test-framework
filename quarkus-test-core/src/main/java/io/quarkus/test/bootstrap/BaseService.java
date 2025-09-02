@@ -1,8 +1,8 @@
 package io.quarkus.test.bootstrap;
 
-import static io.quarkus.runtime.util.StringUtil.hyphenate;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
+import static io.quarkus.test.utils.StringUtils.sanitizeKubernetesObjectName;
 import static io.quarkus.test.utils.TestExecutionProperties.isThisCliApp;
 import static io.quarkus.test.utils.TestExecutionProperties.isThisStartedCliApp;
 import static io.quarkus.test.utils.TestExecutionProperties.rememberThisAppStarted;
@@ -41,7 +41,7 @@ public class BaseService<T extends Service> implements Service {
     private final List<Action> onPreStartActions = new LinkedList<>();
     private final List<Action> onPreStopActions = new LinkedList<>();
     private final List<Action> onPostStartActions = new LinkedList<>();
-    private final Map<String, String> properties = new HashMap<>();
+    private final Map<String, String> staticProperties = new HashMap<>();
     private final List<Runnable> futureProperties = new LinkedList<>();
 
     private ManagedResourceBuilder managedResourceBuilder;
@@ -49,6 +49,11 @@ public class BaseService<T extends Service> implements Service {
     private String serviceName;
     private Configuration configuration;
     private boolean autoStart = true;
+
+    public BaseService() {
+        // add first
+        this.onPreStartActions.add(s -> futureProperties.forEach(Runnable::run));
+    }
 
     @Override
     public String getScenarioId() {
@@ -100,8 +105,14 @@ public class BaseService<T extends Service> implements Service {
      * configured to be run.
      */
     public T withProperties(String... propertiesFiles) {
-        properties.clear();
-        Stream.of(propertiesFiles).map(PropertiesUtils::toMap).forEach(properties::putAll);
+        if (context != null) {
+            staticProperties.keySet().forEach(k -> context.getConfigPropertiesWithTestScope().remove(k));
+        }
+        staticProperties.clear();
+        Stream.of(propertiesFiles).map(PropertiesUtils::toMap).forEach(properties -> {
+            staticProperties.putAll(properties);
+            updateTestScopeConfigProperties(properties);
+        });
         return (T) this;
     }
 
@@ -112,7 +123,7 @@ public class BaseService<T extends Service> implements Service {
      * NOTE: unlike other {@link this::withProperties}, here we add new properties and keep the old ones
      */
     public T withProperties(Supplier<Map<String, String>> newProperties) {
-        futureProperties.add(() -> properties.putAll(newProperties.get()));
+        futureProperties.add(() -> context.getConfigPropertiesWithTestScope().putAll(newProperties.get()));
         return (T) this;
     }
 
@@ -122,7 +133,8 @@ public class BaseService<T extends Service> implements Service {
      */
     @Override
     public T withProperty(String key, String value) {
-        this.properties.put(key, value);
+        this.staticProperties.put(key, value);
+        updateTestScopeConfigProperties(Map.of(key, value));
         return (T) this;
     }
 
@@ -131,7 +143,7 @@ public class BaseService<T extends Service> implements Service {
      * configured to be run.
      */
     public T withProperty(String key, Supplier<String> value) {
-        futureProperties.add(() -> properties.put(key, value.get()));
+        futureProperties.add(() -> context.withTestScopeConfigProperty(key, value.get()));
         return (T) this;
     }
 
@@ -139,7 +151,8 @@ public class BaseService<T extends Service> implements Service {
      * The runtime configuration property to be configured based on type variable {@code U} from context.
      */
     public <U> T withProperty(String configKey, String contextKey, Function<U, String> configValue) {
-        futureProperties.add(() -> properties.put(configKey, configValue.apply(getPropertyFromContext(contextKey))));
+        futureProperties.add(
+                () -> context.withTestScopeConfigProperty(configKey, configValue.apply(getPropertyFromContext(contextKey))));
         return (T) this;
     }
 
@@ -185,7 +198,12 @@ public class BaseService<T extends Service> implements Service {
 
     @Override
     public Map<String, String> getProperties() {
-        return Collections.unmodifiableMap(properties);
+        if (context == null) {
+            throw new IllegalStateException("Service properties requested before "
+                    + "the 'io.quarkus.test.bootstrap.BaseService.register' has been called. "
+                    + "We need to adjust this framework to register the scenario context first.");
+        }
+        return Collections.unmodifiableMap(context.getConfigPropertiesWithTestScope());
     }
 
     @Override
@@ -283,11 +301,7 @@ public class BaseService<T extends Service> implements Service {
     @Override
     public ServiceContext register(String serviceName, ScenarioContext context) {
         if (TestExecutionProperties.isOpenshiftPlatform() || TestExecutionProperties.isKubernetesPlatform()) {
-            // sanitize service name used in the Deployment
-            // name must fit '[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*')' regular expression
-            // we mostly want to sanitize field names (not explicitly declared service names)
-            // so Java enforces portion of the regular expression for us
-            return registerWithSanitizedServiceName(context, hyphenate(serviceName), serviceName);
+            return registerWithSanitizedServiceName(context, sanitizeKubernetesObjectName(serviceName), serviceName);
         }
         return registerWithSanitizedServiceName(context, serviceName, serviceName);
     }
@@ -302,11 +316,9 @@ public class BaseService<T extends Service> implements Service {
         }
 
         this.context = createServiceContext(context);
-        onPreStart(s -> properties.putAll(this.context.getConfigPropertiesWithTestScope()));
-        onPreStop(s -> this.context.getConfigPropertiesWithTestScope().forEach((k, v) -> properties.remove(k)));
-
-        onPreStart(s -> futureProperties.forEach(Runnable::run));
         context.getTestStore().put(serviceName, this);
+        this.context.getConfigPropertiesWithTestScope().putAll(this.staticProperties);
+
         return this.context;
     }
 
@@ -386,6 +398,14 @@ public class BaseService<T extends Service> implements Service {
         } catch (Throwable t) {
             listeners.forEach(ext -> ext.onServiceError(context, t));
             throw t;
+        }
+    }
+
+    private void updateTestScopeConfigProperties(Map<String, String> properties) {
+        if (this.context != null) {
+            // update the test context properties because this is probably happening "dynamically"
+            // e.g. inside a test method before the service is restarted
+            this.context.getConfigPropertiesWithTestScope().putAll(properties);
         }
     }
 }

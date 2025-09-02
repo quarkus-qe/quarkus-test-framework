@@ -12,6 +12,11 @@ public class OracleService extends DatabaseService<OracleService> {
     public OracleService() {
         // Oracle disallows to use "user", so we use "myuser" as default user name.
         withUser(USER_DEFAULT_VALUE);
+        onPreStart(service -> service
+                .withProperty(USER_PROPERTY, getUser())
+                .withProperty(PASSWORD_PROPERTY, getPassword())
+                .withProperty(USER_PASSWORD_PROPERTY, getPassword())
+                .withProperty(DATABASE_PROPERTY, getDatabase()));
     }
 
     @Override
@@ -39,15 +44,5 @@ public class OracleService extends DatabaseService<OracleService> {
     public String getReactiveUrl() {
         var host = getURI();
         return getJdbcName() + ":thin:@" + host.getHost() + ":" + host.getPort() + "/" + getDatabase();
-    }
-
-    @Override
-    public OracleService onPreStart(Action action) {
-        withProperty(USER_PROPERTY, getUser());
-        withProperty(PASSWORD_PROPERTY, getPassword());
-        withProperty(USER_PASSWORD_PROPERTY, getPassword());
-        withProperty(DATABASE_PROPERTY, getDatabase());
-
-        return super.onPreStart(action);
     }
 }

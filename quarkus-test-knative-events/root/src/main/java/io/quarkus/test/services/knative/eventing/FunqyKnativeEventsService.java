@@ -229,7 +229,9 @@ public class FunqyKnativeEventsService extends BaseService<FunqyKnativeEventsSer
         private FuncInvoker(String baseUrl) {
             request = RestAssured
                     .given()
-                    .baseUri(requireNonNull(baseUrl));
+                    .baseUri(requireNonNull(baseUrl))
+                    // TODO: support TLS communication with Knative service
+                    .relaxedHTTPSValidation();
         }
 
         public FuncInvoker<T> appJsonContentType() {
