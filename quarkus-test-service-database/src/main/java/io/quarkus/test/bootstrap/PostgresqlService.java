@@ -19,24 +19,23 @@ public class PostgresqlService extends DatabaseService<PostgresqlService> {
     static final String DH_PASSWORD_PROPERTY = "POSTGRES_PASSWORD";
     static final String DH_DATABASE_PROPERTY = "POSTGRES_DB";
 
+    public PostgresqlService() {
+        onPreStart(service -> service
+                // RedHat registry environment variables
+                .withProperty(USER_PROPERTY, getUser())
+                .withProperty(PASSWORD_PROPERTY, getPassword())
+                .withProperty(DATABASE_PROPERTY, getDatabase())
+                .withProperty(LOG_DESTINATION, "/dev/stdout")
+
+                // DockerHub environment variables
+                .withProperty(DH_USER_PROPERTY, getUser())
+                .withProperty(DH_PASSWORD_PROPERTY, getPassword())
+                .withProperty(DH_DATABASE_PROPERTY, getDatabase()));
+    }
+
     @Override
     protected String getJdbcName() {
         return JDBC_NAME;
     }
 
-    @Override
-    public PostgresqlService onPreStart(Action action) {
-        // RedHat registry environment variables
-        withProperty(USER_PROPERTY, getUser());
-        withProperty(PASSWORD_PROPERTY, getPassword());
-        withProperty(DATABASE_PROPERTY, getDatabase());
-        withProperty(LOG_DESTINATION, "/dev/stdout");
-
-        // DockerHub environment variables
-        withProperty(DH_USER_PROPERTY, getUser());
-        withProperty(DH_PASSWORD_PROPERTY, getPassword());
-        withProperty(DH_DATABASE_PROPERTY, getDatabase());
-
-        return super.onPreStart(action);
-    }
 }

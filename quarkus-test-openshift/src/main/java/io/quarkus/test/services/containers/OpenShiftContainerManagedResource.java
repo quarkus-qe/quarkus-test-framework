@@ -14,6 +14,7 @@ import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.quarkus.test.bootstrap.ManagedResource;
 import io.quarkus.test.bootstrap.OpenShiftExtensionBootstrap;
 import io.quarkus.test.bootstrap.Protocol;
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.bootstrap.inject.OpenShiftUtils;
 import io.quarkus.test.configuration.Configuration;
@@ -147,15 +148,13 @@ public class OpenShiftContainerManagedResource implements ManagedResource {
     private void applyDeployment() {
         String deploymentFile = getConfiguration().getOrDefault(Configuration.Property.OPENSHIFT_DEPLOYMENT_TEMPLATE_PROPERTY,
                 getTemplateByDefault());
+        Service service = model.getContext().getOwner();
         Path templateFile = model.getContext().getServiceFolder().resolve(DEPLOYMENT);
-        client.applyServicePropertiesUsingTemplate(model.getContext().getOwner(),
-                deploymentFile,
-                this::replaceDeploymentContent,
-                templateFile);
+        client.applyServicePropertiesUsingTemplate(service, deploymentFile, this::replaceDeploymentContent, templateFile);
         List<HasMetadata> metadata = client.loadYamlFromFile(templateFile);
         Deployment deployment = OpenShiftUtils.getDeployment(metadata).orElseThrow();
         for (ContainerManagedResourceBuilder.MountConfig mount : model.getMounts()) {
-            client.addMount(deployment, mount.from, mount.to);
+            client.addMount(service, deployment, mount.from, mount.to);
         }
         String yaml = OpenShiftUtils.toYaml(metadata);
         client.apply(FileUtils.copyContentTo(yaml, templateFile));

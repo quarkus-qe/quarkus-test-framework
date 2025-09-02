@@ -21,6 +21,8 @@ import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
+import static io.quarkus.test.utils.StringUtils.HYPHEN;
+import static io.quarkus.test.utils.StringUtils.sanitizeKubernetesObjectName;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -40,7 +42,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.UnaryOperator;
-import java.util.regex.Pattern;
+import java.util.random.RandomGenerator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -105,7 +107,7 @@ public final class OpenShiftClient {
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             OPENSHIFT_EPHEMERAL_NAMESPACES.getName(), Boolean.TRUE.toString());
     public static final String TLS_ROUTE_SUFFIX = "-tls";
-
+    private static final String DOT = ".";
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
 
     private static final Duration TIMEOUT_DEFAULT = Duration.ofMinutes(5);
@@ -248,7 +250,7 @@ public final class OpenShiftClient {
         var serviceName = service.getName();
         Deployment deployment = client.apps().deployments().withName(serviceName).get();
         boolean isQuarkusRuntime = isQuarkusRuntime(deployment.getSpec().getTemplate().getMetadata().getLabels());
-        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment, isQuarkusRuntime);
+        Map<String, String> enrichProperties = enrichProperties(service, deployment, isQuarkusRuntime);
         if (isQuarkusRuntime) {
             updateAnnotationsIfNecessary(service, serviceName);
         }
@@ -918,7 +920,7 @@ public final class OpenShiftClient {
                 final boolean isQuarkusRuntime = isQuarkusRuntime(templateMetadataLabels);
 
                 // add env var properties
-                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment, isQuarkusRuntime);
+                Map<String, String> enrichProperties = enrichProperties(service, deployment, isQuarkusRuntime);
 
                 final Map<String, String> environmentVariables;
                 if (isQuarkusRuntime) {
@@ -1071,8 +1073,8 @@ public final class OpenShiftClient {
         return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
-    private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment,
-            boolean isQuarkusRuntime) {
+    private Map<String, String> enrichProperties(Service service, Deployment deployment, boolean isQuarkusRuntime) {
+        Map<String, String> properties = service.getProperties();
         // mount path x volume
         Map<String, CustomVolume> volumes = new HashMap<>();
 
@@ -1086,7 +1088,7 @@ public final class OpenShiftClient {
                 String path = entry.getValue().replace(RESOURCE_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String configMapName = normalizeConfigMapName(mountPath, filename);
+                String configMapName = createApiObjectName(service, filename, mountPath);
 
                 // Update config map
                 createOrUpdateConfigMap(configMapName, filename, getFileContent(path));
@@ -1110,7 +1112,7 @@ public final class OpenShiftClient {
                 String mountPath = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[0];
                 String fileName = path.split(RESOURCE_WITH_DESTINATION_SPLIT_CHAR)[1];
                 String fileNameNormalized = getFileName(fileName);
-                String configMapName = normalizeConfigMapName(mountPath, fileNameNormalized);
+                String configMapName = createApiObjectName(service, fileNameNormalized, mountPath);
 
                 // Update config map
                 createOrUpdateConfigMap(configMapName, fileNameNormalized, getFileContent(fileName));
@@ -1122,14 +1124,14 @@ public final class OpenShiftClient {
                 LOG.warn("Property " + entry.getKey() + " was used to copy file to " + propertyValue
                         + ". Please consider using @Mount instead");
             } else if (propertyValue.startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
-                var result = createSecretForSecretWithDestinationPropertyInternal(propertyValue);
+                var result = createSecretForSecretWithDestinationProperty(service, propertyValue);
                 propertyValue = result.propertyValue();
                 volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
             } else if (isSecret(propertyValue)) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
-                String secretName = normalizeConfigMapName(mountPath, filename);
+                String secretName = createApiObjectName(service, filename, mountPath);
 
                 // Push secret file
                 doCreateSecretFromFile(secretName, getFilePath(path));
@@ -1249,18 +1251,11 @@ public final class OpenShiftClient {
         return path;
     }
 
-    private static String normalizeConfigMapName(String mountPath, String fileName) {
-        // /some/mount/path/file-name => some-mount-path-file-name
-        var newName = StringUtils.removeStart(joinMountPathAndFileName(mountPath, fileName), SLASH)
-                .replaceAll(Pattern.quote("."), "-")
-                .replaceAll(SLASH, "-");
-        if (newName.length() > SPECS_SECRET_NAME_LIMIT) {
-            newName = newName.substring(newName.length() - SPECS_SECRET_NAME_LIMIT);
-            while (newName.startsWith("-")) {
-                // must not start with '-something' as it's considered to be a flag
-                newName = newName.substring(1);
-            }
-        }
+    private static String createApiObjectName(Service service, String fileName, String mountPath) {
+        int positiveRandomNumber = RandomGenerator.getDefault().nextInt(1, Integer.MAX_VALUE);
+        final String newName = service.getName() + HYPHEN + positiveRandomNumber + HYPHEN
+                + sanitizeKubernetesObjectName(fileName).replace(DOT, HYPHEN);
+        Log.debug("Created name '%s' for filename '%s' and mount path '%s'", newName, fileName, mountPath);
         return newName;
     }
 
@@ -1317,12 +1312,12 @@ public final class OpenShiftClient {
     public record SecretWithDestinationResult(String secretName, String propertyValue, String mountPath, String fileName) {
     }
 
-    public SecretWithDestinationResult createSecretForSecretWithDestinationPropertyInternal(String propertyValue) {
+    public SecretWithDestinationResult createSecretForSecretWithDestinationProperty(Service service, String propertyValue) {
         String path = propertyValue.replace(SECRET_WITH_DESTINATION_PREFIX, StringUtils.EMPTY);
         int separatorIdx = path.lastIndexOf(DESTINATION_TO_FILENAME_SEPARATOR);
         final String mountPath = path.substring(0, separatorIdx);
         final String filename = path.substring(separatorIdx + 1);
-        String secretName = normalizeConfigMapName(mountPath, filename);
+        String secretName = createApiObjectName(service, filename, mountPath);
 
         // Push secret file
         String newPropertyValue = joinMountPathAndFileName(mountPath, filename);
@@ -1366,7 +1361,7 @@ public final class OpenShiftClient {
                 .toString();
     }
 
-    public void addMount(Deployment deployment, String from, String to) {
+    public void addMount(Service service, Deployment deployment, String from, String to) {
         final String mountPath;
         final String newName;
 
@@ -1381,7 +1376,7 @@ public final class OpenShiftClient {
         }
 
         LOG.info("Copying file " + from + " to folder " + mountPath + " with name " + newName);
-        String configMapName = normalizeConfigMapName(mountPath, newName);
+        String configMapName = createApiObjectName(service, newName, mountPath);
 
         // Update config map
         createOrUpdateConfigMap(configMapName, newName, getFileContent(from));

@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
+import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.utils.Command;
@@ -221,14 +222,15 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
     }
 
     private void withEnvVars(List<String> args) {
-        Map<String, String> envVars = model.getContext().getOwner().getProperties();
+        Service service = model.getContext().getOwner();
+        Map<String, String> envVars = service.getProperties();
         String property = QUARKUS_OPENSHIFT_ENV_VARS;
         if (isKnativeDeployment()) {
             property = QUARKUS_KNATIVE_ENV_VARS;
         }
         for (Entry<String, String> envVar : envVars.entrySet()) {
             if (envVar.getValue().startsWith(SECRET_WITH_DESTINATION_PREFIX)) {
-                var result = client.createSecretForSecretWithDestinationPropertyInternal(envVar.getValue());
+                var result = client.createSecretForSecretWithDestinationProperty(service, envVar.getValue());
                 args.add(withProperty("quarkus.openshift.secret-volumes." + result.secretName() + ".secret-name",
                         result.secretName()));
                 args.add(withProperty(
