@@ -17,6 +17,33 @@ public class InfinispanService extends BaseService<InfinispanService> {
     private String username = USERNAME_DEFAULT;
     private String password = PASSWORD_DEFAULT;
 
+    public InfinispanService() {
+        onPreStart(service -> {
+            service.withProperty("USER", getUsername());
+            service.withProperty("PASS", getPassword());
+
+            if (configFile != null && !configFile.isEmpty()) {
+                // legacy -> Infinispan previous to version 14
+                service.withProperty("CONFIG_PATH", RESOURCE_PREFIX + configFile);
+                // Infinispan 14+ configuration setup
+                service.withProperty("INFINISPAN_CONFIG_PATH",
+                        "resource_with_destination::/opt/infinispan/server/conf|" + configFile);
+            }
+
+            if (userConfigFiles != null) {
+                for (int index = 0; index < userConfigFiles.size(); index++) {
+                    service.withProperty("USER_CONFIG_" + index, RESOURCE_PREFIX + userConfigFiles.get(index));
+                }
+            }
+
+            if (secretFiles != null) {
+                for (int index = 0; index < secretFiles.size(); index++) {
+                    service.withProperty("SECRET_" + index, SECRET_PREFIX + secretFiles.get(index));
+                }
+            }
+        });
+    }
+
     public String getUsername() {
         return username;
     }
@@ -53,32 +80,5 @@ public class InfinispanService extends BaseService<InfinispanService> {
     public InfinispanService withPassword(String password) {
         this.password = password;
         return this;
-    }
-
-    @Override
-    public InfinispanService onPreStart(Action action) {
-        withProperty("USER", getUsername());
-        withProperty("PASS", getPassword());
-
-        if (configFile != null && !configFile.isEmpty()) {
-            // legacy -> Infinispan previous to version 14
-            withProperty("CONFIG_PATH", RESOURCE_PREFIX + configFile);
-            // Infinispan 14+ configuration setup
-            withProperty("INFINISPAN_CONFIG_PATH", "resource_with_destination::/opt/infinispan/server/conf|" + configFile);
-        }
-
-        if (userConfigFiles != null) {
-            for (int index = 0; index < userConfigFiles.size(); index++) {
-                withProperty("USER_CONFIG_" + index, RESOURCE_PREFIX + userConfigFiles.get(index));
-            }
-        }
-
-        if (secretFiles != null) {
-            for (int index = 0; index < secretFiles.size(); index++) {
-                withProperty("SECRET_" + index, SECRET_PREFIX + secretFiles.get(index));
-            }
-        }
-
-        return super.onPreStart(action);
     }
 }

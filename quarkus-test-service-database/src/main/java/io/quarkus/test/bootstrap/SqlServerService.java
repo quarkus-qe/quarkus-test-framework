@@ -17,6 +17,8 @@ public class SqlServerService extends DatabaseService<SqlServerService> {
     public SqlServerService() {
         super();
         withPassword(DEFAULT_PASSWORD);
+        withProperty("ACCEPT_EULA", "Y");
+        onPreStart(service -> service.withProperty("MSSQL_SA_PASSWORD", getPassword()));
     }
 
     @Override
@@ -85,10 +87,4 @@ public class SqlServerService extends DatabaseService<SqlServerService> {
         return JDBC_NAME;
     }
 
-    @Override
-    public SqlServerService onPreStart(Action action) {
-        withProperty("MSSQL_SA_PASSWORD", getPassword());
-        withProperty("ACCEPT_EULA", "Y");
-        return super.onPreStart(action);
-    }
 }
