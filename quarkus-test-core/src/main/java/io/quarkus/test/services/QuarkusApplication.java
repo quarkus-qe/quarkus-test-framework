@@ -14,6 +14,15 @@ public @interface QuarkusApplication {
     // By default, it will load all the classes in the classpath.
     Class<?>[] classes() default {};
 
+    /**
+     * If this is set to true, all classes from application's main/src will always be included.
+     * Otherwise, if QuarkusApplication.classes() is set, only classes explicitly stated in classes() will be loaded.
+     * This option is meant for cases, when you have a lot of classes in main/src and want to add some more,
+     * from other place (like from test/src).
+     * In that case, you need only to set this flag to true, and list desired additional classes in classes().
+     */
+    boolean includeAllClassesFromMain() default false;
+
     Class<? extends ManagedResourceBuilder> builder() default ProdQuarkusApplicationManagedResourceBuilder.class;
 
     /**
