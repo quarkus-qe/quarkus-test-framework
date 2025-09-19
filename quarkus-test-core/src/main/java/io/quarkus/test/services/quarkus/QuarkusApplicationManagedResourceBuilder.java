@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import io.quarkus.deployment.configuration.BuildTimeConfigurationReader;
@@ -206,12 +207,21 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     }
 
     public void initAppClasses(Class<?>[] classes) {
+        initAppClasses(classes, false);
+    }
+
+    public void initAppClasses(Class<?>[] classes, boolean includeAllClassesFromMain) {
         requiresCustomBuild = true;
-        appClasses = classes;
-        if (appClasses == null || appClasses.length == 0) {
-            appClasses = ClassPathUtils.findAllClassesFromSource();
-            requiresCustomBuild = false;
+        if (classes == null || classes.length == 0 || includeAllClassesFromMain) {
+            if (classes != null && classes.length > 0) {
+                appClasses = ArrayUtils.addAll(classes, ClassPathUtils.findAllClassesFromSource());
+                buildWithAllClasses = false;
+            } else {
+                appClasses = ClassPathUtils.findAllClassesFromSource();
+                requiresCustomBuild = false;
+            }
         } else {
+            appClasses = classes;
             buildWithAllClasses = false;
         }
     }
