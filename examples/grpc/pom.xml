@@ -38,6 +38,10 @@
             <artifactId>quarkus-test-kubernetes</artifactId>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>jakarta.ws.rs</groupId>
+            <artifactId>jakarta.ws.rs-api</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
