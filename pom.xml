@@ -45,7 +45,7 @@
         <impsort-maven-plugin.version>1.11.0</impsort-maven-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-        <quarkus.platform.version>3.15.6</quarkus.platform.version>
+        <quarkus.platform.version>3.15.7</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
@@ -301,7 +301,7 @@
                     <dependency>
                         <artifactId>quarkus-ide-config</artifactId>
                         <groupId>io.quarkus</groupId>
-                        <version>3.15.6</version>
+                        <version>3.15.7</version>
                     </dependency>
                 </dependencies>
                 <configuration>
