@@ -34,7 +34,7 @@ jobs:
           path: maven-repo-current-fw.tgz
           retention-days: 1
   quarkus-main-build:
-    name: Quarkus 3.26 build
+    name: Quarkus 3.27 build
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -54,7 +54,7 @@ jobs:
           cache: 'maven'
       - name: Build Quarkus main
         run: |
-          git clone -b 3.26 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone -b 3.27 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -70,7 +70,7 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: ["3.26.999-SNAPSHOT"]
+        quarkus-version: ["3.27.999-SNAPSHOT"]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -98,7 +98,7 @@ jobs:
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar ~/.m2/repository/io/quarkus/quarkus-cli/3.26.999-SNAPSHOT/quarkus-cli-3.26.999-SNAPSHOT-runner.jar "\$@"
+          java -jar ~/.m2/repository/io/quarkus/quarkus-cli/3.27.999-SNAPSHOT/quarkus-cli-3.27.999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
@@ -136,7 +136,7 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: [ "3.26.999-SNAPSHOT" ]
+        quarkus-version: [ "3.27.999-SNAPSHOT" ]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -164,7 +164,7 @@ jobs:
         run: |
           cat <<EOF > ./quarkus-dev-cli
           #!/bin/bash
-          java -jar ~/.m2/repository/io/quarkus/quarkus-cli/3.26.999-SNAPSHOT/quarkus-cli-3.26.999-SNAPSHOT-runner.jar "\$@"
+          java -jar ~/.m2/repository/io/quarkus/quarkus-cli/3.27.999-SNAPSHOT/quarkus-cli-3.27.999-SNAPSHOT-runner.jar "\$@"
           EOF
           chmod +x ./quarkus-dev-cli
           ./quarkus-dev-cli version
@@ -203,7 +203,7 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        quarkus-version: ["3.26.999-SNAPSHOT"]
+        quarkus-version: ["3.27.999-SNAPSHOT"]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
