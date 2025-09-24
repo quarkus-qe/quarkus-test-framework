@@ -1,5 +1,6 @@
 package io.quarkus.test.bootstrap;
 
+import static io.quarkus.test.configuration.Configuration.Property.ATTACH_TO_PROCESS;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.lang.reflect.Field;
@@ -337,6 +338,13 @@ public class QuarkusScenarioBootstrap
 
     private static TestContextImpl toTestContext(ExtensionContext ctx) {
         var testNamespace = ExtensionContext.Namespace.create(ScenarioContext.class);
-        return new TestContextImpl(ctx.getRequiredTestClass(), ctx.getTags(), ctx.getStore(testNamespace));
+        boolean attachToProcess = new PropertyLookup(ATTACH_TO_PROCESS.getName()).getAsBoolean();
+        final TestContext.DebugOptions debugOptions;
+        if (attachToProcess) {
+            debugOptions = new TestContext.DebugOptions(true, true);
+        } else {
+            debugOptions = null;
+        }
+        return new TestContextImpl(ctx.getRequiredTestClass(), ctx.getTags(), ctx.getStore(testNamespace), debugOptions);
     }
 }

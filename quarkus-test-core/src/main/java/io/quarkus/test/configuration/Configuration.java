@@ -196,6 +196,7 @@ public final class Configuration {
         SKIP_BEFORE_AND_AFTER("debug.skip-before-and-after-methods"),
         RUN_TESTS("debug.run-tests"),
         SUSPEND("debug.suspend"),
+        ATTACH_TO_PROCESS("debug.attach-to-process"),
         DOCKER_DETECTION("docker-detection-enabled"),
         JAVA_ENABLE_PREVIEW("enable-java-preview"),
         IGNORE_KNOWN_ISSUE("global.ignore-known-issue"),

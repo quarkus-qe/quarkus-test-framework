@@ -46,7 +46,7 @@ public interface TestContext {
             this.debugOptions = debugOptions;
         }
 
-        TestContextImpl(Class<?> requiredTestClass, Set<String> tags, ExtensionContext.Store store) {
+        TestContextImpl(Class<?> requiredTestClass, Set<String> tags, ExtensionContext.Store store, DebugOptions debugOptions) {
             this.testStore = new TestStore() {
                 @Override
                 public Object get(Object key) {
@@ -61,7 +61,7 @@ public interface TestContext {
             this.requiredTestClass = requiredTestClass;
             this.tags = tags;
             this.runningTestMethodName = null;
-            this.debugOptions = null;
+            this.debugOptions = debugOptions;
         }
 
         TestContextImpl(TestContext testContext, String runningTestMethodName) {
