@@ -33,7 +33,7 @@ public class QuarkusCliClient {
      * doesn't make sense to request a service context.
      */
     static final String CLI_SERVICE_CONTEXT_KEY = "io.quarkus.test.bootstrap#cli-service-context";
-    private static final String QUARKUS_UPSTREAM_VERSION = "3.26.999-SNAPSHOT";
+    private static final String QUARKUS_UPSTREAM_VERSION = "3.27.999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final String DEV = "dev";
     private static final PropertyLookup COMMAND = new PropertyLookup(CLI_CMD.getName(), "quarkus");
