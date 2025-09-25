@@ -4,7 +4,7 @@
     <parent>
         <groupId>io.quarkus.qe</groupId>
         <artifactId>quarkus-test-parent</artifactId>
-        <version>1.6.5-SNAPSHOT</version>
+        <version>1.6.5</version>
         <relativePath>../../</relativePath>
     </parent>
     <artifactId>quarkus-test-preparer</artifactId>
