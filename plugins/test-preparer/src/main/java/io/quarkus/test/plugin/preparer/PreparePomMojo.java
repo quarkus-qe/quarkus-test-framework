@@ -59,6 +59,7 @@ public class PreparePomMojo extends AbstractMojo {
      */
     private static final Set<String> POM_PROPERTIES = Set.of("quarkus.platform.group-id", "quarkus.platform.artifact-id",
             "quarkus.platform.version", "compiler-plugin.version", SUREFIRE_PLUGIN_VERSION, FAILSAFE_PLUGIN_VERSION);
+    private static final String ANNOTATION_PROCESSOR_PATHS_USE_DEP_MGMT = "annotationProcessorPathsUseDepMgmt";
 
     @Parameter(defaultValue = "${project}", readonly = true, required = true)
     protected MavenProject project;
@@ -261,6 +262,7 @@ public class PreparePomMojo extends AbstractMojo {
                 for (Xpp3Dom path : annotationProcessPaths.getChildren()) {
                     var artifactId = path.getChild("artifactId");
                     if (artifactId != null && PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACTS.contains(artifactId.getValue())) {
+                        addAnnotationProcessorPathsUseDepMgmt(config);
                         var mavenCompilerPlugin = newPomModel.getBuild().getPlugins().stream()
                                 .filter(p -> MAVEN_COMPILER_PLUGIN.equalsIgnoreCase(p.getArtifactId()))
                                 .findFirst().orElseThrow(() -> new IllegalStateException(
@@ -272,6 +274,19 @@ public class PreparePomMojo extends AbstractMojo {
             }
         }
         return false;
+    }
+
+    private static void addAnnotationProcessorPathsUseDepMgmt(Xpp3Dom config) {
+        var child = config.getChild(ANNOTATION_PROCESSOR_PATHS_USE_DEP_MGMT);
+        if (child != null) {
+            if (!Boolean.parseBoolean(child.getValue())) {
+                child.setValue(Boolean.TRUE.toString().toLowerCase());
+            }
+        } else {
+            child = new Xpp3Dom(ANNOTATION_PROCESSOR_PATHS_USE_DEP_MGMT);
+            child.setValue(Boolean.TRUE.toString().toLowerCase());
+            config.addChild(child);
+        }
     }
 
     private static void addCurrentProjectRepositories(Model newPomModel, Model rawCurrentProjectModel) {
