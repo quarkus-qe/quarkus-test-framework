@@ -11,6 +11,7 @@ Please check the relevant options
 - [ ] Release (follows conventions described in the [RELEASE.md](https://github.com/quarkus-qe/quarkus-test-framework/blob/main/RELEASE.md))
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
 - [ ] This change requires a documentation update
+- [ ] This change requires execution against Kubernetes (use `run kubernetes` phrase in comment)
 - [ ] This change requires execution against OCP (use `run tests` phrase in comment)
 
 ### Checklist:

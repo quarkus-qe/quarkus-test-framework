@@ -1,0 +1,162 @@
+name: "PR"
+on:
+  issue_comment:
+    types: [ created ]
+jobs:
+  write-comment:
+    name: Write comment
+    runs-on: ubuntu-latest
+    if: >
+      github.event.issue.pull_request &&
+      (
+        github.event.comment.author_association == 'MEMBER' ||
+        github.event.comment.author_association == 'OWNER'
+      ) &&
+      contains(github.event.comment.body, 'run kubernetes')
+    outputs:
+      comment_id: ${{ steps.create_comment.outputs.result }}
+    steps:
+      - name: Comment PR with Link
+        id: create_comment
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+            const { data: comment } = await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `🚧 Kubernetes workflow run started and I'll update this comment with results! [View the run here](${runUrl})`
+            });
+            return comment.id;
+  kubernetes-build-jvm-latest:
+    name: Kubernetes JVM
+    runs-on: ubuntu-latest
+    needs: write-comment
+    strategy:
+      matrix:
+        include:
+          - quarkus-version: "999-SNAPSHOT"
+            java: 17
+            extra-maven-args: ''
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21 # test 'quarkus-container-image-jib' with Java 21 as it should use 'openjdk-21-runtime' instead
+            extra-maven-args: '-pl examples/pingpong/'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.issue.pull_request.head.sha }}
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'maven'
+      - name: Set up Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v2.14.0
+        with:
+          minikube version: 'v1.36.0'
+          kubernetes version: 'v1.33.1'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.CI_REGISTRY_USERNAME }}
+          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
+      - name: Build
+        run: |
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
+      - name: Zip Artifacts
+        if: failure()
+        run: |
+          zip -R artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}
+          path: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
+  kubernetes-build-native-latest:
+    name: Kubernetes Native
+    runs-on: ubuntu-latest
+    needs: write-comment
+    strategy:
+      matrix:
+        include:
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21
+          - quarkus-version: "999-SNAPSHOT"
+            java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
+            extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21'
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.issue.pull_request.head.sha }}
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+          cache: 'maven'
+      - name: Set up Minikube-Kubernetes
+        uses: manusa/actions-setup-minikube@v2.14.0
+        with:
+          minikube version: 'v1.36.0'
+          kubernetes version: 'v1.33.1'
+          github token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: quay.io
+          username: ${{ secrets.CI_REGISTRY_USERNAME }}
+          password: ${{ secrets.CI_REGISTRY_PASSWORD }}
+      - name: Build
+        run: |
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
+      - name: Zip Artifacts
+        if: failure()
+        run: |
+          zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
+      - name: Archive artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
+          path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
+  update-comment:
+    name: Update comment
+    runs-on: ubuntu-latest
+    needs: [ write-comment, kubernetes-build-jvm-latest, kubernetes-build-native-latest ]
+    if: always()
+    steps:
+      - name: Update PR comment with status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
+            let body;
+            const jvmJobResult = '${{ needs.kubernetes-build-jvm-latest.result }}';
+            const nativeJobResult = '${{ needs.kubernetes-build-native-latest.result }}';
+            
+            if (jvmJobResult === 'success' && nativeJobResult === 'success') {
+              body = `✅ Kubernetes workflow finished successfully! [View the details here](${runUrl})`;
+            } else {
+              body = `Kubernetes workflow failed. ❌ \n\n` +
+                      `• **JVM Build**: ${jvmJobResult}\n` +
+                      `• **Native Build**: ${nativeJobResult}\n\n` +
+                      `[View the details here](${runUrl})`;
+            }
+            
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: ${{ needs.write-comment.outputs.comment_id }},
+              body: body
+            });
