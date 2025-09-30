@@ -1,4 +1,4 @@
-name: "PR"
+name: "PR Kubernetes"
 on:
   issue_comment:
     types: [ created ]
@@ -15,8 +15,20 @@ jobs:
       contains(github.event.comment.body, 'run kubernetes')
     outputs:
       comment_id: ${{ steps.create_comment.outputs.result }}
+      head_sha: ${{ steps.get_pr_sha.outputs.pr_sha }}
     steps:
-      - name: Comment PR with Link
+      - name: Get PR SHA
+        id: get_pr_sha
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            core.setOutput('pr_sha', pr.data.head.sha);
+      - name: Add comment to PR with link
         id: create_comment
         uses: actions/github-script@v8
         with:
@@ -45,7 +57,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.issue.pull_request.head.sha }}
+          ref: ${{ needs.write-comment.outputs.head_sha }}
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -95,7 +107,7 @@ jobs:
     steps:
       - uses: actions/checkout@v5
         with:
-          ref: ${{ github.event.issue.pull_request.head.sha }}
+          ref: ${{ needs.write-comment.outputs.head_sha }}
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -134,7 +146,7 @@ jobs:
     name: Update comment
     runs-on: ubuntu-latest
     needs: [ write-comment, kubernetes-build-jvm-latest, kubernetes-build-native-latest ]
-    if: always()
+    if: success() || failure()
     steps:
       - name: Update PR comment with status
         uses: actions/github-script@v8
