@@ -516,6 +516,7 @@
                                     <systemPropertyVariables>
                                         <!-- always set 'OpenShift' property as that's how detect OpenShift tests inside FW -->
                                         <openshift>true</openshift>
+                                        <consul.image>registry.connect.redhat.com/hashicorp/consul:1.21</consul.image>
                                     </systemPropertyVariables>
                                 </configuration>
                             </execution>
