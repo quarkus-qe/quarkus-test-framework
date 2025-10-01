@@ -24,6 +24,7 @@ import io.restassured.response.Response;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TodoDemoIT {
     private static final String REPO = "https://github.com/quarkusio/todo-demo-app.git";
+    private static final String COMMIT = "a7cde7554b3eb445991522afd8949cdfdcc0547c";
     private static final String DEFAULT_ARGS = "-DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} ";
     private static final String UBER = "-Dquarkus.package.jar.type=uber-jar ";
     private static final String NO_SUFFIX = "-Dquarkus.package.jar.add-runner-suffix=false";
@@ -33,20 +34,21 @@ public class TodoDemoIT {
             // store data in /tmp/psql as in OpenShift we don't have permissions to /var/lib/postgresql/data
             .withProperty("PGDATA", "/tmp/psql");
 
-    @GitRepositoryQuarkusApplication(repo = REPO, mavenArgs = DEFAULT_ARGS + UBER)
+    @GitRepositoryQuarkusApplication(repo = REPO, branch = COMMIT, mavenArgs = DEFAULT_ARGS + UBER)
     static final RestService todoApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
-    @GitRepositoryQuarkusApplication(repo = REPO, artifact = "todo-backend-1.0-SNAPSHOT-runner.jar", mavenArgs = DEFAULT_ARGS
+    @GitRepositoryQuarkusApplication(repo = REPO, branch = COMMIT, artifact = "todo-backend-1.0-SNAPSHOT-runner.jar", mavenArgs = DEFAULT_ARGS
             + UBER)
     static final RestService todoExplicitApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
-    @GitRepositoryQuarkusApplication(repo = REPO, artifact = "todo-backend-1.0-SNAPSHOT.jar", mavenArgs = DEFAULT_ARGS + UBER
+    @GitRepositoryQuarkusApplication(repo = REPO, branch = COMMIT, artifact = "todo-backend-1.0-SNAPSHOT.jar", mavenArgs = DEFAULT_ARGS
+            + UBER
             + NO_SUFFIX)
     static final RestService todoUnsuffixedApp = new RestService()
             .withProperty("quarkus.datasource.username", database.getUser())
