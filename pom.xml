@@ -75,7 +75,7 @@
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
         <consul.image>docker.io/hashicorp/consul:1.21</consul.image>
         <reruns>2</reruns>
-        <flaky-run-reporter.version>0.1.6</flaky-run-reporter.version>
+        <flaky-run-reporter.version>0.1.7</flaky-run-reporter.version>
     </properties>
     <repositories>
         <repository>
