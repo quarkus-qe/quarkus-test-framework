@@ -4,7 +4,10 @@ import static io.quarkus.test.configuration.Configuration.Property.CLI_CMD;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.createDisableBuildAnalyticsProperty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.io.Closeable;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -38,6 +41,7 @@ public class QuarkusCliClient {
     private static final String DEV = "dev";
     private static final PropertyLookup COMMAND = new PropertyLookup(CLI_CMD.getName(), "quarkus");
     private static final Path TARGET = Paths.get("target");
+    private volatile boolean useTemporaryDirectory = false;
 
     private final ScenarioContext context;
 
@@ -97,7 +101,18 @@ public class QuarkusCliClient {
     }
 
     public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request, String targetFolderName) {
-        Path serviceFolder = isNotEmpty(targetFolderName) ? TARGET.resolve(targetFolderName).resolve(name) : null;
+        final Path serviceFolder;
+        if (isNotEmpty(targetFolderName)) {
+            serviceFolder = TARGET.resolve(targetFolderName).resolve(name);
+        } else if (useTemporaryDirectory) {
+            try {
+                serviceFolder = Files.createTempDirectory(name).resolve(name);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create temporary directory", e);
+            }
+        } else {
+            serviceFolder = null;
+        }
         QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
 
@@ -483,5 +498,17 @@ public class QuarkusCliClient {
 
     public CreateExtensionRequest getDefaultCreateExtensionRequest() {
         return CreateExtensionRequest.defaults();
+    }
+
+    /**
+     * This client will only create new applications inside temporary directory (unless user explicitly specified path).
+     * It can be useful if you need to create new Quarkus applications in the temporary directory only within one
+     * test method.
+     *
+     * @return {@link Closeable} which disables using temporary directory
+     */
+    public Closeable useTemporaryDirectory() {
+        useTemporaryDirectory = true;
+        return () -> useTemporaryDirectory = false;
     }
 }
