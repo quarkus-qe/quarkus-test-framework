@@ -646,10 +646,9 @@ public final class OpenShiftClient {
                     .get();
             return OPERATOR_PHASE_INSTALLED.equals(operatorService.getStatus().getPhase());
         }, AwaitilitySettings
-                .defaults()
-                .withService(service)
                 .usingTimeout(service.getConfiguration()
-                        .getAsDuration(Configuration.Property.OPERATOR_INSTALL_TIMEOUT, TIMEOUT_DEFAULT)));
+                        .getAsDuration(Configuration.Property.OPERATOR_INSTALL_TIMEOUT, TIMEOUT_DEFAULT))
+                .withService(service));
         Log.info("Operator installed... %s", service.getName());
     }
 
