@@ -88,7 +88,7 @@ jobs:
           zip -R artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -138,7 +138,7 @@ jobs:
           zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
