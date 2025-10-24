@@ -34,7 +34,7 @@ jobs:
           zip -R artifacts-latest-linux-jvm${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-latest-linux-jvm${{ matrix.java }}
           path: artifacts-latest-linux-jvm${{ matrix.java }}.zip
@@ -70,7 +70,7 @@ jobs:
           zip -R artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -124,7 +124,7 @@ jobs:
           zip -R artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-jvm-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -168,7 +168,7 @@ jobs:
           zip -R artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip '*-reports/*'
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}
           path: artifacts-k8s-native-${{ matrix.quarkus-version }}-${{ matrix.java }}.zip
@@ -200,7 +200,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-jvm${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-latest-windows-jvm${{ matrix.java }}
           path: artifacts-latest-windows-jvm${{ matrix.java }}.tar
@@ -254,7 +254,7 @@ jobs:
           /usr/bin/find . -name '*-reports/*' -type d | tar -czf artifacts-latest-windows-native${{ matrix.java }}.tar -T -
       - name: Archive artifacts
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: artifacts-latest-windows-native${{ matrix.java }}
           path: artifacts-latest-windows-native${{ matrix.java }}.tar
