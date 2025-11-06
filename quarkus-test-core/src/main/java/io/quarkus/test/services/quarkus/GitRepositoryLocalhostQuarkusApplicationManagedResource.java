@@ -55,6 +55,10 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
             commands = super.prepareCommand(systemProperties);
         }
 
+        // Add additional mavenArgs
+        String[] mvnArgs = StringUtils.split(model.getMavenArgsWithVersion(), " ");
+        commands.addAll(List.of(mvnArgs));
+
         // set quarkus.platform.group-id
         commands.add(withProperty(PLATFORM_GROUP_ID.getPropertyKey(), PLATFORM_GROUP_ID.get()));
 
