@@ -1,5 +1,7 @@
 package io.quarkus.test.services.operator;
 
+import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
+
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -12,14 +14,14 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
 import io.quarkus.test.services.URILike;
-import io.quarkus.test.services.operator.model.CustomResourceDefinition;
+import io.quarkus.test.services.operator.model.CustomResourceInstance;
 import io.quarkus.test.utils.FileUtils;
 
 public class OperatorManagedResource implements ManagedResource {
 
     private final OperatorManagedResourceBuilder model;
     private final OpenShiftClient client;
-    private final List<CustomResourceDefinition> crdsToWatch = new ArrayList<>();
+    private final List<CustomResourceInstance> crsToWatch = new ArrayList<>();
 
     private boolean running;
 
@@ -37,7 +39,9 @@ public class OperatorManagedResource implements ManagedResource {
     public void start() {
         if (!running) {
             installOperator();
-            applyCRDs();
+            // operator might create a CustomResourceDefinitions during installation. Wait for those to be ready.
+            waitForCRDs();
+            applyCRs();
 
             running = true;
         }
@@ -64,26 +68,34 @@ public class OperatorManagedResource implements ManagedResource {
         return Collections.emptyList();
     }
 
-    private void applyCRDs() {
+    private void applyCRs() {
         if (model.getContext().getOwner() instanceof OperatorService<?> service) {
-            for (var crd : service.getCrds()) {
-                applyCRD(crd);
+            for (var cr : service.getCrs()) {
+                applyCR(cr);
             }
         }
     }
 
-    private void applyCRD(CustomResourceDefinition crd) {
+    private void applyCR(CustomResourceInstance cr) {
         ServiceContext serviceContext = model.getContext();
-        Path crdFileDefinition = serviceContext.getServiceFolder().resolve(crd.name());
-        String content = FileUtils.loadFile(crd.file());
-        FileUtils.copyContentTo(content, crdFileDefinition);
+        Path crFileDefinition = serviceContext.getServiceFolder().resolve(cr.name());
+        String content = FileUtils.loadFile(cr.file());
+        FileUtils.copyContentTo(content, crFileDefinition);
 
-        client.apply(crdFileDefinition);
-        crdsToWatch.add(crd);
+        client.apply(crFileDefinition);
+        crsToWatch.add(cr);
     }
 
     private boolean customResourcesAreReady() {
-        return crdsToWatch.stream().allMatch(crd -> client.isCustomResourceReady(crd.name(), crd.type()));
+        return crsToWatch.stream().allMatch(cr -> client.isCustomResourceReady(cr.name(), cr.type()));
+    }
+
+    private void waitForCRDs() {
+        if (model.getContext().getOwner() instanceof OperatorService<?> service) {
+            for (String crdName : service.getCrdNamesToWaitFor()) {
+                untilIsTrue(() -> client.isCustomResourceDefinitionReady(crdName));
+            }
+        }
     }
 
     private void installOperator() {

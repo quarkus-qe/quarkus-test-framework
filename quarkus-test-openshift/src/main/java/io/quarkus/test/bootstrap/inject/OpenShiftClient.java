@@ -67,6 +67,7 @@ import io.fabric8.kubernetes.api.model.Volume;
 import io.fabric8.kubernetes.api.model.VolumeBuilder;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
+import io.fabric8.kubernetes.api.model.apiextensions.v1.CustomResourceDefinition;
 import io.fabric8.kubernetes.api.model.apps.Deployment;
 import io.fabric8.kubernetes.client.CustomResource;
 import io.fabric8.kubernetes.client.KubernetesClientBuilder;
@@ -118,6 +119,7 @@ public final class OpenShiftClient {
     private static final String OPERATOR_PHASE_INSTALLED = "Succeeded";
     private static final String BUILD_FAILED_STATUS = "Failed";
     private static final String CUSTOM_RESOURCE_EXPECTED_TYPE = "Ready";
+    private static final String CUSTOM_RESOURCE_DEFINITION_EXPECTED_TYPE = "Established";
     private static final String CUSTOM_RESOURCE_EXPECTED_STATUS = "True";
     private static final String RESOURCE_MNT_FOLDER = "/resources";
     private static final String APP_PROPS_CONFIG_MAP_KEY = "application-properties";
@@ -652,15 +654,29 @@ public final class OpenShiftClient {
         Log.info("Operator installed... %s", service.getName());
     }
 
+    public boolean isCustomResourceDefinitionReady(String name) {
+        CustomResourceDefinition crd = client.resources(CustomResourceDefinition.class).withName(name).get();
+
+        if (crd == null
+                || crd.getStatus() == null
+                || crd.getStatus().getConditions() == null) {
+            return false;
+        }
+
+        return crd.getStatus().getConditions().stream()
+                .anyMatch(condition -> CUSTOM_RESOURCE_DEFINITION_EXPECTED_TYPE.equals(condition.getType())
+                        && CUSTOM_RESOURCE_EXPECTED_STATUS.equals(condition.getStatus()));
+    }
+
     /**
-     * Check whether the the custom resource to have a condition status "Ready" with value "True".
+     * Check whether the custom resource to have a condition status "Ready" with value "True".
      */
     public boolean isCustomResourceReady(String name,
-            Class<? extends CustomResource<?, ? extends CustomResourceStatus>> crdType) {
+            Class<? extends CustomResource<?, ? extends CustomResourceStatus>> crType) {
         if (!isClientReady) {
             return false;
         }
-        CustomResource<?, ? extends CustomResourceStatus> customResource = client.resources(crdType).withName(name).get();
+        CustomResource<?, ? extends CustomResourceStatus> customResource = client.resources(crType).withName(name).get();
         if (customResource == null
                 || customResource.getStatus() == null
                 || customResource.getStatus().getConditions() == null) {

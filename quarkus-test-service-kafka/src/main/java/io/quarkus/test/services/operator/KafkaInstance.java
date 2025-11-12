@@ -20,7 +20,9 @@ public class KafkaInstance extends OperatorService<KafkaInstance> {
 
     public KafkaInstance(String name, String crdFile) {
         this.name = name;
-        withCrd(name, crdFile, KafkaInstanceCustomResource.class);
+        withCr(name, crdFile, KafkaInstanceCustomResource.class);
+        waitForCRD("kafkas.kafka.strimzi.io");
+        waitForCRD("kafkanodepools.kafka.strimzi.io");
     }
 
     @Override
