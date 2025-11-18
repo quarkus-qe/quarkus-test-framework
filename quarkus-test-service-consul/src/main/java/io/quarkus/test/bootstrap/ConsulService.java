@@ -6,9 +6,10 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
+import org.kiwiproject.consul.Consul;
+import org.kiwiproject.consul.KeyValueClient;
+
 import com.google.common.net.HostAndPort;
-import com.orbitz.consul.Consul;
-import com.orbitz.consul.KeyValueClient;
 
 public class ConsulService extends BaseService<ConsulService> {
 
