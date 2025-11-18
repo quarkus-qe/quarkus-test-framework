@@ -9,7 +9,7 @@
     <artifactId>quarkus-test-service-consul</artifactId>
     <name>Quarkus - Test Framework - Service - Consul</name>
     <properties>
-        <consul-client.version>1.5.3</consul-client.version>
+        <consul-client.version>1.8.1</consul-client.version>
     </properties>
     <dependencies>
         <dependency>
@@ -17,7 +17,7 @@
             <artifactId>quarkus-test-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.orbitz.consul</groupId>
+            <groupId>org.kiwiproject</groupId>
             <artifactId>consul-client</artifactId>
             <version>${consul-client.version}</version>
         </dependency>
