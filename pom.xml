@@ -73,7 +73,8 @@
         <infinispan.image>docker.io/infinispan/server:15.0</infinispan.image>
         <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
-        <consul.image>docker.io/hashicorp/consul:1.21</consul.image>
+        <!-- We're not allowed to use newer consul version than 1.16.4 due to changed license -->
+        <consul.image>docker.io/hashicorp/consul:1.16.4</consul.image>
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.6</flaky-run-reporter.version>
     </properties>
@@ -491,7 +492,8 @@
                                     <systemPropertyVariables>
                                         <!-- always set 'OpenShift' property as that's how detect OpenShift tests inside FW -->
                                         <openshift>true</openshift>
-                                        <consul.image>registry.connect.redhat.com/hashicorp/consul:1.21</consul.image>
+                                        <!-- we cannot use newer consul than 1.16.4 for licence reasons -->
+                                        <consul.image>registry.connect.redhat.com/hashicorp/consul:1.16.4-ubi</consul.image>
                                     </systemPropertyVariables>
                                 </configuration>
                             </execution>
