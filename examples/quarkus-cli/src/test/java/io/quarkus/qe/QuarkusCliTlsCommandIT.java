@@ -2,6 +2,7 @@ package io.quarkus.qe;
 
 import jakarta.inject.Inject;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Tag;
@@ -16,6 +17,7 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersion;
 import io.quarkus.test.scenarios.annotations.DisabledOnQuarkusVersions;
 
+@Disabled("https://github.com/quarkusio/quarkus/issues/51119")
 @DisabledOnQuarkusVersions({
         // disable on 3.9-3.13
         @DisabledOnQuarkusVersion(version = "3\\.(9|10|11|12|13)\\..*", reason = "https://github.com/quarkusio/quarkus/issues/42752"),
