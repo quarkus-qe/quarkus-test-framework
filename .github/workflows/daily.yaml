@@ -12,7 +12,7 @@ jobs:
         quarkus-version: ["999-SNAPSHOT"]
         java: [ 17, 21 ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -46,7 +46,7 @@ jobs:
         quarkus-version: ["current", "999-SNAPSHOT"]
         java: [ 17 ]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -93,7 +93,7 @@ jobs:
             java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
             extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-jvm-image=registry.access.redhat.com/ubi8/openjdk-21-runtime:latest'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -137,7 +137,7 @@ jobs:
           - quarkus-version: "999-SNAPSHOT"
             java: 21
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -180,7 +180,7 @@ jobs:
         java: [ 17, 21 ]
         quarkus-version: ["999-SNAPSHOT"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
@@ -214,7 +214,7 @@ jobs:
         graalvm-version: ["mandrel-latest"]
         graalvm-java: ["21"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
