@@ -71,7 +71,6 @@
         <mysql.image>docker.io/mysql:8.4</mysql.image>
         <strimzi.testcontainers.version>0.113.0</strimzi.testcontainers.version>
         <infinispan.image>docker.io/infinispan/server:16.0</infinispan.image>
-        <infinispan-legacy.image>docker.io/infinispan/server:13.0</infinispan-legacy.image>
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
         <!-- We're not allowed to use newer consul version than 1.16.4 due to changed license -->
         <consul.image>docker.io/hashicorp/consul:1.16.4</consul.image>
@@ -400,7 +399,6 @@
                                 <postgresql.image>${postgresql.image}</postgresql.image>
                                 <mysql.image>${mysql.image}</mysql.image>
                                 <infinispan.image>${infinispan.image}</infinispan.image>
-                                <infinispan-legacy.image>${infinispan-legacy.image}</infinispan-legacy.image>
                                 <consul.image>${consul.image}</consul.image>
                             </systemPropertyVariables>
                             <argLine>${jacoco.agent.argLine}</argLine>
