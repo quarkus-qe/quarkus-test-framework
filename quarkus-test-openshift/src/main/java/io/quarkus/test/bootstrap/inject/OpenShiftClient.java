@@ -96,6 +96,7 @@ import io.smallrye.config.common.utils.StringUtil;
 public final class OpenShiftClient {
 
     public static final String LABEL_TO_WATCH_FOR_LOGS = "tsLogWatch";
+    public static final String KNATIVE_SERVICE_LABEL = "serving.knative.dev/service";
     public static final String LABEL_SCENARIO_ID = "scenarioId";
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             OPENSHIFT_EPHEMERAL_NAMESPACES.getName(), Boolean.TRUE.toString());
@@ -429,7 +430,16 @@ public final class OpenShiftClient {
      * Get the running pods in the current service.
      */
     public List<Pod> podsInService(Service service) {
-        return client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, service.getName()).list().getItems();
+        String serviceName = service.getName();
+
+        if (isServerlessService(serviceName)) {
+            return client.pods()
+                    .withLabel(KNATIVE_SERVICE_LABEL, service.getName())
+                    .list()
+                    .getItems();
+        }
+
+        return client.pods().withLabel(LABEL_TO_WATCH_FOR_LOGS, serviceName).list().getItems();
     }
 
     /**
