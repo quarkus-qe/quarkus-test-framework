@@ -55,7 +55,7 @@ jobs:
             java: 21 # test 'quarkus-container-image-jib' with Java 21 as it should use 'openjdk-21-runtime' instead
             extra-maven-args: '-pl examples/pingpong/'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.write-comment.outputs.head_sha }}
       - name: Reclaim Disk Space
@@ -105,7 +105,7 @@ jobs:
             java: 21 # test 'quarkus-container-image-jib' with images based on UBI8 and Java 21
             extra-maven-args: '-pl examples/pingpong/ -Dtest-ubi8-compatibility -Dquarkus.jib.base-native-image=quay.io/quarkus/quarkus-micro-image:2.0 -Dquarkus.native.builder-image=quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21'
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           ref: ${{ needs.write-comment.outputs.head_sha }}
       - name: Reclaim Disk Space
