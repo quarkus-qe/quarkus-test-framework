@@ -36,4 +36,42 @@ public final class OpenShiftUtils {
             throw new AssertionFailedError("Failed adding properties into OpenShift template", e);
         }
     }
+
+    /**
+     * A valid label must be an empty string or consist of alphanumeric characters, '-', '_' or '.',
+     * and must start and end with an alphanumeric character (e.g. 'MyValue', or 'my_value', or '12345',
+     * regex used for validation is '(([A-Za-z0-9][-A-Za-z0-9_.]*)?[A-Za-z0-9])?')
+     *
+     * @param labelValue label value
+     * @return sanitized label value
+     */
+    public static String sanitizeLabelValue(String labelValue) {
+        if (labelValue == null || labelValue.isEmpty()) {
+            return labelValue;
+        }
+        if (labelValue.chars().allMatch(Character::isLetterOrDigit)) {
+            return labelValue;
+        }
+        boolean isFirstLetter = true;
+        var sanitizedValueBuilder = new StringBuilder();
+        for (char c : labelValue.toCharArray()) {
+            if (Character.isLetterOrDigit(c)) {
+                if (isFirstLetter) {
+                    isFirstLetter = false;
+                }
+                sanitizedValueBuilder.append(c);
+            } else if (!isFirstLetter) {
+                sanitizedValueBuilder.append('_');
+            }
+        }
+
+        for (int lastIndex = sanitizedValueBuilder.length() - 1; lastIndex >= 0; lastIndex--) {
+            if (Character.isLetterOrDigit(sanitizedValueBuilder.charAt(lastIndex))) {
+                break;
+            }
+            sanitizedValueBuilder.deleteCharAt(lastIndex);
+        }
+
+        return sanitizedValueBuilder.toString();
+    }
 }
