@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftUtils.sanitizeLabelValue;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
 import static io.quarkus.test.utils.MavenUtils.BATCH_MODE;
@@ -196,7 +197,7 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
             property = QUARKUS_KNATIVE_LABELS;
         }
 
-        return withProperty(property + label, value);
+        return withProperty(property + label, sanitizeLabelValue(value));
     }
 
     private String withContainerName() {
