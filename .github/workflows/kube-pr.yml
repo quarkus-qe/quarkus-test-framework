@@ -47,13 +47,8 @@ jobs:
     needs: write-comment
     strategy:
       matrix:
-        include:
-          - quarkus-version: "999-SNAPSHOT"
-            java: 17
-            extra-maven-args: ''
-          - quarkus-version: "999-SNAPSHOT"
-            java: 21 # test 'quarkus-container-image-jib' with Java 21 as it should use 'openjdk-21-runtime' instead
-            extra-maven-args: '-pl examples/pingpong/'
+        quarkus-version: ["999-SNAPSHOT"]
+        java: [21]
     steps:
       - uses: actions/checkout@v6
         with:
@@ -81,7 +76,7 @@ jobs:
           password: ${{ secrets.CI_REGISTRY_PASSWORD }}
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }} ${{ matrix.extra-maven-args }}
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,kubernetes -Dquarkus.platform.version="${{ matrix.quarkus-version }}" -Dts.global.container.registry-url=${{ secrets.CI_REGISTRY }}
       - name: Zip Artifacts
         if: failure()
         run: |

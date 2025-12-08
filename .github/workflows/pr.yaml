@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        java: [ 17 ]
+        java: [ 21 ]
     steps:
       - uses: actions/checkout@v6
       - name: Reclaim Disk Space
@@ -40,7 +40,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["999-SNAPSHOT"]
-        java: [ 17 ]
+        java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -91,7 +91,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: [ "999-SNAPSHOT" ]
-        java: [ 17 ]
+        java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -141,7 +141,7 @@ jobs:
     needs: validate-format
     strategy:
       matrix:
-        java: [ 17 ]
+        java: [ 21 ]
         quarkus-version: ["999-SNAPSHOT"]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}

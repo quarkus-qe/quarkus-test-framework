@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         quarkus-version: ["999-SNAPSHOT"]
-        java: [ 17 ]
+        java: [ 21 ]
     steps:
       - uses: actions/checkout@v6
       - name: Reclaim Disk Space
