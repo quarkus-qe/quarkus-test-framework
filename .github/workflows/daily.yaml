@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["current", "999-SNAPSHOT"]
+        quarkus-version: ["999-SNAPSHOT"]
         java: [ 21 ]
     steps:
       - uses: actions/checkout@v6
@@ -59,11 +59,7 @@ jobs:
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
-          if [[ "${{ matrix.quarkus-version }}" != current ]]; then
-             QUARKUS_VERSION="-Dquarkus.platform.version=${{ matrix.quarkus-version }}"
-          fi
-
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native $QUARKUS_VERSION
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Zip Artifacts
         if: failure()
         run: |
