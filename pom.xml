@@ -69,7 +69,7 @@
         <oracle.image>docker.io/gvenzl/oracle-free:23-slim-faststart</oracle.image>
         <postgresql.image>docker.io/postgres:16</postgresql.image>
         <mysql.image>docker.io/mysql:8.4</mysql.image>
-        <strimzi.testcontainers.version>0.113.0</strimzi.testcontainers.version>
+        <strimzi.testcontainers.version>0.114.0</strimzi.testcontainers.version>
         <infinispan.image>docker.io/infinispan/server:16.0</infinispan.image>
         <!-- TODO use official image if this fixed https://github.com/hashicorp/docker-consul/issues/184 -->
         <!-- We're not allowed to use newer consul version than 1.16.4 due to changed license -->
