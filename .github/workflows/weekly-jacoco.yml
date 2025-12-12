@@ -57,7 +57,7 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
       - name: Archive Coverage Report
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: ci-coverage${{ matrix.java }}
           path: coverage-report/target/site/jacoco
