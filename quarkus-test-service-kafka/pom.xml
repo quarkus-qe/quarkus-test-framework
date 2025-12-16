@@ -9,7 +9,7 @@
     <artifactId>quarkus-test-service-kafka</artifactId>
     <name>Quarkus - Test Framework - Service - Kafka</name>
     <properties>
-        <log4j.version>2.25.2</log4j.version>
+        <log4j.version>2.25.3</log4j.version>
     </properties>
     <dependencies>
         <dependency>
