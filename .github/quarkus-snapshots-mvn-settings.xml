@@ -32,36 +32,8 @@
                 </pluginRepository>
             </pluginRepositories>
         </profile>
-        <profile>
-            <id>quarkus-snapshots</id>
-            <repositories>
-                <repository>
-                    <id>quarkus-snapshots-repository</id>
-                    <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </repository>
-            </repositories>
-            <pluginRepositories>
-                <pluginRepository>
-                    <id>quarkus-snapshots-plugin-repository</id>
-                    <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-                    <releases>
-                        <enabled>false</enabled>
-                    </releases>
-                    <snapshots>
-                        <enabled>true</enabled>
-                    </snapshots>
-                </pluginRepository>
-            </pluginRepositories>
-        </profile>
     </profiles>
     <activeProfiles>
         <activeProfile>google-mirror</activeProfile>
-        <activeProfile>quarkus-snapshots</activeProfile>
     </activeProfiles>
 </settings>
