@@ -8,7 +8,7 @@ runs:
       run: cp .github/quarkus-snapshots-mvn-settings.xml ~/.m2/settings.xml
     - name: Download Quarkus CLI
       shell: bash
-      run: mvn org.apache.maven.plugins:maven-dependency-plugin:get -Dartifact=io.quarkus:quarkus-cli:999-SNAPSHOT:jar:runner
+      run: ./mvnw -V org.apache.maven.plugins:maven-dependency-plugin:get -Dartifact=io.quarkus:quarkus-cli:999-SNAPSHOT:jar:runner
     - name: Install Quarkus CLI
       shell: bash
       run: |

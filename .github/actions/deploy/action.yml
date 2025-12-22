@@ -27,13 +27,13 @@ runs:
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
     - name: Set Quarkus QE Test Framework version to ${{ inputs.release-version }}
       shell: bash
-      run: mvn -B versions:set -DnewVersion=$NEW_FRAMEWORK_VERSION
+      run: ./mvnw -B versions:set -DnewVersion=$NEW_FRAMEWORK_VERSION
       env:
         NEW_FRAMEWORK_VERSION: ${{ inputs.release-version }}
     - name: Maven deploy ${{ inputs.release-version }}
       shell: bash
       run: |
-        mvn -B -DskipTests -DskipITs \
+        ./mvnw -V -B -DskipTests -DskipITs \
           -DretryFailedDeploymentCount=3 \
           -Pdeploy,framework \
           -Drelease=$RELEASE \
