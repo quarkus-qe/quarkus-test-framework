@@ -28,7 +28,7 @@ jobs:
           cache: 'maven'
       - name: Build with Maven
         run: |
-          ./mvnw -V -U -B --no-transfer-progress -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+          ./mvnw -V -U -B -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo-current-fw.tgz -C ~ .m2/repository
