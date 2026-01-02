@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 
+import io.quarkus.bootstrap.BootstrapConstants;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
@@ -160,12 +161,16 @@ public final class MavenUtils {
         PropagatePropertiesStrategy strategy = PropagatePropertiesStrategy.fromValue(PROPAGATE_PROPERTIES_STRATEGY.get());
 
         System.getProperties().entrySet().stream()
-                .filter(strategy.isPropagated().and(propertyValueIsNotEmpty()))
+                .filter(strategy.isPropagated().and(propertyValueIsNotEmpty()).and(propertyIsNotSerializedAppModel()))
                 .forEach(property -> {
                     String key = (String) property.getKey();
                     String value = (String) property.getValue();
                     args.add(withProperty(key, value));
                 });
+    }
+
+    private static Predicate<Map.Entry<Object, Object>> propertyIsNotSerializedAppModel() {
+        return property -> !property.getKey().equals(BootstrapConstants.SERIALIZED_TEST_APP_MODEL);
     }
 
     private static Predicate<Map.Entry<Object, Object>> propertyValueIsNotEmpty() {
