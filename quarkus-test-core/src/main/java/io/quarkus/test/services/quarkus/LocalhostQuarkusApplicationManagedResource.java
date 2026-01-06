@@ -176,8 +176,17 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         if (model.isGrpcEnabled()) {
             runtimeProperties.putIfAbsent(QUARKUS_GRPC_SERVER_PORT_PROPERTY, "" + assignedGrpcPort);
         }
+
+        // Collect all properties and if some are JVM option properties (start with -X: or -XX:) the initial -D is not added
+        // as they already contain the prefix for JVM. These properties should be fully in hand of user as some of them
+        // can contain multiple `=`. Other properties are transformed to follow the format of `-D<key>=<value>`
         return runtimeProperties.entrySet().stream()
-                .map(e -> PropertiesUtils.toMvnSystemProperty(e.getKey(), getComputedValue(e.getValue())))
+                .map(e -> {
+                    if (e.getKey().startsWith("-X:") || e.getKey().startsWith("-XX:")) {
+                        return PropertiesUtils.toJvmSystemProperty(e.getKey(), getComputedValue(e.getValue()));
+                    }
+                    return PropertiesUtils.toMvnSystemProperty(e.getKey(), getComputedValue(e.getValue()));
+                })
                 .collect(Collectors.toList());
     }
 
