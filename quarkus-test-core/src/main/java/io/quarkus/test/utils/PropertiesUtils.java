@@ -108,4 +108,9 @@ public final class PropertiesUtils {
                 + "=" + propertyValue;
     }
 
+    public static String toJvmSystemProperty(String propertyKey, String propertyValue) {
+        return (OS.WINDOWS.isCurrentOs() ? propertyKey.replace("\"", "\\\"") : propertyKey)
+                + "=" + propertyValue;
+    }
+
 }
