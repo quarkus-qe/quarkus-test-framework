@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
@@ -59,9 +60,12 @@ public class QuarkusCliClientIT {
     }
 
     @TestQuarkusCli
-    public void shouldCreateApplicationOnJvm(QuarkusVersionAwareCliClient cliClient) {
+    public void shouldCreateApplicationOnJvm(QuarkusVersionAwareCliClient cliClient) throws IOException {
         // Create application
         QuarkusCliRestService app = cliClient.createApplication("app");
+
+        Path pom = app.getFileFromApplication("pom.xml").toPath();
+        Files.readAllLines(pom).forEach(System.out::println);
 
         // Should build on Jvm
         QuarkusCliClient.Result result = app.buildOnJvm();
