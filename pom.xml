@@ -46,7 +46,7 @@
         <maven-gpg-plugin.version>3.2.8</maven-gpg-plugin.version>
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
-        <central-publishing-maven-plugin.version>0.9.0</central-publishing-maven-plugin.version>
+        <central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
@@ -59,7 +59,7 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
-        <checkstyle.version>12.3.0</checkstyle.version>
+        <checkstyle.version>12.3.1</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
         <playwright.version>1.57.0</playwright.version>
