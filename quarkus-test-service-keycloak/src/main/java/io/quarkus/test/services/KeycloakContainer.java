@@ -14,7 +14,7 @@ import io.quarkus.test.services.containers.KeycloakContainerManagedResourceBuild
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KeycloakContainer {
-    String image() default "quay.io/keycloak/keycloak:26.4";
+    String image() default "quay.io/keycloak/keycloak:26.5";
 
     int port() default 8080;
 
