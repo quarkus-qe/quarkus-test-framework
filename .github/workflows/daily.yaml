@@ -203,7 +203,7 @@ jobs:
       matrix:
         java: [ 21 ]
         quarkus-version: ["999-SNAPSHOT"]
-        graalvm-version: ["mandrel-latest"]
+        graalvm-version: ["23.1.9.0-Final"] # FIXME switch back to mandrel-latest if https://github.com/graalvm/setup-graalvm/issues/204 is fixed
         graalvm-java: ["21"]
     steps:
       - uses: actions/checkout@v6
@@ -228,6 +228,7 @@ jobs:
         uses: graalvm/setup-graalvm@v1
         with:
           version: ${{ matrix.graalvm-version }}
+          distribution: mandrel
           java-version: ${{ matrix.graalvm-java }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Configure Pagefile
