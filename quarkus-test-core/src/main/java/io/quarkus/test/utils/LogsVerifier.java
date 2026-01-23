@@ -17,7 +17,12 @@ public class LogsVerifier {
         this.service = service;
     }
 
-    public LogsVerifier withMessage(String message) {
+    /**
+     * Sets a custom message to be displayed when an assertion fails.
+     *
+     * @param message the custom message to be displayed
+     */
+    public LogsVerifier withFailureMessage(String message) {
         this.customMessage = message;
         return this;
     }
@@ -45,8 +50,8 @@ public class LogsVerifier {
             });
         } catch (ConditionTimeoutException e) {
             Throwable cause = e.getCause();
-            if (cause instanceof AssertionError) {
-                throw (AssertionError) cause;
+            if (cause instanceof AssertionError assertionError) {
+                throw assertionError;
             }
             throw e;
         }
