@@ -41,7 +41,7 @@ public class LogsVerifierTest {
         String customMessage = "Custom failure message - issue 123";
 
         AssertionError error = assertThrows(AssertionError.class, () -> {
-            verifier.withMessage(customMessage).assertContains("missing log");
+            verifier.withFailureMessage(customMessage).assertContains("missing log");
         });
 
         assertEquals(customMessage, error.getMessage());
@@ -65,7 +65,7 @@ public class LogsVerifierTest {
         String customMessage = "Unexpected string found - issue 456";
 
         AssertionError error = assertThrows(AssertionError.class, () -> {
-            verifier.withMessage(customMessage).assertDoesNotContain("unexpected log line");
+            verifier.withFailureMessage(customMessage).assertDoesNotContain("unexpected log line");
         });
 
         assertEquals(customMessage, error.getMessage());
