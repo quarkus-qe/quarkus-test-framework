@@ -6,7 +6,7 @@ import io.fabric8.kubernetes.model.annotation.Group;
 import io.fabric8.kubernetes.model.annotation.Kind;
 import io.fabric8.kubernetes.model.annotation.Version;
 
-@Version("v1beta2")
+@Version("v1")
 @Group("kafka.strimzi.io")
 @Kind("Kafka")
 public class KafkaInstanceCustomResource
