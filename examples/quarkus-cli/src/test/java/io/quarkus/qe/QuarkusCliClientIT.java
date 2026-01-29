@@ -120,17 +120,15 @@ public class QuarkusCliClientIT {
     @Test
     public void shouldRunApplicationWithoutOverwritingVersion() {
         QuarkusCliRestService app = cliClient.createApplication("versionFull:app", defaults()
-                .withStream("3.8")
+                .withStream("3.27")
                 .withPlatformBom(null)
                 .withManagedResourceCreator((serviceContext,
                         quarkusCliClient) -> managedResourceBuilder -> new CliDevModeVersionLessQuarkusApplicationManagedResource(
                                 serviceContext, quarkusCliClient)));
 
         app.start();
-        String response = app.given().get().getBody().asString();
-        // check that app was indeed running with quarkus 3.8 (it was not overwritten)
-        // version is printed on welcome screen
-        assertTrue(response.contains("3.8"), "Quarkus is not running on 3.8");
+        // check that app was indeed running with quarkus 3.27 (it was not overwritten)
+        app.logs().assertContains("powered by Quarkus 3.27");
     }
 
     @TestQuarkusCli
