@@ -108,9 +108,20 @@ public final class PropertiesUtils {
                 + "=" + propertyValue;
     }
 
+    /**
+     * The JVM properties start with either `-X` or `-XX:`. The one which start with `-X` can have format like `-X<name>`
+     * or `-X<name>:<param>`. The name and param are separated by `:`, if the param is not set the `:` is not used.
+     *
+     * @param propertyKey
+     * @param propertyValue
+     * @return The formated value of JVM property
+     */
     public static String toJvmSystemProperty(String propertyKey, String propertyValue) {
+        if (propertyValue.isEmpty()) {
+            return (OS.WINDOWS.isCurrentOs() ? propertyKey.replace("\"", "\\\"") : propertyKey);
+        }
         return (OS.WINDOWS.isCurrentOs() ? propertyKey.replace("\"", "\\\"") : propertyKey)
-                + "=" + propertyValue;
+                + ":" + propertyValue;
     }
 
 }
