@@ -8,10 +8,12 @@ import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_LITERAL_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
+import static io.quarkus.test.utils.StringUtils.sanitizeKubernetesObjectName;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -59,6 +61,7 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.model.CustomVolume;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public final class KubectlClient {
 
@@ -401,7 +404,7 @@ public final class KubectlClient {
                 var result = createSecretForSecretWithDestinationPropertyInternal(propertyValue);
                 propertyValue = result.propertyValue();
                 volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
-            } else if (isSecret(entry.getValue())) {
+            } else if (PropertiesUtils.isSecret(entry.getValue())) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
@@ -411,6 +414,16 @@ public final class KubectlClient {
                 doCreateSecretFromFile(secretName, getFilePath(path));
                 volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
                 propertyValue = mountPath + SLASH + filename;
+            } else if (PropertiesUtils.isSecretLiteral(entry.getValue())) {
+                String secretValue = entry.getValue().replace(SECRET_LITERAL_PREFIX, StringUtils.EMPTY);
+                String secretKey = sanitizeKubernetesObjectName(entry.getKey());
+                String mountPath = "/mnt/secrets/" + secretKey;
+                String secretName = normalizeConfigMapName(mountPath, secretKey);
+
+                // Create secret from literal value
+                doCreateSecretFromLiteral(secretName, secretKey, secretValue);
+                volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
+                propertyValue = mountPath + SLASH + secretKey;
             }
 
             output.put(entry.getKey(), propertyValue);
@@ -467,6 +480,17 @@ public final class KubectlClient {
                         "-n", currentNamespace).runAndWait();
             } catch (Exception e) {
                 fail("Could not create secret. Caused by " + e.getMessage());
+            }
+        }
+    }
+
+    private void doCreateSecretFromLiteral(String name, String key, String value) {
+        if (client.secrets().withName(name).get() == null) {
+            try {
+                new Command(KUBECTL, "create", "secret", "generic", name, "--from-literal=" + key + "=" + value,
+                        "-n", currentNamespace).runAndWait();
+            } catch (Exception e) {
+                fail("Could not create secret from literal. Caused by " + e.getMessage());
             }
         }
     }
@@ -538,10 +562,6 @@ public final class KubectlClient {
 
     private boolean isResource(String key) {
         return key.startsWith(RESOURCE_PREFIX);
-    }
-
-    private boolean isSecret(String key) {
-        return key.startsWith(SECRET_PREFIX);
     }
 
     private String createNamespace() {
