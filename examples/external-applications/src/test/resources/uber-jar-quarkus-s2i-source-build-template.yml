@@ -20,8 +20,8 @@ items:
           name: ${APP_NAME}:latest
       source:
         git:
-          uri: ${GIT_URI}
-          ref: ${GIT_REF}
+          uri: "${GIT_URI}"
+          ref: "${GIT_REF}"
         type: Git
         contextDir: ${CONTEXT_DIR}
         configMaps:
