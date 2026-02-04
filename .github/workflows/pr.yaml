@@ -21,7 +21,7 @@ jobs:
       - uses: ./.github/actions/cache-quarkus
       - name: Build with Maven
         run: |
-          mvn -V -B --no-transfer-progress -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+          mvn -V -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
   linux-build-jvm-latest:
     name: Linux JVM
     runs-on: ubuntu-latest
@@ -98,7 +98,7 @@ jobs:
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -146,7 +146,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
