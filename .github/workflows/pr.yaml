@@ -12,27 +12,16 @@ jobs:
       - uses: actions/checkout@v6
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
-      - name: Install required tools
-        run: sudo apt update && sudo apt install pigz
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Build with Maven
         run: |
           mvn -V -B --no-transfer-progress -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
-      - name: Tar Maven Repo
-        shell: bash
-        run: tar -I 'pigz -9' -cf maven-repo-current-fw.tgz -C ~ .m2/repository
-      - name: Persist Maven Repo
-        uses: actions/upload-artifact@v6
-        with:
-          name: maven-repo-current-fw${{matrix.java}}
-          path: maven-repo-current-fw.tgz
-          retention-days: 1
   linux-build-jvm-latest:
     name: Linux JVM
     runs-on: ubuntu-latest
@@ -53,7 +42,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build in JVM mode
@@ -104,7 +93,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
@@ -153,7 +142,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Build in JVM mode
         shell: bash
         run: |

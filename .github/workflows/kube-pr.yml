@@ -61,7 +61,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v2.14.0
         with:
@@ -111,7 +111,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v2.14.0
         with:
