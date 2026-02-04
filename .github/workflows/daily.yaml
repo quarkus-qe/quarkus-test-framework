@@ -17,12 +17,12 @@ jobs:
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
+        id: install-jdk
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
-        id: install-jdk
+      - uses: ./.github/actions/cache-quarkus
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
@@ -55,7 +55,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
@@ -95,7 +95,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v2.14.0
         with:
@@ -138,7 +138,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
         uses: manusa/actions-setup-minikube@v2.14.0
         with:
@@ -179,7 +179,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Build in JVM mode
         shell: bash
         run: |
@@ -213,7 +213,7 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
+      - uses: ./.github/actions/cache-quarkus
       - name: Download Sysinternals Handle program used for native race debugging
         shell: pwsh
         run: Invoke-WebRequest https://download.sysinternals.com/files/Handle.zip -OutFile .\handle.zip

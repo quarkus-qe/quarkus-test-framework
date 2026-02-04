@@ -3,12 +3,6 @@ description: 'Creates Quarkus CLI based on the current Quarkus main (999-SNAPSHO
 runs:
   using: "composite"
   steps:
-    - name: Set up Maven settings.xml # we need to do this because of CLI and external app tests does not propagate '-s' option
-      shell: bash
-      run: cp .github/quarkus-snapshots-mvn-settings.xml ~/.m2/settings.xml
-    - name: Download Quarkus CLI
-      shell: bash
-      run: mvn org.apache.maven.plugins:maven-dependency-plugin:get -Dartifact=io.quarkus:quarkus-cli:999-SNAPSHOT:jar:runner
     - name: Install Quarkus CLI
       shell: bash
       run: |

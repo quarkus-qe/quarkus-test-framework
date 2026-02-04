@@ -17,12 +17,12 @@ jobs:
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
+        id: install-jdk
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-          cache: 'maven'
-        id: install-jdk
+      - uses: ./.github/actions/cache-quarkus
       - uses: ./.github/actions/prepare-quarkus-cli
       - name: Generate Jacoco Report
         run: |
