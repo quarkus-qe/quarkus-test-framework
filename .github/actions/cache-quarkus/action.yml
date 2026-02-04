@@ -1,0 +1,21 @@
+name: 'Restore maven cache'
+description: 'Restore maven cache created in daily build'
+runs:
+  using: "composite"
+  steps:
+    - name: Restore Daily Build
+      uses: actions/cache/restore@v5
+      with:
+        enableCrossOsArchive: 'true'
+        # Keep same as actions/cache/save@v5 in daily
+        path: |
+          maven-repository
+        # Look for most recent key starting with 'quarkus-daily-build-'
+        key: quarkus-daily-build-
+        restore-keys: |
+          quarkus-daily-build-
+    - name: Move repository
+      shell: bash
+      # We need to do this because it's build on Linux runner and Windows have some problem with restoring cache using `~`
+      run: |
+        mv maven-repository/ ~/.m2/repository/
