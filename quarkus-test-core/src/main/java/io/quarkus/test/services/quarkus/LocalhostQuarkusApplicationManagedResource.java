@@ -189,7 +189,7 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
         // format of `-D<key>=<value>`
         return runtimeProperties.entrySet().stream()
                 .map(e -> {
-                    if (e.getKey().startsWith("-X:") || e.getKey().startsWith("-XX:")) {
+                    if (e.getKey().startsWith("-X") || e.getKey().startsWith("-XX")) {
                         return PropertiesUtils.toJvmSystemProperty(e.getKey(), getComputedValue(e.getValue()));
                     }
                     return PropertiesUtils.toMvnSystemProperty(e.getKey(), getComputedValue(e.getValue()));
