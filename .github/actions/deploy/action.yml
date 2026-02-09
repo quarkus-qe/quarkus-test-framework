@@ -25,6 +25,7 @@ runs:
         server-password: MAVEN_PASSWORD
         gpg-private-key: ${{ inputs.gpg-private-key }}
         gpg-passphrase: MAVEN_GPG_PASSPHRASE
+    - uses: ./.github/actions/cache-quarkus
     - name: Set Quarkus QE Test Framework version to ${{ inputs.release-version }}
       shell: bash
       run: mvn -B versions:set -DnewVersion=$NEW_FRAMEWORK_VERSION
