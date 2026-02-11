@@ -37,6 +37,7 @@
         <module>management</module>
         <module>debug</module>
         <module>grafana</module>
+        <module>platforms</module>
     </modules>
 
     <build>

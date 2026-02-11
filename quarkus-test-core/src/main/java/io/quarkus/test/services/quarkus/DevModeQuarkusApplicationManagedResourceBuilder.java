@@ -19,6 +19,7 @@ public class DevModeQuarkusApplicationManagedResourceBuilder extends QuarkusAppl
         setGrpcEnabled(metadata.grpc());
         setSslEnabled(metadata.ssl());
         setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
+        setBoms(metadata.boms());
         initForcedDependencies(metadata.dependencies());
     }
 
