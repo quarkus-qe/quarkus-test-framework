@@ -36,6 +36,11 @@ public @interface QuarkusApplication {
     Dependency[] dependencies() default {};
 
     /**
+     * Use additional BOMs for import.
+     */
+    Dependency[] boms() default {};
+
+    /**
      * Enable SSL configuration. This property needs `quarkus.http.ssl.certificate.key-store-file` and
      * `quarkus.http.ssl.certificate.key-store-password` to be set.
      */
