@@ -48,6 +48,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         initForcedDependencies(metadata.dependencies());
         setOcpTlsPort(metadata.ocpTlsPort());
         setCertificateBuilder(CertificateBuilder.of(metadata.certificates()));
+        setBoms(metadata.boms());
     }
 
     @Override
