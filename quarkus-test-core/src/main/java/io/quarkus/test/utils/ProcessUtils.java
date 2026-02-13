@@ -1,6 +1,6 @@
 package io.quarkus.test.utils;
 
-import static io.quarkus.test.utils.AwaitilityUtils.untilIsFalse;
+import static io.quarkus.test.utils.AwaitilityUtils.tryUntilIsFalse;
 import static io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings.usingTimeout;
 import static java.time.Duration.ofMinutes;
 
@@ -12,7 +12,7 @@ import io.quarkus.test.logging.Log;
 
 public final class ProcessUtils {
 
-    private static final int PROCESS_KILL_TIMEOUT_MINUTES = 3;
+    private static final int PROCESS_KILL_TIMEOUT_MINUTES = 1;
 
     private ProcessUtils() {
 
@@ -24,7 +24,7 @@ public final class ProcessUtils {
                 process.descendants().forEach(child -> {
                     if (child.supportsNormalTermination()) {
                         child.destroy();
-                        untilIsFalse(process::isAlive, usingTimeout(ofMinutes(PROCESS_KILL_TIMEOUT_MINUTES)));
+                        tryUntilIsFalse(process::isAlive, usingTimeout(ofMinutes(PROCESS_KILL_TIMEOUT_MINUTES)));
                     }
 
                     if (child.isAlive()) {
@@ -33,7 +33,7 @@ public final class ProcessUtils {
 
                     pidKiller(child.pid());
 
-                    untilIsFalse(child::isAlive);
+                    tryUntilIsFalse(child::isAlive);
                 });
 
                 if (process.supportsNormalTermination()) {
@@ -42,7 +42,7 @@ public final class ProcessUtils {
                 }
 
                 pidKiller(process.pid());
-                untilIsFalse(process::isAlive);
+                tryUntilIsFalse(process::isAlive);
             }
         } catch (Exception e) {
             Log.warn("Error trying to stop process. Caused by " + e.getMessage());
