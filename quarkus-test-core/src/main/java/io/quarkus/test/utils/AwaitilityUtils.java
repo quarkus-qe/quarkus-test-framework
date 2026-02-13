@@ -10,11 +10,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.awaitility.Awaitility;
 import org.awaitility.core.ConditionEvaluationListener;
 import org.awaitility.core.ConditionFactory;
+import org.awaitility.core.ConditionTimeoutException;
 import org.awaitility.core.EvaluatedCondition;
 import org.awaitility.core.ThrowingRunnable;
 import org.awaitility.core.TimeoutEvent;
 import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
+import org.jboss.logging.Logger;
 
 import io.quarkus.test.bootstrap.Service;
 import io.quarkus.test.configuration.Configuration;
@@ -24,6 +26,7 @@ import io.quarkus.test.logging.Log;
  * Awaitility utils to make a long or repeatable operation.
  */
 public final class AwaitilityUtils {
+    private static final Logger LOG = Logger.getLogger(AwaitilityUtils.class);
 
     private static final int POLL_SECONDS = 1;
     private static final int TIMEOUT_SECONDS = 30;
@@ -50,6 +53,30 @@ public final class AwaitilityUtils {
     @SuppressWarnings("unchecked")
     public static void untilIsFalse(Callable<Boolean> supplier, AwaitilitySettings settings) {
         awaits(settings).until(() -> !supplier.call());
+    }
+
+    /**
+     * Wait until supplier returns false and exit afterwards.
+     * See https://github.com/awaitility/awaitility/issues/48 for details
+     *
+     * @param supplier method to return the instance.
+     */
+    public static void tryUntilIsFalse(Callable<Boolean> supplier) {
+        tryUntilIsFalse(supplier, AwaitilitySettings.defaults());
+    }
+
+    /**
+     * Wait until supplier returns false and exit afterwards.
+     * See https://github.com/awaitility/awaitility/issues/48 for details
+     *
+     * @param supplier method to return the instance.
+     */
+    public static void tryUntilIsFalse(Callable<Boolean> supplier, AwaitilitySettings settings) {
+        try {
+            awaits(settings).until(() -> !supplier.call());
+        } catch (ConditionTimeoutException e) {
+            LOG.warn("Condition timed out!", e);
+        }
     }
 
     /**
