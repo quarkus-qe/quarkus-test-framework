@@ -17,6 +17,7 @@ import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_LITERAL_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
@@ -57,10 +58,12 @@ import io.fabric8.kubernetes.api.model.ConfigMapVolumeSourceBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.ContainerPort;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.IntOrString;
 import io.fabric8.kubernetes.api.model.ObjectMeta;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.SecretVolumeSource;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.Volume;
@@ -99,6 +102,7 @@ import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 import io.quarkus.test.utils.AwaitilityUtils;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 import io.smallrye.config.common.utils.StringUtil;
 
 public final class OpenShiftClient {
@@ -253,14 +257,18 @@ public final class OpenShiftClient {
         var serviceName = service.getName();
         Deployment deployment = client.apps().deployments().withName(serviceName).get();
         boolean isQuarkusRuntime = isQuarkusRuntime(deployment.getSpec().getTemplate().getMetadata().getLabels());
-        Map<String, String> enrichProperties = enrichProperties(service, deployment, isQuarkusRuntime);
+        EnrichResult enrichResult = enrichProperties(service, deployment, isQuarkusRuntime);
         if (isQuarkusRuntime) {
             updateAnnotationsIfNecessary(service, serviceName);
         }
 
+        final Map<String, String> enrichProperties = enrichResult.properties();
         deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
             enrichProperties.forEach((key, value) -> container.getEnv().add(new EnvVar(key, value, null)));
         });
+
+        injectSecretEnvVars(deployment, enrichResult.secretEnvVars(), isQuarkusRuntime);
+
         client.apps().deployments().resource(deployment).unlock().createOr(NonDeletingOperation::patch);
     }
 
@@ -921,6 +929,12 @@ public final class OpenShiftClient {
         }
     }
 
+    private record SecretEnvVar(String envVarName, String secretName, String secretKey) {
+    }
+
+    private record EnrichResult(Map<String, String> properties, List<SecretEnvVar> secretEnvVars) {
+    }
+
     private String enrichTemplate(Service service, String template, Map<String, String> extraTemplateProperties) {
         var serviceName = service.getName();
         List<HasMetadata> objs = loadYaml(template);
@@ -945,7 +959,8 @@ public final class OpenShiftClient {
                 final boolean isQuarkusRuntime = isQuarkusRuntime(templateMetadataLabels);
 
                 // add env var properties
-                Map<String, String> enrichProperties = enrichProperties(service, deployment, isQuarkusRuntime);
+                EnrichResult enrichResult = enrichProperties(service, deployment, isQuarkusRuntime);
+                Map<String, String> enrichProperties = enrichResult.properties();
 
                 final Map<String, String> environmentVariables;
                 if (isQuarkusRuntime) {
@@ -976,6 +991,8 @@ public final class OpenShiftClient {
                                 envVar.setValue(value);
                             }
                         }));
+
+                injectSecretEnvVars(deployment, enrichResult.secretEnvVars(), isQuarkusRuntime);
             } else if (obj instanceof io.fabric8.kubernetes.api.model.Service k8Service) {
                 var k8ServiceName = k8Service.getMetadata().getName();
                 boolean isQuarkusRuntime = isQuarkusRuntime(k8Service.getMetadata().getLabels());
@@ -1098,7 +1115,24 @@ public final class OpenShiftClient {
         return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
-    private Map<String, String> enrichProperties(Service service, Deployment deployment, boolean isQuarkusRuntime) {
+    private void injectSecretEnvVars(Deployment deployment, List<SecretEnvVar> secretEnvVars, boolean isQuarkusRuntime) {
+        for (SecretEnvVar secretEnvVar : secretEnvVars) {
+            String envVarName = isQuarkusRuntime
+                    ? StringUtil.replaceNonAlphanumericByUnderscores(secretEnvVar.envVarName()).toUpperCase()
+                    : secretEnvVar.envVarName();
+            EnvVarSource envVarSource = new EnvVarSource();
+            envVarSource.setSecretKeyRef(new SecretKeySelector(secretEnvVar.secretKey(),
+                    secretEnvVar.secretName(), false));
+            deployment.getSpec().getTemplate().getSpec().getContainers()
+                    .forEach(container -> {
+                        if (getEnvVarByKey(envVarName, container) == null) {
+                            container.getEnv().add(new EnvVar(envVarName, null, envVarSource));
+                        }
+                    });
+        }
+    }
+
+    private EnrichResult enrichProperties(Service service, Deployment deployment, boolean isQuarkusRuntime) {
         Map<String, String> properties = service.getProperties();
         // mount path x volume
         Map<String, CustomVolume> volumes = new HashMap<>();
@@ -1106,6 +1140,9 @@ public final class OpenShiftClient {
         // the idea of the 'output' is that if you have quarkus.some.property.key=secret::/path
         // then it is turned into quarkus.some.property.key=path
         Map<String, String> output = new HashMap<>();
+
+        // secret literals are injected directly via secretKeyRef (not as file paths)
+        List<SecretEnvVar> secretEnvVars = new ArrayList<>();
 
         for (Entry<String, String> entry : properties.entrySet()) {
             String propertyValue = entry.getValue();
@@ -1152,7 +1189,7 @@ public final class OpenShiftClient {
                 var result = createSecretForSecretWithDestinationProperty(service, propertyValue);
                 propertyValue = result.propertyValue();
                 volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
-            } else if (isSecret(propertyValue)) {
+            } else if (PropertiesUtils.isSecret(propertyValue)) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
@@ -1163,6 +1200,17 @@ public final class OpenShiftClient {
                 volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
 
                 propertyValue = joinMountPathAndFileName(mountPath, filename);
+            } else if (PropertiesUtils.isSecretLiteral(propertyValue)) {
+                String secretValue = propertyValue.replace(SECRET_LITERAL_PREFIX, StringUtils.EMPTY);
+                String secretKey = sanitizeKubernetesObjectName(entry.getKey());
+                String secretName = createApiObjectName(service, secretKey, "/mnt/secrets/" + secretKey);
+
+                // Create secret from literal value and inject via secretKeyRef (not as a file path)
+                doCreateSecretFromLiteral(secretName, secretKey, secretValue);
+                secretEnvVars.add(new SecretEnvVar(entry.getKey(), secretName, secretKey));
+
+                // Skip adding to output — this property is handled via secretKeyRef injection
+                continue;
             } else if (isQuarkusRuntime && isMountSecret(propertyValue)) {
                 // mount existing secret
                 var secretNameToMountPath = getMountSecret(propertyValue);
@@ -1202,7 +1250,7 @@ public final class OpenShiftClient {
                             .add(createVolumeMount(volume.getKey(), volume.getValue())));
         }
 
-        return output;
+        return new EnrichResult(output, secretEnvVars);
     }
 
     private static VolumeMount createVolumeMount(String path, CustomVolume volume) {
@@ -1300,10 +1348,6 @@ public final class OpenShiftClient {
         return key.startsWith(RESOURCE_PREFIX);
     }
 
-    private boolean isSecret(String key) {
-        return key.startsWith(SECRET_PREFIX);
-    }
-
     private boolean hasImageStreamTags(ImageStream is) {
         return !client.imageStreams().withName(is.getMetadata().getName()).get().getStatus().getTags().isEmpty();
     }
@@ -1358,6 +1402,17 @@ public final class OpenShiftClient {
                         "-n", currentNamespace).runAndWait();
             } catch (Exception e) {
                 fail("Could not create secret. Caused by " + e.getMessage());
+            }
+        }
+    }
+
+    public void doCreateSecretFromLiteral(String name, String key, String value) {
+        if (client.secrets().withName(name).get() == null) {
+            try {
+                new Command(OC, "create", "secret", "generic", name, "--from-literal=" + key + "=" + value,
+                        "-n", currentNamespace).runAndWait();
+            } catch (Exception e) {
+                fail("Could not create secret from literal. Caused by " + e.getMessage());
             }
         }
     }
