@@ -3,6 +3,7 @@ package io.quarkus.test.bootstrap;
 import static io.quarkus.test.configuration.Configuration.Property.CLI_CMD;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.createDisableBuildAnalyticsProperty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import java.io.Closeable;
 import java.io.File;
@@ -39,6 +40,10 @@ public class QuarkusCliClient {
     private static final String QUARKUS_UPSTREAM_VERSION = "999-SNAPSHOT";
     private static final String BUILD = "build";
     private static final String DEV = "dev";
+    private static final String QUARKUS_REGISTRY_UNAVAILABLE_ERROR = "Failed to resolve the Quarkus extension registry"
+            + " descriptor";
+    private static final String QUARKUS_REGISTRY_UNAVAILABLE_WARNING = "Configured Quarkus extension registries appear"
+            + " to be unavailable";
     private static final PropertyLookup COMMAND = new PropertyLookup(CLI_CMD.getName(), "quarkus");
     private static final Path TARGET = Paths.get("target");
     private volatile boolean useTemporaryDirectory = false;
@@ -141,6 +146,7 @@ public class QuarkusCliClient {
         }
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[0]));
+        abortIfRegistryUnavailable(result, "application");
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
         return service;
@@ -200,6 +206,18 @@ public class QuarkusCliClient {
         return str != null && !str.isEmpty();
     }
 
+    private static void abortIfRegistryUnavailable(Result result, String target) {
+        if (result.isSuccessful()) {
+            return;
+        }
+
+        String output = result.getOutput();
+        if (output.contains(QUARKUS_REGISTRY_UNAVAILABLE_ERROR) || output.contains(QUARKUS_REGISTRY_UNAVAILABLE_WARNING)) {
+            assumeTrue(false,
+                    "Quarkus registry is unavailable, skipping " + target + " creation test. Output: " + output);
+        }
+    }
+
     public QuarkusCliDefaultService createExtension(String name) {
         return createExtension(name, getDefaultCreateExtensionRequest());
     }
@@ -228,6 +246,7 @@ public class QuarkusCliClient {
         }
 
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[0]));
+        abortIfRegistryUnavailable(result, "extension");
         assertTrue(result.isSuccessful(), "The extension was not created. Output: " + result.getOutput());
 
         return service;

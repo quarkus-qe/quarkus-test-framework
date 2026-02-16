@@ -16,6 +16,7 @@
         <module>restclient</module>
         <module>greetings</module>
         <module>blocking-reactive-model</module>
+        <module>http</module>
         <module>https</module>
         <module>grpc</module>
         <module>consul</module>
