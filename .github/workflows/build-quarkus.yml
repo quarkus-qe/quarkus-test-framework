@@ -26,6 +26,10 @@ jobs:
           mkdir maven-repository
           LOCAL_REPO="$(pwd)/maven-repository"
           git clone https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations -Dmaven.repo.local=$LOCAL_REPO
+      - name: Build Quarkus Platform 999-SNAPSHOT
+        run: |
+          LOCAL_REPO="$(pwd)/maven-repository"
+          git clone https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform && ./mvnw install -DskipTests -DskipITs
       - name: Cache Build Outputs
         uses: actions/cache/save@v5
         with:
