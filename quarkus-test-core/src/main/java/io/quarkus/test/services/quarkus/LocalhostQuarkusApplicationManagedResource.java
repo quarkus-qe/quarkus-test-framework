@@ -4,7 +4,10 @@ import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResource
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_PORT_PROPERTY;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.QUARKUS_HTTP_SSL_PORT_PROPERTY;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_LITERAL_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
@@ -31,7 +34,8 @@ import io.quarkus.test.utils.SocketUtils;
 public abstract class LocalhostQuarkusApplicationManagedResource extends QuarkusManagedResource {
 
     private static final String LOG_OUTPUT_FILE = "out.log";
-    private static final List<String> PREFIXES_TO_REPLACE = Arrays.asList(RESOURCE_PREFIX, SECRET_PREFIX);
+    private static final List<String> PREFIXES_TO_REPLACE = Arrays.asList(RESOURCE_PREFIX, SECRET_PREFIX,
+            SECRET_LITERAL_PREFIX, RESOURCE_WITH_DESTINATION_PREFIX, SECRET_WITH_DESTINATION_PREFIX);
 
     private final QuarkusApplicationManagedResourceBuilder model;
 
@@ -177,9 +181,12 @@ public abstract class LocalhostQuarkusApplicationManagedResource extends Quarkus
             runtimeProperties.putIfAbsent(QUARKUS_GRPC_SERVER_PORT_PROPERTY, "" + assignedGrpcPort);
         }
 
-        // Collect all properties and if some are JVM option properties (start with -X or -XX) the initial -D is not added
-        // as they already contain the prefix for JVM. These properties should be fully in hand of user as some of them
-        // can contain multiple `=`. Other properties are transformed to follow the format of `-D<key>=<value>`
+        // Collect all properties and if some are JVM option properties (start with -X:
+        // or -XX:) the initial -D is not added
+        // as they already contain the prefix for JVM. These properties should be fully
+        // in hand of user as some of them
+        // can contain multiple `=`. Other properties are transformed to follow the
+        // format of `-D<key>=<value>`
         return runtimeProperties.entrySet().stream()
                 .map(e -> {
                     if (e.getKey().startsWith("-X") || e.getKey().startsWith("-XX")) {

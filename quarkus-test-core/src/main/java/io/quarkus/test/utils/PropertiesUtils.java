@@ -24,6 +24,7 @@ public final class PropertiesUtils {
     public static final String RESOURCE_WITH_DESTINATION_SPLIT_CHAR = "\\|";
     public static final String RESOURCE_WITH_DESTINATION_PREFIX_MATCHER = ".*" + RESOURCE_WITH_DESTINATION_SPLIT_CHAR + ".*";
     public static final String SECRET_PREFIX = "secret::/";
+    public static final String SECRET_LITERAL_PREFIX = "secret_literal::";
     public static final Path TARGET = Path.of("target");
     public static final String SLASH = File.separator;
 
@@ -35,6 +36,14 @@ public final class PropertiesUtils {
 
     private PropertiesUtils() {
 
+    }
+
+    public static boolean isSecret(String value) {
+        return value.startsWith(SECRET_PREFIX);
+    }
+
+    public static boolean isSecretLiteral(String value) {
+        return value.startsWith(SECRET_LITERAL_PREFIX);
     }
 
     /**

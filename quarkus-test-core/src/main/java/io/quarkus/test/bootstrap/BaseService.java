@@ -152,7 +152,24 @@ public class BaseService<T extends Service> implements Service {
      */
     public <U> T withProperty(String configKey, String contextKey, Function<U, String> configValue) {
         futureProperties.add(
-                () -> context.withTestScopeConfigProperty(configKey, configValue.apply(getPropertyFromContext(contextKey))));
+                () -> context.withTestScopeConfigProperty(configKey,
+                        configValue.apply(getPropertyFromContext(contextKey))));
+        return (T) this;
+    }
+
+    /**
+     * Sets a runtime configuration property that will be stored as a secret.
+     * The secret will be created from the literal value and mounted as a file in
+     * the container.
+     * The property value will be replaced with the path to the mounted secret file.
+     *
+     * @param key the configuration property key
+     * @param value the sensitive value to store as a secret
+     * @return this service instance for method chaining
+     */
+    public T withSecretProperty(String key, String value) {
+        this.staticProperties.put(key, PropertiesUtils.SECRET_LITERAL_PREFIX + value);
+        updateTestScopeConfigProperties(Map.of(key, PropertiesUtils.SECRET_LITERAL_PREFIX + value));
         return (T) this;
     }
 
