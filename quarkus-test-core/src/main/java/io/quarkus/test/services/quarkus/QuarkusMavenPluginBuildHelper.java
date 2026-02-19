@@ -29,6 +29,7 @@ import java.util.stream.Stream;
 
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -38,6 +39,7 @@ import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import io.quarkus.test.logging.Log;
@@ -77,6 +79,7 @@ public final class QuarkusMavenPluginBuildHelper {
     // this is to make build backports compatible for what used to be 'deploy-to-openshift-using-extension' we activated
     // ideally we drop this and users activate OpenShift profile when they need it
     private final List<Dependency> requiredDependencies;
+    private final List<Dependency> additionalImports;
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder) {
         this(resourceBuilder, null, null);
@@ -88,7 +91,8 @@ public final class QuarkusMavenPluginBuildHelper {
     }
 
     QuarkusMavenPluginBuildHelper(QuarkusApplicationManagedResourceBuilder resourceBuilder,
-            Path targetFolderForLocalArtifacts, String artifactSuffix, List<Dependency> requiredDependencies) {
+            Path targetFolderForLocalArtifacts, String artifactSuffix,
+            List<Dependency> requiredDependencies) {
         requireNonNull(resourceBuilder);
         if (!requiredDependencies.isEmpty()) {
             var newPomAsString = requireNonNull(FileUtils.loadFile(getPomFileCreatedByOurPlugin()));
@@ -105,6 +109,7 @@ public final class QuarkusMavenPluginBuildHelper {
         this.targetFolderForLocalArtifacts = targetFolderForLocalArtifacts;
         this.artifactSuffix = artifactSuffix;
         this.forcedDependencies = List.copyOf(resourceBuilder.getForcedDependencies());
+        this.additionalImports = List.copyOf(resourceBuilder.getAdditionalBoms());
         this.mode = isNativeEnabled(resourceBuilder.getContext()) ? Mode.NATIVE : Mode.JVM;
     }
 
@@ -201,7 +206,6 @@ public final class QuarkusMavenPluginBuildHelper {
         if (!isS2iScenario()) {
             mavenBuildProjectRoot.resolve(TARGET_POM).toFile().renameTo(newPom.toFile());
         }
-
         boolean pomAdjusted = false;
         // adjust pom.xml
         Document pomDocument = getDocument(newPom);
@@ -213,6 +217,10 @@ public final class QuarkusMavenPluginBuildHelper {
             pomAdjusted = true;
         }
         // add forced dependencies
+        if (!additionalImports.isEmpty()) {
+            addImportBoms(pomDocument, projectElement, additionalImports);
+            pomAdjusted = true;
+        }
         if (!forcedDependencies.isEmpty()) {
             addForcedDependenciesToNewPom(pomDocument, projectElement);
             pomAdjusted = true;
@@ -231,7 +239,14 @@ public final class QuarkusMavenPluginBuildHelper {
         if (pomAdjusted) {
             // update pom.xml file
             try {
+                // Parser keeps all whitespaces from the original file. Let's remove them, lest our pom turn to a mess
+                purgeWhitespaces(pomDocument);
                 Transformer transformer = TransformerFactory.newInstance().newTransformer();
+
+                // Now format the file automatically. Based on https://stackoverflow.com/a/38896736
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+
                 transformer.transform(new DOMSource(pomDocument), new StreamResult(newPom.toFile()));
             } catch (TransformerException e) {
                 throw new RuntimeException("Failed to persist enhanced POM file: " + e.getMessage());
@@ -245,6 +260,20 @@ public final class QuarkusMavenPluginBuildHelper {
         addEnhancedAppPropsAndMetaInf(mavenBuildProjectRoot);
 
         return mavenBuildProjectRoot;
+    }
+
+    private static void purgeWhitespaces(Node node) {
+        NodeList childNodes = node.getChildNodes();
+        List<Node> forRemoval = new ArrayList<>(childNodes.getLength());
+        for (int i = 0; i < childNodes.getLength(); i++) {
+            Node child = childNodes.item(i);
+            if (child.getNodeName().equals("#text") && child.getTextContent().isBlank()) {
+                forRemoval.add(child);
+            } else {
+                purgeWhitespaces(child);
+            }
+        }
+        forRemoval.forEach(node::removeChild);
     }
 
     private File getPomFileCreatedByOurPlugin() {
@@ -548,28 +577,48 @@ public final class QuarkusMavenPluginBuildHelper {
                 for (Dependency dependency : dependencies) {
                     // <dependency>
                     Element newDependency = pomDocument.createElement("dependency");
-                    Element artifactId = pomDocument.createElement("artifactId");
-                    // <artifactId>
-                    artifactId.setTextContent(dependency.artifactId());
-                    newDependency.appendChild(artifactId);
-                    // <groupId>
-                    Element groupId = pomDocument.createElement("groupId");
-                    if (dependency.groupId().isEmpty()) {
-                        groupId.setTextContent("io.quarkus");
-                    } else {
-                        groupId.setTextContent(dependency.groupId());
-                    }
-                    newDependency.appendChild(groupId);
-                    // <version>
+
+                    ElementAdder adder = new ElementAdder(pomDocument, newDependency);
+                    adder.addElement("groupId", dependency.groupId().isEmpty() ? "io.quarkus" : dependency.groupId());
+                    adder.addElement("artifactId", dependency.artifactId());
                     if (dependency.version() != null && !dependency.version().isEmpty()) {
-                        Element version = pomDocument.createElement("version");
-                        version.setTextContent(dependency.version());
-                        newDependency.appendChild(version);
+                        adder.addElement("version", dependency.version());
                     }
                     childNode.appendChild(newDependency);
                 }
                 break;
             }
+        }
+    }
+
+    private static void addImportBoms(Document pomDocument, Node projectElement, List<Dependency> dependencies) {
+        var projectChildElements = projectElement.getChildNodes();
+        Node dependenciesNode = null;
+        out: for (int i = 0; i < projectChildElements.getLength(); i++) {
+            Node childNode = projectChildElements.item(i);
+            if ("dependencyManagement".equals(childNode.getNodeName())) {
+                for (int j = 0; j < childNode.getChildNodes().getLength(); j++) {
+                    if ("dependencies".equals(childNode.getChildNodes().item(j).getNodeName())) {
+                        dependenciesNode = childNode.getChildNodes().item(j);
+                        break out;
+                    }
+                }
+            }
+        }
+        if (dependenciesNode == null) {
+            throw new IllegalArgumentException("Generated pom.xml doesn't contain imported BOMs!");
+        }
+        for (Dependency dependency : dependencies) {
+            Element importBOM = pomDocument.createElement("dependency");
+            ElementAdder adder = new ElementAdder(pomDocument, importBOM);
+
+            adder.addElement("groupId", dependency.groupId());
+            adder.addElement("artifactId", dependency.artifactId());
+            adder.addElement("version", dependency.version());
+            adder.addElement("type", "pom");
+            adder.addElement("scope", "import");
+
+            dependenciesNode.appendChild(importBOM);
         }
     }
 
@@ -682,6 +731,14 @@ public final class QuarkusMavenPluginBuildHelper {
     private enum Mode {
         JVM,
         NATIVE
+    }
+
+    private record ElementAdder(Document pomDocument, Element parent) {
+        void addElement(String name, String value) {
+            Element newElement = pomDocument.createElement(name);
+            newElement.setTextContent(value);
+            parent.appendChild(newElement);
+        }
     }
 
 }

@@ -32,6 +32,7 @@ import io.quarkus.test.bootstrap.ManagedResourceBuilder;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.security.certificate.CertificateBuilder;
 import io.quarkus.test.services.Dependency;
+import io.quarkus.test.services.quarkus.utils.Dependencies;
 import io.quarkus.test.utils.ClassPathUtils;
 import io.quarkus.test.utils.FileUtils;
 import io.quarkus.test.utils.MapUtils;
@@ -74,6 +75,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
     private boolean needsEnhancedApplicationProperties = false;
     private boolean s2iScenario = false;
     private int ocpTlsPort = HTTPS_PORT_DEFAULT;
+    private List<io.quarkus.test.services.quarkus.Dependency> additionalBoms = Collections.emptyList();
 
     protected abstract void build();
 
@@ -457,5 +459,35 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
 
     protected boolean isS2iScenario() {
         return s2iScenario;
+    }
+
+    protected void setBoms(Dependency[] additionalBoms) {
+        if (additionalBoms != null && additionalBoms.length > 0) {
+            requiresCustomBuild = true;
+            this.additionalBoms = Stream.of(additionalBoms)
+                    .map(dep -> {
+                        if (dep.artifactId() == null || dep.artifactId().isBlank()) {
+                            throw new IllegalArgumentException("Import BOM %s is not defined!"
+                                    .formatted(Dependencies.shortGAV(dep)));
+                        }
+                        String group = dep.groupId();
+                        if (group == null || group.isBlank()) {
+                            group = "${quarkus.platform.group-id}";
+                        }
+                        String version = dep.version();
+                        if (version == null || version.isBlank()) {
+                            version = "${quarkus.platform.version}";
+                        }
+                        return new io.quarkus.test.services.quarkus.Dependency(
+                                group,
+                                dep.artifactId(),
+                                version);
+                    })
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public List<io.quarkus.test.services.quarkus.Dependency> getAdditionalBoms() {
+        return additionalBoms;
     }
 }

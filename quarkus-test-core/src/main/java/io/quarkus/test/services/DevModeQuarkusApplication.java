@@ -36,4 +36,10 @@ public @interface DevModeQuarkusApplication {
      * Add forced dependencies.
      */
     Dependency[] dependencies() default {};
+
+    /**
+     * Use additional BOMs for import.
+     */
+    Dependency[] boms() default {};
+
 }
