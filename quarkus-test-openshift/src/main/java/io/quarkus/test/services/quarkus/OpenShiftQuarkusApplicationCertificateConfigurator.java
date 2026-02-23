@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_MANAGEMENT_ROUTE_SUFFIX;
 import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.security.certificate.ServingCertificateConfig.SERVING_CERTIFICATE_KEY;
 
@@ -104,7 +105,9 @@ public abstract class OpenShiftQuarkusApplicationCertificateConfigurator {
         return Arrays.asList(
                 // add SAN for service
                 appName + TLS_ROUTE_SUFFIX,
+                appName + TLS_MANAGEMENT_ROUTE_SUFFIX,
                 // add SAN for route
-                client.predictRouteHost(appName + TLS_ROUTE_SUFFIX));
+                client.predictRouteHost(appName + TLS_ROUTE_SUFFIX),
+                client.predictRouteHost(appName + TLS_MANAGEMENT_ROUTE_SUFFIX));
     }
 }
