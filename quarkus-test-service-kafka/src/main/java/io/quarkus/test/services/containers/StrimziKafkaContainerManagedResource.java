@@ -18,8 +18,8 @@ import io.quarkus.test.security.certificate.Certificate;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
-import io.quarkus.test.services.containers.strimzi.ExtendedStrimziKafkaContainer;
 import io.quarkus.test.utils.DockerUtils;
+import io.strimzi.test.container.ExtendedStrimziKafkaContainer;
 
 public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
