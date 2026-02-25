@@ -1,4 +1,4 @@
-package io.quarkus.test.services.containers.strimzi;
+package io.strimzi.test.container;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,7 +11,6 @@ import com.github.dockerjava.api.command.InspectContainerResponse;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.smallrye.mutiny.tuples.Tuple2;
-import io.strimzi.test.container.StrimziKafkaContainer;
 
 /**
  * Extend the functionality of io.strimzi.StrimziKafkaContainer with:
@@ -74,7 +73,7 @@ public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
      * since config/kraft/server.properties contains node.id=1, we have to use this value
      */
     public ExtendedStrimziKafkaContainer enableKraftMode() {
-        return (ExtendedStrimziKafkaContainer) super.withNodeId(1).withBrokerId(1);
+        return (ExtendedStrimziKafkaContainer) super.withNodeId(1);
     }
 
     public void configureScram(String name, String password) {
