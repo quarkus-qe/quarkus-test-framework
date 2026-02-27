@@ -1,8 +1,8 @@
 package io.quarkus.test.services.containers.model;
 
 public enum KafkaRegistry {
-    CONFLUENT("confluentinc/cp-schema-registry", "7.6.1", "/", 8081),
-    APICURIO("quay.io/apicurio/apicurio-registry-mem", "2.5.11.Final", "/apis", 8080);
+    CONFLUENT("confluentinc/cp-schema-registry", "7.7.7", "/", 8081),
+    APICURIO("quay.io/apicurio/apicurio-registry", "3.1.7", "/apis", 8080);
 
     private final String image;
     private final String defaultVersion;
