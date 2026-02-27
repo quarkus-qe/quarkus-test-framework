@@ -19,6 +19,8 @@ WORKDIR /work/
 RUN chown 1001 /work \
     && chmod "g+rwX" /work \
     && chown 1001:root /work
+
+# Do not change `${ARTIFACT_PARENT}` as it's used internally by FW to set location
 COPY --chown=1001:root ${ARTIFACT_PARENT}/*-runner /work/application
 
 EXPOSE 8080

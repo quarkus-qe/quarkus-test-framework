@@ -81,6 +81,7 @@ ENV LANGUAGE='en_US:en'
 
 
 # We make four distinct layers so if there are application changes the library layers can be re-used
+# Do not change `${ARTIFACT_PARENT}` as it's used internally by FW to set location
 COPY --chown=185 ${ARTIFACT_PARENT}/quarkus-app/lib/ /deployments/lib/
 COPY --chown=185 ${ARTIFACT_PARENT}/quarkus-app/*.jar /deployments/
 COPY --chown=185 ${ARTIFACT_PARENT}/quarkus-app/app/ /deployments/app/
