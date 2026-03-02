@@ -5,16 +5,19 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftScenario;
 import io.quarkus.test.services.Dependency;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @OpenShiftScenario
 public class OpenShiftMCPIT extends BasicMCPIT {
+
+    private static String workingFolder = QuarkusProperties.isNativeEnabled() ? "/home/quarkus" : "/deployments";
 
     @QuarkusApplication(boms = { @Dependency(artifactId = "quarkus-mcp-server-bom") }, dependencies = {
             @Dependency(groupId = "io.quarkiverse.mcp", artifactId = "quarkus-mcp-server-websocket")
     }, classes = { FileServer.class })
     static final RestService server = new RestService()
-            .withProperty("_ignored", "resource_with_destination::/deployments|robot-readable.txt")
-            .withProperty("working.folder", "/deployments");
+            .withProperty("_ignored", "resource_with_destination::" + workingFolder + "|robot-readable.txt")
+            .withProperty("working.folder", workingFolder);
 
     @QuarkusApplication(properties = "mcp-client.properties", boms = {
             @Dependency(artifactId = "quarkus-langchain4j-bom") }, dependencies = {
