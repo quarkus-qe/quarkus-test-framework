@@ -3,6 +3,7 @@ package io.quarkus.test.services.operator;
 import static io.quarkus.test.utils.AwaitilityUtils.untilIsTrue;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,11 +14,16 @@ import io.quarkus.test.bootstrap.OperatorService;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.bootstrap.inject.OpenShiftClient;
+import io.quarkus.test.logging.Log;
 import io.quarkus.test.services.URILike;
 import io.quarkus.test.services.operator.model.CustomResourceInstance;
+import io.quarkus.test.utils.AwaitilityUtils;
 import io.quarkus.test.utils.FileUtils;
 
 public class OperatorManagedResource implements ManagedResource {
+
+    private static final Duration APPLY_CR_RETRY_INTERVAL = Duration.ofSeconds(5);
+    private static final Duration APPLY_CR_TIMEOUT = Duration.ofMinutes(2);
 
     private final OperatorManagedResourceBuilder model;
     private final OpenShiftClient client;
@@ -82,7 +88,10 @@ public class OperatorManagedResource implements ManagedResource {
         String content = FileUtils.loadFile(cr.file());
         FileUtils.copyContentTo(content, crFileDefinition);
 
-        client.apply(crFileDefinition);
+        // Retry applying the CR because CRDs may not be registered yet after operator installation
+        Log.info("Applying custom resource '%s', retrying if CRDs are not yet available...", cr.name());
+        AwaitilityUtils.untilAsserted(() -> client.apply(crFileDefinition),
+                AwaitilityUtils.AwaitilitySettings.using(APPLY_CR_RETRY_INTERVAL, APPLY_CR_TIMEOUT));
         crsToWatch.add(cr);
     }
 
