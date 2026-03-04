@@ -69,7 +69,7 @@ jobs:
           kubernetes version: 'v1.34.4'
           github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to Docker Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: quay.io
           username: ${{ secrets.CI_REGISTRY_USERNAME }}
@@ -119,7 +119,7 @@ jobs:
           kubernetes version: 'v1.34.4'
           github token: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to Docker Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: quay.io
           username: ${{ secrets.CI_REGISTRY_USERNAME }}
