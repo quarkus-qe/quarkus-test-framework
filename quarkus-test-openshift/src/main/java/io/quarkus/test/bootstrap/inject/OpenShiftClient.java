@@ -109,6 +109,7 @@ public final class OpenShiftClient {
     public static final PropertyLookup ENABLED_EPHEMERAL_NAMESPACES = new PropertyLookup(
             OPENSHIFT_EPHEMERAL_NAMESPACES.getName(), Boolean.TRUE.toString());
     public static final String TLS_ROUTE_SUFFIX = "-tls";
+    public static final String TLS_MANAGEMENT_ROUTE_SUFFIX = "-tls-management";
     private static final String DOT = ".";
     private static final Logger LOG = Logger.getLogger(OpenShiftClient.class);
 
