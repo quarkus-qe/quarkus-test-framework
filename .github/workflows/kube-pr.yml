@@ -63,7 +63,7 @@ jobs:
           check-latest: true
       - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.15.0
+        uses: manusa/actions-setup-minikube@v2.16.1
         with:
           minikube version: 'v1.38.0'
           kubernetes version: 'v1.34.4'
@@ -113,7 +113,7 @@ jobs:
           check-latest: true
       - uses: ./.github/actions/cache-quarkus
       - name: Set up Minikube-Kubernetes
-        uses: manusa/actions-setup-minikube@v2.15.0
+        uses: manusa/actions-setup-minikube@v2.16.1
         with:
           minikube version: 'v1.38.0'
           kubernetes version: 'v1.34.4'
