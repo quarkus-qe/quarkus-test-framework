@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_MANAGEMENT_ROUTE_SUFFIX;
 import static io.quarkus.test.services.quarkus.QuarkusApplicationManagedResourceBuilder.HTTP_PORT_DEFAULT;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_JVM_S2I;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.QUARKUS_NATIVE_S2I;
@@ -119,6 +120,13 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
     private void exposeServices() {
         client.expose(model.getContext().getOwner(), HTTP_PORT_DEFAULT);
         client.expose(model.getContext().getOwner().getName() + "-management", model.getManagementPort());
+        if (model.isSslEnabled() && model.useSeparateManagementInterface()) {
+            client.exposeDeploymentPort(model.getContext().getName(), "mgmt-https", model.getManagementPort());
+            client.createService(model.getContext().getName(),
+                    model.getContext().getName() + TLS_MANAGEMENT_ROUTE_SUFFIX, model.getManagementPort());
+            client.createTlsPassthroughRoute(model.getContext().getOwner().getName() + TLS_MANAGEMENT_ROUTE_SUFFIX,
+                    model.getContext().getOwner().getName() + TLS_MANAGEMENT_ROUTE_SUFFIX, model.getManagementPort());
+        }
     }
 
     private void startBuild() {
