@@ -8,10 +8,12 @@ import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_PREFIX_MATCHER;
 import static io.quarkus.test.utils.PropertiesUtils.RESOURCE_WITH_DESTINATION_SPLIT_CHAR;
+import static io.quarkus.test.utils.PropertiesUtils.SECRET_LITERAL_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SECRET_WITH_DESTINATION_PREFIX;
 import static io.quarkus.test.utils.PropertiesUtils.SLASH;
 import static io.quarkus.test.utils.PropertiesUtils.TARGET;
+import static io.quarkus.test.utils.StringUtils.sanitizeKubernetesObjectName;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.ByteArrayInputStream;
@@ -21,6 +23,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -39,9 +42,11 @@ import org.apache.commons.lang3.StringUtils;
 import io.fabric8.kubernetes.api.model.ConfigMapBuilder;
 import io.fabric8.kubernetes.api.model.Container;
 import io.fabric8.kubernetes.api.model.EnvVar;
+import io.fabric8.kubernetes.api.model.EnvVarSource;
 import io.fabric8.kubernetes.api.model.HasMetadata;
 import io.fabric8.kubernetes.api.model.KubernetesList;
 import io.fabric8.kubernetes.api.model.Pod;
+import io.fabric8.kubernetes.api.model.SecretKeySelector;
 import io.fabric8.kubernetes.api.model.ServicePort;
 import io.fabric8.kubernetes.api.model.VolumeMount;
 import io.fabric8.kubernetes.api.model.VolumeMountBuilder;
@@ -59,6 +64,7 @@ import io.quarkus.test.logging.Log;
 import io.quarkus.test.model.CustomVolume;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.FileUtils;
+import io.quarkus.test.utils.PropertiesUtils;
 
 public final class KubectlClient {
 
@@ -131,11 +137,14 @@ public final class KubectlClient {
      */
     public void applyServicePropertiesUsingDeploymentConfig(Service service) {
         Deployment deployment = client.apps().deployments().withName(service.getName()).get();
-        Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
+        EnrichResult enrichResult = enrichProperties(service.getProperties(), deployment);
 
+        final Map<String, String> enrichProperties = enrichResult.properties();
         deployment.getSpec().getTemplate().getSpec().getContainers().forEach(container -> {
             enrichProperties.forEach((key, value) -> container.getEnv().add(new EnvVar(key, value, null)));
         });
+
+        injectSecretEnvVars(deployment, enrichResult.secretEnvVars());
 
         client.apps().deployments().withTimeout(DEPLOYMENT_CREATION_TIMEOUT, TimeUnit.SECONDS).delete();
         client.apps().deployments().resource(deployment).create();
@@ -332,7 +341,8 @@ public final class KubectlClient {
                 templateMetadataLabels.put(LABEL_SCENARIO_ID, getScenarioId());
 
                 // add env var properties
-                Map<String, String> enrichProperties = enrichProperties(service.getProperties(), deployment);
+                EnrichResult enrichResult = enrichProperties(service.getProperties(), deployment);
+                Map<String, String> enrichProperties = enrichResult.properties();
                 enrichProperties.putAll(extraTemplateProperties);
                 deployment.getSpec().getTemplate().getSpec().getContainers()
                         .forEach(container -> enrichProperties.forEach((key, value) -> {
@@ -343,6 +353,8 @@ public final class KubectlClient {
                                 envVar.setValue(value);
                             }
                         }));
+
+                injectSecretEnvVars(deployment, enrichResult.secretEnvVars());
             }
         }
 
@@ -355,11 +367,35 @@ public final class KubectlClient {
         return container.getEnv().stream().filter(env -> StringUtils.equals(key, env.getName())).findFirst().orElse(null);
     }
 
-    private Map<String, String> enrichProperties(Map<String, String> properties, Deployment deployment) {
+    private void injectSecretEnvVars(Deployment deployment, List<SecretEnvVar> secretEnvVars) {
+        for (SecretEnvVar secretEnvVar : secretEnvVars) {
+            EnvVarSource envVarSource = new EnvVarSource();
+            envVarSource.setSecretKeyRef(new SecretKeySelector(secretEnvVar.secretKey(),
+                    secretEnvVar.secretName(), false));
+            deployment.getSpec().getTemplate().getSpec().getContainers()
+                    .forEach(container -> {
+                        if (getEnvVarByKey(secretEnvVar.envVarName(), container) == null) {
+                            container.getEnv().add(new EnvVar(secretEnvVar.envVarName(), null, envVarSource));
+                        }
+                    });
+        }
+    }
+
+    private record SecretEnvVar(String envVarName, String secretName, String secretKey) {
+    }
+
+    private record EnrichResult(Map<String, String> properties, List<SecretEnvVar> secretEnvVars) {
+    }
+
+    private EnrichResult enrichProperties(Map<String, String> properties, Deployment deployment) {
         // mount path x volume
         Map<String, CustomVolume> volumes = new HashMap<>();
 
         Map<String, String> output = new HashMap<>();
+
+        // secret literals are injected directly via secretKeyRef (not as file paths)
+        List<SecretEnvVar> secretEnvVars = new ArrayList<>();
+
         for (Entry<String, String> entry : properties.entrySet()) {
             String propertyValue = entry.getValue();
             if (isResource(entry.getValue())) {
@@ -401,7 +437,7 @@ public final class KubectlClient {
                 var result = createSecretForSecretWithDestinationPropertyInternal(propertyValue);
                 propertyValue = result.propertyValue();
                 volumes.putIfAbsent(result.mountPath, new CustomVolume(result.secretName, "", SECRET));
-            } else if (isSecret(entry.getValue())) {
+            } else if (PropertiesUtils.isSecret(entry.getValue())) {
                 String path = entry.getValue().replace(SECRET_PREFIX, StringUtils.EMPTY);
                 String mountPath = getMountPath(path);
                 String filename = getFileName(path);
@@ -411,6 +447,17 @@ public final class KubectlClient {
                 doCreateSecretFromFile(secretName, getFilePath(path));
                 volumes.put(mountPath, new CustomVolume(secretName, "", SECRET));
                 propertyValue = mountPath + SLASH + filename;
+            } else if (PropertiesUtils.isSecretLiteral(entry.getValue())) {
+                String secretValue = entry.getValue().replace(SECRET_LITERAL_PREFIX, StringUtils.EMPTY);
+                String secretKey = sanitizeKubernetesObjectName(entry.getKey());
+                String secretName = normalizeConfigMapName("/mnt/secrets/" + secretKey, secretKey);
+
+                // Create secret from literal value and inject via secretKeyRef (not as a file path)
+                doCreateSecretFromLiteral(secretName, secretKey, secretValue);
+                secretEnvVars.add(new SecretEnvVar(entry.getKey(), secretName, secretKey));
+
+                // Skip adding to output — this property is handled via secretKeyRef injection
+                continue;
             }
 
             output.put(entry.getKey(), propertyValue);
@@ -425,7 +472,7 @@ public final class KubectlClient {
                             .add(createVolumeMount(volume)));
         }
 
-        return output;
+        return new EnrichResult(output, secretEnvVars);
     }
 
     private VolumeMount createVolumeMount(Entry<String, CustomVolume> volume) {
@@ -467,6 +514,17 @@ public final class KubectlClient {
                         "-n", currentNamespace).runAndWait();
             } catch (Exception e) {
                 fail("Could not create secret. Caused by " + e.getMessage());
+            }
+        }
+    }
+
+    private void doCreateSecretFromLiteral(String name, String key, String value) {
+        if (client.secrets().withName(name).get() == null) {
+            try {
+                new Command(KUBECTL, "create", "secret", "generic", name, "--from-literal=" + key + "=" + value,
+                        "-n", currentNamespace).runAndWait();
+            } catch (Exception e) {
+                fail("Could not create secret from literal. Caused by " + e.getMessage());
             }
         }
     }
@@ -538,10 +596,6 @@ public final class KubectlClient {
 
     private boolean isResource(String key) {
         return key.startsWith(RESOURCE_PREFIX);
-    }
-
-    private boolean isSecret(String key) {
-        return key.startsWith(SECRET_PREFIX);
     }
 
     private String createNamespace() {
