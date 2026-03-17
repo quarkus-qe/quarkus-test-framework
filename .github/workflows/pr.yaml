@@ -18,17 +18,49 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
       - name: Build with Maven
         run: |
           mvn -V -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+  quarkus-main-build:
+    name: Quarkus 3.33 build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        java: [ 17 ]
+    steps:
+      - uses: actions/checkout@v6
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install required tools
+        run: sudo apt update && sudo apt install pigz
+      - name: Install JDK ${{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+      - name: Build Quarkus 3.33.999-SNAPSHOT
+        run: |
+          git clone -b 3.33 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Build Quarkus Platform 3.33.999-SNAPSHOT
+        run: |
+          git clone -b 3.33 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform && ./mvnw versions:set -DnewVersion=3.33.999-SNAPSHOT -DgenerateBackupPoms=false && ./mvnw install -Dquarkus.version=3.33.999-SNAPSHOT -DskipTests -DskipITs
+      - name: Tar Maven Repo
+        shell: bash
+        run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
+      - name: Persist Maven Repo
+        uses: actions/upload-artifact@v7
+        with:
+          name: maven-repo
+          path: maven-repo.tgz
+          retention-days: 1
   linux-build-jvm-latest:
     name: Linux JVM
     runs-on: ubuntu-latest
-    needs: validate-format
+    needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.33.999-SNAPSHOT"]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -42,7 +74,14 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build in JVM mode
@@ -76,10 +115,10 @@ jobs:
   linux-build-native-latest:
     name: Linux Native
     runs-on: ubuntu-latest
-    needs: validate-format
+    needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: [ "999-SNAPSHOT" ]
+        quarkus-version: [ "3.33.999-SNAPSHOT" ]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -93,7 +132,14 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
@@ -127,11 +173,11 @@ jobs:
   windows-build-jvm-latest:
     name: Windows JVM
     runs-on: windows-latest
-    needs: validate-format
+    needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
         java: [ 21 ]
-        quarkus-version: ["999-SNAPSHOT"]
+        quarkus-version: ["3.33.999-SNAPSHOT"]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -142,7 +188,14 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - name: Build in JVM mode
         shell: bash
         run: |

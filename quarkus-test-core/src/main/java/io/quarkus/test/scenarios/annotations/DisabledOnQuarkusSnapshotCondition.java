@@ -11,7 +11,7 @@ import org.junit.platform.commons.util.AnnotationUtils;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 public class DisabledOnQuarkusSnapshotCondition implements ExecutionCondition {
-    private static final String QUARKUS_SNAPSHOT_VERSION = "999-SNAPSHOT";
+    private static final String QUARKUS_SNAPSHOT_VERSION = "3.33.999-SNAPSHOT";
     private static final ConditionEvaluationResult ENABLED_BY_DEFAULT = ConditionEvaluationResult.enabled(
             "@DisabledOnQuarkusSnapshot is not present");
 
