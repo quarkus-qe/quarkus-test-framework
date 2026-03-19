@@ -1,5 +1,8 @@
 package io.quarkus.test.services;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.apache.http.HttpStatus;
 import org.hamcrest.Matchers;
 
@@ -41,17 +44,23 @@ public interface IsRunningCheck {
         static final String BASE_PATH = "/";
         private final Protocol protocol;
         private final String path;
+        private final String body;
 
         protected IsPathReachableCheck(Protocol protocol, String path) {
+            this(protocol, path, null);
+        }
+
+        protected IsPathReachableCheck(Protocol protocol, String path, String body) {
             this.protocol = protocol;
             this.path = path;
+            this.body = body;
         }
 
         @Override
         public boolean isRunning(IsRunningCheckContext context) {
             try {
                 var host = context.getURI(protocol);
-                int statusCode = RestAssured.given()
+                var response = RestAssured.given()
                         .baseUri(host.getRestAssuredStyleUri())
                         .basePath(BASE_PATH)
                         .port(host.getPort())
@@ -59,7 +68,14 @@ public interface IsRunningCheck {
                         .then()
                         .statusCode(Matchers.allOf(Matchers.greaterThanOrEqualTo(HttpStatus.SC_OK),
                                 Matchers.lessThan(HttpStatus.SC_INTERNAL_SERVER_ERROR)))
-                        .extract().statusCode();
+                        .extract();
+                if (body != null) {
+                    String actualBody = response.body().asString();
+                    assertNotNull(actualBody);
+                    assertTrue(actualBody.contains(body),
+                            () -> "Expected response body to contain '%s', but got '%s'".formatted(body, actualBody));
+                }
+                int statusCode = response.statusCode();
                 Log.debug("Readiness check for path '%s' and protocol '%s' passed with response status '%s'", path, protocol,
                         statusCode);
             } catch (Throwable t) {
