@@ -5,6 +5,7 @@
 	<groupId>io.quarkus.qe.test.app</groupId>
 	<artifactId>{{must-be-replaced}}</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
+    <packaging>quarkus</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -43,16 +44,6 @@
 				<artifactId>quarkus-maven-plugin</artifactId>
 				<version>$REPLACE{quarkus.platform.version}</version>
 				<extensions>true</extensions>
-				<executions>
-					<execution>
-						<goals>
-							<goal>build</goal>
-							<goal>generate-code</goal>
-							<goal>generate-code-tests</goal>
-							<goal>native-image-agent</goal>
-						</goals>
-					</execution>
-				</executions>
 			</plugin>
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
