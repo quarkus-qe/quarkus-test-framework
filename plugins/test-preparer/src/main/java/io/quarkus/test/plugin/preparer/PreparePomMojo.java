@@ -11,6 +11,8 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
@@ -54,6 +56,7 @@ public class PreparePomMojo extends AbstractMojo {
     private static final String IO_QUARKUS_QE = "io.quarkus.qe";
     private static final String FAILSAFE_PLUGIN_VERSION = "failsafe-plugin.version";
     private static final String SUREFIRE_PLUGIN_VERSION = "surefire-plugin.version";
+    private static final String PACKAGING_OVERRIDING_PROPERTY = "ts.packaging";
     /**
      * Properties to propagate to the target POM file.
      */
@@ -80,6 +83,7 @@ public class PreparePomMojo extends AbstractMojo {
         var newPomModel = getNewPomMavenModel();
         newPomModel.setArtifactId(project.getArtifactId());
         newPomModel.setVersion(project.getVersion());
+        overridePackaging(newPomModel, project);
         addCurrentProjectDependencies(newPomModel, rawCurrentProjectModel, project);
         addCurrentProjectPlugins(newPomModel, rawCurrentProjectModel, project);
         addCurrentProjectRepositories(newPomModel, rawCurrentProjectModel);
@@ -187,6 +191,27 @@ public class PreparePomMojo extends AbstractMojo {
             }
 
             newPomModel.addDependency(dependency);
+        }
+    }
+
+    /**
+     * We're using packaging "quarkus" by default, set in the pom template.
+     * We want to use "quarkus" packaging unless explicitly stated otherwise.
+     * We cannot ask for "project.getPackaging()" because that will always have "jar" by default,
+     * and we want "quarkus" as default.
+     * Also remove quarkus-maven-plugin "executions" goals, as those are not required for quarkus packaging
+     */
+    private static void overridePackaging(Model newPomModel, MavenProject project) {
+        String overridingPackagingProperty = project.getProperties().getProperty(PACKAGING_OVERRIDING_PROPERTY);
+        if (overridingPackagingProperty != null) {
+            newPomModel.setPackaging(overridingPackagingProperty);
+        }
+        // packaging other that "quarkus" should also have execution goals for quarkus-maven-plugin
+        if (overridingPackagingProperty != null && !overridingPackagingProperty.equals("quarkus")) {
+            PluginExecution pluginExecution = new PluginExecution();
+            pluginExecution.setGoals(Arrays.asList("build", "generate-code", "generate-code-tests", "native-image-agent"));
+            newPomModel.getBuild().getPlugins().stream().filter(p -> p.getArtifactId().equals("quarkus-maven-plugin"))
+                    .findFirst().get().setExecutions(List.of(pluginExecution));
         }
     }
 
