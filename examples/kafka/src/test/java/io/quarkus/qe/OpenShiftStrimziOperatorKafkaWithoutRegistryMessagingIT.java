@@ -15,7 +15,8 @@ import io.quarkus.test.services.operator.KafkaInstance;
 @OpenShiftScenario
 public class OpenShiftStrimziOperatorKafkaWithoutRegistryMessagingIT {
 
-    @Operator(name = "strimzi-kafka-operator")
+    // TODO: Update when OCP 4.14 is unsupported; this is the last version that works on OCP 4.14
+    @Operator(name = "strimzi-kafka-operator", channel = "strimzi-0.50.x")
     static final KafkaInstance kafka = new KafkaInstance();
 
     @QuarkusApplication
