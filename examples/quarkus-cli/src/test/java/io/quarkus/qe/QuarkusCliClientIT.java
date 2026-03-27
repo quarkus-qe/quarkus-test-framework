@@ -20,6 +20,7 @@ import jakarta.inject.Inject;
 import org.apache.commons.io.FileUtils;
 import org.apache.http.HttpStatus;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -99,6 +100,8 @@ public class QuarkusCliClientIT {
     }
 
     @TestQuarkusCli
+    // TODO: re-enable this once https://github.com/quarkusio/quarkus/pull/53251 is in release, otherwise this breaks the API for extension tests between 3.34 and 3.35
+    @Disabled("https://github.com/quarkusio/quarkus/pull/53251 introduces breaking change in main tests compared to Quarkus release in registry")
     public void shouldCreateExtension(QuarkusVersionAwareCliClient cliClient) {
         // Create extension
         QuarkusCliDefaultService app = cliClient.createExtension("extension-abc");
