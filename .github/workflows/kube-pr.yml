@@ -19,7 +19,7 @@ jobs:
     steps:
       - name: Get PR SHA
         id: get_pr_sha
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const pr = await github.rest.pulls.get({
@@ -30,7 +30,7 @@ jobs:
             core.setOutput('pr_sha', pr.data.head.sha);
       - name: Add comment to PR with link
         id: create_comment
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
@@ -144,7 +144,7 @@ jobs:
     if: success() || failure()
     steps:
       - name: Update PR comment with status
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           script: |
             const runUrl = `https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}`;
