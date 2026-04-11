@@ -34,6 +34,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup(
             S2I_BASE_NATIVE_IMAGE.getName(),
             "quay.io/quarkus/ubi9-quarkus-graalvmce-s2i:jdk-25");
+    private static final String QUARKUS_SOURCE_S2I_NATIVE_BUILD_PROPERTIES = "-Dquarkus.native.native-image-xmx=5g";
 
     private final GitRepositoryQuarkusApplicationManagedResourceBuilder model;
 
@@ -89,6 +90,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     protected String replaceDeploymentContent(String content) {
         String quarkusPlatformVersion = QuarkusProperties.getVersion();
         String quarkusS2iBaseImage = getQuarkusS2iBaseImage();
+        String quarkusSourceS2iBuildNativeProperties = isNativeTest() ? QUARKUS_SOURCE_S2I_NATIVE_BUILD_PROPERTIES : "";
         String mavenArgs = model.getMavenArgsWithVersion();
 
         return content.replaceAll(quote("${APP_NAME}"), model.getContext().getOwner().getName())
@@ -98,6 +100,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
                 .replaceAll(quote("${CONTEXT_DIR}"), model.getContextDir())
                 .replaceAll(quote("${GIT_MAVEN_ARGS}"), mavenArgs)
                 .replaceAll(quote("${CURRENT_NAMESPACE}"), client.project())
+                .replaceAll(quote("${QUARKUS_SOURCE_S2I_NATIVE_BUILD_PROPERTIES}"), quarkusSourceS2iBuildNativeProperties)
                 .replaceAll(quote(QUARKUS_PLATFORM_GROUP_ID_PROPERTY), PLATFORM_GROUP_ID.get())
                 .replaceAll(quote(QUARKUS_PLATFORM_VERSION_PROPERTY), quarkusPlatformVersion);
     }
