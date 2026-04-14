@@ -38,7 +38,7 @@ public class PreparePomMojo extends AbstractMojo {
     private static final boolean SKIP_INTEGRATION_TESTS = Boolean.getBoolean("skipITs");
     // this needs to be system property, it is too early for FW configuration
     private static final Set<String> PROPAGATED_ANNOTATION_PROCESSOR_ARTIFACTS = Set.of("hibernate-processor",
-            "hibernate-search-processor");
+            "hibernate-search-processor", "protostream-processor");
     private static final String TARGET_POM = "quarkus-app-pom.xml";
     private static final String MAVEN_COMPILER_RELEASE = "maven.compiler.release";
     private static final String PROPERTY_START = "\\${";
