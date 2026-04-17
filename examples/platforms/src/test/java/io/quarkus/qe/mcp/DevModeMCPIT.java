@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
@@ -13,6 +14,7 @@ import io.quarkus.test.services.Dependency;
 import io.quarkus.test.services.DevModeQuarkusApplication;
 
 @QuarkusScenario
+@Disabled("https://github.com/quarkiverse/quarkus-langchain4j/issues/2340")
 public class DevModeMCPIT extends BasicMCPIT {
 
     @DevModeQuarkusApplication(boms = { @Dependency(artifactId = "quarkus-mcp-server-bom") }, dependencies = {
