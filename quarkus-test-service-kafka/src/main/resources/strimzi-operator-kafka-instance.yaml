@@ -29,7 +29,9 @@ metadata:
     strimzi.io/kraft: enabled
 spec:
   kafka:
-    version: 4.1.1
+    # When updating this version please run the OperatorOpenShiftAmqStreamsKafkaStreamIT in TS
+    # as the amq-streams are different from the latest operator
+    version: 4.1.0
     replicas: 1
     listeners:
       - name: plain
