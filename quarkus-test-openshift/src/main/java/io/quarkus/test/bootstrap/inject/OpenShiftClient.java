@@ -443,7 +443,9 @@ public final class OpenShiftClient {
     }
 
     /**
-     * Scale the service to the replicas.
+     * Scale the service to the given number of replicas.
+     * Also scales down any existing DeploymentConfig to 0, since on some OCP clusters a DC may
+     * coexist with the Deployment created by the Quarkus OpenShift extension, causing duplicate pods.
      *
      * @param service
      * @param replicas
@@ -461,6 +463,28 @@ public final class OpenShiftClient {
                     .runAndWait();
         } catch (Exception e) {
             fail("Service failed to be scaled. Caused by " + e.getMessage());
+        }
+
+        scaleDownDeploymentConfigIfExists(service.getName());
+    }
+
+    /**
+     * On some OCP clusters, a DeploymentConfig may coexist with the Deployment created by the
+     * Quarkus OpenShift extension. Scale it to 0 so only the Deployment pods are active,
+     * avoiding duplicate pods.
+     */
+    private void scaleDownDeploymentConfigIfExists(String name) {
+        if (client.deploymentConfigs().withName(name).get() == null) {
+            return;
+        }
+        try {
+            new Command(OC, "scale",
+                    "dc/" + name,
+                    "--replicas=0",
+                    "-n", currentNamespace)
+                    .runAndWait();
+        } catch (Exception e) {
+            LOG.debug("Failed to scale down DeploymentConfig " + name + ": " + e.getMessage());
         }
     }
 
