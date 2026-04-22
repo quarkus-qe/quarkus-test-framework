@@ -1,5 +1,7 @@
 package io.quarkus.qe.mcp;
 
+import org.junit.jupiter.api.Disabled;
+
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.OpenShiftScenario;
@@ -8,6 +10,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @OpenShiftScenario
+@Disabled("https://github.com/quarkiverse/quarkus-langchain4j/issues/2340")
 public class OpenShiftMCPIT extends BasicMCPIT {
 
     private static String workingFolder = QuarkusProperties.isNativeEnabled() ? "/home/quarkus" : "/deployments";
