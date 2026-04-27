@@ -204,7 +204,7 @@ jobs:
         java: [ 21 ]
         quarkus-version: ["999-SNAPSHOT"]
         graalvm-version: ["mandrel-latest"]
-        graalvm-java: ["21"]
+        graalvm-java: ["25"]
     steps:
       - uses: actions/checkout@v6
       - name: Install JDK ${{ matrix.java }}
