@@ -14,7 +14,7 @@ import io.restassured.response.Response;
 // todo Merge with LocalIT when framework support SSL/TLS on openshift https://github.com/quarkus-qe/quarkus-test-framework/issues/1052
 public class LocalTLSIT {
 
-    @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true, useTlsRegistry = false))
+    @QuarkusApplication(certificates = @Certificate(configureManagementInterface = true, configureKeystore = true, useTlsRegistry = false), ssl = true)
     static final RestService service = new RestService()
             .withProperty("quarkus.management.port", "9003");
 
