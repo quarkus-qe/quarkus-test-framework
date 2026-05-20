@@ -1,7 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.cloneRepository;
-import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.mavenBuild;
 
 public class ContainerRegistryOpenShiftGitRepositoryQuarkusApplicationManagedResource
         extends ContainerRegistryOpenShiftQuarkusApplicationManagedResource {
@@ -16,7 +15,6 @@ public class ContainerRegistryOpenShiftGitRepositoryQuarkusApplicationManagedRes
         super.onPreBuild();
 
         cloneRepository(getModel());
-        mavenBuild(getModel());
     }
 
     private GitRepositoryQuarkusApplicationManagedResourceBuilder getModel() {
