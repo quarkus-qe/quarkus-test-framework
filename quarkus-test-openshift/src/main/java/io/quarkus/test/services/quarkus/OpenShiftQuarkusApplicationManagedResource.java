@@ -1,5 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
+import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_MANAGEMENT_ROUTE_SUFFIX;
 import static io.quarkus.test.bootstrap.inject.OpenShiftClient.TLS_ROUTE_SUFFIX;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.CA_BUNDLE_CONFIGMAP_NAME;
 import static io.quarkus.test.openshift.utils.OpenShiftPropertiesUtils.EXTERNAL_SSL_PORT;
@@ -109,7 +110,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
             fail("gRPC is not supported for OpenShift tests yet");
         } else if (protocol == Protocol.MANAGEMENT && model.useSeparateManagementInterface()) {
             if (model.useManagementSsl()) {
-                fail("SSL is not supported for management on OpenShift tests yet");
+                return client.url(context.getOwner().getName() + TLS_MANAGEMENT_ROUTE_SUFFIX)
+                        .withPort(EXTERNAL_SSL_PORT).withScheme(Protocol.HTTPS.getValue());
             }
             return client.url(context.getOwner().getName() + "-management").withPort(EXTERNAL_PORT);
         }
