@@ -1,7 +1,6 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.cloneRepository;
-import static io.quarkus.test.services.quarkus.GitRepositoryResourceBuilderUtils.mavenBuild;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.PLATFORM_GROUP_ID;
 import static io.quarkus.test.utils.MavenUtils.withProperty;
 
@@ -30,7 +29,6 @@ public class GitRepositoryLocalhostQuarkusApplicationManagedResource
         super.onPreBuild();
 
         cloneRepository(model);
-        mavenBuild(model);
     }
 
     @Override
