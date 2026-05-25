@@ -44,7 +44,8 @@ jobs:
           git clone -b 3.33 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Build Quarkus Platform 3.33.999-SNAPSHOT
         run: |
-          git clone -b 3.33 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform && ./mvnw versions:set -DnewVersion=3.33.999-SNAPSHOT -DgenerateBackupPoms=false && ./mvnw install -Dquarkus.version=3.33.999-SNAPSHOT -DskipTests -DskipITs
+          # TODO revert commit for excluding the camel-quarkus-integration-test-cxf-soap-grouped
+          git clone -b 3.33 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform && ./mvnw versions:set -DnewVersion=3.33.999-SNAPSHOT -DgenerateBackupPoms=false && ./mvnw process-resources -Dquarkus.invoke-platform-project.skip=true && cd generated-platform-project && ../mvnw install -Dquarkus.version=3.33.999-SNAPSHOT -DskipTests -DskipITs -pl "-io.quarkus.platform:camel-quarkus-integration-test-cxf-soap-grouped"
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
