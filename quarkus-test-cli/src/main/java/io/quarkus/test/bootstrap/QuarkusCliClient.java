@@ -172,6 +172,9 @@ public class QuarkusCliClient {
     public Result updateApplication(UpdateApplicationRequest request, Path serviceFolder) {
         List<String> args = new ArrayList<>(List.of("update"));
 
+        // TODO remove when https://redhat.atlassian.net/browse/QQE-2579 is investigated and fixed
+        args.add("--quarkus-update-recipes=1.10.1");
+
         // apply updates
         if (request.applyUpdates) {
             args.add("-y");
