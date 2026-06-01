@@ -4,7 +4,6 @@ import static io.quarkus.test.configuration.Configuration.Property.CLI_CMD;
 import static io.quarkus.test.services.quarkus.model.QuarkusProperties.createDisableBuildAnalyticsProperty;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -41,7 +40,6 @@ public class QuarkusCliClient {
     private static final String DEV = "dev";
     private static final PropertyLookup COMMAND = new PropertyLookup(CLI_CMD.getName(), "quarkus");
     private static final Path TARGET = Paths.get("target");
-    private volatile boolean useTemporaryDirectory = false;
 
     private final ScenarioContext context;
 
@@ -101,17 +99,16 @@ public class QuarkusCliClient {
     }
 
     public QuarkusCliRestService createApplication(String name, CreateApplicationRequest request, String targetFolderName) {
+        String dirName = extractDirectoryName(name);
         final Path serviceFolder;
         if (isNotEmpty(targetFolderName)) {
-            serviceFolder = TARGET.resolve(targetFolderName).resolve(name);
-        } else if (useTemporaryDirectory) {
+            serviceFolder = TARGET.resolve(targetFolderName).resolve(dirName);
+        } else {
             try {
-                serviceFolder = Files.createTempDirectory(name).resolve(name);
+                serviceFolder = Files.createTempDirectory(dirName).resolve(dirName);
             } catch (IOException e) {
                 throw new RuntimeException("Failed to create temporary directory", e);
             }
-        } else {
-            serviceFolder = null;
         }
         QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
@@ -143,6 +140,8 @@ public class QuarkusCliClient {
         Result result = runCliAndWait(serviceContext.getServiceFolder().getParent(), args.toArray(new String[0]));
         assertTrue(result.isSuccessful(), "The application was not created. Output: " + result.getOutput());
 
+        initGitRepoIfInsideGitIgnoredDir(serviceContext.getServiceFolder());
+
         return service;
     }
 
@@ -155,7 +154,17 @@ public class QuarkusCliClient {
 
     public QuarkusCliRestService createApplicationFromExistingSources(String name, String targetFolderName, Path sourcesDir,
             ManagedResourceCreator managedResourceCreator) {
-        Path serviceFolder = isNotEmpty(targetFolderName) ? TARGET.resolve(targetFolderName).resolve(name) : null;
+        String dirName = extractDirectoryName(name);
+        final Path serviceFolder;
+        if (isNotEmpty(targetFolderName)) {
+            serviceFolder = TARGET.resolve(targetFolderName).resolve(dirName);
+        } else {
+            try {
+                serviceFolder = Files.createTempDirectory(dirName).resolve(dirName);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to create temporary directory", e);
+            }
+        }
         QuarkusCliRestService service = new QuarkusCliRestService(this, serviceFolder);
         ServiceContext serviceContext = service.register(name, context);
 
@@ -165,6 +174,8 @@ public class QuarkusCliClient {
         FileUtils.deletePath(serviceContext.getServiceFolder());
 
         FileUtils.copyDirectoryTo(sourcesDir, serviceContext.getServiceFolder());
+
+        initGitRepoIfInsideGitIgnoredDir(serviceContext.getServiceFolder());
 
         return service;
     }
@@ -194,6 +205,39 @@ public class QuarkusCliClient {
         Result result = runCliAndWait(serviceFolder, args.toArray(new String[0]));
         assertTrue(result.isSuccessful(), "The application was not updated. Output: " + result.getOutput());
         return result;
+    }
+
+    // OpenRewrite's rewrite-maven-plugin (6.40.0+) excludes files that are gitignored and untracked.
+    // If the app is inside a gitignored directory (e.g. target/), OpenRewrite skips its pom.xml.
+    // Initializing a git repo scopes OpenRewrite to the app's own directory.
+    // See https://redhat.atlassian.net/browse/QQE-2579
+    private static void initGitRepoIfInsideGitIgnoredDir(Path directory) {
+        try {
+            Process checkIgnore = ProcessBuilderProvider.command(List.of("git", "check-ignore", "-q", directory.toString()))
+                    .redirectErrorStream(true)
+                    .start();
+            if (checkIgnore.waitFor() == 0) {
+                ProcessBuilderProvider.command(List.of("git", "init"))
+                        .directory(directory.toFile())
+                        .redirectErrorStream(true)
+                        .start()
+                        .waitFor();
+            }
+        } catch (Exception e) {
+            Log.warn("Failed to initialize git repo in " + directory + ": " + e.getMessage());
+        }
+    }
+
+    private static String extractDirectoryName(String name) {
+        int colonPos = name.indexOf(':');
+        if (colonPos > 0) {
+            int lastColon = name.lastIndexOf(':');
+            if (lastColon == colonPos) {
+                return name.substring(colonPos + 1);
+            }
+            return name.substring(colonPos + 1, lastColon);
+        }
+        return name;
     }
 
     private static boolean isNotEmpty(String str) {
@@ -500,15 +544,4 @@ public class QuarkusCliClient {
         return CreateExtensionRequest.defaults();
     }
 
-    /**
-     * This client will only create new applications inside temporary directory (unless user explicitly specified path).
-     * It can be useful if you need to create new Quarkus applications in the temporary directory only within one
-     * test method.
-     *
-     * @return {@link Closeable} which disables using temporary directory
-     */
-    public Closeable useTemporaryDirectory() {
-        useTemporaryDirectory = true;
-        return () -> useTemporaryDirectory = false;
-    }
 }
