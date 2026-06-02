@@ -77,33 +77,6 @@
         <reruns>2</reruns>
         <flaky-run-reporter.version>0.1.7</flaky-run-reporter.version>
     </properties>
-    <repositories>
-        <repository>
-            <!-- repository where quarkus 999-snapshot is built -->
-            <id>quarkus-snapshots-central-repository</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-    </repositories>
-    <pluginRepositories>
-        <pluginRepository>
-            <id>quarkus-snapshots-plugin-repository</id>
-            <url>https://central.sonatype.com/repository/maven-snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>never</updatePolicy>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
     <dependencyManagement>
         <dependencies>
             <dependency>
