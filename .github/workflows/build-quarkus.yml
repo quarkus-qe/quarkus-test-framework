@@ -26,14 +26,17 @@ jobs:
           # Save local repo to GH ENV to ensure that it's the same in all steps
           mkdir -p maven-repository
           echo "LOCAL_REPO=$(pwd)/maven-repository" >> $GITHUB_ENV
-      - name: Build Quarkus 3.999-SNAPSHOT
+      - name: Build Quarkus core
         run: |
           git clone -b 3.x https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations -Dmaven.repo.local=${{ env.LOCAL_REPO }}
-      - name: Build Quarkus Platform 3.999-SNAPSHOT
+      - name: Build Quarkus Platform
         run: |
           git clone https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
           # TODO remove versions:set when moved to testing 999-SNAPSHOT (Quarkus 4)
-          ./mvnw versions:set -DnewVersion=3.999-SNAPSHOT -DgenerateBackupPoms=false
+          ./mvnw versions:set -DnewVersion=999-core-3.x-SNAPSHOT -Dmaven.repo.local=${{ env.LOCAL_REPO }} -DgenerateBackupPoms=false
+          wget -O minimise_platform.xsl "https://github.com/quarkus-qe/quarkus-test-suite/raw/refs/heads/main/.github/minimise_platform.xsl"
+          xsltproc -o pom.xml minimise_platform.xsl pom.xml
+          ./mvnw -Dsync  -Dquarkus.version=3.999-SNAPSHOT -Dmaven.repo.local=${{ env.LOCAL_REPO }}
           ./mvnw install -Dquarkus.version=3.999-SNAPSHOT -DskipTests -DskipITs -Dmaven.repo.local=${{ env.LOCAL_REPO }}
       - name: Cache Build Outputs
         uses: actions/cache/save@v6
