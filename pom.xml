@@ -51,9 +51,9 @@
         <quarkus.group-id>io.quarkus</quarkus.group-id>
         <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
         <quarkus.version>3.999-SNAPSHOT</quarkus.version>
-        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>${quarkus.artifact-id}</quarkus.platform.artifact-id>
-        <quarkus.platform.version>3.999-SNAPSHOT</quarkus.platform.version>
+        <quarkus.platform.version>999-core-3.x-SNAPSHOT</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
