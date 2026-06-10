@@ -237,6 +237,10 @@ public class ExtensionOpenShiftQuarkusApplicationManagedResource
                 args.add(withProperty(
                         "quarkus.openshift.secret-volumes." + result.secretName() + ".items.\"" + result.fileName() + "\".path",
                         result.fileName()));
+                // TODO remove set of mode or this `TODO` base on outcome of https://github.com/quarkusio/quarkus/issues/54784
+                args.add(withProperty(
+                        "quarkus.openshift.secret-volumes." + result.secretName() + ".items.\"" + result.fileName() + "\".mode",
+                        "0644"));
                 args.add(withProperty("quarkus.openshift.mounts." + result.secretName() + ".name",
                         result.secretName()));
                 args.add(withProperty("quarkus.openshift.mounts." + result.secretName() + ".path",
