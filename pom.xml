@@ -48,8 +48,12 @@
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <central-publishing-maven-plugin.version>0.10.0</central-publishing-maven-plugin.version>
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
-        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+        <quarkus.group-id>io.quarkus</quarkus.group-id>
+        <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
+        <quarkus.version>999-SNAPSHOT</quarkus.version>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.artifact-id>${quarkus.artifact-id}</quarkus.platform.artifact-id>
         <quarkus.platform.version>999-SNAPSHOT</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
@@ -80,9 +84,9 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>${quarkus.platform.group-id}</groupId>
-                <artifactId>${quarkus.platform.artifact-id}</artifactId>
-                <version>${quarkus.platform.version}</version>
+                <groupId>${quarkus.group-id}</groupId>
+                <artifactId>${quarkus.artifact-id}</artifactId>
+                <version>${quarkus.version}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -211,7 +215,7 @@
             <dependency>
                 <groupId>io.quarkus</groupId>
                 <artifactId>quarkus-test-maven</artifactId>
-                <version>${quarkus.platform.version}</version>
+                <version>${quarkus.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -306,7 +310,7 @@
                     <dependency>
                         <artifactId>quarkus-ide-config</artifactId>
                         <groupId>io.quarkus</groupId>
-                        <version>${quarkus.platform.version}</version>
+                        <version>${quarkus.version}</version>
                     </dependency>
                 </dependencies>
                 <configuration>
