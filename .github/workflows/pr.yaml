@@ -9,7 +9,7 @@ jobs:
       matrix:
         java: [ 21 ]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -33,7 +33,7 @@ jobs:
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -84,7 +84,7 @@ jobs:
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK ${{ matrix.java }}
@@ -135,7 +135,7 @@ jobs:
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v5
         with:
