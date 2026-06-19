@@ -16,6 +16,13 @@ data:
                 <url>${internal.s2i.maven.remote.repository}</url>
                 <blocked>false</blocked>
             </mirror>
+            <mirror>
+                <id>google-maven-central</id>
+                <mirrorOf>central</mirrorOf>
+                <name>Google Maven Central mirror</name>
+                <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+                <blocked>false</blocked>
+            </mirror>
         </mirrors>
         <profiles>
             <profile>
