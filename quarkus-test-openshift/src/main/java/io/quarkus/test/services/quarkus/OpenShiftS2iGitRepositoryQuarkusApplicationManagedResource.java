@@ -51,9 +51,7 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
         if (model.isDevMode()) {
             Assertions.fail("DEV mode is not supported when using GIT repositories on OpenShift deployments");
         }
-        System.out.println("name: " + S2I_MAVEN_REMOTE_REPOSITORY.getName());
         String repo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
-        System.out.println("Repo: " + repo);
         if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()
                 && StringUtils.isEmpty(repo)) {
             Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if not Maven repository has been provided");

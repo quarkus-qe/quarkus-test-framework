@@ -30,13 +30,13 @@ items:
             destinationDir: "/configuration"
           - configMap:
               name: etc-pki-java
-            destinationDir: "/etc/pki/java/"
+            destinationDir: "/custom-java-certs"
       strategy:
         type: Source
         sourceStrategy:
           env:
             - name: MAVEN_ARGS
-              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus-plugin.version=${QUARKUS_PLATFORM_VERSION} -Djavax.net.ssl.trustStore=/etc/pki/java/cacerts -Daether.connector.http.retryHandler.count=10 -Daether.connector.http.retryHandler.interval=3000 -Daether.connector.http.retryHandler.serviceUnavailable=429,502,503,504 ${QUARKUS_SOURCE_S2I_NATIVE_BUILD_PROPERTIES}
+              value: -s /configuration/settings.xml ${GIT_MAVEN_ARGS} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus-plugin.version=${QUARKUS_PLATFORM_VERSION} -Djavax.net.ssl.trustStore=/custom-java-certs/cacerts -Daether.connector.http.retryHandler.count=10 -Daether.connector.http.retryHandler.interval=3000 -Daether.connector.http.retryHandler.serviceUnavailable=429,502,503,504 ${QUARKUS_SOURCE_S2I_NATIVE_BUILD_PROPERTIES}
           from:
             kind: DockerImage
             name: ${QUARKUS_S2I_BUILDER_IMAGE}
