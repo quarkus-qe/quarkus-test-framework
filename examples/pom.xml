@@ -52,6 +52,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <quarkus.platform.group-id>${quarkus.platform.group-id}</quarkus.platform.group-id>
+                        <quarkus.platform.version>${quarkus.platform.version}</quarkus.platform.version>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
@@ -81,6 +90,10 @@
                             <forkedProcessTimeoutInSeconds>0</forkedProcessTimeoutInSeconds>
                             <!--our ForkNode factory helps us to propagate termination signal down to JUnit provider -->
                             <forkNode implementation="io.quarkus.test.debug.SureFireDebugForkNodeFactory" />
+                            <systemPropertyVariables>
+                                <quarkus.platform.group-id>${quarkus.platform.group-id}</quarkus.platform.group-id>
+                                <quarkus.platform.version>${quarkus.platform.version}</quarkus.platform.version>
+                            </systemPropertyVariables>
                         </configuration>
                     </plugin>
                 </plugins>
