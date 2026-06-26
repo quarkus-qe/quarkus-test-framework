@@ -340,13 +340,14 @@ public class QuarkusCliClient {
     }
 
     private static boolean isUpstream(String version) {
-        return version.contains(QUARKUS_UPSTREAM_VERSION);
+        return version.contains("-SNAPSHOT");
     }
 
     protected static String getFixedStreamVersion() {
         var rawVersion = QuarkusProperties.getVersion();
         if (isUpstream(rawVersion)) {
-            throw new IllegalStateException("Cannot set fixed stream version for '%s' as it doesn't exist" + rawVersion);
+            throw new IllegalStateException(
+                    "Cannot set fixed stream version for '%s' as it doesn't exist".formatted(rawVersion));
         }
 
         String[] version = rawVersion.split(Pattern.quote("."));

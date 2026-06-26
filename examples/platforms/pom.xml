@@ -10,9 +10,6 @@
     </parent>
     <artifactId>examples-platforms</artifactId>
     <name>Quarkus - Test Framework - Examples - Additional platforms</name>
-    <properties>
-        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-    </properties>
     <dependencyManagement>
         <dependencies>
             <dependency>
@@ -58,16 +55,4 @@
             <scope>test</scope>
         </dependency>
     </dependencies>
-    <build>
-        <plugins>
-            <plugin>
-                <artifactId>maven-failsafe-plugin</artifactId>
-                <configuration>
-                    <systemPropertyVariables>
-                        <quarkus.platform.group-id>${quarkus.platform.group-id}</quarkus.platform.group-id>
-                    </systemPropertyVariables>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
 </project>
