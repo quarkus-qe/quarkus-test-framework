@@ -47,7 +47,7 @@ jobs:
     needs: write-comment
     strategy:
       matrix:
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
         java: [21]
     steps:
       - uses: actions/checkout@v7
@@ -94,7 +94,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - quarkus-version: "3.999-SNAPSHOT"
+          - quarkus-version: "999-core-3.x-SNAPSHOT"
             java: 21
     steps:
       - uses: actions/checkout@v7
