@@ -61,7 +61,7 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: ["3.33.999-SNAPSHOT"]
+        quarkus-version: ["3.33.2"]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -119,7 +119,7 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: [ "3.33.999-SNAPSHOT" ]
+        quarkus-version: [ "3.33.2" ]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -178,7 +178,7 @@ jobs:
     strategy:
       matrix:
         java: [ 21 ]
-        quarkus-version: ["3.33.999-SNAPSHOT"]
+        quarkus-version: ["3.33.2"]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:

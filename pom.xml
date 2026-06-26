@@ -51,7 +51,7 @@
         <quarkus.group-id>io.quarkus</quarkus.group-id>
         <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
         <quarkus.version>3.33.2</quarkus.version>
-        <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>${quarkus.artifact-id}</quarkus.platform.artifact-id>
         <quarkus.platform.version>${quarkus.version}</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
