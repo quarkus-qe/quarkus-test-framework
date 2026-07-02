@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
         java: [ 21, 25 ]
     steps:
       - uses: actions/checkout@v7
@@ -43,7 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
         java: [ 25 ]
     steps:
       - uses: actions/checkout@v7
@@ -76,7 +76,7 @@ jobs:
     strategy:
       matrix:
         include:
-          - quarkus-version: "3.999-SNAPSHOT"
+          - quarkus-version: "999-core-3.x-SNAPSHOT"
             java: 21
             extra-maven-args: ''
     steps:
@@ -120,7 +120,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
         java: [21]
     steps:
       - uses: actions/checkout@v7
@@ -164,7 +164,7 @@ jobs:
     strategy:
       matrix:
         java: [ 21, 25 ]
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
     steps:
       - uses: actions/checkout@v7
       - name: Install JDK ${{ matrix.java }}
@@ -196,7 +196,7 @@ jobs:
     strategy:
       matrix:
         java: [ 21 ]
-        quarkus-version: ["3.999-SNAPSHOT"]
+        quarkus-version: ["999-core-3.x-SNAPSHOT"]
         graalvm-version: ["mandrel-latest"]
         graalvm-java: ["25"]
     steps:

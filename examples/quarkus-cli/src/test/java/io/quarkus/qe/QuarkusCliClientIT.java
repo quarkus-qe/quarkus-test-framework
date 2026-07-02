@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
+import io.quarkus.builder.Version;
 import io.quarkus.test.bootstrap.QuarkusCliClient;
 import io.quarkus.test.bootstrap.QuarkusCliDefaultService;
 import io.quarkus.test.bootstrap.QuarkusCliRestService;
@@ -33,7 +34,6 @@ import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.scenarios.TestQuarkusCli;
 import io.quarkus.test.scenarios.annotations.EnabledOnNative;
 import io.quarkus.test.services.quarkus.CliDevModeVersionLessQuarkusApplicationManagedResource;
-import io.quarkus.test.services.quarkus.model.QuarkusProperties;
 
 @Tag("quarkus-cli")
 @QuarkusScenario
@@ -52,11 +52,12 @@ public class QuarkusCliClientIT {
 
     @Test
     public void shouldVersionMatchQuarkusVersion() {
+        String version = Version.getVersion(); // version of cli should be the same as Quarkus core version
         // Using option
-        assertEquals(QuarkusProperties.getVersion(), cliClient.run("--version").getOutput());
+        assertEquals(version, cliClient.run("--version").getOutput());
 
         // Using shortcut
-        assertEquals(QuarkusProperties.getVersion(), cliClient.run("-v").getOutput());
+        assertEquals(version, cliClient.run("-v").getOutput());
     }
 
     @TestQuarkusCli
