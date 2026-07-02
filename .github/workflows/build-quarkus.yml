@@ -21,6 +21,8 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
+      - name: Install xsltproc
+        run: sudo apt install -qq -y xsltproc
       - name: Initialize Repository Path
         run: |
           # Save local repo to GH ENV to ensure that it's the same in all steps
