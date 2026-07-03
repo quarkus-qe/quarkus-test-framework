@@ -1,6 +1,9 @@
 name: "PR"
 on:
   - pull_request
+env:
+  QUARKUS_BUILD: 3.27.999-SNAPSHOT
+  PLATFORM_BUILD: 3.27.999-core-3.27-SNAPSHOT
 jobs:
   validate-format:
     name: Validate format
@@ -36,6 +39,9 @@ jobs:
   quarkus-main-build:
     name: Quarkus 3.27 build
     runs-on: ubuntu-latest
+    outputs:
+      PLATFORM_BUILD: ${{ env.PLATFORM_BUILD }}
+      QUARKUS_BUILD: ${{ env.QUARKUS_BUILD }}
     strategy:
       matrix:
         java: [ 17 ]
@@ -44,7 +50,7 @@ jobs:
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install required tools
-        run: sudo apt update && sudo apt install pigz
+        run: sudo apt update && sudo apt install pigz xsltproc
       - name: Install JDK ${{ matrix.java }}
         uses: actions/setup-java@v4
         with:
@@ -52,9 +58,18 @@ jobs:
           java-version: ${{ matrix.java }}
           check-latest: true
           cache: 'maven'
-      - name: Build Quarkus main
+      - name: Build Quarkus core ${{ env.QUARKUS_BUILD }}
         run: |
-          git clone -b 3.27 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+          git clone -b 3.27 https://github.com/quarkusio/quarkus.git && cd quarkus
+          ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Build Quarkus Platform ${{ env.PLATFORM_BUILD }}
+        run: |
+          git clone -b 3.27 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
+          wget -O minimise_platform.xsl https://raw.githubusercontent.com/quarkus-qe/quarkus-test-suite/refs/heads/3.27/.github/minimise_platform.xsl
+          xsltproc -o pom.xml minimise_platform.xsl pom.xml
+          ./mvnw versions:set -DnewVersion=${{ env.PLATFORM_BUILD }} -DgenerateBackupPoms=false
+          ./mvnw -Dsync  -Dquarkus.version=${{ env.QUARKUS_BUILD }}
+          ./mvnw install  --no-transfer-progress -Dquarkus.version=${{ env.QUARKUS_BUILD }} -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -70,7 +85,8 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: ["3.27.999-core-3.27-SNAPSHOT"]
+        platform-version: ["${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}"]
+        quarkus-version: ["${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}"]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -104,7 +120,7 @@ jobs:
           ./quarkus-dev-cli version
       - name: Build in JVM mode
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -136,7 +152,8 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: [ "3.27.999-core-3.27-SNAPSHOT" ]
+        platform-version: [ "${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}" ]
+        quarkus-version: [ "${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}" ]
         java: [ 17 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -170,7 +187,7 @@ jobs:
           ./quarkus-dev-cli version
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -203,7 +220,8 @@ jobs:
     strategy:
       matrix:
         java: [ 17 ]
-        quarkus-version: ["3.27.999-core-3.27-SNAPSHOT"]
+        platform-version: ["${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}"]
+        quarkus-version: [ "${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}" ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -226,7 +244,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/quarkus-snapshots-mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
