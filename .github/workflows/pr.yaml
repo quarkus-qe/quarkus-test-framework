@@ -1,6 +1,9 @@
 name: "PR"
 on:
   - pull_request
+env:
+  QUARKUS_BUILD: 3.33.999-SNAPSHOT
+  PLATFORM_BUILD: 3.33.999-core-3.33-SNAPSHOT
 jobs:
   validate-format:
     name: Validate format
@@ -24,6 +27,9 @@ jobs:
   quarkus-main-build:
     name: Quarkus 3.33 build
     runs-on: ubuntu-latest
+    outputs:
+      PLATFORM_BUILD: ${{ env.PLATFORM_BUILD }}
+      QUARKUS_BUILD: ${{ env.QUARKUS_BUILD }}
     strategy:
       matrix:
         java: [ 17 ]
@@ -39,13 +45,20 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - name: Build Quarkus 3.33.999-SNAPSHOT
+      - name: Install xsltproc
+        run: sudo apt install -qq -y xsltproc
+      - name: Build Quarkus core ${{ env.QUARKUS_BUILD }}
         run: |
-          git clone -b 3.33 https://github.com/quarkusio/quarkus.git && cd quarkus && ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
-      - name: Build Quarkus Platform 3.33.999-SNAPSHOT
+          git clone -b 3.33 https://github.com/quarkusio/quarkus.git && cd quarkus
+          ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Build Quarkus Platform ${{ env.PLATFORM_BUILD }}
         run: |
-          # TODO revert commit for excluding the camel-quarkus-integration-test-cxf-soap-grouped
-          git clone -b 3.33 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform && ./mvnw versions:set -DnewVersion=3.33.999-SNAPSHOT -DgenerateBackupPoms=false && ./mvnw process-resources -Dquarkus.invoke-platform-project.skip=true && cd generated-platform-project && ../mvnw install -Dquarkus.version=3.33.999-SNAPSHOT -DskipTests -DskipITs -pl "-io.quarkus.platform:camel-quarkus-integration-test-cxf-soap-grouped"
+          git clone -b 3.33 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
+          wget -O minimise_platform.xsl "https://github.com/quarkus-qe/quarkus-test-suite/raw/refs/heads/main/.github/minimise_platform.xsl"
+          xsltproc -o pom.xml minimise_platform.xsl pom.xml
+          ./mvnw versions:set -DnewVersion=${{ env.PLATFORM_BUILD }} -DgenerateBackupPoms=false
+          ./mvnw -Dsync  -Dquarkus.version=${{ env.QUARKUS_BUILD }}
+          ./mvnw install  --no-transfer-progress -Dquarkus.version=${{ env.QUARKUS_BUILD }} -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
@@ -61,7 +74,8 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: ["3.33.2"]
+        platform-version: ["${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}"]
+        quarkus-version: ["${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}"]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -87,7 +101,7 @@ jobs:
       - uses: ./.github/actions/use-docker-mirror
       - name: Build in JVM mode
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -119,7 +133,8 @@ jobs:
     needs: [ validate-format, quarkus-main-build ]
     strategy:
       matrix:
-        quarkus-version: [ "3.33.2" ]
+        platform-version: [ "${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}" ]
+        quarkus-version: [ "${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}" ]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -145,7 +160,7 @@ jobs:
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -178,7 +193,8 @@ jobs:
     strategy:
       matrix:
         java: [ 21 ]
-        quarkus-version: ["3.33.2"]
+        platform-version: ["${{ needs.quarkus-main-build.outputs.PLATFORM_BUILD }}"]
+        quarkus-version: [ "${{ needs.quarkus-main-build.outputs.QUARKUS_BUILD }}" ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -200,7 +216,7 @@ jobs:
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
