@@ -17,13 +17,41 @@ items:
             app: '${SERVICE_NAME}'
         spec:
           volumes:
-            - name: "grafana-data"
+            - name: tempo-data
+              emptyDir: { }
+            - name: loki-data
+              emptyDir: { }
+            - name: grafana-data
+              emptyDir: { }
+            - name: loki-storage
+              emptyDir: { }
+            - name: p8s-storage
+              emptyDir: { }
+            - name: pyroscope-storage
+              emptyDir: { }
+            - name: "tempo-var"
+              emptyDir: { }
           containers:
             - image: '${IMAGE}'
               name: '${SERVICE_NAME}'
+              # NOTE: By default OpenShift does not allow writing the root directory.
+              # See: https://github.com/grafana/docker-otel-lgtm/issues/132
               volumeMounts:
-                - mountPath: /data
-                  name: grafana-data
+                - name: tempo-data
+                  mountPath: /data/tempo
+                - name: grafana-data
+                  mountPath: /data/grafana
+                - name: loki-data
+                  mountPath: /data/loki
+                - name: loki-storage
+                  mountPath: /loki
+                - name: p8s-storage
+                  mountPath: /data/prometheus
+                - name: pyroscope-storage
+                  mountPath: /data/pyroscope
+                # 0.29.0 using tempo 3, and it seems to have problem with permission same as above
+                - name: "tempo-var"
+                  mountPath: "/var/tempo"
               ports:
                 - containerPort: ${WEB_UI_PORT}
                   protocol: TCP

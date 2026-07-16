@@ -16,7 +16,7 @@ import io.quarkus.test.services.containers.GrafanaContainerManagedResourceBuilde
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface GrafanaContainer {
-    String image() default "docker.io/grafana/otel-lgtm:0.12.0";
+    String image() default "docker.io/grafana/otel-lgtm:0.29.0";
 
     /**
      * Port where web UI is available.
