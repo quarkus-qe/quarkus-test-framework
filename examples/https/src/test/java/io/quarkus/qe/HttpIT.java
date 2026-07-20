@@ -19,7 +19,8 @@ public class HttpIT {
 
     private final RequestSpecification spec = given();
 
-    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, format = JKS, configureHttpServer = true, useTlsRegistry = false))
+    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, format = JKS,
+            configureHttpServer = true, useTlsRegistry = false))
     static final RestService app = new RestService();
 
     @Test

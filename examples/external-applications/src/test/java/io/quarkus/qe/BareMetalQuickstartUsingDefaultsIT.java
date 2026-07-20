@@ -11,7 +11,8 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 @QuarkusScenario
 public class BareMetalQuickstartUsingDefaultsIT extends QuickstartUsingDefaultsIT {
 
-    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git", contextDir = "getting-started", branch = "development")
+    @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git",
+            contextDir = "getting-started", branch = "development")
     static final RestService app = new RestService();
 
     @Override

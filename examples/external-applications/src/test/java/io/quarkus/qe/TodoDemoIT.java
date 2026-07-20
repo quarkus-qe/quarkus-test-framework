@@ -53,8 +53,9 @@ public class TodoDemoIT {
             .withProperty("quarkus.datasource.password", database.getPassword())
             .withProperty("quarkus.datasource.jdbc.url", database::getJdbcUrl);
 
-    @Container(image = "docker.io/nginxinc/nginx-unprivileged:alpine", port = 8090, expectedLog = "Configuration complete; ready for start up", mounts = {
-            @Mount(from = "nginx.conf", to = "/etc/nginx/nginx.conf") })
+    @Container(image = "docker.io/nginxinc/nginx-unprivileged:alpine", port = 8090,
+            expectedLog = "Configuration complete; ready for start up", mounts = {
+                    @Mount(from = "nginx.conf", to = "/etc/nginx/nginx.conf") })
     static RestService nginx = new RestService();
 
     @Test

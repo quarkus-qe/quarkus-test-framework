@@ -20,8 +20,9 @@ public class StrimziKafkaWithCustomSslMessagingIT {
     private static final String KEYSTORE_FILE = "strimzi-custom-server-ssl-keystore.p12";
     private static final String TRUSTSTORE_FILE = "strimzi-server-ssl-truststore.p12";
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SSL, serverProperties = "strimzi-custom-server-ssl.properties", kafkaConfigResources = {
-            KEYSTORE_FILE, TRUSTSTORE_FILE })
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SSL,
+            serverProperties = "strimzi-custom-server-ssl.properties", kafkaConfigResources = {
+                    KEYSTORE_FILE, TRUSTSTORE_FILE })
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication

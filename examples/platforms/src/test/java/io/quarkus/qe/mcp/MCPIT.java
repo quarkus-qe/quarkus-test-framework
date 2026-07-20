@@ -18,7 +18,8 @@ public class MCPIT extends BasicMCPIT {
             .withProperty("working.folder", () -> Path.of("target").toAbsolutePath().toString());
 
     @QuarkusApplication(properties = "mcp-client.properties", boms = {
-            @Dependency(artifactId = "quarkus-langchain4j-bom") }, dependencies = {
+            @Dependency(artifactId = "quarkus-langchain4j-bom") },
+            dependencies = {
                     @Dependency(artifactId = "quarkus-rest"),
                     @Dependency(groupId = "io.quarkiverse.langchain4j", artifactId = "quarkus-langchain4j-mcp"),
             }, classes = { MCPClient.class })

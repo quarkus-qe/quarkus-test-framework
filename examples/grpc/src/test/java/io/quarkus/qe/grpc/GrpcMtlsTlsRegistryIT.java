@@ -17,7 +17,10 @@ public class GrpcMtlsTlsRegistryIT {
     private static final String CN = "Hagrid";
     private static final String NAME = "Albus";
 
-    @QuarkusApplication(grpc = true, ssl = true, certificates = @Certificate(format = PEM, configureHttpServer = true, configureKeystore = true, configureTruststore = true, tlsConfigName = "grpc-tls", clientCertificates = @ClientCertificate(cnAttribute = CN)))
+    @QuarkusApplication(grpc = true, ssl = true,
+            certificates = @Certificate(format = PEM, configureHttpServer = true, configureKeystore = true,
+                    configureTruststore = true, tlsConfigName = "grpc-tls",
+                    clientCertificates = @ClientCertificate(cnAttribute = CN)))
     static final GrpcService app = (GrpcService) new GrpcService()
             .withProperty("quarkus.grpc.server.use-separate-server", "false")
             .withProperty("quarkus.http.insecure-requests", "disabled")

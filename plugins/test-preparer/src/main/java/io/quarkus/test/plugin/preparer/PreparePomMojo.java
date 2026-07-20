@@ -31,7 +31,8 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.xml.Xpp3Dom;
 
 // if you ever get checkstyle line length warning for the @Mojo, adjust checkstyle-suppressions.xml
-@Mojo(name = "prepare-pom-mojo", defaultPhase = PACKAGE, requiresDependencyCollection = COMPILE, requiresDependencyResolution = COMPILE, threadSafe = true)
+@Mojo(name = "prepare-pom-mojo", defaultPhase = PACKAGE, requiresDependencyCollection = COMPILE,
+        requiresDependencyResolution = COMPILE, threadSafe = true)
 public class PreparePomMojo extends AbstractMojo {
 
     private static final String MAVEN_COMPILER_PLUGIN = "maven-compiler-plugin";

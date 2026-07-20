@@ -21,7 +21,8 @@ public class StrimziKafkaWithTlsRegistryAndSaslSslMessagingIT {
 
     private static final String TLS_CONFIG_NAME = "tls-config-name-1";
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SASL_SSL, tlsConfigName = TLS_CONFIG_NAME, tlsRegistryEnabled = true)
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI, protocol = KafkaProtocol.SASL_SSL, tlsConfigName = TLS_CONFIG_NAME,
+            tlsRegistryEnabled = true)
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication
