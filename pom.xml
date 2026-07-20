@@ -62,6 +62,7 @@
         <!-- Format Settings -->
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
+        <format.config.file>${maven.multiModuleProjectDirectory}/eclipse-format.xml</format.config.file>
         <checkstyle.version>12.3.1</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
@@ -305,15 +306,8 @@
                         </goals>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <artifactId>quarkus-ide-config</artifactId>
-                        <groupId>io.quarkus</groupId>
-                        <version>${quarkus.version}</version>
-                    </dependency>
-                </dependencies>
                 <configuration>
-                    <configFile>eclipse-format.xml</configFile>
+                    <configFile>${format.config.file}</configFile>
                     <lineEnding>LF</lineEnding>
                 </configuration>
             </plugin>

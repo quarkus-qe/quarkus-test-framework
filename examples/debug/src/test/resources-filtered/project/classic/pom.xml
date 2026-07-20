@@ -52,6 +52,15 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <configuration>
+                    <!-- filtered at build time to the absolute path of this repository's config,
+                         since maven.multiModuleProjectDirectory resolves to target/ in the invoker build -->
+                    <configFile>@format.config.file@</configFile>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 </project>
