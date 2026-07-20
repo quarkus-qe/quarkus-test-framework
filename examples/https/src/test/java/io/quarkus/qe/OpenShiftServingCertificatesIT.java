@@ -26,14 +26,20 @@ public class OpenShiftServingCertificatesIT {
     private static final String CLIENT_TLS_CONFIG_NAME = "cert-serving-test-client";
     private static final String SERVER_TLS_CONFIG_NAME = "cert-serving-test-server";
 
-    @QuarkusApplication(ssl = true, certificates = @Certificate(tlsConfigName = SERVER_TLS_CONFIG_NAME, servingCertificates = @Certificate.ServingCertificates(addServiceCertificate = true)), classes = {
-            HeroResource.class, Hero.class })
+    @QuarkusApplication(ssl = true,
+            certificates = @Certificate(tlsConfigName = SERVER_TLS_CONFIG_NAME,
+                    servingCertificates = @Certificate.ServingCertificates(addServiceCertificate = true)),
+            classes = {
+                    HeroResource.class, Hero.class })
     static final RestService server = new RestService()
             .withProperty("quarkus.http.ssl.client-auth", "request")
             .withProperty("quarkus.http.insecure-requests", "DISABLED");
 
-    @QuarkusApplication(certificates = @Certificate(tlsConfigName = CLIENT_TLS_CONFIG_NAME, servingCertificates = @Certificate.ServingCertificates(injectCABundle = true)), classes = {
-            HeroClient.class, Hero.class, HeroClientResource.class })
+    @QuarkusApplication(
+            certificates = @Certificate(tlsConfigName = CLIENT_TLS_CONFIG_NAME,
+                    servingCertificates = @Certificate.ServingCertificates(injectCABundle = true)),
+            classes = {
+                    HeroClient.class, Hero.class, HeroClientResource.class })
     static final RestService client = new RestService()
             .withProperty("quarkus.rest-client.hero.tls-configuration-name", CLIENT_TLS_CONFIG_NAME)
             .withProperty("quarkus.rest-client.hero.uri", () -> server.getURI(Protocol.HTTPS).getRestAssuredStyleUri());

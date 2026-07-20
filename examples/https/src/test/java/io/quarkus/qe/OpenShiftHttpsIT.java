@@ -13,7 +13,8 @@ import io.quarkus.test.services.URILike;
 
 @OpenShiftScenario
 public class OpenShiftHttpsIT {
-    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureTruststore = true, configureHttpServer = true, useTlsRegistry = false))
+    @QuarkusApplication(ssl = true, certificates = @Certificate(configureKeystore = true, configureTruststore = true,
+            configureHttpServer = true, useTlsRegistry = false))
     static RestService app = new RestService();
 
     @Test

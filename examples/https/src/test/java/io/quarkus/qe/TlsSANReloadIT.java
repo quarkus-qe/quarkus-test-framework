@@ -20,7 +20,8 @@ import io.quarkus.test.utils.AwaitilityUtils;
 public class TlsSANReloadIT {
     private static final String CERT_PREFIX = "reload-test";
 
-    @QuarkusApplication(ssl = true, certificates = @Certificate(configureTruststore = true, configureHttpServer = true, configureKeystore = true, prefix = CERT_PREFIX))
+    @QuarkusApplication(ssl = true, certificates = @Certificate(configureTruststore = true, configureHttpServer = true,
+            configureKeystore = true, prefix = CERT_PREFIX))
     static final RestService app = new RestService()
             .withProperty("quarkus.tls.reload-period", "2s");
 
