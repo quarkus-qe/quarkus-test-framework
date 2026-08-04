@@ -50,7 +50,7 @@
         <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
         <quarkus.group-id>io.quarkus</quarkus.group-id>
         <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
-        <quarkus.version>3.27.4</quarkus.version>
+        <quarkus.version>3.27.5</quarkus.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>${quarkus.artifact-id}</quarkus.platform.artifact-id>
         <quarkus.platform.version>${quarkus.version}</quarkus.platform.version>
