@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: settings-mvn
+data:
+  settings.xml: |
+    <?xml version="1.0" encoding="UTF-8"?>
+    <settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+        <servers>
+            ${servers.block}
+        </servers>
+        <mirrors>
+            ${central.mirror.block}
+        </mirrors>
+        <profiles>
+            <profile>
+                <id>redhat</id>
+                <repositories>
+                    <repository>
+                        <id>redhat</id>
+                        <name>Repository for Redhat dependencies</name>
+                        <url>https://maven.repository.redhat.com/ga/</url>
+                    </repository>
+                </repositories>
+                <pluginRepositories>
+                    <pluginRepository>
+                        <id>redhat</id>
+                        <name>Repository for Redhat dependencies</name>
+                        <url>https://maven.repository.redhat.com/ga/</url>
+                    </pluginRepository>
+                </pluginRepositories>
+            </profile>
+            <profile>
+                <id>customRepository</id>
+                <repositories>
+                    ${snapshots.repository.block}
+                </repositories>
+                <pluginRepositories>
+                    ${snapshots.pluginRepository.block}
+                </pluginRepositories>
+            </profile>
+        </profiles>
+        <activeProfiles>
+            <activeProfile>customRepository</activeProfile>
+            <activeProfile>redhat</activeProfile>
+        </activeProfiles>
+    </settings>
