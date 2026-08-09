@@ -203,6 +203,10 @@ public final class Configuration {
         CONTAINER_REGISTRY_URL("container.registry-url"),
         CONTAINER_PREFIX("docker-container-prefix"),
         S2I_MAVEN_REMOTE_REPOSITORY("s2i.maven.remote.repository"),
+        S2I_MAVEN_RELEASES_REPOSITORY("s2i.maven.releases.repository"),
+        S2I_MAVEN_SNAPSHOTS_REPOSITORY("s2i.maven.snapshots.repository"),
+        S2I_MAVEN_REMOTE_REPOSITORY_USERNAME("s2i.maven.remote.repository.username"),
+        S2I_MAVEN_REMOTE_REPOSITORY_PASSWORD("s2i.maven.remote.repository.password"),
         S2I_REPLACE_CA_CERTS("s2i.java.replace-ca-certs"),
         S2I_BASE_NATIVE_IMAGE("s2i.openshift.base-native-image"),
         CUSTOM_BUILD_REQUIRED("custom-build.required");
