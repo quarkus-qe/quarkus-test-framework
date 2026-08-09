@@ -1,7 +1,11 @@
 package io.quarkus.test.services.quarkus;
 
 import static io.quarkus.test.configuration.Configuration.Property.S2I_BASE_NATIVE_IMAGE;
+import static io.quarkus.test.configuration.Configuration.Property.S2I_MAVEN_RELEASES_REPOSITORY;
 import static io.quarkus.test.configuration.Configuration.Property.S2I_MAVEN_REMOTE_REPOSITORY;
+import static io.quarkus.test.configuration.Configuration.Property.S2I_MAVEN_REMOTE_REPOSITORY_PASSWORD;
+import static io.quarkus.test.configuration.Configuration.Property.S2I_MAVEN_REMOTE_REPOSITORY_USERNAME;
+import static io.quarkus.test.configuration.Configuration.Property.S2I_MAVEN_SNAPSHOTS_REPOSITORY;
 import static io.quarkus.test.configuration.Configuration.Property.S2I_REPLACE_CA_CERTS;
 import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_PLATFORM_GROUP_ID_PROPERTY;
 import static io.quarkus.test.services.quarkus.GitRepositoryQuarkusApplicationManagedResourceBuilder.QUARKUS_PLATFORM_VERSION_PROPERTY;
@@ -26,9 +30,62 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
 
     private static final String QUARKUS_SOURCE_S2I_BUILD_TEMPLATE_FILENAME = "/quarkus-s2i-source-build-template.yml";
     private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME = "settings-mvn.yml";
+    private static final String QUARKUS_SOURCE_S2I_SETTINGS_MVN_AUTH_FILENAME = "settings-mvn-auth.yml";
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
+
+    // Repository block placeholders resolved inside settings-mvn-auth.yml replaced with XML or empty string
+    private static final String CENTRAL_MIRROR_BLOCK_PLACEHOLDER = "${central.mirror.block}";
+    private static final String SERVERS_BLOCK_PLACEHOLDER = "${servers.block}";
+    private static final String SNAPSHOTS_REPOSITORY_BLOCK_PLACEHOLDER = "${snapshots.repository.block}";
+    private static final String SNAPSHOTS_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER = "${snapshots.pluginRepository.block}";
+
+    private static final String DEFAULT_MAVEN_CENTRAL_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2/";
+
+    // Mirror XML for central used for releases repo or Google default
+    private static final String CENTRAL_MIRROR_XML = "<mirror>\n"
+            + "                <id>%s</id>\n"
+            + "                <mirrorOf>central</mirrorOf>\n"
+            + "                <name>%s</name>\n"
+            + "                <url>%s</url>\n"
+            + "                <blocked>false</blocked>\n"
+            + "            </mirror>";
+
+    // Snapshot repository/pluginRepository XML blocks
+    private static final String SNAPSHOTS_REPOSITORY_XML = "<repository>\n"
+            + "                        <id>internal.s2i.maven.snapshots.repository</id>\n"
+            + "                        <url>%s</url>\n"
+            + "                        <releases><enabled>false</enabled></releases>\n"
+            + "                        <snapshots><enabled>true</enabled></snapshots>\n"
+            + "                    </repository>";
+    private static final String SNAPSHOTS_PLUGIN_REPOSITORY_XML = "<pluginRepository>\n"
+            + "                        <id>internal.s2i.maven.snapshots.repository</id>\n"
+            + "                        <url>%s</url>\n"
+            + "                        <releases><enabled>false</enabled></releases>\n"
+            + "                        <snapshots><enabled>true</enabled></snapshots>\n"
+            + "                    </pluginRepository>";
+
+    // Servers block - only emitted when both username and password are set
+    private static final String SERVERS_BLOCK_XML = "<server>\n"
+            + "                <id>internal.s2i.maven.releases.repository</id>\n"
+            + "                <username>%s</username>\n"
+            + "                <password>%s</password>\n"
+            + "            </server>\n"
+            + "            <server>\n"
+            + "                <id>internal.s2i.maven.snapshots.repository</id>\n"
+            + "                <username>%s</username>\n"
+            + "                <password>%s</password>\n"
+            + "            </server>";
+
     private static final PropertyLookup MAVEN_REMOTE_REPOSITORY = new PropertyLookup(
             S2I_MAVEN_REMOTE_REPOSITORY.getName());
+    private static final PropertyLookup MAVEN_RELEASES_REPOSITORY = new PropertyLookup(
+            S2I_MAVEN_RELEASES_REPOSITORY.getName());
+    private static final PropertyLookup MAVEN_SNAPSHOTS_REPOSITORY = new PropertyLookup(
+            S2I_MAVEN_SNAPSHOTS_REPOSITORY.getName());
+    private static final PropertyLookup MAVEN_REMOTE_REPOSITORY_USERNAME = new PropertyLookup(
+            S2I_MAVEN_REMOTE_REPOSITORY_USERNAME.getName());
+    private static final PropertyLookup MAVEN_REMOTE_REPOSITORY_PASSWORD = new PropertyLookup(
+            S2I_MAVEN_REMOTE_REPOSITORY_PASSWORD.getName());
     private static final PropertyLookup REPLACE_JAVA_CA_CERTS = new PropertyLookup(S2I_REPLACE_CA_CERTS.getName());
     private static final String ETC_PKI_JAVA_CONFIG_MAP_NAME = "etc-pki-java";
     private static final PropertyLookup QUARKUS_NATIVE_S2I_FROM_SRC = new PropertyLookup(
@@ -51,10 +108,10 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
         if (model.isDevMode()) {
             Assertions.fail("DEV mode is not supported when using GIT repositories on OpenShift deployments");
         }
-        String repo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
-        if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion()
-                && StringUtils.isEmpty(repo)) {
-            Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if not Maven repository has been provided");
+        boolean snapshotRepoConfigured = StringUtils.isNotEmpty(MAVEN_SNAPSHOTS_REPOSITORY.get(model.getContext()))
+                || StringUtils.isNotEmpty(MAVEN_REMOTE_REPOSITORY.get(model.getContext()));
+        if (DisabledOnQuarkusSnapshotCondition.isQuarkusSnapshotVersion() && !snapshotRepoConfigured) {
+            Assertions.fail("s2i can't use the Quarkus 999-SNAPSHOT version if no Maven snapshot repository has been provided");
         }
     }
 
@@ -110,21 +167,87 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     }
 
     private void createMavenSettings() {
-        Path targetQuarkusSourceS2iSettingsMvnFilename = model.getContext().getServiceFolder()
-                .resolve(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
-        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
+        String releasesRepo = MAVEN_RELEASES_REPOSITORY.get(model.getContext());
+        String snapshotsRepo = MAVEN_SNAPSHOTS_REPOSITORY.get(model.getContext());
+        boolean useSplitRepos = StringUtils.isNotEmpty(releasesRepo) || StringUtils.isNotEmpty(snapshotsRepo);
 
-        boolean replaceJavaCaCerts = false;
-        String remoteRepo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
-        if (StringUtils.isNotEmpty(remoteRepo)) {
-            content = content.replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), remoteRepo);
-            replaceJavaCaCerts = shouldReplaceJavaCaCerts(remoteRepo);
+        boolean replaceJavaCaCerts;
+        String content;
+
+        if (useSplitRepos) {
+            content = buildAuthSettingsContent(releasesRepo, snapshotsRepo);
+            String repoForCaCerts = StringUtils.defaultIfEmpty(releasesRepo, snapshotsRepo);
+            replaceJavaCaCerts = shouldReplaceJavaCaCerts(repoForCaCerts);
+        } else {
+            content = buildRemoteRepositorySettingsContent();
+            String remoteRepo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
+            replaceJavaCaCerts = StringUtils.isNotEmpty(remoteRepo) && shouldReplaceJavaCaCerts(remoteRepo);
         }
 
         prepareJavaCaCerts(replaceJavaCaCerts);
 
-        FileUtils.copyContentTo(content, targetQuarkusSourceS2iSettingsMvnFilename);
-        client.apply(targetQuarkusSourceS2iSettingsMvnFilename);
+        Path targetFile = model.getContext().getServiceFolder().resolve(QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
+        FileUtils.copyContentTo(content, targetFile);
+        client.apply(targetFile);
+    }
+
+    /**
+     * Loads settings-mvn-auth.yml and resolves all placeholders.
+     * The releases repository (or Google Maven Central as default) is wired as a mirror of central.
+     * The snapshots repository, if configured, is added as a plain repository in the profile.
+     * Credentials are injected only when both username and password are provided.
+     */
+    private String buildAuthSettingsContent(String releasesRepo, String snapshotsRepo) {
+        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_AUTH_FILENAME);
+
+        // Central mirror: use configured releases repo, fall back to default (Google Maven Central)
+        String centralMirrorUrl = StringUtils.defaultIfEmpty(releasesRepo, DEFAULT_MAVEN_CENTRAL_MIRROR);
+        String centralMirrorId = StringUtils.isNotEmpty(releasesRepo)
+                ? "internal.s2i.maven.releases.repository"
+                : "google-maven-central";
+        String centralMirrorName = StringUtils.isNotEmpty(releasesRepo)
+                ? "Releases repository mirror of central"
+                : "Google Maven Central mirror";
+        content = content.replace(CENTRAL_MIRROR_BLOCK_PLACEHOLDER,
+                String.format(CENTRAL_MIRROR_XML, centralMirrorId, centralMirrorName, centralMirrorUrl));
+
+        // Snapshots repository only added when a URL is configured
+        content = content.replace(SNAPSHOTS_REPOSITORY_BLOCK_PLACEHOLDER,
+                StringUtils.isNotEmpty(snapshotsRepo)
+                        ? String.format(SNAPSHOTS_REPOSITORY_XML, snapshotsRepo)
+                        : "");
+        content = content.replace(SNAPSHOTS_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER,
+                StringUtils.isNotEmpty(snapshotsRepo)
+                        ? String.format(SNAPSHOTS_PLUGIN_REPOSITORY_XML, snapshotsRepo)
+                        : "");
+
+        // Credentials: only inject servers block when both username and password are provided
+        String username = MAVEN_REMOTE_REPOSITORY_USERNAME.get(model.getContext());
+        String password = MAVEN_REMOTE_REPOSITORY_PASSWORD.get(model.getContext());
+        if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+            content = content.replace(SERVERS_BLOCK_PLACEHOLDER,
+                    String.format(SERVERS_BLOCK_XML, username, password, username, password));
+        } else {
+            if (StringUtils.isNotEmpty(username) || StringUtils.isNotEmpty(password)) {
+                Log.warn("Only one of s2i.maven.remote.repository.username / s2i.maven.remote.repository.password is set; "
+                        + "both are required for authenticated access. Proceeding without authentication.");
+            }
+            content = content.replace(SERVERS_BLOCK_PLACEHOLDER, "");
+        }
+
+        return content;
+    }
+
+    /**
+     * Builds settings.xml content for the single remote repository case (settings-mvn.yml).
+     */
+    private String buildRemoteRepositorySettingsContent() {
+        String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_FILENAME);
+        String remoteRepo = MAVEN_REMOTE_REPOSITORY.get(model.getContext());
+        if (StringUtils.isNotEmpty(remoteRepo)) {
+            content = content.replaceAll(quote(INTERNAL_MAVEN_REPOSITORY_PROPERTY), remoteRepo);
+        }
+        return content;
     }
 
     private void prepareJavaCaCerts(boolean replaceJavaCaCerts) {
