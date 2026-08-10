@@ -14,7 +14,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 public class DevModeQuickstartUsingDefaultsIT {
 
     @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git",
-            contextDir = "getting-started", devMode = true, branch = "development")
+            contextDir = "getting-started", devMode = true, branch = "3.x")
     static final RestService app = new RestService();
 
     @Test
