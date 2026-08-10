@@ -12,7 +12,7 @@ import io.quarkus.test.services.GitRepositoryQuarkusApplication;
 public class BareMetalQuickstartUsingDefaultsIT extends QuickstartUsingDefaultsIT {
 
     @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git",
-            contextDir = "getting-started", branch = "development")
+            contextDir = "getting-started", branch = "3.x")
     static final RestService app = new RestService();
 
     @Override
