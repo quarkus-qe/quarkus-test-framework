@@ -18,7 +18,7 @@ public class QuickstartUsingUsingUberJarIT {
     @GitRepositoryQuarkusApplication(repo = "https://github.com/quarkusio/quarkus-quickstarts.git",
             contextDir = "getting-started",
             mavenArgs = "-Dquarkus.package.jar.type=uber-jar -DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION}",
-            branch = "3.x")
+            branch = "3.39")
     static final RestService app = new RestService();
 
     @Test
