@@ -1,6 +1,9 @@
 name: "PR"
 on:
   - pull_request
+env:
+  QUARKUS_BUILD: 3.39.999-SNAPSHOT
+  PLATFORM_BUILD: 3.39.999-core-3.39-SNAPSHOT
 jobs:
   validate-format:
     name: Validate format
@@ -18,17 +21,61 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
       - name: Build with Maven
         run: |
           mvn -V -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
+  build-quarkus:
+    name: Build Quarkus 3.39
+    runs-on: ubuntu-latest
+    outputs:
+      PLATFORM_BUILD: ${{ env.PLATFORM_BUILD }}
+      QUARKUS_BUILD: ${{ env.QUARKUS_BUILD }}
+    strategy:
+      fail-fast: false
+      matrix:
+        java: [ 17 ]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK {{ matrix.java }}
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.java }}
+          check-latest: true
+      - name: Install xsltproc
+        run: sudo apt install -qq -y xsltproc
+      - name: Build Quarkus core ${{ env.QUARKUS_BUILD }}
+        run: |
+          git clone -b 3.39 https://github.com/quarkusio/quarkus.git && cd quarkus
+          ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: Build Quarkus Platform ${{ env.PLATFORM_BUILD }}
+        run: |
+          # TODO add `-b 3.39` to git clone (3.39 branch wasn't available in time of branching) 
+          git clone https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
+          ./mvnw versions:set -DnewVersion=${{ env.PLATFORM_BUILD }} -DgenerateBackupPoms=false
+          wget -O minimise_platform.xsl "https://github.com/quarkus-qe/quarkus-test-suite/raw/refs/heads/main/.github/minimise_platform.xsl"
+          xsltproc -o pom.xml minimise_platform.xsl pom.xml
+          ./mvnw -Dsync  -Dquarkus.version=${{ env.QUARKUS_BUILD }}
+          ./mvnw install -Dquarkus.version=${{ env.QUARKUS_BUILD }} -DskipTests -DskipITs
+      - name: Tar Maven Repo
+        shell: bash
+        run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
+      - name: Persist Maven Repo
+        uses: actions/upload-artifact@v7
+        with:
+          name: maven-repo
+          path: maven-repo.tgz
+          retention-days: 1
   linux-build-jvm-latest:
     name: Linux JVM
     runs-on: ubuntu-latest
-    needs: validate-format
+    needs: [ validate-format, build-quarkus ]
     strategy:
       matrix:
-        quarkus-version: ["999-core-3.x-SNAPSHOT"]
+        platform-version: [ "${{ needs.build-quarkus.outputs.PLATFORM_BUILD }}" ]
+        quarkus-version: [ "${{ needs.build-quarkus.outputs.QUARKUS_BUILD }}" ]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -42,12 +89,19 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build in JVM mode
         run: |
-          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae clean install -Pframework,examples -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -76,10 +130,11 @@ jobs:
   linux-build-native-latest:
     name: Linux Native
     runs-on: ubuntu-latest
-    needs: validate-format
+    needs: [ validate-format, build-quarkus ]
     strategy:
       matrix:
-        quarkus-version: [ "999-core-3.x-SNAPSHOT" ]
+        platform-version: [ "${{ needs.build-quarkus.outputs.PLATFORM_BUILD }}" ]
+        quarkus-version: [ "${{ needs.build-quarkus.outputs.QUARKUS_BUILD }}" ]
         java: [ 21 ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
@@ -93,12 +148,19 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - uses: ./.github/actions/prepare-quarkus-cli
       - uses: ./.github/actions/use-docker-mirror
       - name: Build
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples,native -Drun-cli-tests -Dts.quarkus.cli.cmd="${PWD}/quarkus-dev-cli" -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         id: flaky-test-detector
         shell: bash
@@ -127,11 +189,12 @@ jobs:
   windows-build-jvm-latest:
     name: Windows JVM
     runs-on: windows-latest
-    needs: validate-format
+    needs: [ validate-format, build-quarkus ]
     strategy:
       matrix:
         java: [ 21 ]
-        quarkus-version: ["999-core-3.x-SNAPSHOT"]
+        platform-version: [ "${{ needs.build-quarkus.outputs.PLATFORM_BUILD }}" ]
+        quarkus-version: [ "${{ needs.build-quarkus.outputs.QUARKUS_BUILD }}" ]
     outputs:
       has-flaky-tests: ${{steps.flaky-test-detector.outputs.has-flaky-tests}}
     steps:
@@ -142,11 +205,18 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
           check-latest: true
-      - uses: ./.github/actions/cache-quarkus
+      - name: Download Maven Repo
+        uses: actions/download-artifact@v7
+        with:
+          name: maven-repo
+          path: .
+      - name: Extract Maven Repo
+        shell: bash
+        run: tar -xzf maven-repo.tgz -C ~
       - name: Build in JVM mode
         shell: bash
         run: |
-          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.quarkus-version }}"
+          mvn -B --no-transfer-progress -fae -s .github/mvn-settings.xml clean install -Pframework,examples -Dquarkus.platform.version="${{ matrix.platform-version }}" -Dquarkus.version="${{ matrix.quarkus-version }}"
       - name: Detect flaky tests
         shell: bash
         id: flaky-test-detector
