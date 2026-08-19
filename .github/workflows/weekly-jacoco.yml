@@ -9,8 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        quarkus-version: ["999-core-3.39-SNAPSHOT"]
-        java: [ 17 ]
+        quarkus-version: ["999-core-main-SNAPSHOT"]
+        java: [ 21 ]
     steps:
       - uses: actions/checkout@v7
       - name: Reclaim Disk Space
