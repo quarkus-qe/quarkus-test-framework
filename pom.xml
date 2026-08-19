@@ -33,7 +33,7 @@
         <source-plugin.version>3.4.0</source-plugin.version>
         <javadoc-plugin.version>3.12.0</javadoc-plugin.version>
         <maven.compiler.parameters>true</maven.compiler.parameters>
-        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
         <maven.javadoc.failOnError>false</maven.javadoc.failOnError>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -50,10 +50,10 @@
         <maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
         <quarkus.group-id>io.quarkus</quarkus.group-id>
         <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
-        <quarkus.version>3.39.999-SNAPSHOT</quarkus.version>
+        <quarkus.version>999-SNAPSHOT</quarkus.version>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.artifact-id>${quarkus.artifact-id}</quarkus.platform.artifact-id>
-        <quarkus.platform.version>999-core-3.39-SNAPSHOT</quarkus.platform.version>
+        <quarkus.platform.version>999-core-main-SNAPSHOT</quarkus.platform.version>
         <exclude.tests.with.tags>quarkus-cli</exclude.tests.with.tags>
         <include.tests>**/*IT.java</include.tests>
         <exclude.openshift.tests>**/OpenShift*IT.java</exclude.openshift.tests>
