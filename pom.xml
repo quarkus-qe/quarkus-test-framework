@@ -63,7 +63,7 @@
         <src.format.goal>format</src.format.goal>
         <src.sort.goal>sort</src.sort.goal>
         <format.config.file>${maven.multiModuleProjectDirectory}/eclipse-format.xml</format.config.file>
-        <checkstyle.version>12.3.1</checkstyle.version>
+        <checkstyle.version>14.0.0</checkstyle.version>
         <!-- Code Coverage Properties-->
         <jacoco.agent.argLine />
         <playwright.version>1.62.0</playwright.version>
