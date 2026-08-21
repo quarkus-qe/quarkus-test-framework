@@ -24,7 +24,7 @@ public @interface JaegerContainer {
     /**
      * OTLP port of a Jaeger collector. Default port 4317 is used for the OpenTelemetry Protocol (OTLP) over gRPC.
      */
-    int otlpPort() default 4317;
+    int otlpPort() default 4318;
 
     /**
      * Switches between {@link #restPort()} and {@link #otlpPort()}.
