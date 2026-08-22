@@ -12,7 +12,7 @@ import io.quarkus.test.services.URILike;
 public class OpenShiftGrafanaContainerManagedResource extends OpenShiftContainerManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/grafana-deployment-template.yml";
-    private static final int GRPC_PORT_NUMBER = 4317;
+    private static final int GRPC_PORT_NUMBER = 4318;
 
     private static final String LOKI_SUFFIX = "-loki";
     private static final String TEMPO_SUFFIX = "-tempo";

@@ -11,7 +11,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.services.URILike;
 
 public class GrafanaGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
-    public static final int OTEL_GRPC_PORT_NUMBER = 4317;
+    public static final int OTEL_GRPC_PORT_NUMBER = 4318;
     public static final int LOKI_API_PORT_NUMBER = 3100;
     public static final int TEMPO_API_PORT_NUMBER = 3200;
     public static final int PROMETHEUS_API_PORT_NUMBER = 9090;
