@@ -61,7 +61,7 @@ items:
                   protocol: TCP
                 - containerPort: ${PROMETHEUS_API_PORT}
                   protocol: TCP
-                - containerPort: ${OTLP_GRPC_PORT}
+                - containerPort: ${OTLP_HTTP_PORT}
                   protocol: TCP
       triggers:
         - type: ConfigChange
@@ -138,8 +138,8 @@ items:
     spec:
       ports:
         - name: '${SERVICE_NAME}-collector'
-          port: ${OTLP_GRPC_PORT}
+          port: ${OTLP_HTTP_PORT}
           protocol: TCP
-          targetPort: ${OTLP_GRPC_PORT}
+          targetPort: ${OTLP_HTTP_PORT}
       selector:
         app: '${SERVICE_NAME}'

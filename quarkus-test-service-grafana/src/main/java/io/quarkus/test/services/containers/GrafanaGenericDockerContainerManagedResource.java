@@ -11,7 +11,7 @@ import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.services.URILike;
 
 public class GrafanaGenericDockerContainerManagedResource extends GenericDockerContainerManagedResource {
-    public static final int OTEL_GRPC_PORT_NUMBER = 4317;
+    public static final int OTEL_HTTP_PORT_NUMBER = 4318;
     public static final int LOKI_API_PORT_NUMBER = 3100;
     public static final int TEMPO_API_PORT_NUMBER = 3200;
     public static final int PROMETHEUS_API_PORT_NUMBER = 9090;
@@ -27,7 +27,7 @@ public class GrafanaGenericDockerContainerManagedResource extends GenericDockerC
     @Override
     public void start() {
         super.start();
-        model.getContext().put(GRAFANA_COLLECTOR_URL_PROPERTY.getName(), getCollectorGrpcUrl());
+        model.getContext().put(GRAFANA_COLLECTOR_URL_PROPERTY.getName(), getCollectorHttpUrl());
         model.getContext().put(GRAFANA_LOKI_URL_PROPERTY.getName(), getLokiUrl());
         model.getContext().put(GRAFANA_TEMPO_URL_PROPERTY.getName(), getTempoUrl());
         model.getContext().put(GRAFANA_PROMETHEUS_URL_PROPERTY.getName(), getPrometheusUrl());
@@ -36,16 +36,16 @@ public class GrafanaGenericDockerContainerManagedResource extends GenericDockerC
     @Override
     protected GenericContainer<?> initContainer() {
         GenericContainer<?> container = super.initContainer();
-        container.addExposedPort(model.getOtlpGrpcPort());
+        container.addExposedPort(model.getOtlpHttpPort());
         container.addExposedPort(model.getLokiPort());
         container.addExposedPort(model.getTempoPort());
         container.addExposedPort(model.getPrometheusPort());
         return container;
     }
 
-    private URILike getCollectorGrpcUrl() {
+    private URILike getCollectorHttpUrl() {
         return getURI(Protocol.HTTP)
-                .withPort(getMappedPort(OTEL_GRPC_PORT_NUMBER));
+                .withPort(getMappedPort(OTEL_HTTP_PORT_NUMBER));
     }
 
     private URILike getLokiUrl() {
