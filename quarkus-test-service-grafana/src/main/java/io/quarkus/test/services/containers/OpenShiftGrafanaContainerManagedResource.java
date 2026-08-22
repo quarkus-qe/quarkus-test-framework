@@ -12,7 +12,7 @@ import io.quarkus.test.services.URILike;
 public class OpenShiftGrafanaContainerManagedResource extends OpenShiftContainerManagedResource {
 
     private static final String DEPLOYMENT_TEMPLATE_PROPERTY_DEFAULT = "/grafana-deployment-template.yml";
-    private static final int GRPC_PORT_NUMBER = 4317;
+    private static final int HTTP_PORT_NUMBER = 4318;
 
     private static final String LOKI_SUFFIX = "-loki";
     private static final String TEMPO_SUFFIX = "-tempo";
@@ -59,7 +59,7 @@ public class OpenShiftGrafanaContainerManagedResource extends OpenShiftContainer
         model.getContext().put(GRAFANA_PROMETHEUS_URL_PROPERTY.getName(), getClient().url(prometheusServiceName).toString());
 
         model.getContext().put(GRAFANA_COLLECTOR_URL_PROPERTY.getName(),
-                new URILike(Protocol.HTTP.getValue(), model.getContext().getName() + COLLECTOR_SUFFIX, GRPC_PORT_NUMBER, ""));
+                new URILike(Protocol.HTTP.getValue(), model.getContext().getName() + COLLECTOR_SUFFIX, HTTP_PORT_NUMBER, ""));
     }
 
     @Override
@@ -69,7 +69,7 @@ public class OpenShiftGrafanaContainerManagedResource extends OpenShiftContainer
                 .replaceAll(quote("${TEMPO_API_PORT}"), "" + model.getTempoPort())
                 .replaceAll(quote("${PROMETHEUS_API_PORT}"), "" + model.getPrometheusPort())
                 .replaceAll(quote("${WEB_UI_PORT}"), "" + model.getPort())
-                .replaceAll(quote("${OTLP_GRPC_PORT}"), "" + model.getOtlpGrpcPort());
+                .replaceAll(quote("${OTLP_HTTP_PORT}"), "" + model.getOtlpHttpPort());
     }
 
 }

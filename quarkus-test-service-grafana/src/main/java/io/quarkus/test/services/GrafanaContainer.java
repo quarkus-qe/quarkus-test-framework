@@ -1,7 +1,7 @@
 package io.quarkus.test.services;
 
 import static io.quarkus.test.services.containers.GrafanaGenericDockerContainerManagedResource.LOKI_API_PORT_NUMBER;
-import static io.quarkus.test.services.containers.GrafanaGenericDockerContainerManagedResource.OTEL_GRPC_PORT_NUMBER;
+import static io.quarkus.test.services.containers.GrafanaGenericDockerContainerManagedResource.OTEL_HTTP_PORT_NUMBER;
 import static io.quarkus.test.services.containers.GrafanaGenericDockerContainerManagedResource.PROMETHEUS_API_PORT_NUMBER;
 import static io.quarkus.test.services.containers.GrafanaGenericDockerContainerManagedResource.TEMPO_API_PORT_NUMBER;
 
@@ -39,9 +39,9 @@ public @interface GrafanaContainer {
     int prometheusPort() default PROMETHEUS_API_PORT_NUMBER;
 
     /**
-     * OTLP port of collector. Default port 4317 is used for the OpenTelemetry Protocol (OTLP) over gRPC.
+     * OTLP port of collector. Default port 4318 is used for the OpenTelemetry Protocol (OTLP) over http/protobuf.
      */
-    int otlpGrpcPort() default OTEL_GRPC_PORT_NUMBER;
+    int otlpHttpPort() default OTEL_HTTP_PORT_NUMBER;
 
     /**
      * Expected log line, which indicates that service is fully booted.
