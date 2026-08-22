@@ -29,7 +29,7 @@ public class ClientResourceIT {
 
     @QuarkusApplication
     static final RestService app = new RestService()
-            .withProperty("quarkus.otel.exporter.otlp.traces.endpoint", jaeger::getCollectorUrl);
+            .withProperty("quarkus.otel.exporter.otlp.endpoint", jaeger::getCollectorUrl);
 
     @Test
     public void shouldUpdateJaegerAsTracer() {
