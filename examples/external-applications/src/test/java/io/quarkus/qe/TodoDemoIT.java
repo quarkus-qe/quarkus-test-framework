@@ -4,6 +4,7 @@ import static org.hamcrest.Matchers.is;
 
 import org.apache.http.HttpStatus;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import io.quarkus.test.services.Mount;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
+@Disabled("Not yet moved to Quarkus 4")
 @DisabledOnNative(reason = "This scenario is using uber-jar, so it's incompatible with Native")
 @QuarkusScenario
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
