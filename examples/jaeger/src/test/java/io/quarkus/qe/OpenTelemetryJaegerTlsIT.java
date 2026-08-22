@@ -35,7 +35,7 @@ public class OpenTelemetryJaegerTlsIT {
     @QuarkusApplication
     static final RestService app = new RestService()
             .withProperty("quarkus.otel.exporter.otlp.traces.tls-configuration-name", "jaeger")
-            .withProperty("quarkus.otel.exporter.otlp.traces.endpoint", () -> jaeger.getCollectorUrl(Protocol.HTTPS))
+            .withProperty("quarkus.otel.exporter.otlp.endpoint", () -> jaeger.getCollectorUrl(Protocol.HTTPS))
             .withProperty("quarkus.tls.jaeger.key-store.pem.0.cert", () -> getClientCert().certPath())
             .withProperty("quarkus.tls.jaeger.key-store.pem.0.key", () -> getClientCert().keyPath())
             .withProperty("quarkus.tls.jaeger.trust-store.pem.certs", () -> getClientCert().truststorePath())
