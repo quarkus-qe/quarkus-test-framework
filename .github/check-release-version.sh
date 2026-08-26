@@ -78,7 +78,10 @@ else
   first_release_tag_exists=$(echo "$releases" | jq -r '.[] | .tag_name' | grep "^$expected_release_version$" || true)
   next_release=$(grep -E 'current-version:\s*' project.yml | awk '{print $2}')
 
-  if [ -z "$first_release_tag_exists" ]; then
+  beta_tag_exists=$(echo "$next_release" | cut -d"." -f4,4 || true)
+  next_release_beta_number=$(echo "$beta_tag_exists" | grep -oP '^Beta\K[0-9]+$' || true)
+
+  if [ -z "$first_release_tag_exists" ] && [ -z "$next_release_beta_number" ]; then
     if [[ "$next_release" != "$expected_release_version" ]]; then
       echo "Error: wrong tag name for the first release in new branch"
       exit 1;
@@ -96,9 +99,8 @@ else
   branch_minor_version=$(echo "$GITHUB_BASE_REF" | cut -d. -f2,2)
   next_release_minor_version=$(echo "$next_release" | cut -d"." -f2,2)
   next_release_patch_version=$(echo "$next_release" | cut -d"." -f3,3)
-  beta_tag_exists=$(echo "$next_release" | cut -d"." -f4,4 || true)
 
-  if [ -n "$beta_tag_exists" ]; then
+  if [ -n "$beta_tag_exists" ] && [ -z "$next_release_beta_number" ]; then
     echo "Error: releases cannot consist any qualifier after version"
     exit 1;
   fi
@@ -107,6 +109,56 @@ else
     echo "Error: minor versions cannot be changed"
     exit 1;
   fi
+
+  if [ -n "$next_release_beta_number" ]; then
+
+    if [ -n "$first_release_tag_exists" ]; then
+      echo "Error: Beta releases are not allowed after the GA release exists"
+      exit 1;
+    fi
+
+    if [[ "$next_release_patch_version" != 0 ]]; then
+      echo "Error: pre-release patch version must be 0"
+      exit 1;
+    fi
+
+    if [[ "$next_release_beta_number" == 0 ]]; then
+      echo "Error: pre-release beta number cannot be 0, it must be 1 or higher"
+      exit 1;
+    fi
+
+    latest_branch_prerelease=$(echo "$releases" | jq -r --arg version "$branch_version" '
+    .[]
+    | select(.prerelease)
+    | select(.tag_name | startswith($version + ".0.Beta"))
+    | .tag_name' | head -n 1)
+    latest_branch_beta_number=$(echo "$latest_branch_prerelease" | cut -d"." -f4,4 | grep -o '[0-9]\+' || true) 
+
+    if [ -z "$latest_branch_beta_number" ]; then
+      if [[ "$next_release_beta_number" != 1 ]]; then
+        echo "Error: first pre-release version must be Beta1"
+        exit 1;
+      fi
+    elif [[ "$next_release_beta_number" != $(("$latest_branch_beta_number" + 1)) ]]; then
+      echo "Error: pre-release version should go one by one as sequence"
+      exit 1;
+    fi
+
+    project_current_base=$(echo "$next_release" | grep -oP '^.*Beta')
+    project_next_version=$(grep -E 'next-version:\s*' project.yml | awk '{print $2}')
+    project_next_base=$(echo "$project_next_version" | grep -oP '^.*Beta')
+
+    project_current_beta_number="$next_release_beta_number"
+    project_next_beta_number=$(echo "$project_next_version" | grep -oP 'Beta\K[0-9]+')
+
+    if [[ "$project_current_base" != "$project_next_base" ]] || [[ $(("$project_current_beta_number" + 1)) != "$project_next_beta_number" ]]; then
+      echo "Error: the next-version in project.yaml is not valid. Next pre-release Beta version must be one upper that current"
+      exit 1;
+    fi
+
+    exit 0;
+  fi
+
 
   if [[ $(("$latest_branch_tag_patch_version" + 1)) != "$next_release_patch_version" ]]; then
     echo "Error: release patch versions should be bumped one by one as sequence"
