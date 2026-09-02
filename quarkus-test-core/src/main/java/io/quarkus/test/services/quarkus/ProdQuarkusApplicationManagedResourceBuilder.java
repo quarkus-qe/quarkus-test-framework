@@ -85,7 +85,7 @@ public class ProdQuarkusApplicationManagedResourceBuilder extends ArtifactQuarku
         return Paths.get(TARGET);
     }
 
-    private Path tryToReuseOrBuildArtifact() {
+    protected Path tryToReuseOrBuildArtifact() {
         return new QuarkusMavenPluginBuildHelper(this, getTargetFolderForLocalArtifacts(), artifactSuffix)
                 .buildOrReuseArtifact();
     }
