@@ -47,7 +47,7 @@
         <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
         <maven-release-plugin.version>3.1.1</maven-release-plugin.version>
         <central-publishing-maven-plugin.version>0.11.0</central-publishing-maven-plugin.version>
-        <maven-deploy-plugin.version>3.1.4</maven-deploy-plugin.version>
+        <maven-deploy-plugin.version>3.2.0</maven-deploy-plugin.version>
         <quarkus.group-id>io.quarkus</quarkus.group-id>
         <quarkus.artifact-id>quarkus-bom</quarkus.artifact-id>
         <quarkus.version>3.39.2</quarkus.version>
