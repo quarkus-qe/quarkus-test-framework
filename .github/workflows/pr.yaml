@@ -2,8 +2,8 @@ name: "PR"
 on:
   - pull_request
 env:
-  QUARKUS_BUILD: 3.39.999-SNAPSHOT
-  PLATFORM_BUILD: 3.39.999-core-3.39-SNAPSHOT
+  QUARKUS_BUILD: 3.40.999-SNAPSHOT
+  PLATFORM_BUILD: 3.40.999-core-3.40-SNAPSHOT
 jobs:
   validate-format:
     name: Validate format
@@ -25,7 +25,7 @@ jobs:
         run: |
           mvn -V -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Pframework,examples -Dvalidate-format -DskipTests -DskipITs
   build-quarkus:
-    name: Build Quarkus 3.39
+    name: Build Quarkus 3.40
     runs-on: ubuntu-latest
     outputs:
       PLATFORM_BUILD: ${{ env.PLATFORM_BUILD }}
@@ -48,12 +48,11 @@ jobs:
         run: sudo apt install -qq -y xsltproc
       - name: Build Quarkus core ${{ env.QUARKUS_BUILD }}
         run: |
-          git clone -b 3.39 https://github.com/quarkusio/quarkus.git && cd quarkus
+          git clone -b 3.40 https://github.com/quarkusio/quarkus.git && cd quarkus
           ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
       - name: Build Quarkus Platform ${{ env.PLATFORM_BUILD }}
         run: |
-          # TODO add `-b 3.39` to git clone (3.39 branch wasn't available in time of branching) 
-          git clone https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
+          git clone -b 3.40 https://github.com/quarkusio/quarkus-platform.git && cd quarkus-platform
           ./mvnw versions:set -DnewVersion=${{ env.PLATFORM_BUILD }} -DgenerateBackupPoms=false
           wget -O minimise_platform.xsl "https://github.com/quarkus-qe/quarkus-test-suite/raw/refs/heads/main/.github/minimise_platform.xsl"
           xsltproc -o pom.xml minimise_platform.xsl pom.xml
