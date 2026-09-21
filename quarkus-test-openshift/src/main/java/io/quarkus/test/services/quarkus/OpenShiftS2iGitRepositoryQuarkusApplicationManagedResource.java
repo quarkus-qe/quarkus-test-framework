@@ -34,21 +34,35 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     private static final String INTERNAL_MAVEN_REPOSITORY_PROPERTY = "${internal.s2i.maven.remote.repository}";
 
     // Repository block placeholders resolved inside settings-mvn-auth.yml replaced with XML or empty string
-    private static final String CENTRAL_MIRROR_BLOCK_PLACEHOLDER = "${central.mirror.block}";
+    private static final String RELEASES_MIRROR_BLOCK_PLACEHOLDER = "${releases.mirror.block}";
+    private static final String RELEASES_REPOSITORY_BLOCK_PLACEHOLDER = "${releases.repository.block}";
+    private static final String RELEASES_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER = "${releases.pluginRepository.block}";
     private static final String SERVERS_BLOCK_PLACEHOLDER = "${servers.block}";
     private static final String SNAPSHOTS_REPOSITORY_BLOCK_PLACEHOLDER = "${snapshots.repository.block}";
     private static final String SNAPSHOTS_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER = "${snapshots.pluginRepository.block}";
 
-    private static final String DEFAULT_MAVEN_CENTRAL_MIRROR = "https://maven-central.storage-download.googleapis.com/maven2/";
-
-    // Mirror XML for central used for releases repo or Google default
-    private static final String CENTRAL_MIRROR_XML = "<mirror>\n"
-            + "                <id>%s</id>\n"
-            + "                <mirrorOf>central</mirrorOf>\n"
-            + "                <name>%s</name>\n"
+    // Release repository/pluginRepository XML blocks
+    private static final String RELEASES_MIRROR_XML = "<mirror>\n"
+            + "                <id>internal.s2i.maven.releases.repository</id>\n"
+            + "                <mirrorOf>internal.s2i.maven.releases.repository</mirrorOf>\n"
+            + "                <name>Releases repository mirror</name>\n"
             + "                <url>%s</url>\n"
             + "                <blocked>false</blocked>\n"
             + "            </mirror>";
+
+    private static final String RELEASES_REPOSITORY_XML = "<repository>\n"
+            + "                        <id>internal.s2i.maven.releases.repository</id>\n"
+            + "                        <url>%s</url>\n"
+            + "                        <releases><enabled>true</enabled></releases>\n"
+            + "                        <snapshots><enabled>false</enabled></snapshots>\n"
+            + "                    </repository>";
+
+    private static final String RELEASES_PLUGIN_REPOSITORY_XML = "<pluginRepository>\n"
+            + "                        <id>internal.s2i.maven.releases.repository</id>\n"
+            + "                        <url>%s</url>\n"
+            + "                        <releases><enabled>true</enabled></releases>\n"
+            + "                        <snapshots><enabled>false</enabled></snapshots>\n"
+            + "                    </pluginRepository>";
 
     // Snapshot repository/pluginRepository XML blocks
     private static final String SNAPSHOTS_REPOSITORY_XML = "<repository>\n"
@@ -192,34 +206,31 @@ public class OpenShiftS2iGitRepositoryQuarkusApplicationManagedResource
     }
 
     /**
-     * Loads settings-mvn-auth.yml and resolves all placeholders.
-     * The releases repository (or Google Maven Central as default) is wired as a mirror of central.
-     * The snapshots repository, if configured, is added as a plain repository in the profile.
+     * Loads settings-mvn-auth.yml and fills in all placeholder blocks.
+     * <p>
+     * Google Maven Central always mirrors central - it is hardcoded in the YAML.
+     * <p>
+     * If a releases repository is provided, it is added as an extra repository searched alongside central.
+     * If a snapshots repository is provided, it is added the same way.
+     * <p>
      * Credentials are injected only when both username and password are provided.
      */
     private String buildAuthSettingsContent(String releasesRepo, String snapshotsRepo) {
         String content = FileUtils.loadFile("/" + QUARKUS_SOURCE_S2I_SETTINGS_MVN_AUTH_FILENAME);
+        boolean hasReleasesRepo = StringUtils.isNotEmpty(releasesRepo);
+        boolean hasSnapshotsRepo = StringUtils.isNotEmpty(snapshotsRepo);
 
-        // Central mirror: use configured releases repo, fall back to default (Google Maven Central)
-        String centralMirrorUrl = StringUtils.defaultIfEmpty(releasesRepo, DEFAULT_MAVEN_CENTRAL_MIRROR);
-        String centralMirrorId = StringUtils.isNotEmpty(releasesRepo)
-                ? "internal.s2i.maven.releases.repository"
-                : "google-maven-central";
-        String centralMirrorName = StringUtils.isNotEmpty(releasesRepo)
-                ? "Releases repository mirror of central"
-                : "Google Maven Central mirror";
-        content = content.replace(CENTRAL_MIRROR_BLOCK_PLACEHOLDER,
-                String.format(CENTRAL_MIRROR_XML, centralMirrorId, centralMirrorName, centralMirrorUrl));
+        content = content.replace(RELEASES_MIRROR_BLOCK_PLACEHOLDER,
+                hasReleasesRepo ? String.format(RELEASES_MIRROR_XML, releasesRepo) : "");
+        content = content.replace(RELEASES_REPOSITORY_BLOCK_PLACEHOLDER,
+                hasReleasesRepo ? String.format(RELEASES_REPOSITORY_XML, releasesRepo) : "");
+        content = content.replace(RELEASES_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER,
+                hasReleasesRepo ? String.format(RELEASES_PLUGIN_REPOSITORY_XML, releasesRepo) : "");
 
-        // Snapshots repository only added when a URL is configured
         content = content.replace(SNAPSHOTS_REPOSITORY_BLOCK_PLACEHOLDER,
-                StringUtils.isNotEmpty(snapshotsRepo)
-                        ? String.format(SNAPSHOTS_REPOSITORY_XML, snapshotsRepo)
-                        : "");
+                hasSnapshotsRepo ? String.format(SNAPSHOTS_REPOSITORY_XML, snapshotsRepo) : "");
         content = content.replace(SNAPSHOTS_PLUGIN_REPOSITORY_BLOCK_PLACEHOLDER,
-                StringUtils.isNotEmpty(snapshotsRepo)
-                        ? String.format(SNAPSHOTS_PLUGIN_REPOSITORY_XML, snapshotsRepo)
-                        : "");
+                hasSnapshotsRepo ? String.format(SNAPSHOTS_PLUGIN_REPOSITORY_XML, snapshotsRepo) : "");
 
         // Credentials: only inject servers block when both username and password are provided
         String username = MAVEN_REMOTE_REPOSITORY_USERNAME.get(model.getContext());
