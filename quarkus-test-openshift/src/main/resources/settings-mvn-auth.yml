@@ -12,7 +12,14 @@ data:
             ${servers.block}
         </servers>
         <mirrors>
-            ${central.mirror.block}
+            ${releases.mirror.block}
+            <mirror>
+                <id>google-maven-central</id>
+                <mirrorOf>central</mirrorOf>
+                <name>Google Maven Central mirror</name>
+                <url>https://maven-central.storage-download.googleapis.com/maven2/</url>
+                <blocked>false</blocked>
+            </mirror>
         </mirrors>
         <profiles>
             <profile>
@@ -33,17 +40,19 @@ data:
                 </pluginRepositories>
             </profile>
             <profile>
-                <id>customRepository</id>
+                <id>customRepositories</id>
                 <repositories>
+                    ${releases.repository.block}
                     ${snapshots.repository.block}
                 </repositories>
                 <pluginRepositories>
+                    ${releases.pluginRepository.block}
                     ${snapshots.pluginRepository.block}
                 </pluginRepositories>
             </profile>
         </profiles>
         <activeProfiles>
-            <activeProfile>customRepository</activeProfile>
+            <activeProfile>customRepositories</activeProfile>
             <activeProfile>redhat</activeProfile>
         </activeProfiles>
     </settings>
