@@ -1,0 +1,65 @@
+type: pipeline_definition
+product: Quarkus
+name: CI - Framework OpenShift tests
+description: "Run OpenShift tests for PR."
+triggers:
+  - type: github
+    description: "Run the openshift tests."
+    keyword: "!quarkus-openshift-tests"
+    triggerName: "framework-ci-openshift-tests"
+    triggerRank: 50
+    groups: [ "QUARKUS_QE" ]
+    propertyDefinitions:
+      - name: QUARKUS_VERSION
+        defaultValue: ""
+        description: "Quarkus version to run tests with"
+      - name: EXTRA_MAVEN_ARGS
+        description: "Extra maven arguments"
+      - name: TEST_SUITE_BRANCH
+        defaultValue: "${github_pr_branch}"
+        description: "Git branch to execute tests in."
+      - name: TEST_SUITE_URL
+        defaultValue: "git@github.com:${github_pr_user}/${github_pr_repo}.git"
+        description: "GitHub URL of testsuite to use for scripts execution"
+      - name: JENKINS_JOBS_BRANCH
+        description: "Branch of Jenkins jobs to use for scripts execution"
+      - name: JENKINS_JOBS_URL
+        description: "GitHub URL of Jenkins jobs to use for scripts execution"
+steps:
+  - stepName: install-ocp-stable
+    workType: Jenkins
+    projectName: infra-install-openshift-cluster
+    properties:
+      jenkinsServiceName: "quarkus-qe-jenkins"
+      autoCompleteAfterXHours: "12"
+  - stepName: run-ocp-JVM-tests
+    workType: Jenkins
+    projectName: quarkus-main-jvm-openshift-tf-github-ci
+    dependsOn:
+      - stepName: install-ocp-stable
+        awaitOutputProperties: true
+    properties:
+      jenkinsServiceName: "quarkus-qe-jenkins"
+      OCP_URL: "${install-ocp-stable:OCP_URL}"
+  - stepName: run-ocp-native-tests
+    workType: Jenkins
+    projectName: quarkus-main-native-openshift-tf-github-ci
+    dependsOn:
+      - stepName: install-ocp-stable
+        awaitOutputProperties: true
+    properties:
+      jenkinsServiceName: "quarkus-qe-jenkins"
+      OCP_URL: "${install-ocp-stable:OCP_URL}"
+  - stepName: uninstall-ocp-stable
+    workType: Jenkins
+    projectName: infra-uninstall-openshift-cluster
+    dependsOn:
+      - stepName: install-ocp-stable
+        awaitOutputProperties: true
+      - stepName: run-ocp-JVM-tests
+        allowFailures: true
+      - stepName: run-ocp-native-tests
+        allowFailures: true
+    properties:
+      jenkinsServiceName: "quarkus-qe-jenkins"
+      OCP_DEMAND_ID: "${install-ocp-stable:OCP_DEMAND_ID}"
