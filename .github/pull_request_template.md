@@ -12,7 +12,7 @@ Please check the relevant options
 - [ ] Breaking change (fix or feature that would cause existing functionality to change)
 - [ ] This change requires a documentation update
 - [ ] This change requires execution against Kubernetes (use `run kubernetes` phrase in comment)
-- [ ] This change requires execution against OCP (use `run tests` phrase in comment)
+- [ ] This change requires execution against OCP (use `!quarkus-openshift-tests` phrase in comment)
 
 ### Checklist:
 - [ ] Example scenarios has been updated / added
