@@ -174,7 +174,8 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
             var serviceName = model.getContext().getOwner().getName();
             return super.isRunning() && client.isAnyServicePodReady(serviceName);
         } else {
-            return super.isRunning() && routeIsReachable(Protocol.HTTP);
+            return super.isRunning() && model.isSslEnabled() ? routeIsReachable(Protocol.HTTPS)
+                    : routeIsReachable(Protocol.HTTP);
         }
     }
 
