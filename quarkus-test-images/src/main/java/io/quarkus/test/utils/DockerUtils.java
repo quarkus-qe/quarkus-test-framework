@@ -6,6 +6,7 @@ import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Path;
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -13,9 +14,11 @@ import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.core.IsAnything;
 
 import com.github.dockerjava.api.DockerClient;
 import com.github.dockerjava.api.command.PullImageResultCallback;
+import com.github.dockerjava.api.exception.NotFoundException;
 import com.github.dockerjava.api.model.Container;
 import com.github.dockerjava.api.model.Image;
 import com.github.dockerjava.core.DefaultDockerClientConfig;
@@ -26,6 +29,7 @@ import com.google.common.base.Strings;
 import io.quarkus.test.bootstrap.ServiceContext;
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.services.quarkus.model.LaunchMode;
+import io.quarkus.test.utils.AwaitilityUtils.AwaitilitySettings;
 
 public final class DockerUtils {
 
@@ -119,18 +123,24 @@ public final class DockerUtils {
      * @param imageId docker image to delete.
      */
     public static void removeImageById(String imageId) {
-        dockerClient().removeImageCmd(imageId).withForce(true).exec();
+        AwaitilityUtils.untilIsTrue(() -> {
+            try {
+                dockerClient().removeImageCmd(imageId).withForce(true).exec();
+            } catch (NotFoundException e) {
+                // the image is gone, possibly removed by an attempt whose response we never saw
+            }
+            return true;
+        });
     }
 
     public static void pullImageById(String imageId) {
-        try {
-            dockerClient()
+        AwaitilityUtils.untilIsTrue(() -> {
+            return dockerClient()
                     .pullImageCmd(imageId)
-                    .exec(new PullImageResultCallback()).awaitCompletion(DOCKER_PULL_TIMEOUT_SEC, TimeUnit.SECONDS);
-
-        } catch (InterruptedException e) {
-            fail("Failed to pull image " + imageId + " . Caused by " + e.getMessage());
-        }
+                    .exec(new PullImageResultCallback())
+                    .awaitCompletion(DOCKER_PULL_TIMEOUT_SEC, TimeUnit.SECONDS);
+        }, AwaitilitySettings.usingTimeout(Duration.ofSeconds(DOCKER_PULL_TIMEOUT_SEC))
+                .timeoutMessage("Failed to pull image %s", imageId));
     }
 
     /**
@@ -139,11 +149,14 @@ public final class DockerUtils {
      * @param imageId docker image ID.
      */
     public static void stopContainersByImage(String imageId) {
-        List<Container> containers = dockerClient().listContainersCmd()
-                .withAncestorFilter(Collections.singletonList(imageId)).exec();
-        for (Container container : containers) {
-            dockerClient().stopContainerCmd(container.getId()).exec();
-        }
+        AwaitilityUtils.untilIsTrue(() -> {
+            List<Container> containers = dockerClient().listContainersCmd()
+                    .withAncestorFilter(Collections.singletonList(imageId)).exec();
+            for (Container container : containers) {
+                dockerClient().stopContainerCmd(container.getId()).exec();
+            }
+            return true;
+        });
     }
 
     /**
@@ -155,7 +168,9 @@ public final class DockerUtils {
      */
     public static Image getImage(String name, String version) {
         Image result = new Image();
-        List<Image> images = dockerClient().listImagesCmd().withImageNameFilter(name).exec();
+        List<Image> images = AwaitilityUtils.until(() -> {
+            return dockerClient().listImagesCmd().withImageNameFilter(name).exec();
+        }, new IsAnything<>());
         for (Image image : images) {
             if (isVersion(image, version)) {
                 result = image;
