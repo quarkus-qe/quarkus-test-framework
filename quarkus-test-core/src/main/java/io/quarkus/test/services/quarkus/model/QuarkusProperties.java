@@ -14,7 +14,7 @@ import io.quarkus.test.configuration.PropertyLookup;
 public final class QuarkusProperties {
 
     public static final PropertyLookup USE_SEPARATE_GRPC_SERVER = new PropertyLookup("quarkus.grpc.server.use-separate-server",
-            "true");
+            "false");
     public static final PropertyLookup PLATFORM_GROUP_ID = new PropertyLookup("quarkus.platform.group-id", "io.quarkus");
     public static final PropertyLookup PLATFORM_VERSION = new PropertyLookup("quarkus.platform.version");
     public static final PropertyLookup PLUGIN_VERSION = new PropertyLookup("quarkus-plugin.version");

@@ -144,8 +144,8 @@ public class RestService extends BaseService<RestService> {
             } else {
                 pemKeyCertOptions.addKeyPath(clientCert.keyPath());
             }
-            options.setPemKeyCertOptions(pemKeyCertOptions);
-            options.setPemTrustOptions(new PemTrustOptions().addCertPath(clientCert.truststorePath()));
+            options.setKeyCertOptions(pemKeyCertOptions);
+            options.setTrustOptions(new PemTrustOptions().addCertPath(clientCert.truststorePath()));
         } else {
             final String keystorePath;
             final String truststorePath;

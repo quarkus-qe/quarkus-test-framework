@@ -344,7 +344,7 @@ public abstract class QuarkusApplicationManagedResourceBuilder implements Manage
                             LaunchMode.NORMAL, buildSystemProps, new Properties(), Map.of());
                 } catch (Throwable t2) {
                     throw new IllegalStateException(BuildTimeConfigurationReader.class.getName()
-                            + "#initConfiguration method signature has changed, please adapt this implementation");
+                            + "#initConfiguration method signature has changed, please adapt this implementation", t);
                 }
             }
             var config = aConfig;
