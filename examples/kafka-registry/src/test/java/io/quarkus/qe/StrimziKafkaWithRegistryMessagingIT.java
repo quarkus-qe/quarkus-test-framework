@@ -24,7 +24,7 @@ import io.quarkus.test.services.containers.model.KafkaVendor;
 @QuarkusScenario
 public class StrimziKafkaWithRegistryMessagingIT {
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI, withRegistry = true, registryPath = "/apis/registry/v2")
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI, withRegistry = true, registryPath = "/apis/registry/v3")
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication
