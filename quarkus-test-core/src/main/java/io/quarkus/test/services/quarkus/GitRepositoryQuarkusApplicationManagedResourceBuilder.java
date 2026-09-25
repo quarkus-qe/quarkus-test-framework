@@ -5,6 +5,8 @@ import static java.util.regex.Pattern.quote;
 import java.lang.annotation.Annotation;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
@@ -78,6 +80,14 @@ public class GitRepositoryQuarkusApplicationManagedResourceBuilder extends ProdQ
         }
 
         return new GitRepositoryLocalhostQuarkusApplicationManagedResource(this);
+    }
+
+    @Override
+    protected Path tryToReuseOrBuildArtifact() {
+        List<String> mvnArgs = Arrays.asList(StringUtils.split(getMavenArgsWithVersion(), " "));
+        return new QuarkusMavenPluginBuildHelper(this, getTargetFolderForLocalArtifacts(), getArtifactSuffix())
+                .buildOrReuseArtifact(mvnArgs)
+                .orElseThrow(() -> new RuntimeException("Failed to build artifact for git repository application"));
     }
 
     @Override
