@@ -4,7 +4,6 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.QuarkusApplication;
 import io.vertx.mutiny.ext.web.client.HttpResponse;
-import io.vertx.mutiny.ext.web.client.predicate.ResponsePredicate;
 import org.junit.jupiter.api.Test;
 
 import java.net.HttpURLConnection;
@@ -19,12 +18,11 @@ public class HelloIT {
 
     @Test
     public void test() {
-        String response = app.mutiny().get("/hello")
-                .expect(ResponsePredicate.status(HttpURLConnection.HTTP_OK))
+        HttpResponse<?> response = app.mutiny().get("/hello")
                 .send()
-                .map(HttpResponse::bodyAsString)
                 .await().indefinitely();
-        assertEquals("hello", response);
+        assertEquals(HttpURLConnection.HTTP_OK, response.statusCode());
+        assertEquals("hello", response.bodyAsString());
     }
 
 }
