@@ -19,7 +19,6 @@
         <module>http</module>
         <module>https</module>
         <module>grpc</module>
-        <module>consul</module>
         <module>infinispan</module>
         <module>microprofile</module>
         <module>keycloak</module>
@@ -38,7 +37,6 @@
         <module>management</module>
         <module>debug</module>
         <module>grafana</module>
-        <module>platforms</module>
     </modules>
 
     <build>
@@ -67,6 +65,18 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>platform-modules</id>
+            <activation>
+                <property>
+                    <name>!skip-platform-modules</name>
+                </property>
+            </activation>
+            <modules>
+                <module>platforms</module>
+                <module>consul</module>
+            </modules>
+        </profile>
         <profile>
             <!-- makes it possible to start and keep alive app, containers, OCP namespace as long as you need -->
             <id>ts.debug</id>
