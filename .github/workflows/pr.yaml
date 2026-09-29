@@ -68,8 +68,9 @@ jobs:
           wget -O minimise_platform.xsl https://raw.githubusercontent.com/quarkus-qe/quarkus-test-suite/refs/heads/3.27/.github/minimise_platform.xsl
           xsltproc -o pom.xml minimise_platform.xsl pom.xml
           ./mvnw versions:set -DnewVersion=${{ env.PLATFORM_BUILD }} -DgenerateBackupPoms=false
-          ./mvnw -Dsync  -Dquarkus.version=${{ env.QUARKUS_BUILD }}
-          ./mvnw install  --no-transfer-progress -Dquarkus.version=${{ env.QUARKUS_BUILD }} -DskipTests -DskipITs
+          ./mvnw versions:set-property -Dproperty=quarkus.version -DnewVersion=${{ env.QUARKUS_BUILD }} -DgenerateBackupPoms=false
+          ./mvnw -Dsync
+          ./mvnw install --no-transfer-progress -DskipTests -DskipITs
       - name: Tar Maven Repo
         shell: bash
         run: tar -I 'pigz -9' -cf maven-repo.tgz -C ~ .m2/repository
