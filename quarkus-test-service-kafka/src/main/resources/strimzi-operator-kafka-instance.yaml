@@ -11,13 +11,8 @@ spec:
     - controller
     - broker
   storage:
-    type: jbod
-    volumes:
-      - id: 0
-        type: persistent-claim
-        size: 100Mi
-        deleteClaim: true
-        kraftMetadata: shared
+    # Using the ephemeral as some of OCP cluster don't have storage class which can cause node pool failure on startup
+    type: ephemeral
 ---
 
 apiVersion: kafka.strimzi.io/v1beta2
