@@ -7,7 +7,7 @@
   <version>999-SNAPSHOT</version>
   <properties>
     <!--  This file is only used by QuarkusMavenPluginBuildHelperTest, so no need to update values below -->
-    <maven.compiler.release>17</maven.compiler.release>
+    <maven.compiler.release>21</maven.compiler.release>
     <surefire-plugin.version>3.5.4</surefire-plugin.version>
     <quarkus.platform.version>IGNORED</quarkus.platform.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

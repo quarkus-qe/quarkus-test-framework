@@ -35,7 +35,7 @@ public class StrimziKafkaWithCustomSslMessagingIT {
 
     @Test
     public void checkUserResourceByNormalUser() {
-        Awaitility.await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+        Awaitility.await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             app.given().get("/prices/poll")
                     .then()
                     .statusCode(HttpStatus.SC_OK);

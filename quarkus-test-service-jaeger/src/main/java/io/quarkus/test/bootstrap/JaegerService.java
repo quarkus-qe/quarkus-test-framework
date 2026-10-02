@@ -19,7 +19,7 @@ public class JaegerService extends BaseService<JaegerService> {
     }
 
     public String getCollectorUrl(Protocol protocol) {
-        return getURI(protocol).withPath(JAEGER_API_PATH).toString();
+        return getURI(protocol).toString();
     }
 
     public String getTraceUrl() {

@@ -42,10 +42,10 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
             model.getContext().put(CERTIFICATE_CONTEXT_KEY, cert);
             // I found CLI flags used below here: https://www.jaegertracing.io/docs/1.60/cli/
             container.withCreateContainerCmdModifier(cmd -> cmd
-                    .withCmd("--collector.otlp.grpc.tls.enabled=true",
-                            "--collector.otlp.grpc.tls.key=/test-tls/key/tls.key",
-                            "--collector.otlp.grpc.tls.cert=/test-tls/cert/tls.cert",
-                            "--collector.otlp.grpc.tls.client-ca=/test-tls/ca/ca.crt"));
+                    .withCmd("--collector.otlp.http.tls.enabled=true",
+                            "--collector.otlp.http.tls.key=/test-tls/key/tls.key",
+                            "--collector.otlp.http.tls.cert=/test-tls/cert/tls.cert",
+                            "--collector.otlp.http.tls.client-ca=/test-tls/ca/ca.crt"));
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.certPath()), "/test-tls/cert/tls.cert");
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.keyPath()), "/test-tls/key/tls.key");
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.truststorePath()), "/test-tls/ca/ca.crt");

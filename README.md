@@ -24,7 +24,7 @@ Main features:
 
 # Requirements
 
-- JDK 17+
+- JDK21+
 - Maven 3+
 - Docker
 - OCP/K8s client

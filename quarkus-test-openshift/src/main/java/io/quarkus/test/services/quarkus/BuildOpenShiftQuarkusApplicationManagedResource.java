@@ -16,12 +16,11 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.opentest4j.AssertionFailedError;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import io.quarkus.test.configuration.PropertyLookup;
 import io.quarkus.test.logging.Log;
 import io.quarkus.test.utils.Command;
 import io.quarkus.test.utils.PropertiesUtils;
+import tools.jackson.databind.ObjectMapper;
 
 public class BuildOpenShiftQuarkusApplicationManagedResource
         extends TemplateOpenShiftQuarkusApplicationManagedResource<ArtifactQuarkusApplicationManagedResourceBuilder> {
