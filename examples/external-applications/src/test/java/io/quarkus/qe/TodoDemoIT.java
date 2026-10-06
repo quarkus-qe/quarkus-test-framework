@@ -24,7 +24,7 @@ import io.restassured.response.Response;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class TodoDemoIT {
     private static final String REPO = "https://github.com/quarkusio/todo-demo-app.git";
-    private static final String COMMIT = "411b6d75ac66a54e7b309f96567b4d7b161f374f";
+    private static final String COMMIT = "ddfda1ab9d0436c8892adcf1c31acec1018efda2";
     private static final String DEFAULT_ARGS = "-DskipTests=true -Dquarkus.platform.group-id=${QUARKUS_PLATFORM_GROUP-ID} -Dquarkus.platform.version=${QUARKUS_PLATFORM_VERSION} ";
     private static final String UBER = "-Dquarkus.package.jar.type=uber-jar ";
     private static final String NO_SUFFIX = "-Dquarkus.package.jar.add-runner-suffix=false";
