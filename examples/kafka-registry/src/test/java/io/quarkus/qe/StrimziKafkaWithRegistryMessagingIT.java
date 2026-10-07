@@ -17,10 +17,12 @@ import io.quarkus.test.bootstrap.KafkaService;
 import io.quarkus.test.bootstrap.Protocol;
 import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
+import io.quarkus.test.scenarios.annotations.DisabledOnNative;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
+@DisabledOnNative(reason = "https://github.com/quarkusio/quarkus/issues/57243")
 @QuarkusScenario
 public class StrimziKafkaWithRegistryMessagingIT {
 
