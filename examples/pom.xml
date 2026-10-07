@@ -69,7 +69,7 @@
             <id>platform-modules</id>
             <activation>
                 <property>
-                    <name>!skip-platform-modules</name>
+                    <name>skip-platform-modules</name>
                 </property>
             </activation>
             <modules>
