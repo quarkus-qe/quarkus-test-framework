@@ -51,6 +51,7 @@ steps:
       jenkinsServiceName: "quarkus-qe-jenkins"
       OCP_URL: "${install-ocp-stable:OCP_URL}"
   - stepName: uninstall-ocp-stable
+    runIfPipelineCancelled: true
     workType: Jenkins
     projectName: infra-uninstall-openshift-cluster
     dependsOn:
