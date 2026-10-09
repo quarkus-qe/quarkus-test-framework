@@ -173,9 +173,19 @@ public abstract class OpenShiftQuarkusApplicationManagedResource<T extends Quark
         if (checkPodReadinessWithStatusInsteadOfRoute(model.getContext())) {
             var serviceName = model.getContext().getOwner().getName();
             return super.isRunning() && client.isAnyServicePodReady(serviceName);
+        } else if (model.isSslEnabled()) {
+            try {
+                return super.isRunning() && routeIsReachable(Protocol.HTTPS);
+            } catch (Exception e) {
+                // Most cases which uses SSL and response without problem.
+                // There is some edge cases where mTLS is forced and if client don't have certificate,
+                // so the connections is not accepted.
+                // In this case the SSLHandshakeException is thrown, so it's needed to check for pod readiness.
+                var serviceName = model.getContext().getOwner().getName();
+                return super.isRunning() && client.isAnyServicePodReady(serviceName);
+            }
         } else {
-            return super.isRunning() && model.isSslEnabled() ? routeIsReachable(Protocol.HTTPS)
-                    : routeIsReachable(Protocol.HTTP);
+            return super.isRunning() && routeIsReachable(Protocol.HTTP);
         }
     }
 
