@@ -51,12 +51,6 @@
                             </fileSets>
                         </configuration>
                     </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <executions>
                     <execution>
                         <id>report</id>
                         <phase>prepare-package</phase>
