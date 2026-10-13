@@ -1517,3 +1517,6 @@ quarkus.kubernetes.ingress.rules."rules".path-type
 quarkus.arc.transform-unproxyable-classes
 quarkus.elasticsearch.devservices.port
 quarkus.info.build."property-key"
+quarkus.package.jar.aot.enabled
+quarkus.package.jar.aot.phase
+quarkus.package.jar.aot.type
