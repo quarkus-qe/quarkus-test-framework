@@ -77,6 +77,17 @@ class QuarkusMavenPluginBuildHelperTest {
         Assertions.assertEquals(1, count, "Duplicate dependency found in generated POM");
     }
 
+    @Test
+    public void testConflictingVersionFails() {
+        Dependency first = createDependency("io.quarkus", "quarkus-rest", "1.0.0");
+        Dependency second = createDependency("io.quarkus", "quarkus-rest", "2.0.0");
+        Path serviceFolder = Paths.get("target/QuarkusMavenPluginBuildHelperConflictTest");
+        ProdQuarkusApplicationManagedResourceBuilder builder = prepareBuilder(serviceFolder);
+        builder.initForcedDependencies(new Dependency[] { first, second });
+        QuarkusMavenPluginBuildHelper helper = new QuarkusMavenPluginBuildHelper(builder);
+        Assertions.assertThrows(IllegalArgumentException.class, helper::prepareApplicationFolder);
+    }
+
     private static Dependency createDependency(String groupId, String artifactId, String version) {
         return new Dependency() {
             @Override
