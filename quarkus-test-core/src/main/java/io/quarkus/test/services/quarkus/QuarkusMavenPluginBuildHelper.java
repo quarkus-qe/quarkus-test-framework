@@ -577,7 +577,19 @@ public final class QuarkusMavenPluginBuildHelper {
                 for (Dependency dependency : dependencies) {
                     String groupId = dependency.groupId().isEmpty() ? "io.quarkus" : dependency.groupId();
                     String artifactId = dependency.artifactId();
-                    if (containsDependency(childNode, groupId, artifactId)) {
+                    Node existing = findDependency(childNode, groupId, artifactId);
+                    if (existing != null) {
+                        String forcedVersion = dependency.version();
+                        boolean hasVersion = forcedVersion != null && !forcedVersion.isEmpty();
+                        if (hasVersion) {
+                            String existingVersion = getChildText(existing, "version");
+                            if (existingVersion != null && !forcedVersion.equals(existingVersion)) {
+                                throw new IllegalArgumentException(
+                                        ("Forced dependency %s:%s has version %s but the project POM already declares"
+                                                + " version %s. Fix the version conflict.")
+                                                .formatted(groupId, artifactId, forcedVersion, existingVersion));
+                            }
+                        }
                         continue;
                     }
                     Element newDependency = pomDocument.createElement("dependency");
@@ -595,7 +607,7 @@ public final class QuarkusMavenPluginBuildHelper {
         }
     }
 
-    private static boolean containsDependency(Node dependenciesNode, String groupId, String artifactId) {
+    private static Node findDependency(Node dependenciesNode, String groupId, String artifactId) {
         NodeList children = dependenciesNode.getChildNodes();
         for (int i = 0; i < children.getLength(); i++) {
             Node dep = children.item(i);
@@ -605,10 +617,10 @@ public final class QuarkusMavenPluginBuildHelper {
             String existingGroupId = getChildText(dep, "groupId");
             String existingArtifactId = getChildText(dep, "artifactId");
             if (groupId.equals(existingGroupId) && artifactId.equals(existingArtifactId)) {
-                return true;
+                return dep;
             }
         }
-        return false;
+        return null;
     }
 
     private static String getChildText(Node parent, String childName) {
