@@ -24,27 +24,8 @@ class QuarkusMavenPluginBuildHelperTest {
 
     @Test
     public void testFormatting() throws IOException {
-        Dependency[] additionalBoms = new Dependency[1];
-        additionalBoms[0] = new Dependency() {
-            @Override
-            public Class<? extends Annotation> annotationType() {
-                return Dependency.class;
-            }
-
-            @Override
-            public String groupId() {
-                return "";
-            }
-
-            @Override
-            public String artifactId() {
-                return "quarkus-mcp-server-bom";
-            }
-
-            @Override
-            public String version() {
-                return "${quarkus.platform.version}";
-            }
+        Dependency[] additionalBoms = new Dependency[] {
+                createDependency("", "quarkus-mcp-server-bom", "${quarkus.platform.version}")
         };
         Path serviceFolder = Paths.get("target/QuarkusMavenPluginBuildHelperTest");
         ProdQuarkusApplicationManagedResourceBuilder builder = prepareBuilder(serviceFolder);
@@ -79,6 +60,45 @@ class QuarkusMavenPluginBuildHelperTest {
         Assertions.assertEquals("        <version>${quarkus.platform.version}</version>", lines.get(startline + 12));
         Assertions.assertEquals("        <type>pom</type>", lines.get(startline + 13));
         Assertions.assertEquals("        <scope>import</scope>", lines.get(startline + 14));
+    }
+
+    @Test
+    public void testDuplicateForcedDependenciesAreSkipped() throws IOException {
+        Dependency dep = createDependency("io.quarkus", "quarkus-rest", "");
+        Path serviceFolder = Paths.get("target/QuarkusMavenPluginBuildHelperDuplicateTest");
+        ProdQuarkusApplicationManagedResourceBuilder builder = prepareBuilder(serviceFolder);
+        builder.initForcedDependencies(new Dependency[] { dep, dep });
+        QuarkusMavenPluginBuildHelper helper = new QuarkusMavenPluginBuildHelper(builder);
+        helper.prepareApplicationFolder();
+
+        Path pom = serviceFolder.resolve("pom.xml");
+        List<String> lines = Files.readAllLines(pom);
+        long count = lines.stream().filter(l -> l.contains("<artifactId>quarkus-rest</artifactId>")).count();
+        Assertions.assertEquals(1, count, "Duplicate dependency found in generated POM");
+    }
+
+    private static Dependency createDependency(String groupId, String artifactId, String version) {
+        return new Dependency() {
+            @Override
+            public Class<? extends Annotation> annotationType() {
+                return Dependency.class;
+            }
+
+            @Override
+            public String groupId() {
+                return groupId;
+            }
+
+            @Override
+            public String artifactId() {
+                return artifactId;
+            }
+
+            @Override
+            public String version() {
+                return version;
+            }
+        };
     }
 
     private ProdQuarkusApplicationManagedResourceBuilder prepareBuilder(Path serviceFolder) {
