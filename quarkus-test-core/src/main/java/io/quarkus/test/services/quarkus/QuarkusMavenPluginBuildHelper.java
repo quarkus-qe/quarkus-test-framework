@@ -575,12 +575,16 @@ public final class QuarkusMavenPluginBuildHelper {
             Node childNode = projectChildElements.item(i);
             if ("dependencies".equals(childNode.getNodeName())) {
                 for (Dependency dependency : dependencies) {
-                    // <dependency>
+                    String groupId = dependency.groupId().isEmpty() ? "io.quarkus" : dependency.groupId();
+                    String artifactId = dependency.artifactId();
+                    if (containsDependency(childNode, groupId, artifactId)) {
+                        continue;
+                    }
                     Element newDependency = pomDocument.createElement("dependency");
 
                     ElementAdder adder = new ElementAdder(pomDocument, newDependency);
-                    adder.addElement("groupId", dependency.groupId().isEmpty() ? "io.quarkus" : dependency.groupId());
-                    adder.addElement("artifactId", dependency.artifactId());
+                    adder.addElement("groupId", groupId);
+                    adder.addElement("artifactId", artifactId);
                     if (dependency.version() != null && !dependency.version().isEmpty()) {
                         adder.addElement("version", dependency.version());
                     }
@@ -589,6 +593,33 @@ public final class QuarkusMavenPluginBuildHelper {
                 break;
             }
         }
+    }
+
+    private static boolean containsDependency(Node dependenciesNode, String groupId, String artifactId) {
+        NodeList children = dependenciesNode.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node dep = children.item(i);
+            if (!"dependency".equals(dep.getNodeName())) {
+                continue;
+            }
+            String existingGroupId = getChildText(dep, "groupId");
+            String existingArtifactId = getChildText(dep, "artifactId");
+            if (groupId.equals(existingGroupId) && artifactId.equals(existingArtifactId)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static String getChildText(Node parent, String childName) {
+        NodeList children = parent.getChildNodes();
+        for (int i = 0; i < children.getLength(); i++) {
+            Node child = children.item(i);
+            if (childName.equals(child.getNodeName())) {
+                return child.getTextContent().trim();
+            }
+        }
+        return null;
     }
 
     private static void addImportBoms(Document pomDocument, Node projectElement, List<Dependency> dependencies) {
