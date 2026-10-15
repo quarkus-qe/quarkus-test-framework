@@ -33,7 +33,7 @@ runs:
     - name: Maven deploy ${{ inputs.release-version }}
       shell: bash
       run: |
-        mvn -B -DskipTests -DskipITs \
+        ./mvnw -V -B -DskipTests -DskipITs \
           -DretryFailedDeploymentCount=3 \
           -Pdeploy,framework \
           -Drelease=$RELEASE \
