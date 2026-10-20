@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -86,6 +87,26 @@ class QuarkusMavenPluginBuildHelperTest {
         builder.initForcedDependencies(new Dependency[] { first, second });
         QuarkusMavenPluginBuildHelper helper = new QuarkusMavenPluginBuildHelper(builder);
         Assertions.assertThrows(IllegalArgumentException.class, helper::prepareApplicationFolder);
+    }
+
+    @Test
+    public void testForcedDependencyReplacesExistingDefinition() throws IOException {
+        // For testing we use junit as it have test scope
+        Dependency dep = createDependency("io.quarkus", "quarkus-junit", "");
+        Path serviceFolder = Paths.get("target/QuarkusMavenPluginBuildHelperReplaceTest");
+        ProdQuarkusApplicationManagedResourceBuilder builder = prepareBuilder(serviceFolder);
+        builder.initForcedDependencies(new Dependency[] { dep });
+        QuarkusMavenPluginBuildHelper helper = new QuarkusMavenPluginBuildHelper(builder);
+        helper.prepareApplicationFolder();
+
+        List<String> lines = Files.readAllLines(serviceFolder.resolve("pom.xml"));
+        long count = lines.stream().filter(l -> l.contains("<artifactId>quarkus-junit</artifactId>")).count();
+        Assertions.assertEquals(1, count, "Expected exactly one forced dependency in generated POM");
+        int index = IntStream.range(0, lines.size())
+                .filter(i -> lines.get(i).contains("<artifactId>quarkus-junit</artifactId>"))
+                .findFirst().orElseThrow();
+        Assertions.assertTrue(lines.get(index + 1).contains("</dependency>"),
+                "Original <scope> must be dropped when the definition is replaced");
     }
 
     private static Dependency createDependency(String groupId, String artifactId, String version) {
