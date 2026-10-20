@@ -590,7 +590,6 @@ public final class QuarkusMavenPluginBuildHelper {
                                                 .formatted(groupId, artifactId, forcedVersion, existingVersion));
                             }
                         }
-                        continue;
                     }
                     Element newDependency = pomDocument.createElement("dependency");
 
@@ -600,7 +599,12 @@ public final class QuarkusMavenPluginBuildHelper {
                     if (dependency.version() != null && !dependency.version().isEmpty()) {
                         adder.addElement("version", dependency.version());
                     }
-                    childNode.appendChild(newDependency);
+                    if (existing != null) {
+                        // replace the whole definition (including scope, optional, etc.) with the forced one
+                        childNode.replaceChild(newDependency, existing);
+                    } else {
+                        childNode.appendChild(newDependency);
+                    }
                 }
                 break;
             }
