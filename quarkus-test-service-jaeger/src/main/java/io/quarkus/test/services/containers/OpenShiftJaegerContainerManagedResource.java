@@ -35,7 +35,6 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
     @Override
     protected void exposeService() {
         super.exposeService();
-        // We need to expose an additional endpoint for trace
         String traceServiceName = model.getContext().getName() + TRACE_SUFFIX;
         getClient().expose(traceServiceName, model.getTracePort());
         model.getContext().put(JAEGER_TRACE_URL_PROPERTY.getName(), getClient().url(traceServiceName).toString());
@@ -44,8 +43,7 @@ public class OpenShiftJaegerContainerManagedResource extends OpenShiftContainerM
     @Override
     protected String replaceDeploymentContent(String content) {
         return super.replaceDeploymentContent(content)
-                .replaceAll(quote("${TRACE_PORT}"), "" + model.getTracePort())
-                .replaceAll(quote("${COLLECTOR_OTLP_ENABLED}"), Boolean.toString(model.shouldUseOtlpCollector()));
+                .replaceAll(quote("${TRACE_PORT}"), "" + model.getTracePort());
     }
 
 }

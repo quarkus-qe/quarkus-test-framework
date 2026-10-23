@@ -20,7 +20,15 @@ public class JaegerService extends BaseService<JaegerService> {
         return getURI(protocol).toString();
     }
 
+    /**
+     * @deprecated Use {@link #getTraceV3Url()} for Jaeger 2.x v3 API.
+     */
+    @Deprecated
     public String getTraceUrl() {
         return getPropertyFromContext(JAEGER_TRACE_URL_PROPERTY.getName()) + "/api/traces";
+    }
+
+    public String getTraceV3Url() {
+        return getPropertyFromContext(JAEGER_TRACE_URL_PROPERTY.getName()) + "/api/v3/traces";
     }
 }

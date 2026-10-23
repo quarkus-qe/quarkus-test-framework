@@ -8,6 +8,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.http.HttpStatus;
@@ -54,15 +56,21 @@ public class OpenTelemetryJaegerTlsIT {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo("I'm a client"));
 
+        String startMin = Instant.now().minus(1, ChronoUnit.HOURS).toString();
+        String startMax = Instant.now().plus(1, ChronoUnit.HOURS).toString();
+
         await().atMost(30, TimeUnit.SECONDS).untilAsserted(() -> given()
-                .queryParam("service", SERVICE_NAME)
-                .queryParam("operation", OPERATION)
-                .get(jaeger.getTraceUrl())
+                .queryParam("query.service_name", SERVICE_NAME)
+                .queryParam("query.operation_name", OPERATION)
+                .queryParam("query.start_time_min", startMin)
+                .queryParam("query.start_time_max", startMax)
+                .get(jaeger.getTraceV3Url())
                 .then()
                 .statusCode(HttpStatus.SC_OK)
-                .body("data", hasSize(1))
-                .body("data[0].spans", hasSize(1))
-                .body("data[0].spans.operationName", hasItems(OPERATION))
-                .body("data[0].spans.logs.fields.value.flatten()", hasItems("ClientResource called")));
+                .body("result.resourceSpans", hasSize(1))
+                .body("result.resourceSpans[0].scopeSpans[0].spans", hasSize(1))
+                .body("result.resourceSpans[0].scopeSpans[0].spans[0].name", equalTo(OPERATION))
+                .body("result.resourceSpans[0].scopeSpans[0].spans[0].events.name",
+                        hasItems("ClientResource called")));
     }
 }
