@@ -7,10 +7,12 @@ import static java.util.regex.Pattern.quote;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.file.Files;
+import java.time.Duration;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +28,8 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
         extends TemplateOpenShiftQuarkusApplicationManagedResource<ArtifactQuarkusApplicationManagedResourceBuilder> {
 
     private static final String S2I_DEFAULT_VERSION = "latest";
+    private static final Duration IMAGE_LOOKUP_TIMEOUT = Duration.ofSeconds(90);
+    private static final Duration IMAGE_LOOKUP_INTERVAL = Duration.ofSeconds(3);
 
     private static final String QUARKUS_OPENSHIFT_TEMPLATE = "/quarkus-build-openshift-template.yml";
     private static final String IMAGE_TAG_SEPARATOR = ":";
@@ -74,28 +78,71 @@ public class BuildOpenShiftQuarkusApplicationManagedResource
 
     private static String getImage(String service) {
         Log.info("Trying to retrieve the latest image version.");
-        try {
+        long deadline = System.nanoTime() + IMAGE_LOOKUP_TIMEOUT.toNanos();
+        Exception lastFailure = null;
+
+        while (true) {
             List<String> output = new ArrayList<>();
-            new Command("oc", "get", "buildconfig", service, "-o", "template",
-                    "--template",
-                    "{{.status.lastVersion}}")
-                    .outputToLines(output)
-                    .runAndWait();
-            String version = output.get(0);
-            Log.info("Received build version %s", version);
-            output = new ArrayList<>();
-            new Command("oc", "get", "build", service + "-" + version,
-                    "-o", "template",
-                    "--template",
-                    "{{.status.outputDockerImageReference}}")
-                    .outputToLines(output)
-                    .runAndWait();
-            String image = output.get(0);
-            Log.info("Received full image name: '%s'", image);
-            return image;
-        } catch (Exception e) {
-            throw new AssertionFailedError("Failed while retrieving image. Caused by " + e.getMessage());
+            try {
+                new Command("oc", "get", "buildconfig", service, "-o", "template",
+                        "--template", "{{.status.lastVersion}}")
+                        .outputToLines(output)
+                        .runAndWait();
+                String version = output.isEmpty() ? "" : output.get(0).trim();
+                if (!version.isBlank() && !"0".equals(version)) {
+                    Log.info("Received build version %s", version);
+                    output = new ArrayList<>();
+                    new Command("oc", "get", "build", service + "-" + version, "-o", "template",
+                            "--template", "{{.status.outputDockerImageReference}}")
+                            .outputToLines(output)
+                            .runAndWait();
+                    String image = output.isEmpty() ? "" : output.get(0).trim();
+                    if (!image.isBlank() && !"no-image-yet".equals(image)) {
+                        Log.info("Received full image name: '%s'", image);
+                        return image;
+                    }
+                    lastFailure = new IllegalStateException("Build " + service + "-" + version
+                            + " has no outputDockerImageReference yet");
+                } else {
+                    lastFailure = new IllegalStateException("BuildConfig " + service + " has no build version yet");
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AssertionFailedError("Interrupted while retrieving OpenShift build image", e);
+            } catch (Exception e) {
+                // Command throws a generic RuntimeException for an unsuccessful exit code.
+                // Its captured output distinguishes transient API connectivity from real errors.
+                if (!isTransientApiFailure(output)) {
+                    throw new AssertionFailedError("Failed while retrieving OpenShift build image for " + service
+                            + ": " + String.join("; ", output), e);
+                }
+                lastFailure = e;
+                Log.warn("Transient OpenShift API error retrieving image for %s: %s", service,
+                        String.join("; ", output));
+            }
+
+            if (System.nanoTime() >= deadline) {
+                throw new AssertionFailedError("Timed out retrieving a valid OpenShift build image for " + service
+                        + " after " + IMAGE_LOOKUP_TIMEOUT + ". Deployment was not patched.", lastFailure);
+            }
+            try {
+                Thread.sleep(IMAGE_LOOKUP_INTERVAL.toMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new AssertionFailedError("Interrupted while waiting for OpenShift build image", e);
+            }
         }
+    }
+
+    private static boolean isTransientApiFailure(List<String> output) {
+        String message = String.join(" ", output).toLowerCase(Locale.ROOT);
+        return message.contains("i/o timeout")
+                || message.contains("context deadline exceeded")
+                || message.contains("connection refused")
+                || message.contains("connection reset by peer")
+                || message.contains("tls handshake timeout")
+                || message.contains("service unavailable")
+                || message.contains("too many requests");
     }
 
     protected String replaceDeploymentContent(String content) {
