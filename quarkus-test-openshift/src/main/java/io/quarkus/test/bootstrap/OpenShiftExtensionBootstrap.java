@@ -72,10 +72,23 @@ public class OpenShiftExtensionBootstrap implements ExtensionBootstrap {
     @Override
     public void onError(ScenarioContext context, Throwable throwable) {
         if (PRINT_INFO_ON_ERROR.getAsBoolean()) {
-            FileUtils.createDirectoryIfDoesNotExist(logsTestFolder(context));
-            printStatus(context);
-            printEvents(context);
-            printPodLogs(context);
+            // Diagnostics must never replace the exception that made the test fail.
+            collectDiagnostics(throwable, "create log directory",
+                    () -> FileUtils.createDirectoryIfDoesNotExist(logsTestFolder(context)));
+            collectDiagnostics(throwable, "OpenShift status", () -> printStatus(context));
+            collectDiagnostics(throwable, "OpenShift events", () -> printEvents(context));
+            collectDiagnostics(throwable, "pod logs", () -> printPodLogs(context));
+        }
+    }
+
+    private static void collectDiagnostics(Throwable original, String description, Runnable action) {
+        try {
+            action.run();
+        } catch (RuntimeException e) {
+            Log.warn("Unable to collect %s during test failure: %s", description, e);
+            if (original != null && original != e) {
+                original.addSuppressed(e);
+            }
         }
     }
 
