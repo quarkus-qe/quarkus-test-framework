@@ -11,28 +11,28 @@ import io.quarkus.test.services.containers.JaegerContainerManagedResourceBuilder
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface JaegerContainer {
-    String image() default "quay.io/jaegertracing/all-in-one:1.76.0";
+    String image() default "quay.io/jaegertracing/jaeger:2.22.0";
 
     int tracePort() default 16686;
 
     /**
-     * Rest port of a Jaeger collector. Default port 14268 is used by a collector that accepts jaeger.thrift directly from
-     * clients.
-     */
-    int restPort() default 14268;
-
-    /**
-     * OTLP port of a Jaeger collector. Default port 4318 is used for the OpenTelemetry Protocol (OTLP) over http/protobuf.
+     * OTLP HTTP port of the Jaeger collector. Default port 4318 is used for the OpenTelemetry Protocol (OTLP) over
+     * http/protobuf.
      */
     int otlpPort() default 4318;
 
     /**
-     * Switches between {@link #restPort()} and {@link #otlpPort()}.
-     * If set to true, the OTLP collector is used. If set to false, the Jaeger collector is used.
+     * OTLP gRPC port of the Jaeger collector.
      */
+    int grpcPort() default 4317;
+
+    /**
+     * @deprecated Jaeger 2.x always has OTLP enabled. This attribute is ignored.
+     */
+    @Deprecated
     boolean useOtlpCollector() default true;
 
-    String expectedLog() default "server started";
+    String expectedLog() default "Everything is ready. Begin running and processing data.";
 
     /**
      * @return whether communication between Quarkus OTel exporter and Jaeger OTLP collector should be secured

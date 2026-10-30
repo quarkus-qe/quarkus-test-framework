@@ -3,6 +3,9 @@ package io.quarkus.test.services.containers;
 import static io.quarkus.test.configuration.Configuration.Property.JAEGER_TRACE_URL_PROPERTY;
 import static io.quarkus.test.services.Certificate.Format.PEM;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
 
@@ -15,7 +18,6 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
 
     public static final String CERTIFICATE_CONTEXT_KEY = "io.quarkus.test.services.containers.jaeger.certificate";
     public static final String JAEGER_CLIENT_CERT_CN = "jaeger-client";
-    private static final String COLLECTOR_OTLP_ENABLED = "COLLECTOR_OTLP_ENABLED";
     private final JaegerContainerManagedResourceBuilder model;
 
     protected JaegerGenericDockerContainerManagedResource(JaegerContainerManagedResourceBuilder model) {
@@ -35,25 +37,31 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
         GenericContainer<?> container = super.initContainer();
         container.addExposedPort(model.getTracePort());
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
+
+        // Jaeger 2.x config: https://www.jaegertracing.io/docs/2.4/configuration/
+        List<String> args = new ArrayList<>();
+        args.add("--set");
+        args.add("receivers.otlp.protocols.http.endpoint=0.0.0.0:" + model.getPort());
+        args.add("--set");
+        args.add("receivers.otlp.protocols.grpc.endpoint=0.0.0.0:" + model.getGrpcPort());
+
         if (model.isTlsEnabled()) {
             var clientCertRequest = new ClientCertificateRequest[] {
                     new ClientCertificateRequest(JAEGER_CLIENT_CERT_CN, false) };
             var cert = Certificate.of("jaeger-cert", PEM, "jaeger-password", true, "jaeger-tls-config", clientCertRequest);
             model.getContext().put(CERTIFICATE_CONTEXT_KEY, cert);
-            // I found CLI flags used below here: https://www.jaegertracing.io/docs/1.60/cli/
-            container.withCreateContainerCmdModifier(cmd -> cmd
-                    .withCmd("--collector.otlp.http.tls.enabled=true",
-                            "--collector.otlp.http.tls.key=/test-tls/key/tls.key",
-                            "--collector.otlp.http.tls.cert=/test-tls/cert/tls.cert",
-                            "--collector.otlp.http.tls.client-ca=/test-tls/ca/ca.crt"));
+            args.add("--set");
+            args.add("receivers.otlp.protocols.http.tls.cert_file=/test-tls/cert/tls.cert");
+            args.add("--set");
+            args.add("receivers.otlp.protocols.http.tls.key_file=/test-tls/key/tls.key");
+            args.add("--set");
+            args.add("receivers.otlp.protocols.http.tls.client_ca_file=/test-tls/ca/ca.crt");
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.certPath()), "/test-tls/cert/tls.cert");
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.keyPath()), "/test-tls/key/tls.key");
             container.withCopyFileToContainer(MountableFile.forHostPath(cert.truststorePath()), "/test-tls/ca/ca.crt");
         }
 
-        if (model.shouldUseOtlpCollector()) {
-            container.addEnv(COLLECTOR_OTLP_ENABLED, "true");
-        }
+        container.withCreateContainerCmdModifier(cmd -> cmd.withCmd(args.toArray(String[]::new)));
 
         return container;
     }

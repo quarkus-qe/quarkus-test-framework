@@ -14,14 +14,10 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
 
     private ServiceContext context;
     private String image;
-    /**
-     * Port used to collect traces. Depending on the {@link JaegerContainer#useOtlpCollector()}, value is either
-     * {@link JaegerContainer#otlpPort()} or {@link JaegerContainer#restPort()}.
-     */
     private int port;
+    private int grpcPort;
     private int tracePort;
     private String expectedLog;
-    private boolean useOtlpCollector;
     private boolean tlsEnabled;
 
     @Override
@@ -44,12 +40,12 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         return expectedLog;
     }
 
-    protected int getTracePort() {
-        return tracePort;
+    protected int getGrpcPort() {
+        return grpcPort;
     }
 
-    protected boolean shouldUseOtlpCollector() {
-        return useOtlpCollector;
+    protected int getTracePort() {
+        return tracePort;
     }
 
     protected boolean isTlsEnabled() {
@@ -60,10 +56,10 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
     public void init(Annotation annotation) {
         JaegerContainer metadata = (JaegerContainer) annotation;
         this.image = metadata.image();
-        this.port = metadata.useOtlpCollector() ? metadata.otlpPort() : metadata.restPort();
+        this.port = metadata.otlpPort();
+        this.grpcPort = metadata.grpcPort();
         this.tracePort = metadata.tracePort();
         this.expectedLog = metadata.expectedLog();
-        this.useOtlpCollector = metadata.useOtlpCollector();
         this.tlsEnabled = metadata.tls();
     }
 
