@@ -38,11 +38,12 @@ public class JaegerGenericDockerContainerManagedResource extends GenericDockerCo
         container.addExposedPort(model.getTracePort());
         container.withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
 
+        // Jaeger 2.x config: https://www.jaegertracing.io/docs/2.4/configuration/
         List<String> args = new ArrayList<>();
         args.add("--set");
         args.add("receivers.otlp.protocols.http.endpoint=0.0.0.0:" + model.getPort());
         args.add("--set");
-        args.add("receivers.otlp.protocols.grpc.endpoint=0.0.0.0:4317");
+        args.add("receivers.otlp.protocols.grpc.endpoint=0.0.0.0:" + model.getGrpcPort());
 
         if (model.isTlsEnabled()) {
             var clientCertRequest = new ClientCertificateRequest[] {
