@@ -15,6 +15,7 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
     private ServiceContext context;
     private String image;
     private int port;
+    private int grpcPort;
     private int tracePort;
     private String expectedLog;
     private boolean tlsEnabled;
@@ -39,6 +40,10 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         return expectedLog;
     }
 
+    protected int getGrpcPort() {
+        return grpcPort;
+    }
+
     protected int getTracePort() {
         return tracePort;
     }
@@ -52,6 +57,7 @@ public class JaegerContainerManagedResourceBuilder extends ContainerManagedResou
         JaegerContainer metadata = (JaegerContainer) annotation;
         this.image = metadata.image();
         this.port = metadata.otlpPort();
+        this.grpcPort = metadata.grpcPort();
         this.tracePort = metadata.tracePort();
         this.expectedLog = metadata.expectedLog();
         this.tlsEnabled = metadata.tls();

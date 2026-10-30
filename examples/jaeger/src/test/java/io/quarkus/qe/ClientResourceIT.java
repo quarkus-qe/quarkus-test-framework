@@ -41,6 +41,7 @@ public class ClientResourceIT {
                 .statusCode(HttpStatus.SC_OK)
                 .body(equalTo("I'm a client"));
 
+        // Jaeger v3 API requires a time window (v1 API did not)
         String startMin = Instant.now().minus(1, ChronoUnit.HOURS).toString();
         String startMax = Instant.now().plus(1, ChronoUnit.HOURS).toString();
 

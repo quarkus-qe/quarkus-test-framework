@@ -16,16 +16,15 @@ public @interface JaegerContainer {
     int tracePort() default 16686;
 
     /**
-     * @deprecated Jaeger 2.x only supports OTLP. Use {@link #otlpPort()} instead.
-     */
-    @Deprecated
-    int restPort() default 14268;
-
-    /**
      * OTLP HTTP port of the Jaeger collector. Default port 4318 is used for the OpenTelemetry Protocol (OTLP) over
      * http/protobuf.
      */
     int otlpPort() default 4318;
+
+    /**
+     * OTLP gRPC port of the Jaeger collector.
+     */
+    int grpcPort() default 4317;
 
     /**
      * @deprecated Jaeger 2.x always has OTLP enabled. This attribute is ignored.
