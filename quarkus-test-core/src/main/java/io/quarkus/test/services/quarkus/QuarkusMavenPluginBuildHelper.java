@@ -315,18 +315,16 @@ public final class QuarkusMavenPluginBuildHelper {
             mavenBuildProjectRoot = prepareMavenProject(appFolder.resolve("mvn-build"));
         }
 
-        return getArtifact().or(() -> buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs));
+        return getArtifact()
+                .or(() -> buildArtifactWithQuarkusMvnPlugin(mavenBuildProjectRoot, additionalArgs))
+                .or(this::getArtifact);
     }
 
     private Optional<Path> getArtifact() {
         Optional<String> artifactLocation = Optional.empty();
         final Path targetFolder = targetFolderForLocalArtifacts;
         if (artifactSuffix != null) {
-            var possiblyArtifact = findTargetFile(targetFolder, artifactSuffix).map(Path::of);
-            if (possiblyArtifact.isPresent()) {
-                return possiblyArtifact;
-            }
-            throw new IllegalStateException(String.format("Folder %s doesn't contain '%s'", targetFolder, artifactSuffix));
+            return findTargetFile(targetFolder, artifactSuffix).map(Path::of);
         }
         resourceBuilder.createSnapshotOfBuildPropertiesIfNotExists();
         if (!resourceBuilder.buildPropertiesChanged()) {
