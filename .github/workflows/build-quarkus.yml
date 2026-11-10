@@ -12,11 +12,11 @@ jobs:
       matrix:
         java: [ 21 ]
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Reclaim Disk Space
         run: .github/ci-prerequisites.sh
       - name: Install JDK {{ matrix.java }}
-        uses: actions/setup-java@v6
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
         with:
           distribution: 'temurin'
           java-version: ${{ matrix.java }}
@@ -41,7 +41,7 @@ jobs:
           ./mvnw -Dsync  -Dquarkus.version=999-SNAPSHOT -Dmaven.repo.local=${{ env.LOCAL_REPO }}
           ./mvnw install -Dquarkus.version=999-SNAPSHOT -DskipTests -DskipITs -Dmaven.repo.local=${{ env.LOCAL_REPO }}
       - name: Cache Build Outputs
-        uses: actions/cache/save@v6
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           # Keep same path ./action/cache-quarkus/action
           path: |
