@@ -214,8 +214,6 @@ jobs:
       - name: Unzip Sysinternals Handle
         shell: pwsh
         run: Expand-Archive .\handle.zip -DestinationPath .
-      - name: Install cl.exe
-        uses: ilammy/msvc-dev-cmd@v1
       - uses: microsoft/setup-msbuild@v3
       - name: Setup GraalVM
         id: setup-graalvm
