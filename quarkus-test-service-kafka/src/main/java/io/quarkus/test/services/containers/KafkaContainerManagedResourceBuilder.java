@@ -130,10 +130,10 @@ public class KafkaContainerManagedResourceBuilder implements ManagedResourceBuil
             }
         }
 
-        if (vendor == KafkaVendor.STRIMZI) {
-            return new LocalhostManagedResource(new StrimziKafkaContainerManagedResource(this));
-        }
-
-        return new ConfluentKafkaContainerManagedResource(this);
+        return switch (vendor) {
+            case STRIMZI -> new LocalhostManagedResource(new StrimziKafkaContainerManagedResource(this));
+            case STRIMZI_CLUSTER -> new LocalhostManagedResource(new StrimziKafkaClusterManagedResource(this));
+            case CONFLUENT -> new ConfluentKafkaContainerManagedResource(this);
+        };
     }
 }
