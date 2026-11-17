@@ -69,6 +69,16 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
         return model.getVendor().getRegistry().getPort();
     }
 
+    /**
+     * Network owned by this resource and closed when it stops. Docker only creates it once a container joins it.
+     */
+    protected Network getNetwork() {
+        if (network == null) {
+            network = Network.newNetwork();
+        }
+        return network;
+    }
+
     protected String getResourceTargetName(String resource) {
         return resource;
     }
@@ -103,9 +113,8 @@ public abstract class BaseKafkaContainerManagedResource extends DockerContainerM
             schemaRegistryLoggingHandler = new TestContainersLoggingHandler(model.getContext().getOwner(), schemaRegistry);
 
             // Setup common network for kafka and the registry
-            network = Network.newNetwork();
-            kafkaContainer.withNetwork(network);
-            schemaRegistry.withNetwork(network);
+            kafkaContainer.withNetwork(getNetwork());
+            schemaRegistry.withNetwork(getNetwork());
         }
 
         return kafkaContainer;

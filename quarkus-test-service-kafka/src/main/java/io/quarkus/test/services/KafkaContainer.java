@@ -14,7 +14,7 @@ import io.quarkus.test.services.containers.model.KafkaVendor;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface KafkaContainer {
 
-    KafkaVendor vendor() default KafkaVendor.STRIMZI;
+    KafkaVendor vendor() default KafkaVendor.STRIMZI_CLUSTER;
 
     String image() default "";
 
