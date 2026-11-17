@@ -95,8 +95,9 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
 
     @Override
     protected GenericContainer<?> initRegistryContainer(GenericContainer<?> kafka) {
-        throw new UnsupportedOperationException(
-                "Schema registry is not supported yet by " + StrimziKafkaClusterManagedResource.class.getName());
+        return new GenericContainer<>(getKafkaRegistryImage())
+                .withExposedPorts(getKafkaRegistryPort())
+                .withCreateContainerCmdModifier(cmd -> cmd.withName(DockerUtils.generateDockerContainerName()));
     }
 
     private String getKafkaImage() {
@@ -125,12 +126,6 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
         if (model.getKafkaConfigResources().length > 0) {
             // for SSL this also rules out tests bringing their own trust store, they get a generated one instead
             Assertions.fail("Custom kafka config resources are not supported yet by " + KafkaVendor.STRIMZI_CLUSTER);
-        }
-
-        if (model.isWithRegistry()) {
-            // the registry would replace the cluster network with its own, breaking the broker-0 alias that the
-            // generated controller.quorum.voters relies on
-            Assertions.fail("Schema registry is not supported yet by " + KafkaVendor.STRIMZI_CLUSTER);
         }
     }
 }
