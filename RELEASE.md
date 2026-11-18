@@ -20,6 +20,9 @@ micro-releases usually containing bug-fixes or non-breaking features.
 
 Spite the test framework does not include Quarkus upstream dependencies, it needs them to run some verifications. Also, as part of the release process we trigger this verification and we don't build Quarkus upstream, so we need to use a released Quarkus version instead of 999-SNAPSHOT in the `pom.xml`.
 
+- Make sure that list of build time properties in `./quarkus-test-core/src/main/resources/deployment-build-props.txt` is up to date. 
+Process for making new list (to verify against) is in `./misc/DeploymentBuildTimeConfigListGeneration.md`.
+
 ## Steps
 
 1. Clone the `https://github.com/quarkus-qe/quarkus-test-framework` repository from your local machine
