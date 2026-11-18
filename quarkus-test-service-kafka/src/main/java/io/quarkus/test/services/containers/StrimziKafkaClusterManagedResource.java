@@ -3,12 +3,16 @@ package io.quarkus.test.services.containers;
 import static io.quarkus.test.services.Certificate.Format.PKCS12;
 import static java.util.Map.entry;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Consumer;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Assertions;
+import org.testcontainers.containers.Container.ExecResult;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.MountableFile;
 
@@ -30,6 +34,10 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
     private static final String PKCS12_STORE_TYPE = "PKCS12";
     private static final String SASL_USERNAME = "client";
     private static final String SASL_PASSWORD = "client-secret";
+    private static final String SCRAM_MECHANISM = "SCRAM-SHA-512";
+    private static final String SCRAM_PASSWORD = "client-secret12345678912345678912";
+
+    private StrimziKafkaContainer kafkaContainer;
 
     protected StrimziKafkaClusterManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -52,7 +60,8 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
                 .withNumberOfBrokers(1)
                 .withImage(getKafkaImage());
 
-        if (model.getProtocol() == KafkaProtocol.SSL) {
+        if (model.getProtocol() == KafkaProtocol.SSL || model.getProtocol() == KafkaProtocol.SASL_SSL) {
+            String securityProtocol = model.getProtocol() == KafkaProtocol.SSL ? "SSL" : "SASL_SSL";
             Certificate certificate = Certificate.of(CERTIFICATE_PREFIX, PKCS12, CERTIFICATE_PASSWORD);
             String keyStore = model.getKafkaConfigPath() + Path.of(certificate.keystorePath()).getFileName();
             String trustStore = model.getKafkaConfigPath() + Path.of(certificate.truststorePath()).getFileName();
@@ -62,9 +71,10 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
                     .withCopyFileToContainer(MountableFile.forHostPath(certificate.truststorePath()), trustStore));
 
             builder.withBootstrapServers(
-                    broker -> "SSL://" + broker.getHost() + ":" + broker.getMappedPort(getTargetPort()))
+                    broker -> securityProtocol + "://" + broker.getHost() + ":" + broker.getMappedPort(getTargetPort()))
                     .withAdditionalKafkaConfiguration(Map.ofEntries(
-                            entry("listener.security.protocol.map", "SSL:SSL,BROKER1:PLAINTEXT,CONTROLLER:PLAINTEXT"),
+                            entry("listener.security.protocol.map",
+                                    securityProtocol + ":" + securityProtocol + ",BROKER1:PLAINTEXT,CONTROLLER:PLAINTEXT"),
                             entry("ssl.keystore.location", keyStore),
                             entry("ssl.keystore.password", CERTIFICATE_PASSWORD),
                             entry("ssl.keystore.type", PKCS12_STORE_TYPE),
@@ -73,23 +83,33 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
                             entry("ssl.truststore.password", CERTIFICATE_PASSWORD),
                             entry("ssl.truststore.type", PKCS12_STORE_TYPE),
                             entry("ssl.endpoint.identification.algorithm", "")));
-            /*
-             * What the application under test needs to talk to the broker, read back through
-             * KafkaService#getSslProperties. Either as plain Kafka client properties, or through the Quarkus TLS
-             * registry when the test asked for a named configuration.
-             */
+
+            Map<String, String> clientProperties = new HashMap<>();
+            clientProperties.put("kafka.ssl.enable", "true");
+            clientProperties.put("kafka.security.protocol", securityProtocol);
             String tlsConfigName = model.getQuarkusTlsRegistryConfigName();
-            model.getContext().put(KafkaService.KAFKA_SSL_PROPERTIES, tlsConfigName == null
-                    ? Map.of("kafka.ssl.enable", "true",
-                            "kafka.security.protocol", "SSL",
-                            "kafka.ssl.truststore.location", certificate.truststorePath(),
-                            "kafka.ssl.truststore.password", CERTIFICATE_PASSWORD,
-                            "kafka.ssl.truststore.type", PKCS12_STORE_TYPE)
-                    : Map.of("kafka.ssl.enable", "true",
-                            "kafka.security.protocol", "SSL",
-                            "kafka.tls-configuration-name", tlsConfigName,
-                            "quarkus.tls." + tlsConfigName + ".trust-store.p12.path", certificate.truststorePath(),
-                            "quarkus.tls." + tlsConfigName + ".trust-store.p12.password", CERTIFICATE_PASSWORD));
+            if (tlsConfigName == null) {
+                clientProperties.put("kafka.ssl.truststore.location", certificate.truststorePath());
+                clientProperties.put("kafka.ssl.truststore.password", CERTIFICATE_PASSWORD);
+                clientProperties.put("kafka.ssl.truststore.type", PKCS12_STORE_TYPE);
+            } else {
+                clientProperties.put("kafka.tls-configuration-name", tlsConfigName);
+                clientProperties.put("quarkus.tls." + tlsConfigName + ".trust-store.p12.path", certificate.truststorePath());
+                clientProperties.put("quarkus.tls." + tlsConfigName + ".trust-store.p12.password", CERTIFICATE_PASSWORD);
+            }
+
+            if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
+                // the user itself is added once the broker is up, see #addScramUser
+                builder.withAdditionalKafkaConfiguration(Map.of(
+                        "sasl.enabled.mechanisms", SCRAM_MECHANISM,
+                        "listener.name.sasl_ssl.scram-sha-512.sasl.jaas.config",
+                        "org.apache.kafka.common.security.scram.ScramLoginModule required;"));
+                clientProperties.put("kafka.sasl.mechanism", SCRAM_MECHANISM);
+                clientProperties.put("kafka.sasl.jaas.config",
+                        "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"" + SASL_USERNAME
+                                + "\" password=\"" + SCRAM_PASSWORD + "\";");
+            }
+            model.getContext().put(KafkaService.KAFKA_SSL_PROPERTIES, Map.copyOf(clientProperties));
         } else if (model.getProtocol() == KafkaProtocol.SASL) {
             // the inter-broker listener stays on plain text, so only the client user is needed
             builder.withBootstrapServers(
@@ -103,7 +123,35 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
                                     + "=\"" + SASL_PASSWORD + "\";"));
         }
 
-        return builder.withContainerCustomizer(customizer).build().getBrokers().iterator().next();
+        kafkaContainer = builder.withContainerCustomizer(customizer).build().getBrokers().iterator().next();
+        return kafkaContainer;
+    }
+
+    @Override
+    public void start() {
+        super.start();
+
+        if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
+            // newer upstream versions prefix it with the PLAINTEXT scheme
+            String bootstrapServers = kafkaContainer.getNetworkBootstrapServers();
+            if (bootstrapServers.startsWith("PLAINTEXT://")) {
+                bootstrapServers = bootstrapServers.substring("PLAINTEXT://".length());
+            }
+            try {
+                ExecResult result = kafkaContainer.execInContainer("bin/kafka-configs.sh",
+                        "--bootstrap-server", bootstrapServers,
+                        "--alter", "--entity-type", "users", "--entity-name", SASL_USERNAME,
+                        "--add-config", SCRAM_MECHANISM + "=[password=" + SCRAM_PASSWORD + "]");
+                if (result.getExitCode() != 0) {
+                    throw new IllegalStateException("Failed to add SCRAM user " + SASL_USERNAME + ": " + result.getStderr());
+                }
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
     @Override
@@ -122,12 +170,6 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
      */
     @Override
     public void validate() {
-        if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
-            // SASL_SSL uses SCRAM, which has no equivalent upstream, StrimziKafkaContainer#configureAuthentication
-            // rejects it and the format command never gets --add-scram
-            Assertions.fail("SASL_SSL protocol is not supported yet by " + KafkaVendor.STRIMZI_CLUSTER);
-        }
-
         if (StringUtils.isNotEmpty(model.getServerProperties())) {
             // StrimziKafkaContainer#containerIsStarting always overwrites /opt/kafka/config/kraft/server.properties,
             // so the file copied into the container would be silently dropped. Kafka configuration has to be passed

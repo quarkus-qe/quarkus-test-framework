@@ -37,13 +37,13 @@ public class StrimziKafkaClusterManagedResourceTest {
     static Object kafkaConfigResources;
 
     @ParameterizedTest
-    @ValueSource(strings = { "plainText", "ssl", "sasl", "withRegistry" })
+    @ValueSource(strings = { "plainText", "ssl", "sasl", "saslSsl", "withRegistry" })
     void supported(String field) {
         assertDoesNotThrow(() -> resourceFor(field).validate());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = { "saslSsl", "serverProperties", "kafkaConfigResources" })
+    @ValueSource(strings = { "serverProperties", "kafkaConfigResources" })
     void unsupported(String field) {
         assertThrows(AssertionFailedError.class, () -> resourceFor(field).validate());
     }
