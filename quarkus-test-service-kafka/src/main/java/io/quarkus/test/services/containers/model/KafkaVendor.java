@@ -11,8 +11,8 @@ public enum KafkaVendor {
     STRIMZI(Strimzi.IMAGE, Strimzi.VERSION, 9092, KafkaRegistry.APICURIO),
     /**
      * Default vendor. Same image as {@link #STRIMZI}, but started through the upstream {@code StrimziKafkaCluster}.
-     * Supports plain text and SSL, with or without a schema registry. Custom server properties, config resources and
-     * SASL are not supported so far.
+     * Supports plain text, SSL and SASL (PLAIN), with or without a schema registry. Custom server properties, config
+     * resources and SASL_SSL are not supported so far.
      */
     STRIMZI_CLUSTER(Strimzi.IMAGE, Strimzi.VERSION, 9092, KafkaRegistry.APICURIO);
 

@@ -28,6 +28,8 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
     private static final String CERTIFICATE_PREFIX = "strimzi-server-ssl";
     private static final String CERTIFICATE_PASSWORD = "top-secret";
     private static final String PKCS12_STORE_TYPE = "PKCS12";
+    private static final String SASL_USERNAME = "client";
+    private static final String SASL_PASSWORD = "client-secret";
 
     protected StrimziKafkaClusterManagedResource(KafkaContainerManagedResourceBuilder model) {
         super(model);
@@ -88,6 +90,17 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
                             "kafka.tls-configuration-name", tlsConfigName,
                             "quarkus.tls." + tlsConfigName + ".trust-store.p12.path", certificate.truststorePath(),
                             "quarkus.tls." + tlsConfigName + ".trust-store.p12.password", CERTIFICATE_PASSWORD));
+        } else if (model.getProtocol() == KafkaProtocol.SASL) {
+            // the inter-broker listener stays on plain text, so only the client user is needed
+            builder.withBootstrapServers(
+                    broker -> "SASL_PLAINTEXT://" + broker.getHost() + ":" + broker.getMappedPort(getTargetPort()))
+                    .withAdditionalKafkaConfiguration(Map.of(
+                            "listener.security.protocol.map",
+                            "SASL_PLAINTEXT:SASL_PLAINTEXT,BROKER1:PLAINTEXT,CONTROLLER:PLAINTEXT",
+                            "sasl.enabled.mechanisms", "PLAIN",
+                            "listener.name.sasl_plaintext.plain.sasl.jaas.config",
+                            "org.apache.kafka.common.security.plain.PlainLoginModule required user_" + SASL_USERNAME
+                                    + "=\"" + SASL_PASSWORD + "\";"));
         }
 
         return builder.withContainerCustomizer(customizer).build().getBrokers().iterator().next();
@@ -109,10 +122,10 @@ public class StrimziKafkaClusterManagedResource extends BaseKafkaContainerManage
      */
     @Override
     public void validate() {
-        if (model.getProtocol() != KafkaProtocol.PLAIN_TEXT && model.getProtocol() != KafkaProtocol.SSL) {
-            // SCRAM has no equivalent upstream, StrimziKafkaContainer#configureAuthentication rejects it and the
-            // format command never gets --add-scram
-            Assertions.fail("Only PLAIN_TEXT and SSL protocols are supported so far by " + KafkaVendor.STRIMZI_CLUSTER);
+        if (model.getProtocol() == KafkaProtocol.SASL_SSL) {
+            // SASL_SSL uses SCRAM, which has no equivalent upstream, StrimziKafkaContainer#configureAuthentication
+            // rejects it and the format command never gets --add-scram
+            Assertions.fail("SASL_SSL protocol is not supported yet by " + KafkaVendor.STRIMZI_CLUSTER);
         }
 
         if (StringUtils.isNotEmpty(model.getServerProperties())) {
