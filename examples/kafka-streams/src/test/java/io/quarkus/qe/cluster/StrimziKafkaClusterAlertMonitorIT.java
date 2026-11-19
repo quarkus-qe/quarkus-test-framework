@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.cluster;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -21,7 +21,7 @@ import io.quarkus.test.services.QuarkusApplication;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same scenario as {@link AlertMonitorIT}, but started through the upstream {@code StrimziKafkaCluster}.
+ * Same scenario as {@link io.quarkus.qe.AlertMonitorIT}, but started through the upstream {@code StrimziKafkaCluster}.
  */
 @QuarkusScenario
 public class StrimziKafkaClusterAlertMonitorIT {

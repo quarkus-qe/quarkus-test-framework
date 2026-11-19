@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.cluster;
 
 import java.time.Duration;
 
@@ -15,7 +15,7 @@ import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same scenario as {@link StrimziKafkaWithDefaultSaslMessagingIT}, but started through the upstream
+ * Same scenario as {@link io.quarkus.qe.StrimziKafkaWithDefaultSaslMessagingIT}, but started through the upstream
  * {@code StrimziKafkaCluster}.
  */
 @QuarkusScenario

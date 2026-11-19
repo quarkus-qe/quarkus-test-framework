@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.cluster;
 
 import java.time.Duration;
 
@@ -11,20 +11,22 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same scenario as {@link FromPomXmlStrimziKafkaWithoutRegistryMessagingIT}, but started through the upstream
+ * Same scenario as {@link io.quarkus.qe.StrimziKafkaWithDefaultSaslSslMessagingIT}, but started through the upstream
  * {@code StrimziKafkaCluster}.
  */
 @QuarkusScenario
-public class FromPomXmlStrimziKafkaClusterWithoutRegistryMessagingIT {
+public class StrimziKafkaClusterWithSaslSslMessagingIT {
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, image = "${custom.kafka.image}", version = "${custom.kafka.version}")
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, protocol = KafkaProtocol.SASL_SSL)
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication
     static final RestService app = new RestService()
+            .withProperties(kafka::getSslProperties)
             .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl);
 
     @Test

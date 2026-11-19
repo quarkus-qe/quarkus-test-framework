@@ -1,6 +1,4 @@
-package io.quarkus.qe;
-
-import static org.hamcrest.Matchers.is;
+package io.quarkus.qe.cluster;
 
 import java.time.Duration;
 
@@ -13,25 +11,20 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
-import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same as {@link StrimziKafkaClusterWithSslMessagingIT}, but the client trust store is handed over through the Quarkus
- * TLS registry.
+ * Same scenario as {@link io.quarkus.qe.FromPomXmlStrimziKafkaWithoutRegistryMessagingIT}, but started through the upstream
+ * {@code StrimziKafkaCluster}.
  */
 @QuarkusScenario
-public class StrimziKafkaClusterWithTlsRegistryAndSslMessagingIT {
+public class FromPomXmlStrimziKafkaClusterWithoutRegistryMessagingIT {
 
-    private static final String TLS_CONFIG_NAME = "tls-config-name-1";
-
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, protocol = KafkaProtocol.SSL, tlsConfigName = TLS_CONFIG_NAME,
-            tlsRegistryEnabled = true)
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, image = "${custom.kafka.image}", version = "${custom.kafka.version}")
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication
     static final RestService app = new RestService()
-            .withProperties(kafka::getSslProperties)
             .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl);
 
     @Test
@@ -41,15 +34,5 @@ public class StrimziKafkaClusterWithTlsRegistryAndSslMessagingIT {
                     .then()
                     .statusCode(HttpStatus.SC_OK);
         });
-    }
-
-    @Test
-    public void testTlsRegistryContainNamedTlsConfig() {
-        app.given()
-                .pathParam("tls-config-name", TLS_CONFIG_NAME)
-                .get("/tls-registry/validate-config/{tls-config-name}")
-                .then()
-                .statusCode(HttpStatus.SC_OK)
-                .body(is("true"));
     }
 }

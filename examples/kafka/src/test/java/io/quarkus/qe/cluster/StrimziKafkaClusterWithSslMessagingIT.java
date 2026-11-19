@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.cluster;
 
 import java.time.Duration;
 
@@ -11,21 +11,26 @@ import io.quarkus.test.bootstrap.RestService;
 import io.quarkus.test.scenarios.QuarkusScenario;
 import io.quarkus.test.services.KafkaContainer;
 import io.quarkus.test.services.QuarkusApplication;
+import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same scenario as {@link StrimziKafkaWithoutRegistryMessagingIT}, but started through the upstream
- * {@code StrimziKafkaCluster}.
+ * One way TLS on a broker started through the upstream {@code StrimziKafkaCluster}.
+ * <p>
+ * Unlike {@link io.quarkus.qe.StrimziKafkaWithDefaultSslMessagingIT}, the stores are not checked in. They are generated per run
+ * and
+ * the client side of them is handed over by {@code KafkaService#getSslProperties}.
  */
 @QuarkusScenario
-public class StrimziKafkaClusterWithoutRegistryMessagingIT {
+public class StrimziKafkaClusterWithSslMessagingIT {
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER)
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, protocol = KafkaProtocol.SSL)
     static final KafkaService kafka = new KafkaService();
 
     @QuarkusApplication
     static final RestService app = new RestService()
-            .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl);
+            .withProperty("kafka.bootstrap.servers", kafka::getBootstrapUrl)
+            .withProperties(kafka::getSslProperties);
 
     @Test
     public void checkUserResourceByNormalUser() {

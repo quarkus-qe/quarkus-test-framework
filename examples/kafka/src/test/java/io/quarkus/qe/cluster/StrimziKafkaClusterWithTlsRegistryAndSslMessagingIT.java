@@ -1,4 +1,4 @@
-package io.quarkus.qe;
+package io.quarkus.qe.cluster;
 
 import static org.hamcrest.Matchers.is;
 
@@ -17,15 +17,15 @@ import io.quarkus.test.services.containers.model.KafkaProtocol;
 import io.quarkus.test.services.containers.model.KafkaVendor;
 
 /**
- * Same scenario as {@link StrimziKafkaWithTlsRegistryAndSaslSslMessagingIT}, but started through the upstream
- * {@code StrimziKafkaCluster}.
+ * Same as {@link StrimziKafkaClusterWithSslMessagingIT}, but the client trust store is handed over through the Quarkus
+ * TLS registry.
  */
 @QuarkusScenario
-public class StrimziKafkaClusterWithTlsRegistryAndSaslSslMessagingIT {
+public class StrimziKafkaClusterWithTlsRegistryAndSslMessagingIT {
 
     private static final String TLS_CONFIG_NAME = "tls-config-name-1";
 
-    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, protocol = KafkaProtocol.SASL_SSL, tlsConfigName = TLS_CONFIG_NAME,
+    @KafkaContainer(vendor = KafkaVendor.STRIMZI_CLUSTER, protocol = KafkaProtocol.SSL, tlsConfigName = TLS_CONFIG_NAME,
             tlsRegistryEnabled = true)
     static final KafkaService kafka = new KafkaService();
 
@@ -45,8 +45,6 @@ public class StrimziKafkaClusterWithTlsRegistryAndSaslSslMessagingIT {
 
     @Test
     public void testTlsRegistryContainNamedTlsConfig() {
-        // this is but a smoke test so that we know @KafkaContainer#tlsConfigName had effect
-        // while the 'checkUserResourceByNormalUser' tests that configured truststore works
         app.given()
                 .pathParam("tls-config-name", TLS_CONFIG_NAME)
                 .get("/tls-registry/validate-config/{tls-config-name}")
