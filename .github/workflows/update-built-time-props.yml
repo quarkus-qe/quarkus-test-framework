@@ -1,0 +1,68 @@
+name: "Update build time properties"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 0'
+permissions:
+  # permissions necessary to create a branch and open PR from it
+  contents: write
+  pull-requests: write
+jobs:
+  linux-build-jvm-latest:
+    name: Linux JVM
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - branch: "main"
+            quarkus-branch: "main"
+            java: "25"
+          - branch: "1.9.z"
+            quarkus-branch: "3.40"
+            java: "25"
+          - branch: "1.8.z"
+            quarkus-branch: "3.33"
+            java: "25"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ matrix.config.branch }}
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK ${{ matrix.config.java }}
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        id: install-jdk
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.config.java }}
+          check-latest: true
+      - name: "Initialize framework path"
+        run: |
+          # Save a base path to framework, we will need it 
+          echo "TFW_BASE_DIR=$(pwd)" >> $GITHUB_ENV
+      - name: "Checkout & Compile quarkus"
+        run: |
+          git clone https://github.com/quarkusio/quarkus.git -b ${{ matrix.config.quarkus-branch }}
+          # git-ignore the quarkus repo
+          echo "quarkus/" >> .git/info/exclude
+          cd quarkus 
+          ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: "Generate new build time properties list"
+        run: |
+          cd ${{ env.TFW_BASE_DIR }}/quarkus/docs
+          cp ${{ env.TFW_BASE_DIR }}/misc/ExtractBuildTimeProperties.java src/main/java/io/quarkus/docs/generation/ExtractBuildTimeProperties.java
+          mvn compile exec:java -Dexec.mainClass="io.quarkus.docs.generation.ExtractBuildTimeProperties"
+          # Copy the newly created file to the sources.
+          cp  deployment-build-props.txt  ${{ env.TFW_BASE_DIR }}/quarkus-test-core/src/main/resources/deployment-build-props.txt
+      # Pull request will only be created if geneerated file differs from the original one
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v8.1.3
+        with:
+          commit-message: "Update build time properties"
+          title: "[${{ matrix.config.branch }}] Update build time properties"
+          add-paths: "**/deployment-build-props.txt"
+          body: "Automated update of build time properties in deployment-build-props.txt file."
+          #  Branch has a fix name for each stream - in that case it will not open new PRs, if previous one is still open
+          branch: "${{ matrix.config.branch }}-update-build-time-props"
+          delete-branch: true
