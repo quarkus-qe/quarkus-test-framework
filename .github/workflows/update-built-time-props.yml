@@ -1,0 +1,90 @@
+name: "Update build time properties"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 8 * * 0'
+permissions:
+  # permissions necessary to create a branch and open PR from it
+  contents: write
+  pull-requests: write
+jobs:
+  update-built-time-properties:
+    name: Update properties
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - branch: "main"
+            quarkus-branch: "main"
+            update-branch: "main-update-build-time-props"
+            java: "25"
+          - branch: "1.9.z"
+            quarkus-branch: "3.40"
+            update-branch: "1.9-update-build-time-props"
+            java: "25"
+          - branch: "1.8.z"
+            quarkus-branch: "3.33"
+            update-branch: "1.8-update-build-time-props"
+            java: "25"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ matrix.config.branch }}
+      - name: Reclaim Disk Space
+        run: .github/ci-prerequisites.sh
+      - name: Install JDK ${{ matrix.config.java }}
+        uses: actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78 # v6.2.0
+        id: install-jdk
+        with:
+          distribution: 'temurin'
+          java-version: ${{ matrix.config.java }}
+          check-latest: true
+      - name: "Initialize framework path"
+        run: |
+          # Save a base path to framework, we will need it 
+          echo "TFW_BASE_DIR=$(pwd)" >> $GITHUB_ENV
+          # Use branch with fixed name, so it will only create one for each supported stream
+          git checkout -b "${{ matrix.config.update-branch }}"
+      - name: "Checkout & Compile quarkus"
+        run: |
+          git clone https://github.com/quarkusio/quarkus.git -b ${{ matrix.config.quarkus-branch }}
+          # git-ignore the quarkus repo
+          echo "quarkus/" >> .git/info/exclude
+          cd quarkus 
+          ./mvnw -B --no-transfer-progress -s .github/mvn-settings.xml clean install -Dquickly -Dno-test-modules -Prelocations
+      - name: "Generate new build time properties list"
+        run: |
+          cd ${{ env.TFW_BASE_DIR }}/quarkus/docs
+          cp ${{ env.TFW_BASE_DIR }}/misc/ExtractBuildTimeProperties.java src/main/java/io/quarkus/docs/generation/ExtractBuildTimeProperties.java
+          mvn compile exec:java -Dexec.mainClass="io.quarkus.docs.generation.ExtractBuildTimeProperties"
+          # Copy the newly created file to the sources.
+          cp  deployment-build-props.txt  ${{ env.TFW_BASE_DIR }}/quarkus-test-core/src/main/resources/deployment-build-props.txt
+      - name: Commit changes and create Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
+          GITHUB_REF: ${{ github.ref }}
+        run: |
+          git config --global user.name 'QuarkusQE'
+          git config --global user.email 'QuarkusQE@users.noreply.github.com'
+                    
+          # Only continue if file is actually changed
+          if [[ -n $(git status --porcelain) ]]; then  
+            git add **/deployment-build-props.txt
+            git commit -m "Update build time properties"
+            git push --force -u origin "${{ matrix.config.update-branch }}"  # If there is a branch already created, override update in it    
+                      
+            # Only create a PR if there isn't already an open one for this branch
+            if [ -z "$(gh pr list --head "${{ matrix.config.update-branch }}" --state open --json number --jq '.[0].number')" ]; then                      
+              gh pr create \
+              --repo=${GITHUB_REPO} \
+              --base=${{ matrix.config.branch }} \
+              --title="[${{ matrix.config.branch }}] Update build time properties" \
+              --body="Automated update of build time properties in deployment-build-props.txt file."
+            else
+              echo "An open PR already exists; updated it with new commits."
+            fi
+          else
+            echo "No changes detected"
+          fi
