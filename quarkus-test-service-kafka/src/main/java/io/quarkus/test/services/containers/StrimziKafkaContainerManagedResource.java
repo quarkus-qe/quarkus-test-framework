@@ -21,6 +21,7 @@ import io.quarkus.test.services.containers.model.KafkaVendor;
 import io.quarkus.test.utils.DockerUtils;
 import io.strimzi.test.container.ExtendedStrimziKafkaContainer;
 
+@Deprecated
 public class StrimziKafkaContainerManagedResource extends BaseKafkaContainerManagedResource {
 
     private static final String STRIMZI_SERVER_SSL = "strimzi-server-ssl";
