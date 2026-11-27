@@ -16,6 +16,7 @@ import io.smallrye.mutiny.tuples.Tuple2;
  * Extend the functionality of io.strimzi.StrimziKafkaContainer with:
  * - Do not overwrite parameters of server.properties.
  */
+@Deprecated
 public class ExtendedStrimziKafkaContainer extends StrimziKafkaContainer {
 
     private static final String KAFKA_MAPPED_PORT = "${KAFKA_MAPPED_PORT}";
